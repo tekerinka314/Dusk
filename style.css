@@ -1,0 +1,4943 @@
+/* ============================================================
+   DUSK — Task Journal  |  Purple Gothic v5
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Cormorant+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ===== GOTHIC PURPLE PALETTE ===== */
+:root {
+    --bg-page:         #03010a;
+    --bg-app:          rgba(5, 2, 20, 0.87);
+    --bg-input:        rgba(8, 3, 30, 0.94);
+    --bg-item:         rgba(7, 2, 22, 0.80);
+    --bg-item-hover:   rgba(18, 6, 52, 0.93);
+    --bg-item-checked: rgba(4, 1, 14, 0.72);
+    --bg-toolbar:      rgba(5, 2, 18, 0.92);
+    --bg-modal:        rgba(6, 2, 22, 0.98);
+    --bg-overlay:      rgba(1, 0, 8, 0.86);
+    --bg-extra:        rgba(5, 2, 20, 0.92);
+    --bg-group-header: rgba(9, 3, 28, 0.90);
+    --bg-tag:          rgba(28, 8, 72, 0.68);
+
+    /* ---- text — --text-muted raised to #9068c0 (≈4.6:1 contrast, WCAG AA) ---- */
+    --text-primary:    #f0e8ff;
+    --text-secondary:  #b880e8;
+    --text-muted:      #9068c0;
+    --text-link:       #c090ff;
+
+    --border:          rgba(88, 30, 160, 0.32);
+    --border-mid:      rgba(130, 50, 220, 0.48);
+    --border-bright:   rgba(170, 90, 255, 0.68);
+    --border-input:    rgba(100, 35, 170, 0.40);
+
+    --accent:          #a060ff;
+    --accent-soft:     rgba(110, 30, 210, 0.20);
+    --accent-hover:    #c898ff;
+    --accent-glow:     rgba(150, 70, 255, 0.30);
+    --accent-dim:      rgba(110, 30, 210, 0.10);
+
+    /* Priority: kept as traffic-light; only checked state goes purple */
+    --prio-high:        #e03060;
+    --prio-high-bg:     rgba(120, 5, 35, 0.40);
+    --prio-high-border: rgba(220, 30, 70, 0.50);
+    --prio-medium:      #d09020;
+    --prio-medium-bg:   rgba(110, 55, 5, 0.38);
+    --prio-medium-border: rgba(210, 120, 20, 0.50);
+    --prio-low:         #3cc870;
+    --prio-low-bg:      rgba(5, 90, 30, 0.28);
+    --prio-low-border:  rgba(30, 180, 70, 0.48);
+
+    /* Checked checkbox → violet/purple */
+    --check-done-bg:     linear-gradient(135deg, #7030d0, #a060ff);
+    --check-done-border: rgba(160, 80, 255, 0.72);
+    --check-done-glow:   rgba(140, 60, 255, 0.40);
+
+    /* deadline-ok is never rendered as a badge (status=null for ok tasks)
+       — kept as a token for completeness but mapped to a palette-consistent
+       cool-blue instead of the jarring green that was here before (audit C-1) */
+    --deadline-ok:         #6688cc;
+    --deadline-ok-bg:      rgba(30, 40, 120, 0.28);
+    --deadline-warn:       #8080ee;
+    --deadline-warn-bg:    rgba(20, 20, 120, 0.40);
+    --deadline-urgent:     #d09020;
+    --deadline-urgent-bg:  rgba(110, 55, 5, 0.38);
+    --deadline-critical:   #e03060;
+    --deadline-critical-bg:rgba(120, 5, 35, 0.40);
+    --deadline-over:       #a01525;
+    --deadline-over-bg:    rgba(90, 0, 18, 0.52);
+
+    --radius-xs: 3px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+
+    --transition:      0.15s ease;
+    --transition-slow: 0.3s cubic-bezier(0.4,0,0.2,1);
+
+    --font-main:  'Cormorant', Georgia, serif;
+    --font-title: 'Cinzel', serif;
+    --font-label: 'Cormorant SC', serif;
+    --font-mono:  'JetBrains Mono', monospace;
+
+    --shadow-sm:   0 2px 10px rgba(0,0,0,0.65);
+    --shadow-md:   0 6px 28px rgba(0,0,0,0.78);
+    --shadow-lg:   0 16px 60px rgba(0,0,0,0.92), 0 0 40px rgba(70,0,160,0.18);
+    --shadow-glow: 0 0 0 1px var(--accent-glow), 0 0 22px var(--accent-glow);
+    --shadow-purple: 0 0 25px rgba(120,40,240,0.22);
+
+    /* ── Gothic Motion Token System (audit D-1) ──────────────────
+       Named by semantic role, not numeric duration, so each value
+       can be tuned globally without hunting scattered magic numbers.
+
+       Easings:
+         --ease-gothic   stone-weight: slow start, heavy presence
+         --ease-spring   ritual-snap: slight overshoot on settle
+         --ease-emerge   veil-lift: smooth, unhurried materialisation
+         --ease-sink     burial: accelerates into disappearance
+
+       Durations (rough ladder):
+         --dur-micro     immediate feedback (ripples, flickers)
+         --dur-quick     fast UI response (hover state, check)
+         --dur-standard  normal transitions (modal in/out, toast)
+         --dur-ritual    ceremony moments (cycle-complete, allDone)
+         --dur-ambient   background atmosphere (appGlow, emblemPulse)
+    ──────────────────────────────────────────────────────────── */
+    --ease-gothic:   cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-emerge:   cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-sink:     cubic-bezier(0.55, 0, 1, 0.45);
+
+    --dur-micro:     80ms;
+    --dur-quick:     220ms;
+    --dur-standard:  340ms;
+    --dur-ritual:    520ms;
+    --dur-ambient:   6000ms;
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+/* ===== ACCESSIBILITY ===== */
+
+/* Gothic focus ring — keyboard only (:focus-visible), never on mouse/touch.
+   Purple glow matches the gothic palette. border-radius:inherit keeps coffin
+   checkboxes and pill-buttons looking correct.                               */
+:focus-visible {
+    outline: 2px solid rgba(180, 100, 255, 0.85);
+    outline-offset: 2px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 4px rgba(140, 60, 255, 0.20), 0 0 12px rgba(160, 80, 255, 0.15);
+}
+/* Inputs already show a border-color focus state — suppress duplicate ring  */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible { outline: none; }
+
+/* P6: search-box is inside .search-wrap which gets its own border highlight —
+   never show a focus ring on the input itself to avoid inner rounded glow     */
+#search-box:focus-visible { outline: none; box-shadow: none; }
+
+/* Reveal task actions when any child receives keyboard focus                 */
+.task-item:focus-within .task-actions { opacity: 1; }
+
+/* Visually hidden but accessible to screen readers                           */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+/* Live-region for screen-reader announcements (populated by JS announce())   */
+#live-region {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+}
+
+/* Global numeric rendering fix:
+   IM Fell English defaults to old-style (descending) numerals.
+   font-variant-numeric: lining-nums forces all digits to sit on the baseline.
+   tabular-nums gives consistent column width (important in counters/deadlines).
+   Cinzel Decorative is caps-only so unaffected. JetBrains Mono already has lining digits.  */
+*, *::before, *::after {
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* ===== BACKGROUND ===== */
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-page);
+    /* PERF-3: Changed from background-attachment:fixed to scroll.
+       fixed forces software repaints on every scroll frame in iOS Safari
+       (background compositing is disabled in that browser for fixed attachments).
+       At max-width:640px the parallax effect was imperceptible — scroll is correct. */
+    background-image: url('bg-gothic.jpg');
+    background-size: cover;
+    background-position: center 18%;
+    background-attachment: scroll;
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        linear-gradient(180deg,
+            rgba(2, 0, 10, 0.70) 0%,
+            rgba(3, 0, 14, 0.60) 40%,
+            rgba(2, 0, 10, 0.78) 100%),
+        radial-gradient(ellipse 90% 70% at 50% -10%, rgba(80, 20, 170, 0.35) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 5% 80%, rgba(60, 15, 130, 0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 35% at 95% 60%, rgba(50, 10, 110, 0.15) 0%, transparent 60%);
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    /* W-9: Consolidated opacity — SVG rect carries the real value (0.016), CSS wrapper is 1.
+       Previous: SVG opacity=0.022 × CSS opacity=0.7 = effective 0.0154. Now explicit. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.016'/%3E%3C/svg%3E");
+    opacity: 1;
+}
+
+/* ===== LAYOUT ===== */
+.container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 100vh;
+    padding: 24px 12px 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* PERF-2: appGlow refactored — animated glow moved to ::after with opacity-only
+   animation (compositor-only, no repaint). Base box-shadow is static. */
+@keyframes appGlowPulse {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 1;    }
+}
+
+.todo-app {
+    width: 100%;
+    max-width: 780px;
+    background: var(--bg-app);
+    border-radius: var(--radius-xl);
+    padding: 34px 36px 38px;
+    border: 1px solid rgba(140, 55, 220, 0.50);
+    margin-top: 30px;
+    position: relative;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    /* Static base shadow — no repaint every frame */
+    box-shadow:
+        var(--shadow-lg),
+        0 0 0 1px rgba(130, 50, 240, 0.22),
+        inset 0 1px 0 rgba(200, 140, 255, 0.10),
+        inset 0 0 75px rgba(65, 5, 145, 0.13),
+        0 0 90px rgba(115, 32, 238, 0.12),
+        0 0 140px rgba(90, 20, 200, 0.07);
+}
+/* Animated glow layer — opacity-only, GPU-composited */
+.todo-app::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+        0 0 0 1px rgba(170, 80, 255, 0.38),
+        inset 0 1px 0 rgba(220, 160, 255, 0.14),
+        inset 0 0 80px rgba(80, 10, 170, 0.16),
+        0 0 80px rgba(130, 40, 255, 0.20),
+        0 0 140px rgba(90, 20, 200, 0.11);
+    animation: appGlowPulse var(--dur-ambient) ease-in-out infinite;
+    will-change: opacity;
+    z-index: -1;
+}
+
+/* Honour reduced-motion: keep static glow, kill the infinite pulse */
+@media (prefers-reduced-motion: reduce) {
+    .todo-app::after { animation: none; opacity: 0.6; }
+}
+
+.todo-app::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(150, 60, 255, 0.25) 15%,
+        rgba(200, 100, 255, 0.70) 40%,
+        rgba(220, 120, 255, 0.90) 50%,
+        rgba(200, 100, 255, 0.70) 60%,
+        rgba(150, 60, 255, 0.25) 85%,
+        transparent 100%);
+    pointer-events: none;
+}
+
+.todo-app::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(100, 30, 200, 0.20) 30%,
+        rgba(140, 60, 220, 0.40) 50%,
+        rgba(100, 30, 200, 0.20) 70%,
+        transparent 100%);
+    pointer-events: none;
+}
+
+/* ===== HEADER ===== */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    margin-bottom: 26px;
+    padding-bottom: 24px;
+    position: relative;
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 14'%3E%3Cline x1='0' y1='7' x2='55' y2='7' stroke='rgba(130,50,220,0.35)' stroke-width='0.8'/%3E%3Cline x1='105' y1='7' x2='160' y2='7' stroke='rgba(130,50,220,0.35)' stroke-width='0.8'/%3E%3Cpath d='M64 7 L66 4 L68 7 L66 10 Z' fill='rgba(130,50,220,0.48)'/%3E%3Ccircle cx='80' cy='7' r='2.5' fill='none' stroke='rgba(130,50,220,0.48)' stroke-width='0.8'/%3E%3Ccircle cx='80' cy='7' r='1' fill='rgba(130,50,220,0.55)'/%3E%3Cpath d='M92 7 L94 4 L96 7 L94 10 Z' fill='rgba(130,50,220,0.48)'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+}
+
+
+
+/* Gothic coffin logo emblems */
+.brand-emblem {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    filter: drop-shadow(0 0 8px rgba(150,60,255,0.35));
+    animation: emblemPulse 4.5s ease-in-out infinite;
+}
+.brand-emblem-r { animation-delay: -2.25s; }
+.brand-svg { display: block; width: 30px; height: 36px; }
+@keyframes emblemPulse {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(140,50,240,0.28)); opacity: 0.80; }
+    50%       { filter: drop-shadow(0 0 16px rgba(190,100,255,0.65)); opacity: 1.0; }
+}
+
+.brand-content { text-align: center; }
+
+.brand-name {
+    font-family: var(--font-title);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 8px;
+    color: var(--text-primary);
+    text-shadow:
+        0 0 20px rgba(160, 80, 255, 0.50),
+        0 0 50px rgba(140, 60, 255, 0.25),
+        0 0 90px rgba(100, 30, 200, 0.15);
+    line-height: 1;
+}
+
+.brand-tagline {
+    font-size: 10.5px;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+    font-family: var(--font-label);
+    opacity: 0.9;
+}
+
+/* ===== PAGE TABS ===== */
+.page-nav {
+    display: flex;
+    gap: 3px;
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+}
+
+.nav-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border-radius: calc(var(--radius-md) - 4px);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-label);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.nav-tab svg { width: 13px; height: 13px; }
+.nav-tab:hover { color: var(--text-secondary); }
+.nav-tab.active {
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));
+    color: var(--accent-hover);
+    box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.30), 0 0 12px rgba(120, 40, 220, 0.15);
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(160, 90, 255, 0.4);
+}
+
+.archive-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 15px;
+    height: 15px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 9.5px;
+    font-weight: 600;
+    font-family: var(--font-label);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 0 4px;
+    margin-left: 3px;
+    opacity: 0.75;
+    letter-spacing: 0;
+}
+
+/* ===== PROGRESS ===== */
+.progress-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+/* Main bar and counter column side by side */
+.progress-bar-wrap { flex: 1; min-width: 0; }
+.progress-counter-col {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+}
+.progress-label { /* kept as-is for counter pop animation */ }
+
+.progress-bar-wrap {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: visible;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #7030d0, var(--accent), #c090ff);
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px rgba(160, 80, 255, 0.5);
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: -1px; top: 50%;
+    transform: translateY(-50%);
+    width: 4px; height: 4px;
+    background: #c898ff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px 2px rgba(200, 120, 255, 0.7);
+}
+
+.progress-label {
+    font-family: var(--font-label);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 44px;
+    text-align: right;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.prog-sep { margin: 0 1px; opacity: 0.45; }
+
+/* Subtask progress row — compact block inside .progress-section, below main bar */
+/* Subtask footnote — compact line under main counter */
+.subtask-footnote {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0;
+    font-family: var(--font-label);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.6px;
+    line-height: 1;
+}
+.subtask-footnote .prog-sep { margin: 0 1px; opacity: 0.5; }
+
+/* Inline mini-bar — lives in the subtask footnote row */
+.sub-inline-bar-wrap {
+    display: inline-flex;
+    align-items: center;
+    width: 28px;
+    height: 2px;
+    background: rgba(140, 60, 220, 0.18);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+.sub-inline-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(120,50,200,0.70), rgba(180,100,255,0.80));
+    border-radius: 99px;
+    transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Shared label tag before both counters */
+.counter-tag {
+    font-family: var(--font-label);
+    font-size: 8px;
+    font-weight: 400;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    opacity: 0.75;
+    margin-right: 6px;
+}
+
+/* ===== INPUT SECTION ===== */
+.input-section { margin-bottom: 18px; }
+
+.row {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+.row:focus-within {
+    border-color: rgba(150, 70, 255, 0.55);
+    /* No inner box-shadow — border highlight only (audit p.9) */
+}
+.row.shake { animation: shake 0.4s ease; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0) }
+    20% { transform: translateX(-5px) }
+    40% { transform: translateX(5px) }
+    60% { transform: translateX(-3px) }
+    80% { transform: translateX(3px) }
+}
+
+#input-box {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 14px 16px;
+    font-family: var(--font-main);
+    font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 400;
+}
+#input-box::placeholder { color: var(--text-muted); font-style: italic; }
+
+.btn-add {
+    width: 46px;
+    height: 46px;
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.35), rgba(80, 15, 180, 0.25));
+    border: none;
+    border-left: 1px solid var(--border-input);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+    transition: all var(--transition);
+    margin: 0;
+}
+.btn-add:hover {
+    background: linear-gradient(135deg, var(--accent), rgba(150, 60, 255, 0.8));
+    color: #fff;
+    box-shadow: var(--shadow-glow);
+}
+.btn-add:active { animation: btnSeal 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.btn-add svg { width: 18px; height: 18px; }
+
+/* ===== EXPAND BUTTON ===== */
+.btn-expand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 13px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-top: 9px;
+    transition: all var(--transition);
+    font-family: var(--font-label);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.btn-expand svg:first-child { width: 13px; height: 13px; flex-shrink: 0; }
+.btn-expand .chevron { width: 12px; height: 12px; transition: transform var(--transition); margin-left: auto; flex-shrink: 0; }
+.btn-expand:hover { color: var(--accent); border-color: rgba(140, 60, 255, 0.4); background: var(--accent-dim); }
+.btn-expand.open .chevron { transform: rotate(180deg); }
+
+/* ===== EXTRA FIELDS ===== */
+/* max-height is controlled by JS (toggleExpand) using scrollHeight — no magic
+   900px that causes uneven perceived animation speed (audit C-4).
+   The CSS transition handles smooth open/close once JS sets the value.        */
+.extra-fields {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.42s var(--ease-gothic), opacity 0.30s ease;
+}
+/* .open class still applied by JS, but max-height value is set inline by JS */
+.extra-fields.open { opacity: 1; }
+
+.extra-row { display: flex; gap: 12px; margin-top: 13px; flex-wrap: wrap; }
+.field-group { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: var(--font-label);
+}
+.field-label .optional { text-transform: none; font-weight: 400; letter-spacing: 0; color: var(--text-muted); }
+
+/* Group select */
+.group-select {
+    width: 100%;
+    padding: 9px 32px 9px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color var(--transition);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a50a8' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 13px;
+}
+.group-select:focus { border-color: rgba(150, 70, 255, 0.5); }
+.group-select option { background: #060218; color: var(--text-primary); }
+.opt-new-group { color: var(--accent); font-style: italic; }
+
+/* Priority selector */
+.priority-selector { display: flex; gap: 5px; flex-wrap: wrap; }
+.prio-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    letter-spacing: 1px;
+}
+.prio-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.prio-btn.prio-low   .prio-dot { background: var(--prio-low);    }
+.prio-btn.prio-medium .prio-dot { background: var(--prio-medium); }
+.prio-btn.prio-high  .prio-dot { background: var(--prio-high);   }
+
+.prio-btn.prio-low.active    { background: var(--prio-low-bg);    color: var(--prio-low);    border-color: var(--prio-low-border);    box-shadow: 0 0 8px rgba(40, 200, 80, 0.15); }
+.prio-btn.prio-medium.active { background: var(--prio-medium-bg); color: var(--prio-medium); border-color: var(--prio-medium-border); box-shadow: 0 0 8px rgba(210, 130, 20, 0.15); }
+.prio-btn.prio-high.active   { background: var(--prio-high-bg);   color: var(--prio-high);   border-color: var(--prio-high-border);   box-shadow: 0 0 8px rgba(230, 30, 70, 0.18); }
+.prio-btn.prio-none          { color: var(--text-muted); }
+.prio-btn.prio-none.active   { background: rgba(80,30,140,0.15); color: var(--text-secondary); border-color: rgba(120,50,200,0.35); }
+
+/* ── Priority grid (params form) ── Item 8 */
+.prio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+.prio-grid-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+}
+/* ── Priority ignition burst ──────────────────────────────────
+   Each button has overflow:hidden + a ::after ripple that fires
+   on :active, colour-coded per priority level.                  */
+.prio-grid-btn { position: relative; overflow: hidden; }
+.prio-grid-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.5);
+    transition: none;
+}
+.prio-grid-btn:active::after {
+    opacity: 0.32;
+    transform: scale(2.5);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity   0.35s ease;
+}
+/* Colour per level */
+.prio-grid-btn[data-prio="none"]::after   { background: radial-gradient(circle, rgba(130,60,220,0.7), transparent 70%); }
+.prio-grid-btn[data-prio="low"]::after    { background: radial-gradient(circle, rgba(40,200,80,0.7), transparent 70%); }
+.prio-grid-btn[data-prio="medium"]::after { background: radial-gradient(circle, rgba(210,140,20,0.7), transparent 70%); }
+.prio-grid-btn[data-prio="high"]::after   { background: radial-gradient(circle, rgba(220,40,70,0.7), transparent 70%); }
+
+@media (prefers-reduced-motion: reduce) {
+    .prio-grid-btn::after { display: none; }
+}
+
+.prio-grid-btn .prio-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.prio-grid-btn.prio-low   .prio-dot { background: var(--prio-low); }
+.prio-grid-btn.prio-medium .prio-dot { background: var(--prio-medium); }
+.prio-grid-btn.prio-high  .prio-dot { background: var(--prio-high); }
+.prio-grid-btn:hover { border-color: var(--border-mid); color: var(--text-secondary); }
+.prio-grid-btn[data-prio="none"].active   { background: rgba(80,30,140,0.18); color: var(--text-secondary); border-color: rgba(120,50,200,0.38); }
+.prio-grid-btn[data-prio="low"].active    { background: var(--prio-low-bg);    color: var(--prio-low);    border-color: var(--prio-low-border); }
+.prio-grid-btn[data-prio="medium"].active { background: var(--prio-medium-bg); color: var(--prio-medium); border-color: var(--prio-medium-border); }
+.prio-grid-btn[data-prio="high"].active   { background: var(--prio-high-bg);   color: var(--prio-high);   border-color: var(--prio-high-border); }
+
+/* ── Group inline chip selector (params form) ── Item 8 */
+.group-inline-sel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    /* R-2: cap height so the add-task form doesn't stretch to 800px+ with 15+ groups.
+       3 rows of chips ≈ 72px. overflow-y:auto shows a subtle scrollbar when needed. */
+    max-height: 80px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-mid) transparent;
+}
+.grp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+@keyframes chipEnter {
+    0%   { transform: scale(0.45); opacity: 0; }
+    60%  { transform: scale(1.10); opacity: 1; }
+    80%  { transform: scale(0.95); }
+    100% { transform: scale(1);    opacity: 1; }
+}
+/* Applied via JS when a new group chip is added to the bar */
+.grp-chip.entering {
+    animation: chipEnter 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+    .grp-chip.entering { animation: none; }
+}
+
+.grp-chip:hover { border-color: var(--border-mid); color: var(--text-secondary); }
+.grp-chip.active { border-color: var(--border-mid); color: var(--text-primary); background: rgba(80,30,160,0.20); }
+.grp-chip-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.grp-chip-new { color: var(--accent); border-style: dashed; }
+.grp-chip-new:hover { background: var(--accent-dim); border-color: var(--accent); }
+
+/* Archive subtasks display */
+.archive-subs {
+    margin-top: 7px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px 10px;
+}
+.archive-sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.78;
+    max-width: 100%;
+}
+.archive-sub.checked { opacity: 0.42; }
+.archive-sub.checked .archive-sub-text { text-decoration: line-through; color: var(--text-muted); }
+.archive-sub-check {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+}
+.archive-sub-check svg { display: block; }
+.archive-sub-text { min-width: 0; word-break: break-word; }
+
+/* Repeat selector */
+.repeat-selector { display: flex; gap: 5px; flex-wrap: wrap; }
+.repeat-btn {
+    padding: 6px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    letter-spacing: 1.5px;
+}
+.repeat-btn:hover:not(:disabled) { border-color: var(--border-mid); color: var(--text-primary); }
+.repeat-btn.active { background: var(--accent-soft); color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.4); font-weight: 600; }
+.repeat-btn:disabled {
+    opacity: 0.28;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Deadline trigger */
+.deadline-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    cursor: pointer;
+    transition: all var(--transition);
+    width: 100%;
+    text-align: left;
+}
+.deadline-trigger svg { width: 13px; height: 13px; flex-shrink: 0; }
+.deadline-trigger span:not(.deadline-clear-btn) { flex: 1; }
+.deadline-trigger:hover { border-color: rgba(140, 60, 255, 0.5); color: var(--accent-hover); }
+
+.deadline-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: transparent;
+    border-radius: var(--radius-xs);
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition);
+    border: none;
+    padding: 0;
+}
+.deadline-clear-btn svg { width: 14px; height: 14px; display: block; }
+.deadline-clear-btn:hover { background: var(--prio-high-bg); color: var(--prio-high); }
+/* Remove old modal btn-dl-clear rule if any */
+.btn-modal-danger.btn-dl-clear { all: unset; }
+
+/* Note input */
+.note-input {
+    width: 100%;
+    padding: 9px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    outline: none;
+    transition: border-color var(--transition);
+    font-variant-numeric: lining-nums tabular-nums;
+}
+.note-input::placeholder { color: var(--text-muted); font-style: italic; }
+.note-input:focus { border-color: rgba(140, 60, 255, 0.5); }
+
+/* ===== TOAST ===== */
+.toast {
+    position: fixed;
+    bottom: max(78px, calc(24px + env(safe-area-inset-bottom, 0px)));
+    left: 50%;
+    transform: translateX(-50%) translateY(12px) scale(0.88);
+    background: rgba(15, 5, 45, 0.97);
+    color: var(--text-primary);
+    border: 1px solid var(--border-mid);
+    padding: 9px 22px;
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 500;
+    font-family: var(--font-label);
+    letter-spacing: 1px;
+    opacity: 0;
+    pointer-events: none;
+    /* No transition — controlled entirely by animations */
+    z-index: 400;  /* above modal-overlay(200) and dropdown lists(310) */
+    white-space: nowrap;
+    box-shadow: var(--shadow-md), 0 0 20px rgba(100, 30, 200, 0.2);
+    backdrop-filter: blur(10px);
+}
+.toast.show {
+    animation: toastAppear 0.30s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.toast.hide {
+    animation: toastVanish 0.25s ease-in forwards;
+}
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-toolbar);
+    border-radius: var(--radius-md);
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+}
+
+.search-wrap {
+    flex: 2;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-sm);
+    padding: 7px 11px;
+    transition: border-color var(--transition);
+}
+.search-wrap:focus-within {
+    border-color: rgba(160, 80, 255, 0.75);
+    /* Clean outer border only — no box-shadow inside the search field (P6) */
+}
+.search-wrap svg { width: 13px; height: 13px; color: var(--text-muted); flex-shrink: 0; }
+
+#search-box {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-main);
+    font-size: 15px;
+    color: var(--text-primary);
+}
+#search-box::placeholder { color: var(--text-muted); font-style: italic; }
+
+.toolbar-actions { display: flex; gap: 4px; }
+.btn-tool {
+    width: 33px;
+    height: 33px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    padding: 0;
+}
+.btn-tool svg { width: 14px; height: 14px; }
+.btn-tool:hover { color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.5); background: var(--accent-dim); }
+.btn-tool.active { background: var(--accent-soft); color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.45); }
+.btn-tool.btn-danger:hover { background: var(--prio-high-bg); color: var(--prio-high); border-color: var(--prio-high-border); }
+
+/* ===== GROUPS BAR ===== */
+.groups-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.btn-add-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: var(--bg-input);
+    border: 1px dashed var(--border-mid);
+    border-radius: 99px;
+    color: var(--text-secondary);
+    font-family: var(--font-label);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+.btn-add-group svg { width: 10px; height: 10px; }
+.btn-add-group:hover { color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.55); background: var(--accent-dim); }
+
+/* group-pill styles moved to SUBTASKS section above */
+
+/* ===== GROUP SECTION ===== */
+.group-section {
+    margin-bottom: 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: rgba(8, 2, 25, 0.5);
+    backdrop-filter: blur(6px);
+    transition: border-color var(--transition);
+}
+.group-section:hover { border-color: var(--border-mid); }
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+    background: var(--bg-group-header);
+    transition: background var(--transition), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+.group-header:hover { background: var(--bg-item-hover); }
+/* Stone-door micro-settle: header nudges down 3px when group closes,
+   as if a stone lid drops into its frame.                            */
+.group-section.collapsed .group-header {
+    border-bottom-color: transparent;
+    border-radius: var(--radius-md);
+    transform: translateY(2px);
+}
+/* When re-opening, header lifts back to flush */
+.group-section:not(.collapsed) .group-header {
+    transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+    .group-section.collapsed .group-header     { transform: none; }
+    .group-section:not(.collapsed) .group-header { transform: none; }
+}
+
+.group-color-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 5px currentColor;
+}
+
+.group-title {
+    font-family: var(--font-title);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+    /* margin-right:auto pushes actions to the right without stretching the text
+       across the full width — prevents oversized gap between title and icons */
+    margin-right: auto;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.group-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+    background: var(--bg-tag);
+    padding: 1px 7px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+}
+
+.group-actions { display: flex; gap: 2px; }
+.btn-group-action {
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-xs);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    padding: 0;
+}
+.btn-group-action svg { width: 12px; height: 12px; }
+.btn-group-action:hover { background: var(--accent-soft); color: var(--accent-hover); border-radius: var(--radius-xs); }
+.btn-group-action.danger:hover { background: var(--prio-high-bg); color: var(--prio-high); }
+.btn-group-action.active-sched { color: var(--accent); background: var(--accent-soft); }
+.btn-group-action.active-sched:hover { color: var(--accent-hover); }
+
+.group-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform var(--transition-slow);
+}
+.group-chevron svg { width: 14px; height: 14px; pointer-events: none; display: block; }
+.group-section.collapsed .group-chevron { transform: rotate(-90deg); }
+/* UX-5: animated collapse — max-height driven by JS (toggleGroupCollapse sets inline
+   style via scrollHeight measurement). overflow:hidden is set on .group-body.
+   I-8: removed the 9999px hack — JS now sets the exact content height so the
+   transition speed is consistent regardless of how many tasks are in the group. */
+.group-body {
+    padding: 6px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.28s var(--ease-gothic), opacity 0.22s var(--ease-gothic);
+}
+.group-body.expanded {
+    opacity: 1;
+    pointer-events: auto;
+    /* max-height is set inline by JS to the measured scrollHeight */
+}
+/* After animation completes JS sets max-height to 'none' via .unlocked class */
+.group-body.expanded.unlocked {
+    max-height: none;
+    overflow: visible;
+}
+
+/* ===== DRAG HANDLE ===== */
+/* ── Drag handle removed — whole item is draggable ── */
+
+/* ===== TASK ITEM ===== */
+/* ─── BATCH-1 ANIMATIONS ──────────────────────────────────────
+   Weighted rise from below — "record summoned from darkness"
+   Different from the previous top-slide which felt lightweight.
+   Uses --ease-gothic (stone weight) from the motion token system. */
+@keyframes taskIn {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.975);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Archive exit — slides right toward the sarcophagus nav tab.
+   Semantically: "record laid to rest in the vault".           */
+@keyframes taskArchive {
+    0%   { opacity: 1;  transform: translateX(0)     scale(1);    max-height: 80px; margin-bottom: 5px; padding-top: 11px; padding-bottom: 11px; }
+    60%  { opacity: 0.3; transform: translateX(22px) scale(0.97); max-height: 80px; }
+    100% { opacity: 0;  transform: translateX(28px)  scale(0.95); max-height: 0;    margin-bottom: 0;   padding-top: 0;    padding-bottom: 0; }
+}
+
+/* Restore exit — mirror of taskArchive: slides LEFT, "record recalled from the vault". */
+@keyframes taskRestore {
+    0%   { opacity: 1;   transform: translateX(0)      scale(1);    max-height: 80px; margin-bottom: 5px; padding-top: 11px; padding-bottom: 11px; }
+    60%  { opacity: 0.3; transform: translateX(-22px)  scale(0.97); max-height: 80px; }
+    100% { opacity: 0;   transform: translateX(-28px)  scale(0.95); max-height: 0;    margin-bottom: 0;   padding-top: 0;    padding-bottom: 0; }
+}
+
+.archive-item.restoring {
+    animation: taskRestore 0.32s ease forwards;
+    pointer-events: none;
+}
+
+/* Delete exit — collapses vertically, "consumed by darkness".
+   Semantically different: annihilation, not preservation.     */
+@keyframes taskDelete {
+    0%   { opacity: 1;  transform: scaleY(1)    translateX(0);  max-height: 80px; margin-bottom: 5px; border-color: var(--border); }
+    25%  { border-color: rgba(220, 30, 70, 0.55); }
+    100% { opacity: 0;  transform: scaleY(0.05) translateX(-4px); max-height: 0;    margin-bottom: 0;   padding: 0; }
+}
+
+/* Coffin seal ritual — press → burst → settle.
+   Uses --ease-spring (ritual-snap) from motion token system.    */
+@keyframes coffinSeal {
+    0%   { transform: scale(1); }
+    20%  { transform: scale(0.82); }          /* pressed in */
+    55%  { transform: scale(1.22); }          /* burst / overshoot */
+    80%  { transform: scale(0.94); }          /* settle */
+    100% { transform: scale(1); }
+}
+
+/* Coffin unseal — unchecking: rise from shadow */
+@keyframes coffinUnseal {
+    0%   { transform: scale(1);    opacity: 0.6; }
+    50%  { transform: scale(1.15); opacity: 1;   }
+    100% { transform: scale(1);    opacity: 1;   }
+}
+
+/* Border flash that fires on the task-item when checked/unchecked */
+@keyframes sealFlash {
+    0%   { box-shadow: inset 0 0 0 1.5px rgba(160, 80, 255, 0); }
+    35%  { box-shadow: inset 0 0 0 1.5px rgba(160, 80, 255, 0.5); }
+    100% { box-shadow: inset 0 0 0 1.5px rgba(160, 80, 255, 0); }
+}
+
+/* Add button seal-press — physical stamp on parchment */
+@keyframes btnSeal {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(0.84); }
+    70%  { transform: scale(1.10); }
+    100% { transform: scale(1); }
+}
+
+/* Progress bar milestone glow burst */
+@keyframes milestoneGlow {
+    0%   { box-shadow: 0 0 8px rgba(160, 80, 255, 0.5); }
+    40%  { box-shadow: 0 0 22px rgba(180, 90, 255, 0.85), 0 0 40px rgba(140, 60, 255, 0.35); }
+    100% { box-shadow: 0 0 8px rgba(160, 80, 255, 0.5); }
+}
+
+/* Toast spectral apparition — better spring + scale */
+@keyframes toastAppear {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.88); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1);    }
+}
+@keyframes toastVanish {
+    from { opacity: 1; transform: translateX(-50%) translateY(0)  scale(1);    }
+    to   { opacity: 0; transform: translateX(-50%) translateY(9px) scale(0.93); }
+}
+
+/* Modal improved — veil lifts / stone falls */
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.91) translateY(18px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+@keyframes modalOut {
+    from { opacity: 1; transform: scale(1)    translateY(0);    }
+    to   { opacity: 0; transform: scale(0.94) translateY(12px); }
+}
+@keyframes overlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes overlayOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+/* All-done cathedral flash on the app box */
+@keyframes cathedralFlash {
+    0%   { box-shadow: var(--shadow-lg), 0 0 0 1px rgba(130,50,240,0.18), 0 0 45px rgba(100,25,220,0.08); }
+    30%  { box-shadow: var(--shadow-lg), 0 0 0 2px rgba(200,120,255,0.65), 0 0 100px rgba(160,60,255,0.35), 0 0 200px rgba(120,40,220,0.20); }
+    100% { box-shadow: var(--shadow-lg), 0 0 0 1px rgba(130,50,240,0.18), 0 0 45px rgba(100,25,220,0.08); }
+}
+/* ─── END BATCH-1 KEYFRAMES ────────────────────────────────── */
+
+/* ─── BATCH-2 KEYFRAMES ──────────────────────────────────────
+   counter-pop  — spring bounce on done/total digits
+   strikeOut    — scaleX sweep of the strikethrough line
+   ────────────────────────────────────────────────────────── */
+
+/* Counter spring-bounce (applied to #done-count / #quantity-count) */
+@keyframes counterPop {
+    0%   { transform: scale(1);    }
+    35%  { transform: scale(1.38); }
+    65%  { transform: scale(0.90); }
+    85%  { transform: scale(1.08); }
+    100% { transform: scale(1);    }
+}
+.counter-pop {
+    animation: counterPop 0.30s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block; /* transform needs block context */
+}
+
+/* Strikethrough sweep — grows left→right over the checked task text.
+   .task-text gains position:relative via .task-item.checked .task-text.
+   The pseudo-element is the animated line.                             */
+@keyframes strikeOut {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+
+/* ─── BATCH-3 KEYFRAMES ──────────────────────────────────────
+   badgePop      — archive badge spring bounce on new item
+   emptyRuneIn   — rune materialises with spin on empty state
+   emptyTextIn   — text fades up after rune
+   ────────────────────────────────────────────────────────── */
+@keyframes badgePop {
+    0%   { transform: scale(1);    }
+    40%  { transform: scale(1.50); }
+    65%  { transform: scale(0.88); }
+    85%  { transform: scale(1.12); }
+    100% { transform: scale(1);    }
+}
+.archive-badge.popping {
+    animation: badgePop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-flex !important; /* stay visible during anim */
+}
+
+@keyframes emptyRuneIn {
+    0%   { transform: scale(0.3)  rotate(-45deg); opacity: 0;   }
+    60%  { transform: scale(1.18) rotate(6deg);   opacity: 0.9; }
+    80%  { transform: scale(0.94) rotate(-2deg);  }
+    100% { transform: scale(1)    rotate(0deg);   opacity: 0.20; }
+}
+@keyframes emptyTextIn {
+    from { opacity: 0; transform: translateY(7px); }
+    to   { opacity: 0.65; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .archive-badge.popping { animation: none; }
+}
+/* ─── BATCH-4 KEYFRAMES  (low-priority atmospheric) ─────────────
+
+   runeShimmer   — single light-sweep across brand name on load
+   taglineAppear — each letter of "task journal" fades in staggered
+   cycleSpin     — full 360° rotation of coffin on cycle-complete
+   portalPulse   — pulsing border-glow on a group-body while dragging over it
+   ──────────────────────────────────────────────────────────────── */
+
+/* One-shot shimmer sweep across the DUSK logotype */
+@keyframes runeShimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  300% center; }
+}
+.brand-name.shimmer-once {
+    background: linear-gradient(
+        90deg,
+        var(--text-primary) 20%,
+        rgba(220, 170, 255, 0.95) 40%,
+        rgba(255, 220, 255, 1.0)  50%,
+        rgba(220, 170, 255, 0.95) 60%,
+        var(--text-primary) 80%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: runeShimmer 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+    .brand-name.shimmer-once { animation: none; background: none; -webkit-text-fill-color: unset; }
+}
+
+/* Tagline letter-by-letter: each span fades up individually */
+@keyframes letterIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0);   }
+}
+.tagline-letter {
+    display: inline-block;
+    opacity: 0;
+    animation: letterIn 0.22s ease forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+    .tagline-letter { animation: none; opacity: 1; }
+}
+
+/* Coffin cycle-complete: full 360° spin with slight scale bounce */
+@keyframes cycleSpin {
+    0%   { transform: scale(1)    rotate(0deg);   }
+    25%  { transform: scale(0.88) rotate(90deg);  }
+    60%  { transform: scale(1.14) rotate(280deg); }
+    80%  { transform: scale(0.96) rotate(345deg); }
+    100% { transform: scale(1)    rotate(360deg); }
+}
+.task-check.cycle-spinning {
+    animation: cycleSpin var(--dur-ritual) var(--ease-spring) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+    .task-check.cycle-spinning { animation: none; }
+}
+
+/* Drop-zone portal glow: group-body glows while a task is dragged over it */
+@keyframes portalPulse {
+    0%, 100% { box-shadow: inset 0 0 0 1px rgba(140, 60, 255, 0.25), 0 0 12px rgba(120, 40, 240, 0.12); }
+    50%       { box-shadow: inset 0 0 0 1px rgba(180, 90, 255, 0.55), 0 0 28px rgba(140, 55, 255, 0.28); }
+}
+.group-body.drag-over {
+    animation: portalPulse 0.9s ease-in-out infinite;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+@media (prefers-reduced-motion: reduce) {
+    .group-body.drag-over { animation: none; box-shadow: inset 0 0 0 1px rgba(140,60,255,0.4); }
+}
+
+/* ─── END BATCH-4 KEYFRAMES ───────────────────────────────────── */
+
+.task-list { list-style: none; }
+
+.task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 11px 12px;
+    background: var(--bg-item);
+    border-radius: var(--radius-md);
+    margin-bottom: 5px;
+    border: 1px solid var(--border);
+    border-left: 2px solid transparent;
+    transition: background var(--transition), border-color var(--transition),
+                box-shadow var(--transition), opacity 0.25s ease;
+    position: relative;
+    backdrop-filter: blur(4px);
+    overflow: hidden;
+    cursor: grab;
+    /* Critical for reliable drag: prevent text selection */
+    -webkit-user-select: none;
+    user-select: none;
+}
+/* taskIn animation only for freshly added items (.entering added by JS) */
+.task-item.entering {
+    animation: taskIn var(--dur-standard) var(--ease-gothic);
+}
+/* reentering: smooth fade-in when task is unchecked/restored */
+.task-item.reentering {
+    animation: taskUncheckIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes taskUncheckIn {
+    from { opacity: 0.55; transform: scale(0.99); }
+    to   { opacity: 1;    transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .task-item.entering { animation: none; }
+}
+/* Allow text selection only in editable areas */
+.task-item .task-text[contenteditable="true"] { user-select: text; -webkit-user-select: text; }
+.task-item .task-note-text.editing           { user-select: text; -webkit-user-select: text; }
+/* Restore pointer cursor on clickable children */
+.task-item .btn-task-action,
+.task-item .task-check,
+.task-item .btn-note-toggle,
+.task-item .btn-subtask-toggle,
+.task-item .btn-note-delete,
+.task-item .sub-check,
+.task-item .sub-prio-btn,
+.task-item .btn-sub-action,
+.task-item .hashtag,
+.task-item .meta-tag { cursor: pointer; }
+
+.task-item:hover {
+    background: var(--bg-item-hover);
+    border-color: var(--border-mid);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(80, 20, 160, 0.08);
+}
+/* ANIM-4: while the entrance animation is running, don't respond to hover
+   so the fade-in and background-hover don't fight each other visually. */
+.task-item.entering:hover {
+    background: var(--bg-item);
+    border-color: var(--border);
+    box-shadow: none;
+    transition: none;
+}
+
+/* Priority stripe */
+.task-item[data-prio="high"]   { border-left-color: var(--prio-high);   box-shadow: -2px 0 8px rgba(220, 30, 70, 0.18); }
+.task-item[data-prio="medium"] { border-left-color: var(--prio-medium); box-shadow: -2px 0 8px rgba(210, 120, 20, 0.15); }
+.task-item[data-prio="low"]    { border-left-color: var(--prio-low);    box-shadow: -2px 0 8px rgba(40, 200, 80, 0.12); }
+
+/* ── Task color label — custom left stripe via CSS var ──────────────────────
+   Set by JS: li.style.setProperty('--task-color', '#hex') when task.color exists. */
+.task-item:has(> [style*="--task-color"]),
+.task-item[style*="--task-color"] {
+    border-left-color: var(--task-color, transparent);
+    box-shadow: -2px 0 8px color-mix(in srgb, var(--task-color, transparent) 30%, transparent);
+}
+
+/* Task color picker in modal */
+.task-color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 4px 0 8px;
+}
+.task-color-clear {
+    background: var(--bg-item) !important;
+    border: 1px solid var(--border-mid) !important;
+    color: var(--text-secondary);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.task-color-clear.active {
+    border-color: var(--accent) !important;
+    color: var(--accent);
+}
+.btn-task-color {
+    transition: color var(--transition), opacity var(--transition);
+}
+
+/* ── Pinned task visual — dagger stripe on left, faint ethereal glow ───────── */
+.task-item.pinned:not(.checked):not(.cycle-checked) {
+    border-left-color: rgba(180, 100, 255, 0.75);
+    background: linear-gradient(
+        90deg,
+        rgba(120, 40, 220, 0.08) 0%,
+        transparent 28%
+    ), var(--bg-item);
+    box-shadow: -2px 0 10px rgba(140, 50, 255, 0.20),
+                inset 0 0 24px rgba(100, 20, 200, 0.04);
+}
+/* Pin button — glows when active (task is pinned) */
+.btn-task-action.btn-pin.active {
+    color: rgba(200, 130, 255, 0.95);
+    opacity: 1;
+}
+.btn-task-action.btn-pin {
+    transition: color var(--transition), opacity var(--transition);
+}
+
+/* Checked state — readable but visually subdued */
+.task-item.checked {
+    background: var(--bg-item-checked);
+    opacity: 0.65;
+    border-left-color: transparent !important;
+    box-shadow: none !important;
+    cursor: not-allowed;   /* P3: drag forbidden — show not-allowed cursor */
+    animation: taskCheckIn 0.30s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.task-item.cycle-checked {
+    animation: taskCheckIn 0.30s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes taskCheckIn {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0.65; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .task-item.checked,
+    .task-item.cycle-checked { animation: none; }
+}
+.task-item.checked:hover { opacity: 0.85; cursor: not-allowed; }
+/* Cycle-checked also not draggable */
+.task-item.cycle-checked { cursor: not-allowed; }
+.task-item.cycle-checked:hover { cursor: not-allowed; }
+
+/* In the done-zone archive the not-allowed cursor is meaningless —
+   tasks there are already archived, DnD is disabled for a different reason.
+   Restore default pointer so the zone feels like a read-only list, not an error state. */
+.split-done-body .task-item.checked,
+.split-done-body .task-item.checked:hover,
+.split-done-body .task-item.cycle-checked,
+.split-done-body .task-item.cycle-checked:hover { cursor: default; }
+
+/* Unify ALL cursors inside the archive — text cursor on task-text is also
+   out of place here since tasks are read-only. One consistent default. */
+.split-done-body,
+.split-done-body * { cursor: default !important; }
+/* …except interactive buttons — restore pointer so they still feel clickable */
+.split-done-body button,
+.split-done-body [role="button"],
+.split-done-body .task-check,
+.split-done-body .btn-task-action { cursor: pointer !important; }
+
+/* ── Archive month sections (Extension 11) ───────────────────── */
+.archive-month-section { margin-bottom: 6px; }
+.archive-month-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 10px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--font-label);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: color var(--transition);
+    margin-bottom: 4px;
+}
+.archive-month-header:hover { color: var(--text-primary); }
+.archive-month-name { flex: 1; text-align: left; }
+.archive-month-count {
+    font-size: 9px;
+    opacity: 0.5;
+    background: var(--bg-item);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 1px 7px;
+    font-weight: 600;
+}
+.archive-month-chevron {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    transition: transform var(--transition-slow);
+}
+.archive-month-section.collapsed .archive-month-chevron { transform: rotate(-90deg); }
+.archive-month-body {
+    list-style: none;
+    overflow: hidden;
+    max-height: 9999px;
+    opacity: 1;
+    transition: max-height 0.28s var(--ease-gothic), opacity 0.22s var(--ease-gothic);
+    padding: 0;
+    margin: 0;
+}
+.archive-month-section.collapsed .archive-month-body {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── Архив: унифицированный курсор ──────────────────────────── */
+.archive-item,
+.archive-item.checked,
+.archive-item.checked:hover,
+.archive-item.cycle-checked,
+.archive-item.cycle-checked:hover,
+.archive-item .task-text,
+.archive-item .meta-tag,
+.archive-item .task-note-text,
+.archive-item .archive-sub-text,
+.archive-item .archive-sub-check,
+.archive-item .arch-check {
+    cursor: default !important;
+}
+.archive-item .btn-task-action,
+.archive-item .restore-btn {
+    cursor: pointer !important;
+}
+/* Fix 5: in select mode the whole item + check indicator are clickable */
+.archive-item.select-mode,
+.archive-item.select-mode .arch-check,
+.archive-item.select-mode .arc-select-indicator,
+.archive-item.select-mode .task-text,
+.archive-item.select-mode .meta-tag {
+    cursor: pointer !important;
+}
+.archive-item.select-mode:hover {
+    background: rgba(100, 30, 200, 0.10);
+    border-color: rgba(140, 60, 240, 0.38);
+}
+
+/* Cycle-checked — "done until next reset": understated but clearly distinct. */
+.task-item.cycle-checked {
+    background: var(--bg-item);
+    border-left: 2px dashed rgba(140, 60, 240, 0.55);
+    border-color: rgba(100, 35, 190, 0.28);
+}
+.task-item.cycle-checked:hover {
+    background: rgba(30, 6, 80, 0.18);
+    border-color: rgba(130, 50, 210, 0.40);
+}
+/* Cycle-checked text: slight mute but still readable */
+.task-item.cycle-checked .task-text {
+    color: rgba(200, 170, 240, 0.78);
+}
+
+.task-item.removing          { animation: taskArchive 0.32s ease forwards; pointer-events: none; }
+.task-item.removing-forever  { animation: taskDelete  0.28s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+                                transform-origin: top center; pointer-events: none; }
+
+/* Coffin seal ritual classes */
+.task-check.sealing   { animation: coffinSeal   var(--dur-quick) var(--ease-spring) forwards; }
+.task-check.unsealing { animation: coffinUnseal var(--dur-quick) ease-out forwards; }
+.task-item.seal-flash { animation: sealFlash 0.4s ease forwards; }
+
+/* Milestone glow classes (added/removed by JS) */
+.progress-bar-fill.milestone-glow { animation: milestoneGlow 0.6s ease forwards; }
+
+/* ── Item 6: Schedule mode — side deadline panel ── */
+.task-item.has-dl-side {
+    padding-left: 0;
+}
+.dl-side-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 54px;
+    max-width: 54px;
+    padding: 6px 4px;
+    border-right: 1px solid var(--border-mid);
+    margin-right: 10px;
+    flex-shrink: 0;
+    align-self: stretch;
+    background: rgba(18, 4, 50, 0.60);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+.dl-side-countdown {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--accent-hover);
+    text-align: center;
+    line-height: 1.3;
+    word-break: break-word;
+}
+.dl-side-date {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.3;
+    word-break: break-word;
+}
+.dl-side-panel.dl-side-over {
+    border-right-color: var(--prio-high);
+    background: rgba(120,5,35,0.28);
+}
+.dl-side-panel.dl-side-over .dl-side-countdown,
+.dl-side-panel.dl-side-over .dl-side-date { color: var(--prio-high); }
+.dl-side-panel.dl-side-critical {
+    border-right-color: var(--deadline-critical);
+    background: rgba(120,5,35,0.22);
+    animation: pulseSide 1.6s ease infinite;
+}
+.dl-side-panel.dl-side-critical .dl-side-countdown { color: var(--deadline-critical); }
+.dl-side-panel.dl-side-urgent {
+    border-right-color: var(--deadline-urgent);
+    background: rgba(90,40,5,0.25);
+}
+.dl-side-panel.dl-side-urgent .dl-side-countdown { color: var(--deadline-urgent); }
+.dl-side-panel.dl-side-warn   { border-right-color: var(--deadline-warn); }
+.dl-side-panel.dl-side-warn   .dl-side-countdown { color: var(--deadline-warn); }
+@keyframes pulseSide {
+    0%, 100% { box-shadow: none; }
+    50%       { box-shadow: inset 0 0 10px rgba(220,30,70,0.18); }
+}
+
+/* ── Schedule mode subgroup dividers ── */
+.dl-subgroup-header {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin: 6px 0 3px;
+    font-family: var(--font-label);
+    font-size: 10px;
+    /* P6: matches split-zone-header contrast — var(--text-secondary) = #b880e8 */
+    color: var(--text-secondary);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    pointer-events: none;
+    user-select: none;
+}
+.dl-subgroup-header > span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+/* P6+P8: icon at full current-color opacity — no dimming, matches text */
+.dl-subgroup-header svg { width: 10px; height: 10px; opacity: 1; }
+/* P6: Без дедлайна same contrast as С дедлайном */
+.dl-subgroup-nodl { color: var(--text-secondary); margin-top: 10px; }
+.dl-subgroup-nodl svg { opacity: 1; }
+
+/* P7: schedule + split combined — inner split zone sits visually inside the
+   deadline bucket: left border + padding creates clear parent/child hierarchy */
+.sched-split-inner {
+    list-style: none;
+    padding: 0 0 0 10px;
+    margin: 0;
+    border-left: 2px solid rgba(100, 35, 170, 0.28);
+    margin-left: 4px;
+}
+/* Tighten the split-zone-header inside the nested zone */
+.sched-split-inner .split-zone-header {
+    font-size: 10.5px;
+    padding: 4px 6px 4px;
+    margin: 5px 0 3px;
+}
+
+
+/* ── Drag & drop gothic polish ────────────────────────────────
+   chosen:  slight tilt — like a manuscript picked up by a hand
+   ghost:   ink silhouette — the shadow of the record remains
+            animation:none stops taskIn from overriding opacity
+   drag:    heavier shadow — weight of the lifted stone slab
+   ghost-settling: CSS transition settle after drop (no keyframe
+            conflict — just lets opacity/filter return naturally)  */
+.sortable-ghost {
+    opacity: 0.28 !important;
+    animation: none !important;          /* ← KEY FIX: stops taskIn fighting ghost opacity */
+    background: rgba(60, 15, 140, 0.22) !important;
+    border-color: rgba(130, 55, 240, 0.40) !important;
+    filter: sepia(0.65) saturate(0.32) brightness(0.78);
+    transition: none !important;
+}
+.sortable-chosen {
+    box-shadow: 0 0 0 1px var(--accent), var(--shadow-md), 0 0 20px rgba(140, 60, 255, 0.2) !important;
+    z-index: 20;
+    cursor: grab !important;
+    transform: rotate(-1.2deg) scale(1.01);
+    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.sortable-drag {
+    cursor: grabbing !important;
+    box-shadow: var(--shadow-lg), 0 0 40px rgba(120, 40, 240, 0.32), 0 8px 24px rgba(0,0,0,0.6);
+    opacity: 0.96;
+    transform: rotate(-1.2deg) scale(1.01);
+}
+
+/* After drop: item transitions smoothly from ghost state back to normal.
+   Applied inline via JS (opacity + filter + transition), so no keyframe
+   conflicts with taskIn. Class just exists for reduced-motion guard.  */
+.ghost-settling {
+    /* intentionally empty — real settling done via inline style transition */
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sortable-chosen  { transform: none; }
+    .sortable-drag    { transform: none; }
+    .sortable-ghost   { filter: none; }
+}
+
+/* ===== COFFIN CHECKBOX ===== */
+.task-check {
+    width: 21px;
+    height: 27px;
+    min-width: 21px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 0;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+.task-check svg { transition: all 0.22s ease; }
+.task-check:hover svg { filter: drop-shadow(0 0 4px rgba(160, 80, 255, 0.6)); transform: scale(1.1); }
+
+/* Checked: filled coffin — purple */
+.task-item.checked .task-check svg .coffin-body {
+    fill: url(#coffinGrad);
+    stroke: rgba(180, 100, 255, 0.8);
+}
+/* Cycle-checked: uses same coffinGrad as completed — same quality, different icon */
+.task-item.cycle-checked .task-check svg .coffin-body {
+    fill: url(#coffinGrad);
+    stroke: rgba(160, 80, 255, 0.70);
+}
+
+/* Sub-item coffin (smaller) */
+.sub-check {
+    width: 16px;
+    height: 20px;
+    min-width: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+.sub-check:hover svg { filter: drop-shadow(0 0 3px rgba(160,80,255,0.5)); }
+.subtask-item.checked .sub-check svg .coffin-body { fill: url(#coffinGrad); stroke: rgba(180,100,255,0.8); }
+
+/* ===== GROUP PILL WITH DELETE ===== */
+.group-pill-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+}
+.meta-tag.group-pill {
+    border-radius: 99px;
+    padding: 4px 11px;
+    height: 26px;
+    font-size: 10.5px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+    transition: padding-right var(--transition), border-radius var(--transition);
+}
+/* When hovered: right side flattens to make room for delete button */
+.group-pill-wrap:hover .meta-tag.group-pill {
+    border-radius: 99px 0 0 99px;
+    padding-right: 8px;
+    border-right: none;
+}
+.btn-pill-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    min-width: 0;
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 0 99px 99px 0;
+    border: 1px solid transparent;
+    border-left: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: all var(--transition);
+    line-height: 1;
+}
+.group-pill-wrap:hover .btn-pill-delete {
+    width: 26px;
+    min-width: 26px;
+    padding: 4px 7px 4px 5px;
+    opacity: 1;
+}
+.btn-pill-delete svg { width: 11px; height: 11px; pointer-events: none; flex-shrink: 0; }
+
+/* ===== SUBTASKS ===== */
+/* ── Smooth animation via inner wrapper ── */
+.subtask-section {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+    margin-top: 0;
+    /* P10: break out of task-content column to span full task-item width.
+       Left: cancel task-check (21px) + flex gap (8px) = 29px
+       Right: cancel flex gap (8px) + task-actions (7×27px + 6×2px = 201px) = 209px
+       Internal padding restores visual indent. */
+    margin-left: -29px;
+    margin-right: -209px;
+    padding-left: 29px;
+    padding-right: 8px;
+}
+.subtask-section.open {
+    max-height: none;   /* I-4: was hardcoded 1200px — removed to support any number of subtasks */
+    opacity: 1;
+    margin-top: 8px;
+}
+.sub-section-inner {
+    /* inner wrapper so scrollHeight is measurable */
+}
+
+/* ── Item 1: subtask progress bar ── */
+.sub-progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    padding: 2px 4px;
+    position: relative;
+}
+.sub-progress-bar-track {
+    flex: 1;
+    height: 1.5px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    min-width: 0;
+}
+.sub-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(110,45,200,0.60), rgba(175,95,255,0.72));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+}
+.sub-progress-label {
+    font-family: var(--font-label);
+    font-size: 9.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Item 5: 2 subtasks per row ── */
+.subtask-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    margin-bottom: 5px;
+    min-height: 2px;
+}
+
+/* ── Item 7: fix vertical text — main-row is the flex container ── */
+/* Subtask item enter/exit animation */
+.subtask-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5px 8px;
+    background: rgba(8, 2, 28, 0.65);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    border-left: 2px solid transparent;
+    transition: background var(--transition), border-color var(--transition),
+                opacity 0.22s ease, transform 0.22s ease;
+    position: relative;
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.subtask-item:hover { background: rgba(18, 5, 50, 0.80); border-color: var(--border-mid); }
+.subtask-item[data-sprio="high"]   { border-left-color: var(--prio-high); }
+.subtask-item[data-sprio="medium"] { border-left-color: var(--prio-medium); }
+.subtask-item[data-sprio="low"]    { border-left-color: var(--prio-low); }
+/* Restore pointer on interactive subtask children */
+.subtask-item .sub-check,
+.subtask-item .sub-prio-btn,
+.subtask-item .btn-sub-action { cursor: pointer; }
+/* ── Checked subtask: fades, strikethrough preserving line wrap ── */
+.subtask-item.checked {
+    opacity: 0.55;
+    cursor: not-allowed;
+    border-left-color: transparent !important;
+    transition: opacity 0.25s ease, border-left-color 0.2s ease;
+    animation: subCheckIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes subCheckIn {
+    from { opacity: 1; }
+    to   { opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .subtask-item.checked { animation: none; }
+}
+.subtask-item.checked:hover { opacity: 0.72; cursor: not-allowed; }
+/* Restore pointer on interactive children inside checked subtask */
+.subtask-item.checked .sub-check,
+.subtask-item.checked .btn-sub-action { cursor: pointer; }
+
+/* Strikethrough: text-decoration works on every wrapped line.
+   Animate via text-decoration-color from transparent to visible.            */
+.subtask-item.checked .sub-text {
+    color: rgba(160, 120, 210, 0.65);
+    flex: 1;
+    text-decoration: line-through;
+    text-decoration-color: rgba(130, 80, 190, 0.50);
+    text-decoration-thickness: 1.2px;
+    animation: subStrikeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes subStrikeIn {
+    from { text-decoration-color: transparent; color: var(--text-primary); }
+    to   { text-decoration-color: rgba(130, 80, 190, 0.50); color: rgba(160, 120, 210, 0.65); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .subtask-item.checked .sub-text { animation: none; }
+}
+
+/* The actual flex row inside each subtask item */
+.sub-main-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+
+/* ── Split-mode item animations ──────────────────────────────────────── */
+@keyframes splitItemIn {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Items appear with stagger when split section rebuilds */
+.sub-split-inner .subtask-item {
+    animation: splitItemIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.sub-split-inner .subtask-item:nth-child(even) { animation-delay: 0.04s; }
+@media (prefers-reduced-motion: reduce) {
+    .sub-split-inner .subtask-item { animation: none; }
+}
+/* Checking-out / checking-in transitions triggered by JS */
+@keyframes checkingOut {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.94) translateX(6px); }
+}
+@keyframes checkingIn {
+    from { opacity: 0; transform: scale(0.94) translateX(-6px); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.subtask-item.checking-out { animation: checkingOut 0.16s ease forwards; pointer-events: none; }
+.subtask-item.checking-in  { animation: checkingIn  0.16s ease both; }
+
+/* Subtask drag handle — matches task-level IC.drag pattern */
+.sub-drag-handle {
+    width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: width 0.16s ease, opacity 0.16s ease;
+    pointer-events: none;
+}
+.subtask-item:not(.checked):not(.cycle-checked):hover .sub-drag-handle {
+    width: 14px;
+    opacity: 0.45;
+    pointer-events: auto;
+}
+.sub-drag-handle svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+/* Subtask drag-handle visibility is controlled by the hover rules above */
+
+.sub-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.4;
+    word-break: break-word;
+    min-width: 0;
+}
+.sub-text[contenteditable="true"] {
+    outline: none;
+    border-bottom: 1px dashed var(--accent);
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;  /* override parent cursor:grab during inline edit */
+}
+/* Double-click to edit hint — mirrors the main task-text interaction affordance */
+.sub-text:not([contenteditable="true"]):hover {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: rgba(140, 80, 240, 0.40);
+    text-underline-offset: 2px;
+    cursor: text;
+}
+
+.sub-prio-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--border-mid);
+    transition: background var(--transition), box-shadow var(--transition);
+}
+.subtask-item[data-sprio="high"]   .sub-prio-dot { background: var(--prio-high);   box-shadow: 0 0 4px rgba(220,30,70,0.5); }
+.subtask-item[data-sprio="medium"] .sub-prio-dot { background: var(--prio-medium); box-shadow: 0 0 4px rgba(210,120,20,0.5); }
+.subtask-item[data-sprio="low"]    .sub-prio-dot { background: var(--prio-low);    box-shadow: 0 0 4px rgba(40,200,80,0.4); }
+
+.sub-actions {
+    display: flex;
+    gap: 1px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+.subtask-item:hover .sub-actions { opacity: 1; }
+
+/* prio-btn is now inside sub-actions — same sizing/transition as btn-sub-action */
+.btn-sub-action.sub-prio-btn {
+    border-radius: 50%;   /* circular to match prio-dot motif */
+}
+.btn-sub-action.sub-prio-btn:hover { background: var(--accent-soft); }
+
+.btn-sub-action {
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-xs);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    padding: 0;
+}
+.btn-sub-action svg { width: 11px; height: 11px; pointer-events: none; }
+.btn-sub-action:hover { background: var(--bg-tag); color: var(--text-secondary); }
+.btn-sub-action.danger:hover { background: var(--prio-high-bg); color: var(--prio-high); }
+
+/* Sub-note: single fixed transition — NEVER changes. JS drives open/close via inline styles.
+   This avoids the "transition-switching" problem where changing both transition+value
+   in the same frame causes no animation (open) or jerk (close). */
+.sub-note-wrapper {
+    width: 100%;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: relative;
+    flex-shrink: 0;
+    /* Single stable transition — always present, never overridden by class switching */
+    transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+/* .open: state marker only — animation is driven by _openNoteWrap/_closeNoteWrap inline styles.
+   No max-height/opacity here to avoid CSS↔inline conflict that caused 2-frame jump on close. */
+.sub-note-wrapper.open { /* intentionally empty — see toggleSubNote */ }
+/* Always-open mode — inline styles from toggleSubNotesAlwaysOpen drive visibility,
+   but this CSS rule handles the initial render when subNotesAlwaysOpen is already true */
+.subtask-section.notes-always-open .sub-note-wrapper.has-note {
+    max-height: 160px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── "Always show notes" toggle button ── */
+/* Appears on task hover, stays visible when active. Styled to match btn-subtask-toggle. */
+.btn-sub-notes-always {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 1px 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition), opacity var(--transition);
+    opacity: 0;
+    flex-shrink: 0;
+}
+.task-item:hover .btn-sub-notes-always { opacity: 1; }
+.btn-sub-notes-always.active { opacity: 1; color: var(--accent-hover); }
+.btn-sub-notes-always:hover { color: var(--accent-hover); }
+.btn-sub-notes-always svg { width: 11px; height: 11px; pointer-events: none; }
+.sub-note-text {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-secondary);
+    padding: 4px 28px 4px 26px; /* P8: right padding to clear delete button */
+    border-left: 2px solid var(--border-mid);
+    margin-top: 3px;
+    line-height: 1.45;
+    word-break: break-word;
+    cursor: text;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+.sub-note-text[contenteditable="true"] { outline: none; border-left-color: var(--accent); user-select: text; -webkit-user-select: text; }
+
+/* P8: sub-note delete button — same system as btn-note-delete, proportionally smaller */
+.btn-sub-note-delete {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    padding: 0;
+    flex-shrink: 0;
+    margin-top: 1px; /* visual centre correction for 3px top margin on sub-note-text */
+}
+.btn-sub-note-delete svg { width: 9px; height: 9px; pointer-events: none; }
+.btn-sub-note-delete:hover { background: var(--prio-high-bg); color: var(--prio-high); }
+
+/* P4: Suppress browser focus-visible ring on ALL note/input fields.
+   Each field communicates focus via its own border-color transition.
+   !important needed to override the global :focus-visible rule above. */
+.task-note-text:focus-visible,
+.sub-note-text:focus-visible,
+[contenteditable="true"]:focus-visible,
+.sub-text[contenteditable="true"]:focus-visible,
+.subtask-add-input:focus-visible,
+.form-sub-input:focus-visible,
+.inline-note-input:focus-visible,
+.note-input:focus-visible,
+.modal-input:focus-visible,
+textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.btn-sub-action.sub-repeat-btn svg { opacity: 0.45; }
+.btn-sub-action.sub-repeat-btn:hover svg { opacity: 1; }
+.btn-sub-action.sub-repeat-btn.active { color: var(--accent-hover); }
+.btn-sub-action.sub-repeat-btn.active svg { opacity: 1; }
+
+/* Subtask cycle-checked — mirrors main .task-item.cycle-checked exactly:
+   dashed left border, no overall opacity reduction, no strikethrough,
+   text slightly muted but readable. cursor: default (not not-allowed) because
+   subtask DnD does not filter cycle-checked items — not-allowed would mislead. */
+.subtask-item.cycle-checked {
+    border-left: 2px dashed rgba(140, 60, 240, 0.55) !important;
+    border-color: rgba(100, 35, 190, 0.28);
+    cursor: default;
+}
+.subtask-item.cycle-checked:hover {
+    background: rgba(30, 6, 80, 0.12);
+    border-color: rgba(130, 50, 210, 0.40);
+    cursor: default;
+}
+.subtask-item.cycle-checked .sub-text {
+    color: rgba(200, 170, 240, 0.78);
+    text-decoration: none;
+    /* Explicitly cancel any inherited strikethrough */
+    text-decoration-line: none;
+}
+
+.subtask-add-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+}
+.subtask-add-input {
+    flex: 1;
+    background: rgba(8, 2, 28, 0.60);
+    border: 1px dashed var(--border-mid);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    font-family: var(--font-main);
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color var(--transition);
+}
+.subtask-add-input::placeholder { color: var(--text-muted); font-style: italic; }
+.subtask-add-input:focus { border-color: rgba(140,60,255,0.5); border-style: solid; }
+
+.btn-subtask-confirm {
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-mid);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition);
+    padding: 0;
+}
+.btn-subtask-confirm svg { width: 12px; height: 12px; pointer-events: none; }
+.btn-subtask-confirm:hover { background: var(--accent); color: #fff; }
+
+/* ===== FORM SUBTASKS (pre-task creation) ===== */
+.form-subs-section {
+    margin-top: 10px;
+}
+.form-sub-add-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.form-sub-input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px dashed rgba(130, 50, 220, 0.38);
+    border-radius: var(--radius-sm);
+    padding: 7px 11px;
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 14px;
+    outline: none;
+    transition: border-color var(--transition);
+}
+.form-sub-input::placeholder { color: var(--text-muted); font-style: italic; }
+.form-sub-input:focus { border-color: rgba(150, 70, 255, 0.55); border-style: solid; }
+.form-sub-input.shake { animation: shake 0.4s ease; }
+.btn-form-sub-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    color: var(--accent);
+    cursor: pointer;
+    transition: all var(--transition);
+    flex-shrink: 0;
+    padding: 0;
+}
+.btn-form-sub-add svg { width: 13px; height: 13px; pointer-events: none; }
+.btn-form-sub-add:hover { background: var(--accent); color: #000; }
+
+#form-sub-list {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.form-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 8px;
+    background: rgba(8, 2, 28, 0.55);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    font-family: var(--font-main);
+}
+.form-sub-text { flex: 1; min-width: 0; word-break: break-word; }
+.btn-form-sub-del {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color var(--transition);
+    padding: 0;
+}
+.btn-form-sub-del svg { width: 11px; height: 11px; pointer-events: none; }
+.btn-form-sub-del:hover { color: var(--prio-high); }
+
+.btn-subtask-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 1px 0;
+    font-family: var(--font-label);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color var(--transition);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.btn-subtask-toggle:hover { color: var(--accent-hover); }
+.btn-subtask-toggle svg { width: 11px; height: 11px; flex-shrink: 0; transition: transform var(--transition); pointer-events: none; }
+.btn-subtask-toggle.open svg { transform: rotate(180deg); }
+.btn-subtask-toggle span { white-space: nowrap; }
+
+/* ===== TASK CONTENT ===== */
+.task-content { flex: 1; min-width: 0; }
+.task-text {
+    font-size: 16px;
+    color: var(--text-primary);
+    line-height: 1.55;
+    display: block;
+    word-break: break-word;
+    transition: color var(--transition);
+    font-weight: 400;
+    cursor: text;
+}
+/* Subtle dotted underline on hover — hints that double-click opens edit (matches sub-text pattern) */
+.task-text:not([contenteditable="true"]):hover {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: rgba(140, 80, 240, 0.35);
+    text-underline-offset: 3px;
+}
+.task-item.checked .task-text {
+    color: rgba(160, 120, 210, 0.72);
+    text-decoration: line-through;
+    text-decoration-color: rgba(130, 80, 190, 0.52);
+    text-decoration-thickness: 1.5px;
+    animation: strikeColorIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes strikeColorIn {
+    from { text-decoration-color: transparent; color: var(--text-primary); }
+    to   { text-decoration-color: rgba(130, 80, 190, 0.52); color: rgba(160, 120, 210, 0.72); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .task-item.checked .task-text {
+        animation: none;
+    }
+}
+.task-text[contenteditable="true"] {
+    outline: none;
+    border-bottom: 1px dashed var(--accent);
+    padding-bottom: 1px;
+    cursor: text;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+/* Meta tags row */
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 5px;
+}
+
+.meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    background: var(--bg-tag);
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    font-family: var(--font-label);
+    white-space: nowrap;
+}
+.meta-tag svg { width: 9px; height: 9px; }
+
+/* Deadline in one line */
+.dl-badge-inner { display: flex; flex-direction: row; align-items: center; gap: 4px; white-space: nowrap; }
+.dl-countdown { font-size: 10.5px; font-weight: 700; }
+.dl-absolute  { font-size: 9.5px; opacity: 0.80; }
+.dl-sep { opacity: 0.35; font-size: 9px; }
+
+/* Deadline status colors */
+.deadline-tag.warn     { background: var(--deadline-warn-bg);     color: var(--deadline-warn);     border-color: rgba(120, 120, 220, 0.35); }
+.deadline-tag.urgent   { background: var(--deadline-urgent-bg);   color: var(--deadline-urgent);   border-color: rgba(210, 120, 20, 0.4); }
+.deadline-tag.critical {
+    background: var(--deadline-critical-bg);
+    color: var(--deadline-critical);
+    border-color: rgba(220, 30, 70, 0.45);
+    animation: pulseCritical 1.6s ease infinite;
+    /* W-12: removed animation-delay with unsupported CSS mod operator and --now var.
+       Synchronisation across multiple critical badges is not achievable via CSS alone
+       without JS — removed rather than leaving broken/noop code. */
+}
+.deadline-tag.over { background: var(--deadline-over-bg); color: var(--deadline-over); border-color: rgba(170, 15, 30, 0.5); font-weight: 700; }
+
+@keyframes pulseCritical {
+    0%, 100% { box-shadow: none; }
+    50%       { box-shadow: 0 0 0 3px rgba(220, 30, 70, 0.22), 0 0 12px rgba(220, 30, 70, 0.15); }
+}
+
+.repeat-tag { color: var(--accent-hover); background: var(--accent-soft); border-color: rgba(130, 50, 230, 0.35); }
+
+
+/* ── Tag inline clear button ─────────────────────────────────────────────
+   DESIGN: Tag is completely unchanged. Button overlaps the tag's right border
+   by 1px (margin-left: -1px) so it appears as a seamless right extension.
+   Per-variant background/border match each tag type via :has().              */
+.meta-tag-wrap {
+    display: inline-flex;
+    align-items: stretch;
+    vertical-align: middle;
+}
+/* Tag: absolutely untouched — keeps its own border, radius, background */
+.meta-tag-wrap > .meta-tag { margin: 0; }
+
+.btn-tag-clear {
+    max-width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Borders pre-declared so they can be transitioned; left always none */
+    border-top:    1px solid transparent;
+    border-right:  1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-left:   none;
+    /* Match meta-tag's 99px pill — seamless right continuation */
+    border-radius: 0 99px 99px 0;
+    cursor: pointer;
+    opacity: 0;
+    transition: max-width 0.22s ease, padding 0.22s ease, opacity 0.2s,
+                margin-left 0.22s ease, border-color 0.18s ease;
+    padding: 0;
+    margin-left: 0;
+    flex-shrink: 0;
+    background: transparent;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.btn-tag-clear svg { width: 8px; height: 8px; pointer-events: none; flex-shrink: 0; }
+
+.meta-tag-wrap:hover .btn-tag-clear {
+    max-width: 22px;
+    padding: 0 5px 0 3px;
+    opacity: 0.85;
+    margin-left: -1px;
+}
+.meta-tag-wrap:hover .btn-tag-clear:hover { opacity: 1; color: #e06070; }
+
+/* Per-variant backgrounds (always ready, visible only on hover via opacity) */
+.meta-tag-wrap:has(> .repeat-tag) .btn-tag-clear {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+}
+.meta-tag-wrap:has(> .deadline-tag:not(.warn):not(.urgent):not(.critical):not(.over)) .btn-tag-clear {
+    background: rgba(12, 3, 35, 0.7);
+}
+.meta-tag-wrap:has(> .deadline-tag.warn) .btn-tag-clear {
+    background: var(--deadline-warn-bg);
+    color: var(--deadline-warn);
+}
+.meta-tag-wrap:has(> .deadline-tag.urgent) .btn-tag-clear {
+    background: var(--deadline-urgent-bg);
+    color: var(--deadline-urgent);
+}
+.meta-tag-wrap:has(> .deadline-tag.critical) .btn-tag-clear {
+    background: rgba(80, 10, 20, 0.35);
+    color: var(--deadline-critical, #e05060);
+}
+.meta-tag-wrap:has(> .deadline-tag.over) .btn-tag-clear {
+    background: var(--deadline-over-bg);
+    color: var(--deadline-over);
+}
+
+/* Per-variant border-color — only on hover when border exists */
+.meta-tag-wrap:hover:has(> .repeat-tag) .btn-tag-clear {
+    border-color: rgba(130, 50, 230, 0.35);
+}
+.meta-tag-wrap:hover:has(> .deadline-tag:not(.warn):not(.urgent):not(.critical):not(.over)) .btn-tag-clear {
+    border-color: var(--border-input);
+}
+.meta-tag-wrap:hover:has(> .deadline-tag.warn) .btn-tag-clear {
+    border-color: rgba(120, 120, 220, 0.35);
+}
+.meta-tag-wrap:hover:has(> .deadline-tag.urgent) .btn-tag-clear {
+    border-color: rgba(200, 100, 20, 0.4);
+}
+.meta-tag-wrap:hover:has(> .deadline-tag.critical) .btn-tag-clear {
+    border-color: rgba(210, 30, 50, 0.35);
+}
+.meta-tag-wrap:hover:has(> .deadline-tag.over) .btn-tag-clear {
+    border-color: rgba(170, 15, 30, 0.5);
+}
+
+/* Persistent "done until …" label for cycle-completed recurring tasks.
+   Violet-purple tint — matches the project's gothic palette exactly.
+   Italic text + subtle glow border makes it distinct from deadline (red/orange)
+   and repeat-type (plain violet) tags without introducing alien colours. */
+.cycle-until-tag {
+    color: rgba(215, 175, 255, 0.90);
+    background: rgba(80, 20, 180, 0.18);
+    border-color: rgba(140, 60, 240, 0.38);
+    font-style: italic;
+    letter-spacing: 0.15px;
+}
+.group-tag  { font-style: italic; }
+.muted-tag  { opacity: 0.55; }
+
+/* Hashtag */
+.hashtag { color: var(--accent-hover); cursor: pointer; font-weight: 600; font-family: inherit; }
+.hashtag:hover { text-decoration: underline; text-shadow: 0 0 8px var(--accent-glow); }
+
+/* ── Tag cloud (renders below search bar) ─────────────────────────────────── */
+.tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 4px 0 2px;
+    animation: tagCloudIn 0.18s var(--ease-gothic) both;
+}
+@keyframes tagCloudIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--bg-item);
+    color: var(--text-secondary);
+    font-family: var(--font-label);
+    font-size: 9.5px;
+    letter-spacing: 0.7px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.tag-chip:hover {
+    border-color: var(--accent-hover);
+    color: var(--accent-hover);
+    background: rgba(100, 30, 200, 0.1);
+    box-shadow: 0 0 8px rgba(130, 50, 255, 0.18);
+}
+.tag-chip.active {
+    border-color: rgba(180, 90, 255, 0.7);
+    color: rgba(200, 130, 255, 0.95);
+    background: rgba(100, 30, 200, 0.18);
+    box-shadow: 0 0 10px rgba(140, 50, 255, 0.22);
+}
+.tag-chip-count {
+    opacity: 0.55;
+    font-size: 8.5px;
+    font-weight: 700;
+}
+
+/* Note */
+.task-note-wrapper {
+    position: relative;
+    margin-top: 7px;
+    /* I-2: animated show/hide via max-height + opacity instead of display:none/block.
+       max-height cap of 600px covers all realistic note lengths. */
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: max-height 0.28s var(--ease-gothic),
+                opacity 0.22s var(--ease-gothic),
+                visibility 0s linear 0.28s;
+    /* P10: span full task-item width — break-out via negative margins.
+       I-18 KNOWN RISK: -29px = .task-check(21px) + gap(8px); -209px = 7 actions×27px + gaps + 8px gap.
+       If action button count changes, -209px must be recalculated.
+       Full fix requires refactoring .task-item to CSS Grid — deferred to avoid layout breakage. */
+    margin-left: -29px;
+    margin-right: -209px;
+    padding-left: 29px;
+    padding-right: 8px;
+}
+.task-note-wrapper.visible {
+    max-height: 600px;
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 0.28s var(--ease-gothic),
+                opacity 0.22s var(--ease-gothic),
+                visibility 0s linear 0s;
+}
+
+.task-note-text {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    padding: 7px 36px 7px 12px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    border-left: 2px solid var(--border-mid);
+    cursor: text;
+    transition: border-color var(--transition);
+    word-break: break-word;
+    display: block;
+    user-select: text;
+    -webkit-user-select: text;
+    /* Cormorant Garamond italic uses old-style numerals which descend below baseline;
+       lining-nums keeps 1–9 on the baseline even in italic weight. */
+    font-variant-numeric: lining-nums tabular-nums;
+}
+.task-note-text.editing { outline: none; border-left-color: var(--accent); cursor: text; }
+.task-note-text:hover:not(.editing) { border-left-color: var(--border-bright); }
+
+.btn-note-delete {
+    position: absolute;
+    right: 14px;          /* was 6px — shifted left to clear container border */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    line-height: 1;
+    flex-shrink: 0;
+}
+.btn-note-delete:hover { background: var(--prio-high-bg); color: var(--prio-high); }
+
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+/* ── Inline note add (P5) — expands inside task on note-button click ───────
+   Mirrors the subtask-add-row aesthetic: dashed border, same font, same spacing.
+   .open class triggers the CSS max-height transition for smooth reveal.          */
+.inline-note-add {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.28s var(--ease-gothic), opacity 0.22s ease;
+    margin-top: 0;
+}
+.inline-note-add.open {
+    max-height: 56px;
+    opacity: 1;
+    margin-top: 6px;
+}
+.inline-note-input {
+    width: 100%;
+    background: rgba(8, 2, 28, 0.60);
+    border: 1px dashed var(--border-mid);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    font-family: var(--font-main);
+    font-size: 13.5px;
+    font-style: italic;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color var(--transition), border-style var(--transition);
+}
+.inline-note-input::placeholder { color: var(--text-muted); }
+.inline-note-input:focus {
+    border-color: rgba(140, 60, 255, 0.55);
+    border-style: solid;
+}
+
+.btn-note-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 1px 0;
+    font-family: var(--font-label);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color var(--transition);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.btn-note-toggle:hover { color: var(--accent-hover); }
+.btn-note-toggle svg { width: 10px; height: 10px; flex-shrink: 0; transition: transform var(--transition); pointer-events: none; }
+.btn-note-toggle.open svg { transform: rotate(180deg); }
+.btn-note-toggle span { white-space: nowrap; }
+
+/* Task actions */
+.task-actions {
+    display: flex;
+    gap: 2px;
+    align-items: flex-start;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+.task-item:hover .task-actions { opacity: 1; }
+.archive-actions { opacity: 1 !important; }
+
+.btn-task-action {
+    width: 27px;
+    height: 27px;
+    border-radius: var(--radius-xs);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    padding: 0;
+}
+.btn-task-action svg { width: 13px; height: 13px; }
+.btn-task-action:hover { background: var(--bg-tag); color: var(--text-secondary); }
+.btn-task-action.danger:hover { background: var(--prio-high-bg); color: var(--prio-high); }
+.btn-task-action.archive-btn:hover { background: rgba(80, 15, 180, 0.25); color: var(--accent-hover); }
+.restore-btn:hover { background: var(--accent-soft); color: var(--accent-hover); }
+.btn-task-action.edit-note-btn { font-family: var(--font-label); font-size: 9.5px; width: auto; padding: 0 6px; letter-spacing: 0.3px; white-space: nowrap; }
+
+/* Search highlight */
+.highlight {
+    background: rgba(140, 60, 255, 0.20);
+    border-radius: 2px;
+    color: var(--accent-hover);
+    font-weight: 600;
+}
+
+/* ===== EMPTY / ALL DONE ===== */
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.empty-rune {
+    font-size: 36px;
+    opacity: 0.20;
+    font-family: var(--font-label);
+    animation: ornamentPulse 5s ease-in-out infinite;
+}
+.empty-state p { font-size: 14px; letter-spacing: 1px; font-family: var(--font-label); opacity: 0.65; }
+
+/* All-done: purple, not green */
+.all-done {
+    text-align: center;
+    padding: 28px 20px;
+    color: var(--accent-hover);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.all-done-icon {
+    font-size: 30px;
+    opacity: 0.8;
+    animation: allDonePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 0 12px rgba(180, 100, 255, 0.6));
+}
+.all-done p { font-size: 13px; font-weight: 600; letter-spacing: 1.5px; font-family: var(--font-label); text-transform: uppercase; }
+@keyframes allDoneIcon {
+    0%   { transform: scale(0.3) rotate(-45deg); opacity: 0; }
+    60%  { transform: scale(1.18) rotate(8deg);  opacity: 1; }
+    80%  { transform: scale(0.94) rotate(-3deg); }
+    100% { transform: scale(1)    rotate(0deg);  opacity: 1; }
+}
+@keyframes allDoneText {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+}
+@keyframes allDonePop { from { transform: scale(0.4); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+.todo-app.cathedral-flash { animation: cathedralFlash 1.4s ease forwards; }
+
+/* ===== ARCHIVE PAGE ===== */
+.archive-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+}
+.archive-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 30%; right: 30%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(140, 60, 255, 0.4), transparent);
+}
+
+.archive-btns {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.archive-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font-title);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+.archive-title svg { width: 13px; height: 13px; }
+
+/* Shared style for all archive header buttons */
+.btn-archive-action {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.btn-archive-action svg { width: 11px; height: 11px; flex-shrink: 0; }
+.btn-archive-action:hover { border-color: var(--border-bright); color: var(--accent-hover); background: var(--accent-dim); }
+.btn-archive-action.btn-select-mode.active {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    border-color: rgba(150, 70, 255, 0.45);
+}
+.btn-archive-action.btn-clear-archive:hover { border-color: var(--prio-high-border); color: var(--prio-high); background: var(--prio-high-bg); }
+
+/* Keep old rule for compatibility */
+.btn-clear-archive { /* properties now on .btn-archive-action */ }
+
+/* Archive item states */
+.archive-item { opacity: 0.75; cursor: default; }
+.archive-item:hover { opacity: 1; }
+.archive-item.select-mode { cursor: pointer; }
+.archive-item.select-mode:hover { opacity: 1; background: var(--bg-item-hover); }
+.archive-item.arc-selected {
+    opacity: 1;
+    border-color: rgba(150, 70, 255, 0.45) !important;
+    background: rgba(80, 20, 160, 0.18) !important;
+    box-shadow: 0 0 0 1px rgba(150, 70, 255, 0.20);
+}
+
+/* Selection indicator (checkbox) */
+.arc-select-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    min-width: 22px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.arc-select-indicator svg { width: 16px; height: 16px; display: block; }
+.archive-item.arc-selected .arc-select-indicator { color: var(--accent); }
+
+/* Bottom selection bar */
+.archive-select-bar {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    background: rgba(8, 3, 28, 0.97);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(80,20,160,0.15);
+    backdrop-filter: blur(12px);
+    z-index: 10;
+}
+/* Main list bulk select bar sits at top of list-wrapper, not bottom */
+.main-select-bar {
+    position: static;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* ── Task select checkbox (shown in mainSelectMode) ─────────────────────── */
+.task-select-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    flex-shrink: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim, rgba(180,140,255,0.38));
+    transition: color var(--transition), transform var(--transition);
+    align-self: flex-start;
+    margin-top: 3px;
+}
+.task-select-checkbox svg { width: 20px; height: 20px; display: block; }
+.task-select-checkbox.selected {
+    color: rgba(200, 130, 255, 0.95);
+    transform: scale(1.08);
+}
+.task-select-checkbox:hover { color: rgba(180, 90, 255, 0.8); }
+
+/* Selected task row highlight */
+.task-item.select-mode-selected {
+    background: rgba(100, 30, 200, 0.12);
+    border-color: rgba(160, 80, 255, 0.35);
+}
+
+/* Delete button variant in select bar */
+.btn-select-bar-delete {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(200, 40, 60, 0.35);
+    background: rgba(160, 20, 40, 0.12);
+    color: var(--prio-high);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.btn-select-bar-delete:not(:disabled):hover {
+    background: rgba(200, 30, 50, 0.20);
+    border-color: rgba(230, 60, 80, 0.55);
+}
+.btn-select-bar-delete:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-select-bar-delete svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-select-bar-delete.confirm-armed {
+    background: rgba(200, 30, 50, 0.28);
+    border-color: rgba(230, 60, 80, 0.8);
+    animation: dangerPulse 0.5s ease infinite alternate;
+}
+.select-bar-count {
+    font-family: var(--font-label);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+.select-bar-actions { display: flex; gap: 6px; align-items: center; }
+.btn-select-bar-cancel {
+    padding: 6px 13px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.btn-select-bar-cancel:hover { background: var(--bg-input); border-color: var(--border-bright); }
+.btn-select-bar-restore {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(140, 60, 255, 0.40);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.btn-select-bar-restore svg { width: 11px; height: 11px; flex-shrink: 0; }
+.btn-select-bar-restore:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 12px rgba(140,60,255,0.3); }
+.btn-select-bar-restore:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-overlay);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: overlayIn var(--dur-quick) ease;
+    backdrop-filter: blur(6px);
+}
+.modal-overlay.closing {
+    animation: overlayOut var(--dur-quick) ease forwards;
+    pointer-events: none;
+}
+
+.modal {
+    background: var(--bg-modal);
+    border-radius: var(--radius-lg);
+    padding: 24px 26px;
+    width: 370px;
+    max-width: calc(100vw - 28px);
+    box-shadow: var(--shadow-lg), 0 0 50px rgba(80, 0, 180, 0.22);
+    border: 1px solid var(--border-mid);
+    animation: modalIn var(--dur-standard) var(--ease-emerge);
+    position: relative;
+    backdrop-filter: blur(16px);
+}
+.modal-overlay.closing .modal {
+    animation: modalOut var(--dur-quick) var(--ease-sink) forwards;
+}
+.modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%; right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200, 100, 255, 0.6), transparent);
+}
+
+.modal-small   { width: 310px; }
+.modal-deadline { width: 440px; }
+.modal-note    { width: 390px; }
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.93) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--text-primary);
+    letter-spacing: 2px;
+    font-family: var(--font-title);
+    text-transform: uppercase;
+}
+
+.modal-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+
+.modal-input {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    outline: none;
+    transition: border-color var(--transition);
+}
+.modal-input:focus { border-color: rgba(150, 70, 255, 0.55); }
+.modal-input option { background: #060218; }
+
+.modal-textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    outline: none;
+    resize: vertical;
+    transition: border-color var(--transition);
+    margin-bottom: 14px;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+.modal-textarea::placeholder { color: var(--text-muted); font-style: italic; }
+.modal-textarea:focus { border-color: rgba(150, 70, 255, 0.55); }
+
+.color-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.color-swatch {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform var(--transition), border-color var(--transition);
+    padding: 0;
+}
+.color-swatch:hover { transform: scale(1.2); }
+.color-swatch.active { border-color: rgba(255, 255, 255, 0.7); transform: scale(1.12); box-shadow: 0 0 10px currentColor; }
+
+/* Form color picker — compact row in extra-fields */
+.field-color-form { min-width: 0; }
+.form-color-picker {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 3px 0;
+}
+.form-color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    background: var(--bg-item);
+}
+.form-color-swatch[data-color=""] {
+    background: var(--bg-item);
+    border-color: var(--border);
+}
+.form-color-swatch:hover { transform: scale(1.18); }
+.form-color-swatch.active {
+    border-color: rgba(255, 255, 255, 0.7);
+    transform: scale(1.12);
+    box-shadow: 0 0 8px rgba(255,255,255,0.25);
+}
+.form-color-swatch[data-color=""].active {
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 6px rgba(160, 80, 255, 0.35);
+    color: var(--accent-hover);
+}
+
+/* FIX-1: Disabled color picker when priority is set */
+.form-color-picker.color-picker-prio-disabled {
+    opacity: 0.28;
+    pointer-events: none;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+    position: relative;
+}
+.form-color-picker.color-picker-prio-disabled::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    cursor: not-allowed;
+    pointer-events: all;
+}
+/* Disabled task color button when priority is assigned */
+.btn-task-color.color-btn-prio-disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.btn-modal-cancel {
+    padding: 7px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-label);
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.btn-modal-cancel:hover { background: var(--bg-input); border-color: var(--border-bright); color: var(--text-primary); }
+
+.btn-modal-danger {
+    padding: 7px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--prio-high-border);
+    background: var(--prio-high-bg);
+    color: var(--prio-high);
+    font-family: var(--font-label);
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+/* Deadline clear button — icon-only variant of btn-modal-danger */
+.btn-modal-danger.btn-dl-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0 14px;
+    min-width: 44px;
+}
+.btn-modal-danger.btn-dl-clear svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+
+
+.btn-modal-confirm {
+    padding: 7px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(140, 60, 255, 0.40);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-family: var(--font-label);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.btn-modal-confirm:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 14px rgba(140, 60, 255, 0.3); }
+
+/* Deadline modal */
+.dl-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 16px;
+}
+.dl-mode-btn {
+    padding: 8px 6px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.3;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.dl-mode-btn:hover { border-color: var(--border-mid); color: var(--text-primary); }
+.dl-mode-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    border-color: rgba(140, 60, 255, 0.40);
+    font-weight: 600;
+}
+
+.dl-inputs { margin-bottom: 16px; min-height: 44px; }
+.dl-input-wrap { display: none; }
+.dl-input-wrap.active { display: block; }
+
+.weektime-row { display: flex; gap: 8px; align-items: center; }
+.weektime-row .modal-input { flex: 1; }
+/* Match time-input height to gothic weekday trigger button (~41px natural height) */
+.weektime-row input[type="time"].modal-input {
+    box-sizing: border-box;
+    height: 41px;
+    flex: 1;
+}
+
+.dl-hint { font-size: 11px; color: var(--text-secondary); margin-top: 7px; font-style: italic; font-family: var(--font-label); }
+
+/* Optional time row inside date-mode deadline (Extension 7) */
+.dl-date-time-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+.dl-date-time-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.dl-date-time-input {
+    width: 110px;
+    flex-shrink: 0;
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+}
+
+/* Monthday validation warning — inline below stepper, shown only when value is clamped */
+.dl-monthday-warn {
+    color: rgba(255, 180, 80, 0.90);
+    font-style: normal;
+    font-weight: 600;
+    border-left: 2px solid rgba(255, 160, 50, 0.55);
+    padding-left: 7px;
+    margin-top: 9px;
+    line-height: 1.5;
+    transition: opacity var(--transition);
+}
+.dl-monthday-warn[hidden] { display: none; }
+
+/* Static short-month footnote — appears only when entered day ≥ 29 */
+.dl-monthday-note {
+    opacity: 0.65;
+    font-style: italic;
+    margin-top: 5px;
+}
+.dl-monthday-note[hidden] { display: none; }
+
+/* ===== GOTHIC MONTH PICKER (custom dropdown replacing native <select>) =====
+   Keeps native <select id="dl-month"> hidden for value storage; custom UI
+   sits on top. Animated with ease-emerge for unhurried gothic materialisation. */
+.dl-month-picker { position: relative; }
+
+.dl-month-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    text-align: left;
+    letter-spacing: 0.3px;
+}
+.dl-month-trigger:hover { border-color: rgba(140, 60, 255, 0.5); color: var(--accent-hover); }
+.dl-month-trigger:focus-visible {
+    outline: none;
+    border-color: rgba(150, 70, 255, 0.55);
+    box-shadow: 0 0 0 2px rgba(110, 30, 210, 0.18);
+}
+
+.dl-month-chevron {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    opacity: 0.55;
+    transition: transform var(--dur-quick) var(--ease-gothic), opacity var(--transition);
+    /* Sword default: pointing up = dropdown closed (can expand) */
+}
+.dl-month-picker.open .dl-month-chevron {
+    /* Sword rotated 180° = pointing down = dropdown open (can collapse).
+       Matches the site-wide convention: btn-note-toggle.open / btn-subtask-toggle.open */
+    transform: rotate(180deg);
+    opacity: 0.85;
+}
+.dl-month-picker.open .dl-month-trigger {
+    border-color: rgba(140, 60, 255, 0.45);
+}
+
+.dl-month-list {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: #06021a;
+    border: 1px solid rgba(140, 60, 255, 0.32);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(80, 20, 180, 0.14);
+    z-index: 310;  /* I-17: was 200 = same as modal-overlay; raised so dropdowns clear any stacked modal */
+    max-height: 224px;
+    overflow-y: auto;
+    padding: 5px 0;
+
+    /* Scroll-bar: thin gothic purple */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 50, 220, 0.4) transparent;
+
+    /* Veil-lift animation */
+    opacity: 0;
+    transform: translateY(-7px) scaleY(0.96);
+    transform-origin: top center;
+    pointer-events: none;
+    transition:
+        opacity var(--dur-quick) var(--ease-emerge),
+        transform var(--dur-quick) var(--ease-emerge);
+}
+.dl-month-list::-webkit-scrollbar { width: 4px; }
+.dl-month-list::-webkit-scrollbar-thumb { background: rgba(120, 50, 220, 0.4); border-radius: 2px; }
+.dl-month-list::-webkit-scrollbar-track { background: transparent; }
+
+.dl-month-picker.open .dl-month-list {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    pointer-events: auto;
+}
+
+.dl-month-option {
+    padding: 10px 14px;
+    font-family: var(--font-main);
+    font-size: 15px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: background var(--dur-micro), color var(--dur-micro);
+    user-select: none;
+}
+.dl-month-option:hover {
+    background: rgba(100, 25, 200, 0.18);
+    color: var(--text-primary);
+}
+.dl-month-option.active {
+    background: rgba(100, 25, 200, 0.28);
+    color: var(--accent-hover);
+    font-weight: 600;
+}
+/* ======================================================= */
+
+/* ===== GOTHIC WEEKDAY PICKER (weektime mode)
+   Reuses all .dl-month-picker/.dl-month-trigger/.dl-month-option styles.
+   Only overrides needed: flex growth inside .weektime-row, and list height. */
+
+/* Grow to fill weektime-row flex slot (same as .modal-input did for native select) */
+.dl-weekday-picker {
+    flex: 1;
+    min-width: 0; /* prevent flex overflow */
+}
+
+/* Weekday list: show all 7 options without scrolling */
+.dl-weekday-list {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: #06021a;
+    border: 1px solid rgba(140, 60, 255, 0.32);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(80, 20, 180, 0.14);
+    z-index: 310;  /* I-17: raised from 200 to match dl-month-list */
+    max-height: 270px; /* 7 × ~38px — no scroll needed */
+    overflow-y: auto;
+    padding: 5px 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 50, 220, 0.4) transparent;
+
+    /* Veil-lift animation — identical to month list */
+    opacity: 0;
+    transform: translateY(-7px) scaleY(0.96);
+    transform-origin: top center;
+    pointer-events: none;
+    transition:
+        opacity var(--dur-quick) var(--ease-emerge),
+        transform var(--dur-quick) var(--ease-emerge);
+}
+
+/* Open-upward variant: when picker is near viewport bottom */
+.dl-weekday-picker.open-up .dl-weekday-list {
+    top: auto;
+    bottom: calc(100% + 5px);
+    transform-origin: bottom center;
+}
+.dl-weekday-picker.open-up .dl-weekday-list {
+    transform: translateY(7px) scaleY(0.96);
+}
+.dl-weekday-picker.open.open-up .dl-weekday-list {
+    transform: translateY(0) scaleY(1);
+}
+.dl-weekday-list::-webkit-scrollbar { width: 4px; }
+.dl-weekday-list::-webkit-scrollbar-thumb { background: rgba(120, 50, 220, 0.4); border-radius: 2px; }
+.dl-weekday-list::-webkit-scrollbar-track { background: transparent; }
+
+.dl-weekday-picker.open .dl-weekday-list {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    pointer-events: auto;
+}
+.dl-weekday-picker.open .dl-month-chevron {
+    transform: rotate(180deg);
+    opacity: 0.85;
+}
+.dl-weekday-picker.open .dl-month-trigger {
+    border-color: rgba(140, 60, 255, 0.45);
+}
+
+/* ======================================================= */
+
+/* ===== CUSTOM NUMBER STEPPER (monthday) ===== */
+.number-stepper-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color var(--transition);
+}
+.number-stepper-wrap:focus-within { border-color: rgba(150, 70, 255, 0.55); }
+
+/* Remove native browser spinners */
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper-input { -moz-appearance: textfield; }
+
+.stepper-input {
+    flex: 1;
+    border: none !important;
+    border-radius: 0 !important;
+    border-left: 1px solid var(--border-input) !important;
+    border-right: 1px solid var(--border-input) !important;
+    text-align: center;
+    background: transparent;
+    font-size: 15px;
+    padding: 9px 8px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    outline: none;
+}
+.stepper-input:focus { border-color: transparent !important; }
+
+.stepper-btn {
+    width: 44px;
+    height: 100%;
+    min-height: 40px;
+    border: none;
+    background: rgba(100, 30, 200, 0.12);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    flex-shrink: 0;
+    line-height: 1;
+    padding-bottom: 2px;
+}
+.stepper-btn:hover { background: var(--accent-soft); color: var(--accent-hover); }
+.stepper-btn:active { background: rgba(120, 40, 240, 0.25); transform: scale(0.92); }
+
+/* Priority modal */
+.modal-prio-selector {
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+.modal-prio-selector .prio-btn {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    justify-content: flex-start;
+    font-size: 12px;
+}
+
+/* ── Repeat modal grid ── */
+.repeat-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin-bottom: 16px;
+}
+.repeat-modal-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 12px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.repeat-modal-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.repeat-modal-btn:hover { border-color: var(--border-mid); color: var(--text-secondary); background: rgba(60,15,130,0.18); }
+.repeat-modal-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    border-color: rgba(140, 60, 255, 0.45);
+    box-shadow: 0 0 10px rgba(130, 50, 230, 0.15);
+}
+
+/* ── Repeat anchor section ── */
+.repeat-anchor-section {
+    margin-bottom: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+.repeat-anchor-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.repeat-anchor-title {
+    font-family: var(--font-label);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.repeat-anchor-opt {
+    font-family: var(--font-label);
+    font-size: 9.5px;
+    color: rgba(160, 130, 210, 0.45);
+    font-style: italic;
+    letter-spacing: 0.5px;
+}
+.repeat-anchor-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.repeat-anchor-row:last-of-type { margin-bottom: 0; }
+/* Weekday picker in anchor reuses dl-weekday-picker, needs flex:1 */
+.repeat-anchor-row .dl-weekday-picker { flex: 1; }
+/* Time input in anchor: stays as flex row, seg-input-row takes all space */
+.repeat-anchor-time-row {
+    /* keep display:flex from .repeat-anchor-row — seg-input-row fills it via flex:1 */
+    width: 100%;
+}
+.repeat-anchor-time-row .seg-input-row {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+}
+.repeat-anchor-time-row .seg-input-row .seg-input {
+    width: 100%;
+    flex: 1;
+}
+.repeat-anchor-time-row .modal-input:not(.seg-input) { display: none; }
+/* Monthday label — same opacity as dl-hint notes */
+.repeat-anchor-monthday-label {
+    font-size: 10.5px !important;
+    opacity: 0.75;
+    margin-top: -2px;
+}
+.repeat-anchor-monthday-note-below {
+    opacity: 0.75;
+    margin-top: -2px;
+    margin-bottom: 2px;
+}
+/* Stepper wrap fills full row width */
+.repeat-stepper-wrap {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ── Group section drag handle ───────────────────────────────── */
+.group-drag-handle {
+    width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    cursor: grab;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: width 0.18s ease, opacity 0.18s ease;
+    pointer-events: none;
+}
+.group-header:hover .group-drag-handle {
+    width: 18px;
+    opacity: 0.55;
+    pointer-events: auto;
+}
+.group-drag-handle:hover { opacity: 0.9 !important; }
+.group-drag-handle svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ── Drag handle: left column, below the coffin checkbox ─────────────────
+   The handle sits in a narrow left column (same width as the coffin checkbox).
+   It's absolute, centred horizontally within that column, and pushed to the
+   lower half of the item so it reads as "below the coffin, not beside it".
+   Bigger dots (r=1.8), more visible — clearly an affordance, not a button.   */
+.task-item { position: relative; }
+
+.task-check-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+.drag-handle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--border-mid);
+    opacity: 0;
+    transition: opacity 0.22s ease, color 0.15s ease;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+.drag-handle svg {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+    display: block;
+}
+/* Show on hover of the whole item */
+.task-item:hover .drag-handle { opacity: 0.38; }
+/* Brighter when actively dragging */
+.sortable-chosen .drag-handle,
+.sortable-drag    .drag-handle {
+    opacity: 0.85;
+    color: var(--accent);
+}
+@keyframes handlePop {
+    0%   { transform: scale(1);    }
+    40%  { transform: scale(1.3);  }
+    100% { transform: scale(1);    }
+}
+.sortable-chosen .drag-handle svg {
+    animation: handlePop 0.20s var(--ease-spring);
+}
+@media (prefers-reduced-motion: reduce) {
+    .sortable-chosen .drag-handle svg { animation: none; }
+}
+@media (max-width: 520px) {
+    .task-item .drag-handle { opacity: 0.15; }
+    .task-item:hover .drag-handle { opacity: 0.38; }
+}
+
+/* ── Drag handle: large items — positioning via inline styles from positionDragHandles().
+   The JS writes handle.style.position/top/left directly on each item, so no class-based
+   CSS rules are needed here. Only the default flex-flow state lives in .task-check-col. */
+
+/* ── Two-step destructive confirm ─────────────────────────────────────────
+   First click arms the button: it glows danger-red as a visual warning.
+   Second click within 3 s fires the action.  Auto-disarms after 3 s.       */
+.btn-tool.confirm-armed,
+.btn-group-action.confirm-armed {
+    background: var(--prio-high-bg) !important;
+    color: var(--prio-high) !important;
+    border-color: var(--prio-high-border) !important;
+    animation: armedPulse 0.8s ease-in-out infinite;
+}
+@keyframes armedPulse {
+    0%, 100% { box-shadow: 0 0 0 0   rgba(220, 30, 70, 0); }
+    50%       { box-shadow: 0 0 0 3px rgba(220, 30, 70, 0.30); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .btn-tool.confirm-armed,
+    .btn-group-action.confirm-armed { animation: none; }
+}
+
+/* ── Split-group zone headers ─────────────────────────────────────────────
+   Both headers share identical type/color — one visual system.
+   "Done" header is clickable and has a collapse chevron.                     */
+.split-zone-header {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px 5px;
+    margin: 8px 0 4px;
+    font-family: var(--font-label);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--text-secondary);          /* was --text-primary (near-white); now violet */
+    border-bottom: 1px solid rgba(100, 35, 170, 0.30);
+    user-select: none;
+}
+/* P8: zone icon (first SVG in header) at full opacity — matches text brightness.
+   Only the .split-chevron gets its own reduced opacity below. */
+.split-zone-header svg { width: 12px; height: 12px; flex-shrink: 0; opacity: 1; }
+/* Chevron is a navigation affordance — keep it slightly quieter than the label */
+.split-done-header .split-chevron { opacity: 0.55; }
+/* ROOT CAUSE FIX (task 2): transition was set but NO end-state rule existed.
+   Convention matches btn-note-toggle / btn-subtask-toggle throughout the site:
+   sword at 0° = content collapsed (pointing up = "expand me");
+   sword at 180° = content visible (pointing down = "collapse me"). */
+.split-done-header .split-chevron          { transform: rotate(180deg); }  /* default: content visible */
+.split-done-header.collapsed .split-chevron { transform: rotate(0deg);   }  /* collapsed: content hidden */
+
+.split-active-header {
+    /* Now collapsible — mirrors split-done-header */
+    cursor: pointer;
+    transition: color var(--transition), background var(--transition);
+    border-radius: var(--radius-xs);
+}
+.split-active-header:hover {
+    color: rgba(200, 145, 255, 0.92);
+    background: rgba(110, 30, 200, 0.10);
+}
+.split-active-header .split-chevron {
+    margin-left: auto;
+    transition: transform var(--transition);
+    flex-shrink: 0;
+}
+.split-active-header.collapsed .split-chevron { transform: rotate(180deg); }
+
+/* Active-wrap collapse — same grid-row trick as done-wrap */
+.split-active-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity             0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+}
+.split-active-wrap.collapsed {
+    grid-template-rows: 0fr;
+    opacity: 0;
+}
+.split-active-wrap > ul {
+    overflow: hidden;
+    min-height: 0;
+}
+
+.split-done-header {
+    cursor: pointer;
+    transition: color var(--transition), background var(--transition);
+    border-radius: var(--radius-xs);
+}
+/* Gothic-compatible hover: soft violet glow, not bright white */
+.split-done-header:hover {
+    color: rgba(200, 145, 255, 0.92);
+    background: rgba(110, 30, 200, 0.10);
+}
+.split-done-header .split-chevron {
+    margin-left: auto;
+    transition: transform var(--transition);
+    flex-shrink: 0;
+}
+/* ── Split done-zone collapse animation ──────────────────────────────────────
+   Grid-row trick: animates from 0fr (collapsed) to 1fr (expanded) without
+   knowing the content height. The inner ul needs min-height:0 to allow
+   shrinking below its natural size. Reduced-motion fallback is instant toggle. */
+.split-done-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity             0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+}
+.split-done-wrap.collapsed {
+    grid-template-rows: 0fr;
+    opacity: 0;
+}
+.split-done-wrap > ul {
+    overflow: hidden;
+    min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .split-done-wrap { transition: none; }
+}
+
+/* ── drag-over portal glow clears on dragend — see onDragEnd ── */
+.task-item.kb-focused {
+    outline: 2px solid rgba(180, 100, 255, 0.60);
+    outline-offset: -1px;
+    background: var(--bg-item-hover);
+    border-color: rgba(150, 70, 255, 0.45);
+}
+.task-item.kb-focused .task-actions { opacity: 1; }
+
+.btn-sound {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-app);
+    border: 1px solid var(--border-mid);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    z-index: 50;
+    padding: 0;
+    backdrop-filter: blur(10px);
+}
+.btn-sound:hover { color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.55); box-shadow: var(--shadow-glow); }
+.btn-sound svg { width: 15px; height: 15px; }
+.btn-sound.on .icon-sound-off { display: none; }
+.btn-sound.off .icon-sound-on { display: none; }
+.btn-sound.on { color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.55); }
+
+/* ── Shortcuts toggle button (UX-3) ──────────────────────────────────────── */
+.btn-shortcuts-toggle {
+    position: fixed;
+    bottom: 68px; /* stacked above btn-sound (22px bottom + 40px height + 6px gap) */
+    right: 22px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-app);
+    border: 1px solid var(--border-mid);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    z-index: 50;
+    padding: 0;
+    backdrop-filter: blur(10px);
+    font-family: var(--font-label);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1;
+}
+.btn-shortcuts-toggle:hover {
+    color: var(--accent-hover);
+    border-color: rgba(140, 60, 255, 0.55);
+    box-shadow: var(--shadow-glow);
+}
+.btn-shortcuts-toggle.active {
+    color: var(--accent-hover);
+    border-color: rgba(140, 60, 255, 0.55);
+    background: rgba(100, 35, 200, 0.15);
+}
+
+/* ===== SHORTCUTS HINT ===== */
+.shortcuts-hint {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-modal);
+    border: 1px solid var(--border-mid);
+    border-radius: 99px;
+    padding: 7px 20px;
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+    z-index: 50;
+    white-space: nowrap;
+    font-family: var(--font-label);
+    backdrop-filter: blur(10px);
+    letter-spacing: 1px;
+    /* UX-3: animated appearance */
+    animation: shortcutsIn 0.18s var(--ease-gothic) both;
+}
+@keyframes shortcutsIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-mid);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+/* ===== RESPONSIVE ===== */
+/* Graceful container padding reduction as viewport narrows toward 780px container */
+@media (max-width: 820px) {
+    .todo-app { padding: 28px 22px 32px; }
+}
+
+/* R-1: 600-820px gap — iPad mini / landscape phones. Toolbar has 8+ buttons and
+   can overflow horizontally without this breakpoint. */
+@media (max-width: 640px) {
+    .toolbar { flex-wrap: wrap; gap: 6px; }
+    .toolbar-actions { flex-wrap: wrap; gap: 3px; }
+    .btn-tool { width: 30px; height: 30px; }
+    .btn-tool svg { width: 13px; height: 13px; }
+    .search-wrap { min-width: 0; }
+}
+
+@media (max-width:520px) {
+    .todo-app { padding: 20px 14px 26px; margin-top: 10px; border-radius: var(--radius-lg); }
+    .brand-name { font-size: 24px; letter-spacing: 10px; }
+    .brand-svg { width: 24px; height: 29px; }
+    .extra-row { flex-direction: column; }
+    .prio-grid { grid-template-columns: 1fr 1fr; }
+    .prio-grid-btn { font-size: 9.5px; padding: 5px 8px; }
+    .priority-selector { gap: 3px; }
+    .prio-btn { font-size: 10px; padding: 5px 8px; }
+    .subtask-list { grid-template-columns: 1fr; }
+    .shortcuts-hint { display: none !important; }
+    .modal { width: calc(100vw - 24px); padding: 18px 16px; }
+    .modal-deadline { width: calc(100vw - 24px); }
+    .modal-note { width: calc(100vw - 24px); }
+    .dl-mode-grid { grid-template-columns: repeat(2, 1fr); }
+    .modal-actions { gap: 4px; }
+    .btn-modal-cancel, .btn-modal-danger, .btn-modal-confirm { padding: 6px 11px; font-size: 10px; }
+    .toolbar { flex-wrap: wrap; }
+    .task-actions { gap: 1px; }
+    .btn-task-action { width: 25px; height: 25px; }
+    .btn-task-action svg { width: 11px; height: 11px; }
+    .weektime-row { flex-direction: column; }
+    .drag-handle { opacity: 0.5; }
+    .number-stepper-wrap { width: 100%; }
+    .dl-side-panel { min-width: 44px; max-width: 44px; }
+    .dl-side-countdown { font-size: 8.5px; }
+    .dl-side-date { font-size: 7.5px; }
+    /* D-2: tag-cloud becomes a single horizontally-scrollable row on mobile.
+       flex-wrap:nowrap + overflow-x:auto means chips never push content below the toolbar. */
+    .tag-cloud {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+        mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
+    .tag-cloud::-webkit-scrollbar { display: none; }
+    .tag-chip { flex-shrink: 0; }
+}
+
+@media (max-width:360px) {
+    .todo-app { padding: 14px 10px 20px; }
+    .brand-name { font-size: 20px; letter-spacing: 7px; }
+    .brand-emblem { display: none; }
+    .dl-mode-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===================================================
+   NATIVE DATE / TIME INPUT — DARK GOTHIC THEME
+   Strategy: color-scheme:dark forces the browser popup
+   into dark OS mode (dark calendar/clock overlay).
+   ::-webkit-datetime-edit-* styles the editable text
+   fields to match the purple-black gothic palette.
+   ::-webkit-calendar-picker-indicator gets gothic SVG icons.
+   =================================================== */
+
+/* Force browser popup into dark mode for both date and time inputs */
+.modal-input[type="date"],
+.modal-input[type="time"] {
+    color-scheme: dark;
+    /* Override padding to account for indicator space */
+    padding-right: 8px;
+}
+
+/* Editable text region (the "yyyy-mm-dd" / "hh:mm" area) */
+.modal-input[type="date"]::-webkit-datetime-edit,
+.modal-input[type="time"]::-webkit-datetime-edit {
+    color: var(--text-primary);
+    padding: 0;
+}
+
+/* Each individual field segment (day, month, year, hour, minute) */
+.modal-input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.modal-input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+}
+
+.modal-input[type="date"]::-webkit-datetime-edit-text,
+.modal-input[type="time"]::-webkit-datetime-edit-text {
+    color: var(--text-muted);
+    padding: 0 1px;
+}
+
+.modal-input[type="date"]::-webkit-datetime-edit-day-field,
+.modal-input[type="date"]::-webkit-datetime-edit-month-field,
+.modal-input[type="date"]::-webkit-datetime-edit-year-field,
+.modal-input[type="time"]::-webkit-datetime-edit-hour-field,
+.modal-input[type="time"]::-webkit-datetime-edit-minute-field,
+.modal-input[type="time"]::-webkit-datetime-edit-ampm-field {
+    color: var(--text-primary);
+    background: transparent;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+/* Focused/selected field segment */
+.modal-input[type="date"]::-webkit-datetime-edit-day-field:focus,
+.modal-input[type="date"]::-webkit-datetime-edit-month-field:focus,
+.modal-input[type="date"]::-webkit-datetime-edit-year-field:focus,
+.modal-input[type="time"]::-webkit-datetime-edit-hour-field:focus,
+.modal-input[type="time"]::-webkit-datetime-edit-minute-field:focus,
+.modal-input[type="time"]::-webkit-datetime-edit-ampm-field:focus {
+    background: rgba(110, 30, 210, 0.35);
+    color: var(--accent-hover);
+    outline: none;
+}
+
+/* Gothic lancet-window calendar icon:
+   pointed arch (cathedral window) = gothic; grid lines inside = calendar.
+   Highlighted apex dot = selected day. Readable at 16px. */
+.modal-input[type="date"]::-webkit-calendar-picker-indicator {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 20' fill='none' stroke='%23c898ff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 20V9.5C2 4.5 5 2 9 2C13 2 16 4.5 16 9.5V20Z'/%3E%3Cline x1='2' y1='12.5' x2='16' y2='12.5' stroke-width='1.2'/%3E%3Cline x1='7.3' y1='12.5' x2='7.3' y2='20' stroke-width='1' opacity='0.55'/%3E%3Cline x1='10.7' y1='12.5' x2='10.7' y2='20' stroke-width='1' opacity='0.55'/%3E%3Cline x1='2' y1='16.2' x2='16' y2='16.2' stroke-width='1' opacity='0.55'/%3E%3Ccircle cx='9' cy='7.5' r='1.7' fill='%23c898ff' stroke='none' opacity='0.9'/%3E%3C/svg%3E");
+    background-size: 16px 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 0.80;
+    transition: opacity 0.18s;
+}
+.modal-input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+/* Gothic hourglass time icon:
+   hourglass = universally "time"; converging lines + ornamental cap pins = gothic.
+   Clean X-shaped silhouette reads clearly at 14px. */
+.modal-input[type="time"]::-webkit-calendar-picker-indicator {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 20' fill='none' stroke='%23c898ff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='1.5' y1='2.5' x2='12.5' y2='2.5' stroke-width='2'/%3E%3Cline x1='1.5' y1='17.5' x2='12.5' y2='17.5' stroke-width='2'/%3E%3Cpath d='M2 2.5 L7 10.5 L2 17.5'/%3E%3Cpath d='M12 2.5 L7 10.5 L12 17.5'/%3E%3Ccircle cx='7' cy='10.5' r='1.3' fill='%23c898ff' stroke='none' opacity='0.85'/%3E%3Cline x1='1.5' y1='1' x2='1.5' y2='2.5' stroke-width='1.2' opacity='0.5'/%3E%3Cline x1='12.5' y1='1' x2='12.5' y2='2.5' stroke-width='1.2' opacity='0.5'/%3E%3Cline x1='1.5' y1='17.5' x2='1.5' y2='19' stroke-width='1.2' opacity='0.5'/%3E%3Cline x1='12.5' y1='17.5' x2='12.5' y2='19' stroke-width='1.2' opacity='0.5'/%3E%3C/svg%3E");
+    background-size: 13px 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 0.80;
+    transition: opacity 0.18s;
+}
+.modal-input[type="time"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+/* Size SVGs inside gothic lance stepper buttons */
+.stepper-btn svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* ===================================================
+   SEGMENTED DATE/TIME INPUT  (Fix 3 + Fix 4)
+   Replaces native date/time inputs with a styled
+   custom widget that gives precise backspace-per-
+   segment control and highlighted active segment.
+   Gothic palette: dark bg, purple-violet accent.
+   =================================================== */
+.seg-input {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    outline: none;
+    transition: border-color var(--transition);
+    cursor: text;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.seg-input:focus {
+    border-color: rgba(150, 70, 255, 0.55);
+}
+.seg-input:focus-within {
+    border-color: rgba(150, 70, 255, 0.55);
+}
+
+/* Separator characters (: or .) between segments */
+.seg-sep {
+    color: var(--text-muted);
+    padding: 0 2px;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Individual editable segment */
+.seg {
+    display: inline-block;
+    color: var(--text-secondary);
+    border-radius: 3px;
+    padding: 1px 3px;
+    min-width: 1.8ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums lining-nums;
+    transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+    cursor: pointer;
+    letter-spacing: 0;
+}
+
+/* Active/focused segment — gothic purple highlight */
+.seg.active {
+    background: rgba(100, 25, 210, 0.38);
+    color: rgba(215, 165, 255, 0.97);
+    box-shadow: 0 0 0 1px rgba(170, 80, 255, 0.65),
+                inset 0 0 8px rgba(120, 40, 220, 0.18);
+    outline: none;
+}
+
+/* Year segment is wider */
+.seg:last-child:not(:first-child) {
+    min-width: 3.5ch;
+}
+
+/* ── Segmented input row: [widget] + [native picker trigger] ────────────────
+   position:relative is required so the absolutely-positioned native input
+   (opacity:0, 1×1px) is contained and doesn't affect surrounding layout.    */
+.seg-input-row {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+}
+
+/* seg-input inside a row stretches to fill remaining space */
+.seg-input-row .seg-input {
+    flex: 1;
+    width: auto;
+}
+
+/* weektime row: the seg-input-row (wrapping the time seg-input) must also flex */
+.weektime-row .seg-input-row {
+    flex: 1;
+}
+
+/* Calendar / clock picker trigger button */
+.seg-picker-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    padding: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+.seg-picker-btn:hover {
+    border-color: var(--border-mid);
+    color: var(--accent-hover);
+    background: var(--accent-soft);
+}
+.seg-picker-btn:active {
+    background: rgba(120, 40, 240, 0.25);
+    transform: scale(0.94);
+}
+.seg-picker-btn svg {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+/* ── Segmented input clear button ────────────────────────────────────────────
+   Sits between the seg-input and the picker-btn. Smaller than the picker (32px
+   vs 36px), danger-accented on hover — matches IC.deadlineClear visual language. */
+.seg-clear-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    padding: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+.seg-clear-btn:hover {
+    border-color: rgba(220, 40, 70, 0.45);
+    color: var(--prio-high);
+    background: var(--prio-high-bg);
+}
+.seg-clear-btn:active {
+    background: rgba(200, 30, 60, 0.22);
+    transform: scale(0.94);
+}
+.seg-clear-btn svg {
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+}
+
+/* ===================================================
+   PAGE TRANSITION — GOTHIC VEIL DISSOLVE
+   Outgoing page: rises and fades (the stone lifted).
+   Incoming page: descends through a purple veil.
+   Total duration ≈ 360ms. No jank — no layout shift.
+   =================================================== */
+
+@keyframes pageVeilOut {
+    from { opacity: 1;   transform: translateY(0px)   scale(1); }
+    to   { opacity: 0;   transform: translateY(-10px) scale(0.988); }
+}
+
+@keyframes pageVeilIn {
+    from { opacity: 0;   transform: translateY(8px)  scale(0.993); filter: brightness(0.55) saturate(0.4); }
+    to   { opacity: 1;   transform: translateY(0)    scale(1);     filter: brightness(1)    saturate(1); }
+}
+
+/* Applied by JS during transition */
+#main-page.page-out,
+#archive-page.page-out {
+    animation: pageVeilOut 0.20s var(--ease-sink) forwards;
+    pointer-events: none;
+}
+
+#main-page.page-in,
+#archive-page.page-in {
+    animation: pageVeilIn var(--dur-standard) var(--ease-gothic) forwards;
+}
+
+/* Nav tab active indicator gets a short glow pulse on switch */
+@keyframes tabActivePulse {
+    0%   { box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.30), 0 0 0   rgba(120, 40, 220, 0); }
+    50%  { box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.55), 0 0 20px rgba(120, 40, 220, 0.30); }
+    100% { box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.30), 0 0 12px rgba(120, 40, 220, 0.15); }
+}
+
+.nav-tab.active {
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));
+    color: var(--accent-hover);
+    box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.30), 0 0 12px rgba(120, 40, 220, 0.15);
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(160, 90, 255, 0.4);
+}
+
+.nav-tab.tab-just-activated {
+    animation: tabActivePulse 0.45s ease forwards;
+}
+
+/* Reduced motion — instant cut */
+@media (prefers-reduced-motion: reduce) {
+    #main-page.page-out,
+    #archive-page.page-out,
+    #main-page.page-in,
+    #archive-page.page-in {
+        animation: none !important;
+    }
+    .nav-tab.tab-just-activated { animation: none !important; }
+}
+
+/* ============================================================
+   BATCH 6 — NEW FEATURES
+   ============================================================ */
+
+/* ── Streak counter ──────────────────────────────────────────── */
+/* ── Sort mode button overridden indicator in group ─────────── */
+.btn-group-sort.sort-overridden {
+    opacity: 1;
+    color: var(--accent);
+    border-color: rgba(160, 80, 255, 0.4);
+}
+
+/* ── Group focus mode ────────────────────────────────────────── */
+.group-section.group-focused > .group-header {
+    box-shadow: 0 0 0 1px rgba(160, 80, 255, 0.35);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* ── Archive search ──────────────────────────────────────────── */
+/* Full-width row below the title+buttons — flex-basis:100% forces a new row */
+.archive-search-wrap {
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    transition: border-color var(--transition);
+    order: 10;  /* always last in the flex row */
+}
+/* no highlight on focus — clean, unobtrusive */
+.archive-search-wrap:focus-within {
+    border-color: rgba(160, 80, 255, 0.75);
+    box-shadow: 0 0 0 2px rgba(110, 30, 210, 0.15);
+}
+.archive-search-wrap svg {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+#archive-search-box {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-main);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+#archive-search-box:focus-visible { outline: none; box-shadow: none; }
+#archive-search-box:focus,
+#archive-search-box:focus-visible { outline: none !important; box-shadow: none !important; }
+#archive-search-box::placeholder { color: var(--text-muted); font-style: italic; }
+
+/* ── Color filter modal ──────────────────────────────────────── */
+.modal-color-filter { min-width: 280px; max-width: 380px; }
+.modal-color-filter .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #c060ff;
+}
+.modal-color-filter .modal-title svg { color: #c060ff; }
+.color-filter-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 0 4px;
+    min-height: 44px;
+}
+.color-filter-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, border-color 0.15s;
+}
+.color-filter-swatch:hover { transform: scale(1.12); border-color: rgba(255,255,255,0.45); }
+.color-filter-swatch.active { border: 2px solid rgba(255,255,255,0.9); transform: scale(1.08); }
+/* Clear button — gothic crossed swords icon */
+.color-filter-clear {
+    background: rgba(20, 5, 55, 0.8) !important;
+    border: 1px solid rgba(160, 80, 255, 0.35) !important;
+    color: rgba(200, 150, 255, 0.75);
+}
+.color-filter-clear svg { width: 14px; height: 14px; }
+.color-filter-clear:hover {
+    color: #e060a0;
+    border-color: rgba(220, 60, 120, 0.6) !important;
+}
+.color-filter-empty {
+    font-family: var(--font-label);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    opacity: 0.6;
+    padding: 4px 0;
+}
+
+/* ── Import choice modal ─────────────────────────────────────── */
+.import-choice-modal {
+    max-width: 340px;
+}
+.import-choice-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 8px 0 18px;
+    line-height: 1.5;
+}
+.import-choice-actions {
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ── Bulk priority buttons ───────────────────────────────────── */
+.prio-bulk-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 9px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-family: var(--font-label);
+    font-size: 10px;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+}
+.prio-bulk-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+.prio-bulk-btn .prio-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.prio-bulk-btn .prio-dot.prio-high   { background: var(--prio-high); }
+.prio-bulk-btn .prio-dot.prio-medium { background: var(--prio-medium); }
+.prio-bulk-btn .prio-dot.prio-low    { background: var(--prio-low); }
+
+/* ============================================================
+   BATCH 7 — SUBTASK SPLIT, MONTHLY REPEAT, FORM ANCHORS,
+               FORM SUBTASK ACTIONS
+   ============================================================ */
+
+/* ── Subtask split mode ──────────────────────────────────────── */
+/* In split mode the outer UL becomes a flex column of section blocks */
+.subtask-list.sub-split-mode {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Both headers share base styles */
+.sub-split-active-header,
+.sub-split-done-header {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px 4px;
+    cursor: pointer;
+    user-select: none;
+    font-family: var(--font-label);
+    font-size: 9.5px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--accent-hover);
+    opacity: 0.9;
+    transition: opacity 0.15s;
+}
+.sub-split-active-header:hover,
+.sub-split-done-header:hover { opacity: 1; }
+.sub-split-done-header {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    margin-top: 3px;
+}
+/* Sword icons stay small */
+.sub-split-active-header > svg:not(.sub-split-chevron),
+.sub-split-done-header > svg:not(.sub-split-chevron) { width: 10px; height: 10px; flex-shrink: 0; }
+
+/* Chevron rotates on collapse */
+.sub-split-chevron {
+    margin-left: auto; flex-shrink: 0;
+    width: 10px; height: 10px;
+    transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sub-split-active-header.collapsed .sub-split-chevron,
+.sub-split-done-header.collapsed   .sub-split-chevron { transform: rotate(180deg); }
+
+/* Collapse wrappers animate via grid-template-rows */
+.sub-split-active-wrap,
+.sub-split-done-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity             0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    list-style: none;
+    padding: 0; margin: 0;
+}
+.sub-split-active-wrap.collapsed,
+.sub-split-done-wrap.collapsed {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    pointer-events: none;
+}
+/* Inner 2-column grid inside each wrap */
+.sub-split-inner {
+    overflow: hidden;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    list-style: none;
+    padding: 0; margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .sub-split-active-wrap, .sub-split-done-wrap { transition: none; }
+}
+
+/* ── Repeat modal monthday stepper compact ───────────────────── */
+.repeat-stepper-wrap {
+    max-width: 160px;
+}
+.repeat-anchor-row {
+    margin-top: 8px;
+}
+
+/* ── Inline form repeat anchor — gothic style matching the repeat modal ─── */
+.form-repeat-anchor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    margin-top: 6px;
+    background: rgba(15, 5, 45, 0.6);
+    border: 1px solid rgba(140, 60, 255, 0.2);
+    border-radius: var(--radius-sm);
+}
+.form-anchor-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+/* SegmentedInput row inside the form anchor inherits full available width */
+.form-anchor-row .seg-input-row { flex: 1; }
+.form-anchor-row .seg-input { flex: 1; width: 100%; }
+.form-anchor-label {
+    font-family: var(--font-label);
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    color: var(--accent-hover);
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.85;
+    min-width: 48px;
+}
+/* Form anchor inputs use exact same styles as the repeat modal components:
+   - weekday select → mirrors .dl-month-trigger look
+   - monthday number → mirrors .stepper-input (without stepper buttons for compactness)
+   - time → handed off to SegmentedInput, styled by seg-input classes               */
+.form-anchor-select {
+    flex: 1;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color var(--transition);
+    -webkit-appearance: none;
+    appearance: none;
+    letter-spacing: 0.3px;
+}
+.form-anchor-select:hover { border-color: rgba(140, 60, 255, 0.5); color: var(--accent-hover); }
+.form-anchor-select:focus { border-color: rgba(150, 70, 255, 0.55); }
+/* Form weekday picker — inherits dl-weekday-picker styles, just needs flex:1 */
+.form-wd-picker { flex: 1; min-width: 0; }
+.form-wd-list   { z-index: 500; }
+.form-anchor-number {
+    flex: 1;
+    text-align: center;
+    border: none;
+    border-left: 1px solid var(--border-input);
+    border-right: 1px solid var(--border-input);
+    background: transparent;
+    font-size: 15px;
+    padding: 9px 8px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    -moz-appearance: textfield;
+}
+.form-anchor-number::-webkit-inner-spin-button,
+.form-anchor-number::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.form-anchor-time { display: none; } /* replaced by SegmentedInput */
+
+/* Form anchor stepper — compact version of modal stepper */
+.form-anchor-stepper {
+    flex: 1;
+    min-height: 36px;
+}
+.form-anchor-stepper .stepper-btn {
+    width: 32px;
+    min-height: 36px;
+}
+.form-anchor-stepper .stepper-input {
+    padding: 6px 4px;
+    font-size: 14px;
+}
+.form-anchor-time { display: none; } /* replaced by SegmentedInput */
+
+/* ── Form subtask item with actions ─────────────────────────── */
+.form-sub-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 2px;
+    border-radius: var(--radius);
+    transition: background 0.15s;
+}
+.form-sub-item:hover { background: rgba(255,255,255,0.03); }
+.form-sub-main-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.form-sub-text {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.form-sub-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.btn-form-sub-action {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-form-sub-action:hover { opacity: 1; border-color: var(--border); }
+.btn-form-sub-action.active { color: var(--accent); opacity: 1; }
+.btn-form-sub-action.has-note { color: var(--accent); opacity: 0.85; }
+.btn-form-sub-action svg { width: 11px; height: 11px; }
+.btn-form-sub-action .sub-prio-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+}
+
+.form-sub-note-preview {
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0.7;
+    padding-left: 28px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Sort mode btn icons size ────────────────────────────────── */
+#btn-sort-mode svg { width: 15px; height: 15px; }
+

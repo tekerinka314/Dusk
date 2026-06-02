@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#03010a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DUSK">
+    <!-- I-10: apple-touch-icon for iOS Home Screen — real file, data: URIs not supported by iOS Safari -->
+    <link rel="apple-touch-icon" href="./icon-192.svg">
+    <link rel="manifest" href="manifest.json">
+    <title>DUSK — task journal</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2303010a'/%3E%3Cpath d='M11 3L21 3L28 9L28 28Q16 32 4 28L4 9Z' fill='rgba(60,10,130,0.6)' stroke='rgba(180,90,255,0.9)' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cline x1='16' y1='11' x2='16' y2='25' stroke='rgba(220,160,255,0.75)' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='10' y1='17' x2='22' y2='17' stroke='rgba(220,160,255,0.75)' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='7' r='2' fill='rgba(180,90,255,0.7)' stroke='rgba(220,160,255,0.8)' stroke-width='0.8'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Cinzel Decorative removed (CSS uses plain Cinzel); IM Fell English removed (unused) -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Screen-reader live region — populated by JS announce() on every action -->
+<div id="live-region" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="container">
+    <div class="todo-app">
+
+        <!-- Header -->
+        <header class="app-header">
+            <!-- Left coffin emblem — references shared <symbol id="coffin-emblem"> (audit C-2) -->
+            <div class="brand-emblem" aria-hidden="true">
+                <svg class="brand-svg" viewBox="0 0 80 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <use href="#coffin-emblem"/>
+                </svg>
+            </div>
+            <div class="brand-content">
+                <h1 class="brand-name">DUSK</h1>
+                <p class="brand-tagline">task journal</p>
+            </div>
+            <!-- Right coffin emblem (mirrored) -->
+            <div class="brand-emblem brand-emblem-r" aria-hidden="true">
+                <svg class="brand-svg" viewBox="0 0 80 96" fill="none" xmlns="http://www.w3.org/2000/svg"
+                     style="transform:scaleX(-1)">
+                    <use href="#coffin-emblem"/>
+                </svg>
+            </div>
+        </header>
+
+        <nav class="page-nav">
+            <button class="nav-tab active" id="nav-main" onclick="switchPage('main')">
+                <!-- Gothic coffin silhouette for Tasks tab -->
+                <svg viewBox="0 0 20 26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 1.5H13L18.5 6.5V22.5Q10 26.5 1.5 22.5V6.5Z"/>
+                    <line x1="6" y1="10" x2="14" y2="10" stroke-width="1.2" opacity="0.6"/>
+                </svg>
+                Задачи
+            </button>
+            <button class="nav-tab" id="nav-archive" onclick="switchPage('archive')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9L12 4.5L21 9"/><rect x="3" y="9" width="18" height="11" rx="1.8"/><line x1="12" y1="10.5" x2="12" y2="13.5"/><line x1="10.5" y1="12" x2="13.5" y2="12"/></svg>
+                Архив
+                <span class="archive-badge" id="archive-badge" style="display:none"></span>
+            </button>
+        </nav>
+
+        <!-- ======== MAIN PAGE ======== -->
+        <div id="main-page">
+
+            <!-- Progress -->
+            <div class="progress-section" id="progress-section" style="display:none">
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="progress-bar"></div>
+                </div>
+                <div class="progress-counter-col">
+                    <div class="progress-label" id="counter">
+                        <span class="counter-tag">задачи</span><span id="done-count">0</span><span class="prog-sep">/</span><span id="quantity-count">0</span>
+                    </div>
+                    <div class="subtask-footnote" id="subtask-progress-row" style="display:none">
+                        <span class="counter-tag">подпункты</span><span class="sub-inline-bar-wrap"><span class="sub-inline-bar-fill" id="subtask-prog-bar"></span></span><span id="subtask-done-count">0</span><span class="prog-sep">/</span><span id="subtask-total-count">0</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="row" id="input-row">
+                    <input type="text" id="input-box" placeholder="Новая задача..." autocomplete="off" maxlength="200">
+                    <button class="btn-add" id="btn-add" onclick="addTask()" title="Добавить задачу">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="12" y1="3" x2="12" y2="21"/>
+                            <line x1="5" y1="9" x2="19" y2="9"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="extra-fields" id="extra-fields">
+                    <div class="extra-row">
+                        <div class="field-group">
+                            <label class="field-label">Приоритет</label>
+                            <div class="prio-grid" id="priority-selector">
+                                <button class="prio-grid-btn active" data-prio="none">— Нет</button>
+                                <button class="prio-grid-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
+                                <button class="prio-grid-btn prio-medium" data-prio="medium"><span class="prio-dot"></span>Средний</button>
+                                <button class="prio-grid-btn prio-high" data-prio="high"><span class="prio-dot"></span>Высокий</button>
+                            </div>
+                        </div>
+                        <div class="field-group field-color-form">
+                            <label class="field-label">Цвет метки</label>
+                            <div class="form-color-picker" id="form-color-picker">
+                                <button class="form-color-swatch active" data-color="" title="Без цвета">
+                                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="10" height="10"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+                                </button>
+                                <button class="form-color-swatch" data-color="#6C8EF5" style="background:#6C8EF5"></button>
+                                <button class="form-color-swatch" data-color="#F56C6C" style="background:#F56C6C"></button>
+                                <button class="form-color-swatch" data-color="#6CBF8E" style="background:#6CBF8E"></button>
+                                <button class="form-color-swatch" data-color="#F5A56C" style="background:#F5A56C"></button>
+                                <button class="form-color-swatch" data-color="#B06CF5" style="background:#B06CF5"></button>
+                                <button class="form-color-swatch" data-color="#6CD4F5" style="background:#6CD4F5"></button>
+                                <button class="form-color-swatch" data-color="#F5D56C" style="background:#F5D56C"></button>
+                                <button class="form-color-swatch" data-color="#F06CAE" style="background:#F06CAE"></button>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Группа</label>
+                            <div class="group-inline-sel" id="group-inline-sel">
+                                <button class="grp-chip active" data-gid="">— без группы —</button>
+                                <!-- dynamic group chips injected by JS -->
+                            </div>
+                            <!-- hidden select for compat -->
+                            <select id="task-group-select" class="group-select" style="display:none">
+                                <option value="">— без группы —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="extra-row">
+                        <div class="field-group field-deadline">
+                            <label class="field-label">Дедлайн</label>
+                            <button class="deadline-trigger" id="deadline-trigger" onclick="openDeadlineModal(null)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M7 21V11C7 7.7 9.24 5 12 5C14.76 5 17 7.7 17 11V21"/>
+                                    <line x1="5" y1="21" x2="19" y2="21"/>
+                                    <line x1="12" y1="13.5" x2="12" y2="10" stroke-width="2.2"/>
+                                    <line x1="12" y1="13.5" x2="14.8" y2="15.2" stroke-width="1.5"/>
+                                    <circle cx="12" cy="13.5" r="1.1" fill="currentColor" stroke="none"/>
+                                    <line x1="12" y1="6.2" x2="12" y2="7" stroke-width="1.3" opacity="0.65"/>
+                                </svg>
+                                <span id="deadline-trigger-text">Установить дедлайн</span>
+                                <span class="deadline-clear-btn" id="deadline-clear-btn" onclick="clearFormDeadline(event)" style="display:none" title="Снять дедлайн"></span>
+                            </button>
+                        </div>
+                        <div class="field-group field-note">
+                            <label class="field-label">Заметка</label>
+                            <input type="text" id="task-note" class="note-input" placeholder="Краткий комментарий..." maxlength="300">
+                        </div>
+                    </div>
+                    <div class="extra-row">
+                        <div class="field-group field-repeat">
+                            <label class="field-label">Повтор</label>
+                            <div class="repeat-selector" id="repeat-selector">
+                                <button class="repeat-btn active" data-repeat="none">Нет</button>
+                                <button class="repeat-btn" data-repeat="daily">Ежедневно</button>
+                                <button class="repeat-btn" data-repeat="weekly">Еженедельно</button>
+                                <button class="repeat-btn" data-repeat="weekdays">По будням</button>
+                                <button class="repeat-btn" data-repeat="monthly">Ежемесячно</button>
+                            </div>
+                            <!-- Inline repeat anchor (problem 3) — compact, no extra indent -->
+                            <div id="form-repeat-anchor" style="display:none" class="form-repeat-anchor">
+                                <div id="form-repeat-anchor-wd-row" style="display:none" class="form-anchor-row">
+                                    <span class="form-anchor-label">День:</span>
+                                    <div class="dl-month-picker dl-weekday-picker form-wd-picker" id="form-wd-picker">
+                                        <button class="dl-month-trigger" id="form-wd-trigger" type="button"
+                                                aria-haspopup="listbox" aria-expanded="false">
+                                            <span id="form-wd-label">Любой день</span>
+                                            <svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <polyline points="6 9 12 15 18 9"/>
+                                            </svg>
+                                        </button>
+                                        <div class="dl-weekday-list form-wd-list" id="form-wd-list" role="listbox" aria-label="День недели" aria-hidden="true">
+                                            <div class="dl-month-option active" role="option" data-value="">Любой день</div>
+                                            <div class="dl-month-option" role="option" data-value="1">Понедельник</div>
+                                            <div class="dl-month-option" role="option" data-value="2">Вторник</div>
+                                            <div class="dl-month-option" role="option" data-value="3">Среда</div>
+                                            <div class="dl-month-option" role="option" data-value="4">Четверг</div>
+                                            <div class="dl-month-option" role="option" data-value="5">Пятница</div>
+                                            <div class="dl-month-option" role="option" data-value="6">Суббота</div>
+                                            <div class="dl-month-option" role="option" data-value="7">Воскресенье</div>
+                                        </div>
+                                        <!-- Hidden native input for value storage -->
+                                        <input type="hidden" id="form-repeat-anchor-day" value="">
+                                    </div>
+                                </div>
+                                <div id="form-repeat-anchor-md-row" style="display:none" class="form-anchor-row">
+                                    <span class="form-anchor-label">Число:</span>
+                                    <div class="number-stepper-wrap form-anchor-stepper">
+                                        <button class="stepper-btn" type="button"
+                                                onclick="const i=document.getElementById('form-repeat-anchor-monthday');i.value=Math.max(1,(parseInt(i.value)||1)-1);formRepeatAnchorMonthday=parseInt(i.value)||null">
+                                            <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 18.5L5.5 12H16.5Z" fill="currentColor" stroke="none"/>
+                                                <line x1="11" y1="3.5" x2="11" y2="12"/>
+                                            </svg>
+                                        </button>
+                                        <input type="number" id="form-repeat-anchor-monthday" class="form-anchor-number stepper-input"
+                                               min="1" max="31" placeholder="1"
+                                               onchange="formRepeatAnchorMonthday=parseInt(this.value)||null">
+                                        <button class="stepper-btn" type="button"
+                                                onclick="const i=document.getElementById('form-repeat-anchor-monthday');i.value=Math.min(31,(parseInt(i.value)||1)+1);formRepeatAnchorMonthday=parseInt(i.value)||null">
+                                            <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 3.5L5.5 10H16.5Z" fill="currentColor" stroke="none"/>
+                                                <line x1="11" y1="10" x2="11" y2="18.5"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="form-repeat-anchor-time-row" style="display:none" class="form-anchor-row">
+                                    <span class="form-anchor-label">Время:</span>
+                                    <input type="time" id="form-repeat-anchor-time" class="form-anchor-time">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="extra-row">
+                        <div class="field-group">
+                            <label class="field-label">Подпункты</label>
+                            <div class="form-subs-section">
+                                <div class="form-sub-add-row">
+                                    <input class="form-sub-input" id="form-sub-input"
+                                        placeholder="Новый подпункт..."
+                                        maxlength="200" autocomplete="off"
+                                        onkeydown="handleFormSubAdd(event)">
+                                    <button class="btn-form-sub-add" onclick="addFormSubtask()" title="Добавить подпункт">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                                            <line x1="12" y1="3" x2="12" y2="21"/>
+                                            <line x1="5" y1="9" x2="19" y2="9"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div id="form-sub-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-expand" id="btn-expand" onclick="toggleExpand()">
+                    <!-- Gothic spires as params icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <line x1="4" y1="20" x2="4" y2="16"/><path d="M2.5 16L4 12L5.5 16"/>
+                        <line x1="12" y1="20" x2="12" y2="10"/><path d="M10.5 10L12 5.5L13.5 10"/>
+                        <line x1="20" y1="20" x2="20" y2="13"/><path d="M18.5 13L20 9L21.5 13"/>
+                        <line x1="1" y1="20" x2="23" y2="20"/>
+                    </svg>
+                    Параметры
+                    <!-- Gothic sword as chevron -->
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="2" x2="12" y2="17"/>
+                        <path d="M9 5L12 2L15 5"/>
+                        <line x1="10" y1="14" x2="14" y2="14"/>
+                        <path d="M11 17L10 20H14L13 17"/>
+                        <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar" id="toolbar" style="display:none">
+                <div class="search-wrap">
+                    <!-- Gothic eye/rune search icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <ellipse cx="11" cy="11" rx="5" ry="7.5" transform="rotate(-30 11 11)"/>
+                        <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
+                        <line x1="14.5" y1="16" x2="21" y2="21"/>
+                    </svg>
+                    <input type="text" id="search-box" placeholder="Поиск..." autocomplete="off">
+                </div>
+                <!-- Tag cloud — rendered by JS, hidden when no tags exist -->
+                <div class="tag-cloud" id="tag-cloud" style="display:none"></div>
+                <div class="toolbar-actions">
+                    <!-- Sort mode toggle: priority ↔ order (icon injected by JS) -->
+                    <button class="btn-tool" id="btn-sort-mode" onclick="toggleSortMode()" title="Режим: по приоритету"></button>
+                    <!-- Web Notifications bell (hidden if API unsupported) -->
+                    <button class="btn-tool" id="btn-notifications" onclick="requestNotificationPermission()" title="Уведомления о дедлайнах" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3C9.5 3 7 6 6.5 10C6 13 5 15.5 4 18H20C19 15.5 18 13 17.5 10C17 6 14.5 3 12 3Z"/>
+                            <line x1="4" y1="18" x2="20" y2="18"/>
+                            <line x1="12" y1="18" x2="12" y2="21"/>
+                            <circle cx="12" cy="21.8" r="1.1" fill="currentColor" stroke="none"/>
+                            <line x1="9.5" y1="2.2" x2="14.5" y2="2.2" stroke-width="1.2" opacity="0.5"/>
+                        </svg>
+                    </button>
+                    <button class="btn-tool" id="btn-schedule" onclick="toggleScheduleMode(null)" title="Сортировка по дедлайну">
+                        <!-- Gothic tower clock -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7 22V11.5C7 7 9.2 4 12 4C14.8 4 17 7 17 11.5V22"/>
+                            <line x1="5" y1="22" x2="19" y2="22" stroke-width="1.6"/>
+                            <circle cx="12" cy="13.5" r="3.8"/>
+                            <line x1="12" y1="13.5" x2="10.2" y2="11.5" stroke-width="2"/>
+                            <line x1="12" y1="13.5" x2="14.2" y2="11.5" stroke-width="1.3"/>
+                            <circle cx="12" cy="13.5" r="0.85" fill="currentColor" stroke="none"/>
+                            <line x1="12" y1="17.3" x2="12" y2="19.8" stroke-width="1.2" opacity="0.6"/>
+                            <circle cx="12" cy="20.5" r="0.9" stroke-width="1.3" opacity="0.65"/>
+                        </svg>
+                    </button>
+                    <!-- P7: Split groups — gothic bifurcation rune (two lancet arches side by side) -->
+                    <button class="btn-tool" id="btn-split-groups" onclick="toggleGroupSplitMode()" title="Разделить группы: активные / выполненные">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 22V12C4 8.7 5.8 6 8 6C10.2 6 12 8.7 12 12V22"/>
+                            <path d="M12 22V12C12 8.7 13.8 6 16 6C18.2 6 20 8.7 20 12V22"/>
+                            <line x1="2" y1="22" x2="22" y2="22" stroke-width="1.4"/>
+                            <line x1="2" y1="11" x2="22" y2="11" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+                        </svg>
+                    </button>
+                    <!-- Collapse / expand all groups -->
+                    <button class="btn-tool" id="btn-collapse-all" onclick="toggleCollapseAllGroups()" title="Свернуть / развернуть все группы">
+                        <!-- Two gothic spires with opposing vertical arrows:
+                             left spire points down (collapse ↓), right points up (expand ↑).
+                             Together they read as "fold/unfold all groups". -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="6"  y1="20" x2="6"  y2="8"/><path d="M4 11L6 8L8 11"/>
+                            <path d="M4.5 8L6 5L7.5 8"/>
+                            <line x1="18" y1="4"  x2="18" y2="16"/><path d="M16 13L18 16L20 13"/>
+                            <path d="M16.5 16L18 19L19.5 16"/>
+                        </svg>
+                    </button>
+                    <button class="btn-tool" id="btn-filter" onclick="toggleFilter()" title="Фильтр: только невыполненные">
+                        <!-- Gothic eye of truth: vesica piscis eye = filter / reveal only what matters -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                            <path d="M2 12C5 5.5 9 3.5 12 3.5C15 3.5 19 5.5 22 12C19 18.5 15 20.5 12 20.5C9 20.5 5 18.5 2 12Z"/>
+                            <circle cx="12" cy="12" r="3.8"/>
+                            <ellipse cx="12" cy="12" rx="1.5" ry="3" fill="currentColor" stroke="none" opacity="0.92"/>
+                            <line x1="12" y1="3.5" x2="12" y2="2" stroke-width="1.3" opacity="0.55"/>
+                            <line x1="8.5" y1="4.8" x2="7.8" y2="3.2" stroke-width="1.1" opacity="0.42"/>
+                            <line x1="15.5" y1="4.8" x2="16.2" y2="3.2" stroke-width="1.1" opacity="0.42"/>
+                        </svg>
+                    </button>
+                    <!-- Color label filter — gothic prism/crystal icon -->
+                    <button class="btn-tool" id="btn-color-filter" onclick="openColorFilterModal()" title="Фильтр по цвету метки">
+                        <!-- Gothic crystal / prismatic rune — faceted shape with inner rays -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
+                            <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
+                            <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
+                            <line x1="6" y1="13" x2="18" y2="13" stroke-width="1" opacity="0.35"/>
+                            <circle cx="12" cy="10.5" r="1.4" fill="currentColor" stroke="none" opacity="0.7"/>
+                        </svg>
+                    </button>
+                    <!-- Bulk select toggle for main list -->
+                    <button class="btn-tool" id="btn-main-select" onclick="toggleMainSelectMode()" title="Выбрать несколько задач">
+                        <!-- Two gothic lancet arches offset behind each other (= "multiple items").
+                             Front arch has a gothic cross-check mark (= "select").
+                             The heraldic "doubles" pattern communicates plurality. -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21V13C9 10.24 10.79 8 13 8C15.21 8 17 10.24 17 13V21" opacity="0.4"/>
+                            <line x1="7" y1="21" x2="19" y2="21" opacity="0.4"/>
+                            <path d="M5 19V11C5 8.24 6.79 6 9 6C11.21 6 13 8.24 13 11V19"/>
+                            <line x1="3" y1="19" x2="15" y2="19"/>
+                            <line x1="9" y1="13.5" x2="9" y2="10.5" stroke-width="1.5"/>
+                            <line x1="7" y1="12" x2="11" y2="12" stroke-width="1.5"/>
+                            <circle cx="9" cy="9.5" r="0.9" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </button>
+                    <!-- Export data (gothic scroll leaving the vault) -->
+                    <button class="btn-tool" onclick="exportData()" title="Экспорт в JSON">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7 2H17V16L12 20L7 16V2Z"/>
+                            <path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <path d="M9.5 13.5L12 16.5L14.5 13.5"/>
+                        </svg>
+                    </button>
+                    <!-- Import data (gothic scroll entering the vault) -->
+                    <button class="btn-tool" onclick="triggerImport()" title="Импорт данных из JSON">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7 2H17V16L12 20L7 16V2Z"/>
+                            <path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/>
+                            <line x1="12" y1="7" x2="12" y2="15"/>
+                            <path d="M9.5 9.5L12 6.5L14.5 9.5"/>
+                        </svg>
+                    </button>
+                    <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+                    <button class="btn-tool" id="btn-archive-all" onclick="archiveAll()" title="Архивировать всё"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><use href="#icon-archive"/></svg></button>
+                    <button class="btn-tool btn-danger" onclick="clearAll()" title="Удалить всё навсегда">
+                        <!-- Skull icon inline -->
+                        <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
+                            <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
+                            <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
+                            <ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
+                            <ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
+                            <line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Groups Bar -->
+            <div class="groups-bar" id="groups-bar" style="display:none">
+                <button class="btn-add-group" onclick="showAddGroupModal()">
+                    <!-- Gothic Latin cross -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+                        <line x1="12" y1="2" x2="12" y2="22"/>
+                        <line x1="4.5" y1="8" x2="19.5" y2="8"/>
+                    </svg>
+                    Группа
+                </button>
+                <div class="groups-list" id="groups-list"></div>
+            </div>
+
+            <!-- Main list bulk-select bar (mirrors archive-select-bar pattern) -->
+            <div class="archive-select-bar main-select-bar" id="main-select-bar" style="display:none">
+                <span class="select-bar-count" id="main-select-bar-count">0 отмечено</span>
+                <div class="select-bar-actions">
+                    <button class="btn-select-bar-cancel" onclick="toggleMainSelectMode()">Отмена</button>
+                    <!-- Bulk priority -->
+                    <button class="btn-select-bar-restore prio-bulk-btn" onclick="bulkSetPriority('high')" title="Высокий приоритет"><span class="prio-dot prio-high"></span></button>
+                    <button class="btn-select-bar-restore prio-bulk-btn" onclick="bulkSetPriority('medium')" title="Средний приоритет"><span class="prio-dot prio-medium"></span></button>
+                    <button class="btn-select-bar-restore prio-bulk-btn" onclick="bulkSetPriority('low')" title="Низкий приоритет"><span class="prio-dot prio-low"></span></button>
+                    <button class="btn-select-bar-restore prio-bulk-btn" onclick="bulkSetPriority('none')" title="Без приоритета">—</button>
+                    <button class="btn-select-bar-restore btn-select-bar-archive" id="btn-bulk-archive"
+                            onclick="bulkArchive()" disabled title="Архивировать отмеченные">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><use href="#icon-archive"/></svg>
+                        В архив
+                    </button>
+                    <button class="btn-select-bar-restore btn-select-bar-delete" id="btn-bulk-delete"
+                            onclick="bulkDelete()" disabled title="Удалить навсегда">
+                        <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
+                            <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
+                            <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
+                            <ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
+                            <ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
+                            <line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/>
+                        </svg>
+                        Удалить
+                    </button>
+                </div>
+            </div>
+
+            <!-- Task List -->
+            <div id="list-wrapper">
+                <ul id="list-container" class="task-list"></ul>
+                <div id="groups-container"></div>
+            </div>
+
+            <div class="empty-state" id="empty-state">
+                <div class="empty-rune">✦</div>
+                <p>Нет задач. Добавьте первую.</p>
+            </div>
+
+            <div class="all-done" id="all-done" style="display:none">
+                <div class="all-done-icon">✦</div>
+                <p>Все задачи выполнены</p>
+            </div>
+
+        </div><!-- /main-page -->
+
+        <!-- ======== ARCHIVE PAGE ======== -->
+        <div id="archive-page" style="display:none">
+            <div class="archive-header">
+                <h3 class="archive-title" id="archive-title-icon">
+                    <!-- Icon injected from IC.archive by JS — identical to all archive icons -->
+                    Архив
+                </h3>
+                <!-- Archive search — full width row below title, no focus border -->
+                <div class="archive-search-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                        <ellipse cx="11" cy="11" rx="5" ry="7.5" transform="rotate(-30 11 11)"/>
+                        <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
+                        <line x1="14.5" y1="16" x2="21" y2="21"/>
+                    </svg>
+                    <input type="text" id="archive-search-box"
+                           placeholder="Поиск в архиве..." autocomplete="off"
+                           oninput="archiveSearchQuery=this.value.trim();_applyArchiveSearch()">
+                </div>
+                <div class="archive-btns" id="archive-btns" style="display:none">
+                    <button class="btn-archive-action" id="btn-restore-all" onclick="restoreAll()" title="Восстановить всё">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
+                            <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
+                            <line x1="10" y1="11" x2="14" y2="11" stroke-width="1.2" opacity="0.7"/>
+                            <line x1="12" y1="2" x2="12" y2="7"/>
+                            <path d="M9.5 4.5L12 2L14.5 4.5"/>
+                        </svg>
+                        Вернуть всё
+                    </button>
+                    <button class="btn-archive-action btn-select-mode" id="btn-select-mode" onclick="toggleSelectMode()" title="Отметить для восстановления">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3 L21 8.5 L21 15.5 L12 21 L3 15.5 L3 8.5 Z" opacity="0.7"/>
+                            <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.4"/>
+                            <line x1="3" y1="8.5" x2="21" y2="15.5" stroke-width="1" opacity="0.4"/>
+                            <line x1="21" y1="8.5" x2="3" y2="15.5" stroke-width="1" opacity="0.4"/>
+                            <circle cx="12" cy="12" r="2.2" opacity="0.5"/>
+                        </svg>
+                        Отметить
+                    </button>
+                    <button class="btn-archive-action btn-clear-archive" id="btn-clear-archive" onclick="clearArchive()" style="display:none">
+                        <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
+                            <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
+                            <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
+                            <ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
+                            <ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
+                            <line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/>
+                        </svg>
+                        Очистить
+                    </button>
+                </div>
+            </div>
+            <ul id="archive-list" class="task-list"></ul>
+            <!-- Selection restore bar -->
+            <div class="archive-select-bar" id="archive-select-bar" style="display:none">
+                <span class="select-bar-count" id="select-bar-count">0 отмечено</span>
+                <div class="select-bar-actions">
+                    <button class="btn-select-bar-cancel" onclick="toggleSelectMode()">Отмена</button>
+                    <button class="btn-select-bar-restore" id="btn-restore-selected" onclick="restoreSelected()" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
+                            <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
+                            <line x1="10" y1="11" x2="14" y2="11" stroke-width="1.2" opacity="0.7"/>
+                            <line x1="12" y1="2" x2="12" y2="7"/>
+                            <path d="M9.5 4.5L12 2L14.5 4.5"/>
+                        </svg>
+                        Восстановить отмеченное
+                    </button>
+                </div>
+            </div>
+            <div class="empty-state" id="archive-empty" style="display:flex; flex-direction:column; align-items:center">
+                <div class="empty-rune">◈</div>
+                <p>Архив пуст</p>
+            </div>
+        </div>
+
+    </div><!-- /todo-app -->
+</div><!-- /container -->
+
+<!-- Toast lives at body level — outside .todo-app which has backdrop-filter
+     (backdrop-filter creates a new stacking context that breaks position:fixed) -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Group Modal -->
+<div class="modal-overlay" id="group-modal" style="display:none" onclick="closeGroupModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="group-modal-title">
+    <div class="modal">
+        <h3 class="modal-title" id="group-modal-title">Новая группа</h3>
+        <div class="modal-row">
+            <input type="text" id="group-name-input" class="modal-input" placeholder="Название группы..." maxlength="40" autocomplete="off">
+            <div class="color-picker" id="color-picker">
+                <button class="color-swatch active" data-color="#6C8EF5" style="background:#6C8EF5"></button>
+                <button class="color-swatch" data-color="#F56C6C" style="background:#F56C6C"></button>
+                <button class="color-swatch" data-color="#6CBF8E" style="background:#6CBF8E"></button>
+                <button class="color-swatch" data-color="#F5A56C" style="background:#F5A56C"></button>
+                <button class="color-swatch" data-color="#B06CF5" style="background:#B06CF5"></button>
+                <button class="color-swatch" data-color="#6CD4F5" style="background:#6CD4F5"></button>
+                <button class="color-swatch" data-color="#F5D56C" style="background:#F5D56C"></button>
+                <button class="color-swatch" data-color="#F06CAE" style="background:#F06CAE"></button>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeGroupModal()">Отмена</button>
+            <button class="btn-modal-confirm" onclick="confirmAddGroup()">Создать</button>
+        </div>
+    </div>
+</div>
+
+<!-- Group Rename Modal -->
+<div class="modal-overlay" id="rename-group-modal" style="display:none" onclick="closeRenameGroupModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="rename-group-modal-title">
+    <div class="modal modal-small">
+        <h3 class="modal-title" id="rename-group-modal-title">Переименовать группу</h3>
+        <div class="modal-row">
+            <input type="text" id="rename-group-input" class="modal-input" placeholder="Новое название..." maxlength="40" autocomplete="off">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeRenameGroupModal()">Отмена</button>
+            <button class="btn-modal-confirm" onclick="confirmRenameGroup()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Deadline Modal -->
+<div class="modal-overlay" id="deadline-modal" style="display:none" onclick="closeDeadlineModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="deadline-modal-title">
+    <div class="modal modal-deadline">
+        <h3 class="modal-title" id="deadline-modal-title">Установить дедлайн</h3>
+        <div class="dl-mode-grid">
+            <button class="dl-mode-btn" data-mode="time">Время</button>
+            <button class="dl-mode-btn" data-mode="weektime">День&nbsp;+&nbsp;Время</button>
+            <button class="dl-mode-btn" data-mode="monthday">День месяца</button>
+            <button class="dl-mode-btn" data-mode="month">Месяц</button>
+            <button class="dl-mode-btn" data-mode="year">Год</button>
+            <button class="dl-mode-btn active" data-mode="date">Дата</button>
+        </div>
+        <div class="dl-inputs">
+            <!-- time -->
+            <div class="dl-input-wrap" id="dl-wrap-time">
+                <input type="time" class="modal-input" id="dl-time">
+                <p class="dl-hint">Сегодня в указанное время (если прошло — завтра)</p>
+            </div>
+            <!-- weektime -->
+            <div class="dl-input-wrap" id="dl-wrap-weektime">
+                <div class="weektime-row">
+                    <!-- Custom gothic weekday dropdown — mirrors month-picker pattern -->
+                    <div class="dl-month-picker dl-weekday-picker" id="dl-weekday-picker">
+                        <button class="dl-month-trigger" id="dl-weekday-trigger" type="button"
+                                aria-haspopup="listbox" aria-expanded="false">
+                            <span id="dl-weekday-label">Понедельник</span>
+                            <!-- Gothic sword — same collapse/expand language used site-wide -->
+                            <svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="2" x2="12" y2="17"/>
+                                <path d="M9 5L12 2L15 5"/>
+                                <line x1="10" y1="14" x2="14" y2="14"/>
+                                <path d="M11 17L10 20H14L13 17"/>
+                                <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </button>
+                        <div class="dl-weekday-list" id="dl-weekday-list" role="listbox" aria-label="День недели" aria-hidden="true">
+                            <div class="dl-month-option" role="option" data-value="1">Понедельник</div>
+                            <div class="dl-month-option" role="option" data-value="2">Вторник</div>
+                            <div class="dl-month-option" role="option" data-value="3">Среда</div>
+                            <div class="dl-month-option" role="option" data-value="4">Четверг</div>
+                            <div class="dl-month-option" role="option" data-value="5">Пятница</div>
+                            <div class="dl-month-option" role="option" data-value="6">Суббота</div>
+                            <div class="dl-month-option" role="option" data-value="7">Воскресенье</div>
+                        </div>
+                    </div>
+                    <!-- Hidden select: keeps value for confirmDeadline() — same pattern as dl-month -->
+                    <select id="dl-weekday" style="display:none" aria-hidden="true" tabindex="-1">
+                        <option value="1">Понедельник</option>
+                        <option value="2">Вторник</option>
+                        <option value="3">Среда</option>
+                        <option value="4">Четверг</option>
+                        <option value="5">Пятница</option>
+                        <option value="6">Суббота</option>
+                        <option value="7">Воскресенье</option>
+                    </select>
+                    <input type="time" class="modal-input" id="dl-weektime-time">
+                </div>
+                <p class="dl-hint">Ближайший выбранный день недели. Время необязательно — если не указано, отображается только день.</p>
+            </div>
+            <!-- monthday — custom stepper -->
+            <div class="dl-input-wrap" id="dl-wrap-monthday">
+                <div class="number-stepper-wrap">
+                    <button class="stepper-btn" type="button" id="dl-monthday-dec" title="Предыдущий день">
+                        <!-- Gothic lance pointing down — same as year stepper -->
+                        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="11" y1="3.5" x2="11" y2="11"/>
+                            <line x1="7.5" y1="9" x2="14.5" y2="9"/>
+                            <path d="M11 18.5L5.5 12H16.5Z" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </button>
+                    <input type="number" class="modal-input stepper-input" id="dl-monthday" placeholder="День" min="1" max="31">
+                    <button class="stepper-btn" type="button" id="dl-monthday-inc" title="Следующий день">
+                        <!-- Gothic lance pointing up — same as year stepper -->
+                        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 3.5L5.5 10H16.5Z" fill="currentColor" stroke="none"/>
+                            <line x1="11" y1="10" x2="11" y2="18.5"/>
+                            <line x1="7.5" y1="13" x2="14.5" y2="13"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="dl-hint" id="dl-monthday-hint">Каждый N-й день месяца</p>
+                <p class="dl-hint dl-monthday-warn" id="dl-monthday-warn" aria-live="polite" hidden></p>
+                <p class="dl-hint dl-monthday-note" id="dl-monthday-note" hidden>В коротких месяцах задача сдвинется на следующий месяц.</p>
+            </div>
+            <!-- month — custom gothic dropdown (native select hidden, used for value) -->
+            <div class="dl-input-wrap" id="dl-wrap-month">
+                <div class="dl-month-picker" id="dl-month-picker">
+                    <button class="dl-month-trigger" id="dl-month-trigger" type="button"
+                            aria-haspopup="listbox" aria-expanded="false">
+                        <span id="dl-month-label">Январь</span>
+                        <!-- Gothic sword — same collapse/expand language used site-wide -->
+                        <svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="12" y1="2" x2="12" y2="17"/>
+                            <path d="M9 5L12 2L15 5"/>
+                            <line x1="10" y1="14" x2="14" y2="14"/>
+                            <path d="M11 17L10 20H14L13 17"/>
+                            <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </button>
+                    <div class="dl-month-list" id="dl-month-list" role="listbox" aria-label="Месяц" aria-hidden="true">
+                        <div class="dl-month-option active" role="option" data-value="1">Январь</div>
+                        <div class="dl-month-option" role="option" data-value="2">Февраль</div>
+                        <div class="dl-month-option" role="option" data-value="3">Март</div>
+                        <div class="dl-month-option" role="option" data-value="4">Апрель</div>
+                        <div class="dl-month-option" role="option" data-value="5">Май</div>
+                        <div class="dl-month-option" role="option" data-value="6">Июнь</div>
+                        <div class="dl-month-option" role="option" data-value="7">Июль</div>
+                        <div class="dl-month-option" role="option" data-value="8">Август</div>
+                        <div class="dl-month-option" role="option" data-value="9">Сентябрь</div>
+                        <div class="dl-month-option" role="option" data-value="10">Октябрь</div>
+                        <div class="dl-month-option" role="option" data-value="11">Ноябрь</div>
+                        <div class="dl-month-option" role="option" data-value="12">Декабрь</div>
+                    </div>
+                </div>
+                <!-- Hidden select — value source for confirmDeadline() -->
+                <select class="modal-input" id="dl-month" style="display:none" aria-hidden="true" tabindex="-1">
+                    <option value="1">Январь</option><option value="2">Февраль</option>
+                    <option value="3">Март</option><option value="4">Апрель</option>
+                    <option value="5">Май</option><option value="6">Июнь</option>
+                    <option value="7">Июль</option><option value="8">Август</option>
+                    <option value="9">Сентябрь</option><option value="10">Октябрь</option>
+                    <option value="11">Ноябрь</option><option value="12">Декабрь</option>
+                </select>
+            </div>
+            <!-- year -->
+            <div class="dl-input-wrap" id="dl-wrap-year">
+                <div class="number-stepper-wrap">
+                    <button class="stepper-btn" type="button" id="dl-year-dec" title="Предыдущий год">
+                        <!-- Gothic lance pointing down: shaft + crossguard + spear tip -->
+                        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="11" y1="3.5" x2="11" y2="11"/>
+                            <line x1="7.5" y1="9" x2="14.5" y2="9"/>
+                            <path d="M11 18.5L5.5 12H16.5Z" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </button>
+                    <input type="number" class="modal-input stepper-input" id="dl-year" placeholder="2026" min="2021" max="2100">
+                    <button class="stepper-btn" type="button" id="dl-year-inc" title="Следующий год">
+                        <!-- Gothic lance pointing up: spear tip + crossguard + shaft -->
+                        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 3.5L5.5 10H16.5Z" fill="currentColor" stroke="none"/>
+                            <line x1="11" y1="10" x2="11" y2="18.5"/>
+                            <line x1="7.5" y1="13" x2="14.5" y2="13"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="dl-hint">Задача завершается в указанном году</p>
+            </div>
+            <!-- date -->
+            <div class="dl-input-wrap active" id="dl-wrap-date">
+                <input type="date" class="modal-input" id="dl-date">
+                <div class="dl-date-time-row">
+                    <label class="dl-date-time-label" for="dl-date-time">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="13" height="13">
+                            <circle cx="10" cy="10" r="8"/>
+                            <line x1="10" y1="5.5" x2="10" y2="10"/><line x1="10" y1="10" x2="13.5" y2="12"/>
+                        </svg>
+                        Время (необязательно)
+                    </label>
+                    <input type="time" class="modal-input dl-date-time-input" id="dl-date-time" placeholder="—">
+                </div>
+                <p class="dl-hint">Если время указано — дедлайн активен до HH:MM этого дня</p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeDeadlineModal()">Отмена</button>
+            <button class="btn-modal-danger" onclick="clearDeadlineModal()">Очистить</button>
+            <button class="btn-modal-confirm" onclick="confirmDeadline()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Priority Modal -->
+<div class="modal-overlay" id="prio-modal" style="display:none" onclick="closePrioModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="prio-modal-title">
+    <div class="modal modal-small">
+        <h3 class="modal-title" id="prio-modal-title">Изменить приоритет</h3>
+        <div class="priority-selector modal-prio-selector" id="modal-prio-selector">
+            <button class="prio-btn prio-none" data-prio="none">— Нет</button>
+            <button class="prio-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
+            <button class="prio-btn prio-medium" data-prio="medium"><span class="prio-dot"></span>Средний</button>
+            <button class="prio-btn prio-high" data-prio="high"><span class="prio-dot"></span>Высокий</button>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closePrioModal()">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<!-- Task Color Modal -->
+<div class="modal-overlay" id="task-color-modal" style="display:none" onclick="closeTaskColorModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="task-color-modal-title">
+    <div class="modal modal-small">
+        <h3 class="modal-title" id="task-color-modal-title">Цветовая метка</h3>
+        <div class="task-color-picker" id="task-color-picker">
+            <button class="color-swatch task-color-clear active" data-color="" title="Убрать метку">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="10" height="10"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+            </button>
+            <button class="color-swatch" data-color="#6C8EF5" style="background:#6C8EF5"></button>
+            <button class="color-swatch" data-color="#F56C6C" style="background:#F56C6C"></button>
+            <button class="color-swatch" data-color="#6CBF8E" style="background:#6CBF8E"></button>
+            <button class="color-swatch" data-color="#F5A56C" style="background:#F5A56C"></button>
+            <button class="color-swatch" data-color="#B06CF5" style="background:#B06CF5"></button>
+            <button class="color-swatch" data-color="#6CD4F5" style="background:#6CD4F5"></button>
+            <button class="color-swatch" data-color="#F5D56C" style="background:#F5D56C"></button>
+            <button class="color-swatch" data-color="#F06CAE" style="background:#F06CAE"></button>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeTaskColorModal()">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<!-- Repeat Modal -->
+<div class="modal-overlay" id="repeat-modal" style="display:none" onclick="closeRepeatModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="repeat-modal-title">
+    <div class="modal modal-small">
+        <h3 class="modal-title" id="repeat-modal-title">Повтор задачи</h3>
+        <div class="repeat-modal-grid" id="modal-repeat-selector">
+            <button class="repeat-modal-btn active" data-repeat="none">
+                <!-- Gothic voided cross — arms with serifs = heraldic "none/forbidden" -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="3" x2="12" y2="21"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="10" y1="3" x2="14" y2="3"/>
+                    <line x1="10" y1="21" x2="14" y2="21"/>
+                    <line x1="3" y1="10" x2="3" y2="14"/>
+                    <line x1="21" y1="10" x2="21" y2="14"/>
+                    <circle cx="12" cy="12" r="2.2" stroke-width="1.2" opacity="0.45"/>
+                </svg>
+                Нет
+            </button>
+            <button class="repeat-modal-btn" data-repeat="daily">
+                <!-- Gothic crescent moon — "ежедневно" / daily cycle.
+                     The moon marks the passage of each day; the lancet-arch outer curve
+                     mirrors the gothic arch shapes used throughout the app.
+                     Matches IC.moon used elsewhere for "no deadline" — consistent moon language. -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+                    <line x1="12" y1="2.5" x2="12" y2="1" stroke-width="1.2" opacity="0.5"/>
+                    <line x1="16.5" y1="3.8" x2="17.3" y2="2.5" stroke-width="1.2" opacity="0.4"/>
+                    <line x1="7.5" y1="3.8" x2="6.7" y2="2.5" stroke-width="1.2" opacity="0.4"/>
+                </svg>
+                Ежедневно
+            </button>
+            <button class="repeat-modal-btn" data-repeat="weekly">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 12 C11 9 8 6 6 7 C4 8 4 12 6 14 C8 15 11 13 12 12"/>
+                    <path d="M12 12 C13 9 16 6 18 7 C20 8 20 12 18 14 C16 15 13 13 12 12"/>
+                    <path d="M18.8 8.5 L20.2 7.2 L19.5 9.5" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                </svg>
+                Еженедельно
+            </button>
+            <button class="repeat-modal-btn" data-repeat="weekdays">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 21V11C7 7.7 9.24 5 12 5C14.76 5 17 7.7 17 11V21"/>
+                    <line x1="5" y1="21" x2="19" y2="21"/>
+                    <line x1="12" y1="13.5" x2="12" y2="10" stroke-width="2.2"/>
+                    <line x1="12" y1="13.5" x2="14.8" y2="15.2" stroke-width="1.5"/>
+                    <circle cx="12" cy="13.5" r="1.1" fill="currentColor" stroke="none"/>
+                    <line x1="12" y1="6.2" x2="12" y2="7" stroke-width="1.3" opacity="0.65"/>
+                </svg>
+                По будням
+            </button>
+            <button class="repeat-modal-btn" data-repeat="monthly">
+                <!-- Gothic lancet-arch tablet with tally marks = "numbered day of month" -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 21V9C5 6.24 8 4 12 4C16 4 19 6.24 19 9V21"/>
+                    <path d="M12 4C12 4 11 2.5 12 1.5C13 2.5 12 4 12 4"/>
+                    <line x1="3" y1="21" x2="21" y2="21" stroke-width="1.4"/>
+                    <line x1="8" y1="12" x2="16" y2="12" stroke-width="1.2" opacity="0.85"/>
+                    <line x1="8" y1="15" x2="16" y2="15" stroke-width="1.2" opacity="0.65"/>
+                    <line x1="8" y1="18" x2="13" y2="18" stroke-width="1.2" opacity="0.45"/>
+                </svg>
+                Ежемесячно
+            </button>
+        </div>
+
+        <!-- Anchor section — shown when repeat ≠ none -->
+        <div class="repeat-anchor-section" id="repeat-anchor-section" style="display:none">
+            <div class="repeat-anchor-header">
+                <span class="repeat-anchor-title">Точка отсчёта</span>
+                <span class="repeat-anchor-opt">необязательно</span>
+            </div>
+            <!-- Weekday row — only shown for weekly mode -->
+            <div class="repeat-anchor-row" id="repeat-anchor-weekday-row" style="display:none">
+                <div class="dl-month-picker dl-weekday-picker" id="repeat-wd-picker">
+                    <button class="dl-month-trigger" id="repeat-wd-trigger" type="button"
+                            aria-haspopup="listbox" aria-expanded="false">
+                        <span id="repeat-wd-label">Любой день</span>
+                        <svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="12" y1="2" x2="12" y2="17"/>
+                            <path d="M9 5L12 2L15 5"/>
+                            <line x1="10" y1="14" x2="14" y2="14"/>
+                            <path d="M11 17L10 20H14L13 17"/>
+                            <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </button>
+                    <div class="dl-weekday-list" id="repeat-wd-list" role="listbox" aria-label="День недели" aria-hidden="true">
+                        <div class="dl-month-option active" role="option" data-value="">Любой день</div>
+                        <div class="dl-month-option" role="option" data-value="1">Понедельник</div>
+                        <div class="dl-month-option" role="option" data-value="2">Вторник</div>
+                        <div class="dl-month-option" role="option" data-value="3">Среда</div>
+                        <div class="dl-month-option" role="option" data-value="4">Четверг</div>
+                        <div class="dl-month-option" role="option" data-value="5">Пятница</div>
+                        <div class="dl-month-option" role="option" data-value="6">Суббота</div>
+                        <div class="dl-month-option" role="option" data-value="7">Воскресенье</div>
+                    </div>
+                </div>
+                <select id="repeat-anchor-day" style="display:none" aria-hidden="true" tabindex="-1">
+                    <option value="">—</option>
+                    <option value="1">Понедельник</option>
+                    <option value="2">Вторник</option>
+                    <option value="3">Среда</option>
+                    <option value="4">Четверг</option>
+                    <option value="5">Пятница</option>
+                    <option value="6">Суббота</option>
+                    <option value="7">Воскресенье</option>
+                </select>
+            </div>
+            <!-- Monthday row — only shown for monthly mode -->
+            <div class="repeat-anchor-row" id="repeat-anchor-monthday-row" style="display:none">
+                <div class="number-stepper-wrap repeat-stepper-wrap">
+                    <button class="stepper-btn" type="button" id="repeat-anchor-monthday-dec" title="Предыдущий день">
+                        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="11" y1="3.5" x2="11" y2="11"/>
+                            <line x1="7.5" y1="9" x2="14.5" y2="9"/>
+                            <path d="M11 18.5L5.5 12H16.5Z" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </button>
+                    <input type="number" class="modal-input stepper-input" id="repeat-anchor-monthday"
+                           placeholder="День" min="1" max="31" value="1">
+                    <button class="stepper-btn" type="button" id="repeat-anchor-monthday-inc" title="Следующий день">
+                        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 3.5L5.5 10H16.5Z" fill="currentColor" stroke="none"/>
+                            <line x1="11" y1="10" x2="11" y2="18.5"/>
+                            <line x1="7.5" y1="13" x2="14.5" y2="13"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Sub-labels for monthly: below stepper, before time row -->
+            <p class="dl-hint repeat-anchor-monthday-label" id="repeat-anchor-monthday-label-text" style="display:none">Каждый N‑й день месяца</p>
+            <p class="dl-hint repeat-anchor-monthday-note-below" id="repeat-anchor-monthday-note" hidden></p>
+            <!-- Time row: SegmentedInput widget replaces this native input in initSegmentedInputs() -->
+            <div class="repeat-anchor-row repeat-anchor-time-row">
+                <input type="time" id="repeat-anchor-time" class="modal-input repeat-anchor-time-input">
+            </div>
+            <p class="dl-hint" id="repeat-anchor-hint">Задача перейдёт обратно в незавершённые в указанное время, а не от момента выполнения</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeRepeatModal()">Отмена</button>
+            <button class="btn-modal-confirm" id="btn-confirm-repeat">Применить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Note Modal -->
+<div class="modal-overlay" id="note-modal" style="display:none" onclick="closeNoteModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
+    <div class="modal modal-note">
+        <h3 class="modal-title" id="note-modal-title">Добавить заметку</h3>
+        <textarea class="modal-textarea" id="note-modal-input" placeholder="Введите заметку..." maxlength="500" rows="4"></textarea>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeNoteModal()">Отмена</button>
+            <button class="btn-modal-confirm" onclick="confirmNote()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Sound (SVGs injected by applySoundPref() on init via IC.soundOn / IC.soundOff) -->
+<button class="btn-sound" id="btn-sound" title="Звук"
+        aria-label="Звук" aria-pressed="false" onclick="toggleSound()"></button>
+
+<!-- Shortcuts toggle button -->
+<button class="btn-shortcuts-toggle" id="btn-shortcuts-toggle"
+        onclick="toggleShortcutsHint()" title="Горячие клавиши"
+        aria-label="Горячие клавиши" aria-pressed="false">
+    <!-- Gothic key: lancet-arch bow (pointed top), long shank, two wards.
+         "Key" = access to hidden commands — direct metaphor for keyboard shortcuts. -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+        <path d="M12 2C12 2 10.5 2.8 10.5 5C10.5 7.2 12 8 12 8C12 8 13.5 7.2 13.5 5C13.5 2.8 12 2 12 2Z"/>
+        <path d="M12 2.2C12 2.2 11.4 1.1 12 0.4C12.6 1.1 12 2.2 12 2.2"/>
+        <line x1="12" y1="8"  x2="12" y2="21"/>
+        <line x1="12" y1="14" x2="14.5" y2="14"/>
+        <line x1="12" y1="18" x2="14.5" y2="18"/>
+    </svg>
+</button>
+
+<!-- Shortcuts Hint -->
+<div class="shortcuts-hint" id="shortcuts-hint" style="display:none">
+    <kbd>N</kbd> новая &nbsp;·&nbsp; <kbd>/</kbd> поиск &nbsp;·&nbsp;
+    <kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp;
+    <kbd>X</kbd> выполнить &nbsp;·&nbsp; <kbd>E</kbd> изменить &nbsp;·&nbsp;
+    <kbd>D</kbd> дублировать &nbsp;·&nbsp; <kbd>Del</kbd> в архив &nbsp;·&nbsp;
+    <kbd>P</kbd> приоритет &nbsp;·&nbsp; <kbd>L</kbd> дедлайн &nbsp;·&nbsp;
+    <kbd>M</kbd> заметка &nbsp;·&nbsp; <kbd>R</kbd> повтор &nbsp;·&nbsp;
+    <kbd>T</kbd> закрепить &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена
+</div>
+
+<!-- SVG defs — reusable gradients + symbols -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden">
+  <defs>
+    <linearGradient id="coffinGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9040e0"/>
+      <stop offset="100%" stop-color="#5010b0"/>
+    </linearGradient>
+    <!-- Reusable coffin emblem — used twice in header via <use> (audit C-2) -->
+    <linearGradient id="emblemFillShared" x1="40" y1="4" x2="40" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="rgba(60,10,130,0.55)"/>
+      <stop offset="100%" stop-color="rgba(25,4,65,0.85)"/>
+    </linearGradient>
+    <linearGradient id="emblemStrokeShared" x1="40" y1="4" x2="40" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="rgba(200,130,255,0.90)"/>
+      <stop offset="60%" stop-color="rgba(150,70,240,0.80)"/>
+      <stop offset="100%" stop-color="rgba(100,40,200,0.60)"/>
+    </linearGradient>
+    <!-- Single source of truth for the archive icon — used via <use href="#icon-archive"> everywhere.
+         No stroke/fill attrs here; those live on the outer <svg> wrapper so they inherit currentColor. -->
+    <symbol id="icon-archive" viewBox="0 0 24 24">
+      <path d="M3 9L12 4.5L21 9"/>
+      <rect x="3" y="9" width="18" height="11" rx="1.8"/>
+      <line x1="12" y1="10.5" x2="12" y2="13.5"/>
+      <line x1="10.5" y1="12" x2="13.5" y2="12"/>
+    </symbol>
+    <symbol id="coffin-emblem" viewBox="0 0 80 96">
+      <path d="M26 4 L54 4 L74 22 L74 88 Q40 96 6 88 L6 22 Z"
+            fill="url(#emblemFillShared)" stroke="url(#emblemStrokeShared)"
+            stroke-width="1.6" stroke-linejoin="round"/>
+      <line x1="40" y1="30" x2="40" y2="72" stroke="rgba(220,170,255,0.70)" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="27" y1="47" x2="53" y2="47" stroke="rgba(220,170,255,0.70)" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="40" cy="18" r="4" fill="rgba(180,100,255,0.55)" stroke="rgba(220,150,255,0.7)" stroke-width="1"/>
+      <line x1="40" y1="14" x2="40" y2="10" stroke="rgba(190,120,255,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M28 80 Q40 85 52 80" stroke="rgba(180,100,255,0.45)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+// Register service worker for offline support (PWA — audit G-4)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+}
+</script>
+<script src="app.js"></script>
+<!-- Color Filter Modal -->
+<div class="modal-overlay" id="color-filter-modal" style="display:none" onclick="closeColorFilterModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="color-filter-title">
+    <div class="modal modal-color-filter">
+        <h3 class="modal-title" id="color-filter-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="flex-shrink:0">
+                <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
+                <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
+                <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
+                <circle cx="12" cy="10.5" r="1.4" fill="currentColor" stroke="none" opacity="0.7"/>
+            </svg>
+            Фильтр по цвету
+        </h3>
+        <div class="color-filter-swatches" id="color-filter-swatches"></div>
+    </div>
+</div>
+
+<div id="import-choice-overlay" style="display:none" class="modal-overlay">
+    <div class="modal import-choice-modal">
+        <h3 class="modal-title">Импорт данных</h3>
+        <p class="import-choice-desc">Добавить задачи к существующим или полностью заменить?</p>
+        <div class="modal-actions import-choice-actions">
+            <button class="btn-modal-cancel" id="import-cancel-btn">Отмена</button>
+            <button class="btn-modal-confirm" id="import-merge-btn">Добавить</button>
+            <button class="btn-modal-danger" id="import-replace-btn">Заменить</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
