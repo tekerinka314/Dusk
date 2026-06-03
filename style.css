@@ -1037,6 +1037,52 @@ body::after {
 }
 .snooze-menu .float-menu-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
 
+/* ── Idea 4: quick-add typeahead dropdown (anchored under the new-task input) ── */
+.qa-menu {
+    position: fixed;
+    z-index: 330;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 5px;
+    background: #06021a;
+    border: 1px solid rgba(140, 60, 255, 0.32);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(80, 20, 180, 0.18);
+    max-height: 280px;
+    overflow-y: auto;
+    animation: snoozeMenuIn 0.14s var(--ease-emerge) both;
+    scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent;
+}
+.qa-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-main);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    text-align: left;
+    width: 100%;
+    transition: background var(--dur-micro), color var(--dur-micro);
+}
+.qa-item.active, .qa-item:hover { background: rgba(100, 25, 200, 0.22); color: var(--text-primary); }
+.qa-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qa-hint {
+    font-family: var(--font-label); font-size: 9px; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--text-muted); opacity: 0.75; flex-shrink: 0;
+}
+.qa-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--border-mid); }
+.qa-dot-blank { background: transparent; box-shadow: inset 0 0 0 1px var(--border-mid); }
+.qa-dot.prio-high   { background: var(--prio-high); }
+.qa-dot.prio-medium { background: var(--prio-medium); }
+.qa-dot.prio-low    { background: var(--prio-low); }
+@media (prefers-reduced-motion: reduce) { .qa-menu { animation: none; } }
+
 /* ===== TOOLBAR ===== */
 .toolbar {
     display: flex;

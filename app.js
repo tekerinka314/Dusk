@@ -2635,8 +2635,14 @@ let _undoFormSnapshot = null;
 //  TASK CRUD
 // ============================================================
 function addTask() {
-    const text = inputBox.value.trim();
+    const raw = inputBox.value.trim();
+    if (!raw) { shakeInput(); showToast('Введите название задачи'); return; }
+    _qaClose();
+    // Idea 4: pull inline !priority / ~date tokens out of the text (#tags stay).
+    const parsed = parseQuickInput(raw);
+    const text = parsed.text;
     if (!text) { shakeInput(); showToast('Введите название задачи'); return; }
+    const effPriority = parsed.priority || selectedPriority;
 
     // UX-4 + I-5: capture full form snapshot BEFORE clearing so undo() can
     // restore text, note, priority, color, repeat, deadline, group and subtasks.
@@ -2655,7 +2661,7 @@ function addTask() {
 
     const groupId  = parseInt(taskGroupSelect.value) || null;
     const note     = taskNote.value.trim();
-    const deadline = formDeadline ? { ...formDeadline } : null;
+    const deadline = parsed.deadline || (formDeadline ? { ...formDeadline } : null);
 
     // Problem 3: read form-level repeat anchor
     // Prefer SegmentedInput value (registered after initSegmentedInputs); fall back to raw var
@@ -2678,8 +2684,8 @@ function addTask() {
     state.tasks.push({
         id: state.nextId++,
         text, checked: false,
-        priority: selectedPriority,
-        color: selectedFormColor || null,
+        priority: effPriority,
+        color: (effPriority && effPriority !== 'none') ? null : (selectedFormColor || null),
         groupId, deadline, note, noteOpen: false,
         order: state.tasks.length,
         repeat: selectedRepeat,
@@ -7089,6 +7095,194 @@ function escHtml(str) {
 }
 
 // ============================================================
+//  Idea 4: QUICK-ADD — inline syntax  #tag  !priority  ~date
+//  + an interactive typeahead dropdown (keyboard + mouse).
+// ============================================================
+// Parse the raw input: pull out !priority and ~date tokens (removed from the
+// text), keep #tags in the text (they're already highlighted + searchable).
+function parseQuickInput(raw) {
+    let text = raw;
+    let priority = null;
+    let deadline = null;
+    const prioMap = {
+        high:'high', h:'high', выс:'high', высокий:'high',
+        medium:'medium', med:'medium', m:'medium', сред:'medium', средний:'medium',
+        low:'low', l:'low', низ:'low', низкий:'low',
+        none:'none', n:'none', нет:'none',
+    };
+    text = text.replace(/(^|\s)!([a-zA-Zа-яё]+)\b/gi, (m, pre, word) => {
+        const key = word.toLowerCase();
+        if (prioMap[key] !== undefined) { priority = prioMap[key]; return pre; }
+        return m;
+    });
+    text = text.replace(/(^|\s)~(\S+)/g, (m, pre, tok) => {
+        const dl = _parseQuickDate(tok);
+        if (dl) { deadline = dl; return pre; }
+        return m;
+    });
+    text = text.replace(/\s{2,}/g, ' ').trim();
+    return { text, priority, deadline };
+}
+
+function _parseQuickDate(tok) {
+    const t = tok.toLowerCase();
+    const today = new Date();
+    if (t === 'today'    || t === 'сегодня') return { mode:'date', value: _ymd(today) };
+    if (t === 'tomorrow' || t === 'завтра')  { const d = new Date(); d.setDate(d.getDate()+1); return { mode:'date', value:_ymd(d) }; }
+    const wd = { пн:1,вт:2,ср:3,чт:4,пт:5,сб:6,вс:7, mon:1,tue:2,wed:3,thu:4,fri:5,sat:6,sun:7 };
+    if (wd[t]) return { mode:'weektime', value:`${wd[t]}|00:00`, timeSet:false };
+    const mm = t.match(/^(\d{1,2}):(\d{2})$/);
+    if (mm) { const h=+mm[1], mi=+mm[2]; if (h<24 && mi<60) return { mode:'time', value:`${_pad2(h)}:${_pad2(mi)}` }; }
+    const rel = t.match(/^\+(\d+)(d|д|дн|w|н|нед)?$/);
+    if (rel) { const n=+rel[1], u=rel[2]||'d'; const days=(u==='w'||u==='н'||u==='нед')?n*7:n; const d=new Date(); d.setDate(d.getDate()+days); return { mode:'date', value:_ymd(d) }; }
+    const dm = t.match(/^(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?$/);
+    if (dm) {
+        const day=+dm[1], mon=+dm[2]; let yr = dm[3] ? +dm[3] : today.getFullYear();
+        if (dm[3] && dm[3].length === 2) yr = 2000 + yr;
+        if (mon>=1 && mon<=12 && day>=1 && day<=31) {
+            const d = new Date(yr, mon-1, day);
+            if (d.getMonth() === mon-1 && d.getDate() === day) {
+                if (!dm[3] && d < new Date(today.toDateString())) d.setFullYear(yr+1);
+                return { mode:'date', value:_ymd(d) };
+            }
+        }
+    }
+    return null;
+}
+
+// ── Typeahead dropdown ───────────────────────────────────────────────────────
+let _qaState  = null;   // { type, query, start, end, items, active }
+let _qaMenuEl = null;
+
+function _qaDetect() {
+    const val = inputBox.value;
+    const pos = inputBox.selectionStart ?? val.length;
+    let s = pos;
+    while (s > 0 && !/\s/.test(val[s-1])) s--;
+    const token = val.slice(s, pos);
+    if (!token) return null;
+    const ch = token[0];
+    if (ch === '!') return { type:'prio', query: token.slice(1), start:s, end:pos };
+    if (ch === '#') return { type:'tag',  query: token.slice(1), start:s, end:pos };
+    if (ch === '~') return { type:'date', query: token.slice(1), start:s, end:pos };
+    return null;
+}
+
+function _qaSuggest(type, query) {
+    const q = query.toLowerCase();
+    if (type === 'prio') {
+        return [
+            { label:'Высокий',         insert:'!high',   cls:'prio-high'   },
+            { label:'Средний',         insert:'!medium', cls:'prio-medium' },
+            { label:'Низкий',          insert:'!low',    cls:'prio-low'    },
+            { label:'Без приоритета',  insert:'!none',   cls:''            },
+        ].filter(o => !q || o.label.toLowerCase().includes(q) || o.insert.slice(1).startsWith(q));
+    }
+    if (type === 'tag') {
+        const tags = new Set();
+        state.tasks.forEach(t => {
+            extractTags(t.text).forEach(tg => tags.add(tg));
+            (t.subtasks || []).forEach(s => extractTags(s.text).forEach(tg => tags.add(tg)));
+        });
+        const arr = [...tags].map(tg => tg.replace(/^#/, '')).filter(tg => !q || tg.includes(q)).sort();
+        const items = arr.slice(0, 8).map(tg => ({ label:'#'+tg, insert:'#'+tg }));
+        if (q && !arr.includes(q)) items.unshift({ label:'#'+query, insert:'#'+query, hint:'новый тег' });
+        return items;
+    }
+    if (type === 'date') {
+        const parsed = query ? _parseQuickDate(query) : null;
+        const out = parsed ? [{ label: formatDeadlineForm(parsed), insert:'~'+query, hint:'распознано' }] : [];
+        const presets = [
+            { label:'Сегодня',      insert:'~сегодня' },
+            { label:'Завтра',       insert:'~завтра'  },
+            { label:'Через неделю', insert:'~+7d'     },
+            { label:'Понедельник',  insert:'~пн'      },
+            { label:'Суббота',      insert:'~сб'      },
+        ].filter(o => !q || o.label.toLowerCase().includes(q));
+        return out.concat(presets);
+    }
+    return [];
+}
+
+function _qaUpdate() {
+    const det = _qaDetect();
+    if (!det) { _qaClose(); return; }
+    const items = _qaSuggest(det.type, det.query);
+    if (!items.length) { _qaClose(); return; }
+    _qaState = { ...det, items, active: 0 };
+    _qaRenderMenu();
+}
+
+function _qaRenderMenu() {
+    if (!_qaState) return;
+    if (!_qaMenuEl) {
+        _qaMenuEl = document.createElement('div');
+        _qaMenuEl.className = 'qa-menu';
+        _qaMenuEl.setAttribute('role', 'listbox');
+        document.body.appendChild(_qaMenuEl);
+    }
+    const { items, active } = _qaState;
+    _qaMenuEl.innerHTML = items.map((it, i) => `
+        <button type="button" role="option" class="qa-item${i === active ? ' active' : ''}" data-idx="${i}"
+                aria-selected="${i === active ? 'true' : 'false'}"
+                onmousedown="event.preventDefault()" onclick="_qaAccept(${i})" onmouseover="_qaHover(${i})">
+            ${it.cls ? `<span class="qa-dot ${it.cls}"></span>` : `<span class="qa-dot qa-dot-blank"></span>`}
+            <span class="qa-label">${escHtml(it.label)}</span>
+            ${it.hint ? `<span class="qa-hint">${escHtml(it.hint)}</span>` : ''}
+        </button>`).join('');
+    const r = inputBox.getBoundingClientRect();
+    _qaMenuEl.style.left  = Math.round(r.left) + 'px';
+    _qaMenuEl.style.top   = Math.round(r.bottom + 5) + 'px';
+    _qaMenuEl.style.width = Math.round(r.width) + 'px';
+}
+
+function _qaHover(i) {
+    if (!_qaState) return;
+    _qaState.active = i;
+    _qaMenuEl.querySelectorAll('.qa-item').forEach((el, idx) => {
+        el.classList.toggle('active', idx === i);
+        el.setAttribute('aria-selected', idx === i ? 'true' : 'false');
+    });
+}
+
+function _qaMove(dir) {
+    if (!_qaState) return;
+    const n = _qaState.items.length;
+    _qaState.active = (_qaState.active + dir + n) % n;
+    _qaRenderMenu();
+}
+
+function _qaAccept(idx) {
+    if (!_qaState) return;
+    const item = _qaState.items[idx]; if (!item) return;
+    const val = inputBox.value;
+    const before = val.slice(0, _qaState.start);
+    const after  = val.slice(_qaState.end);
+    const insert = item.insert + ' ';
+    inputBox.value = before + insert + after;
+    const caret = (before + insert).length;
+    _qaClose();
+    inputBox.focus();
+    inputBox.setSelectionRange(caret, caret);
+}
+
+function _qaClose() {
+    if (_qaMenuEl) { _qaMenuEl.remove(); _qaMenuEl = null; }
+    _qaState = null;
+}
+
+// Returns true if the quick-add menu handled the key (so the Enter→addTask
+// handler should NOT fire).
+function _qaKeydown(e) {
+    if (!_qaState) return false;
+    if (e.key === 'ArrowDown')              { e.preventDefault(); _qaMove(1);  return true; }
+    if (e.key === 'ArrowUp')                { e.preventDefault(); _qaMove(-1); return true; }
+    if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); _qaAccept(_qaState.active); return true; }
+    if (e.key === 'Escape')                 { e.preventDefault(); _qaClose(); return true; }
+    return false;
+}
+
+// ============================================================
 //  EXPORT / IMPORT  (audit G-5)
 // ============================================================
 
@@ -7443,7 +7637,12 @@ function highlightFocusedTask(id) {
 //  EVENT LISTENERS
 // ============================================================
 function setupEventListeners() {
-    inputBox.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+    inputBox.addEventListener('keydown', e => {
+        if (_qaKeydown(e)) return;          // quick-add typeahead handled the key
+        if (e.key === 'Enter') addTask();
+    });
+    inputBox.addEventListener('input', _qaUpdate);
+    inputBox.addEventListener('blur', () => setTimeout(_qaClose, 150)); // allow item click first
     document.getElementById('note-modal-input').addEventListener('keydown', e => {
         if (e.key === 'Enter' && e.ctrlKey) confirmNote();
     });
