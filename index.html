@@ -23,6 +23,8 @@
 <div id="live-region" role="status" aria-live="polite" aria-atomic="true"></div>
 <div class="container">
     <div class="todo-app">
+        <!-- C-2: ambient breathing glow on its own layer (was a colliding .todo-app::after) -->
+        <div class="app-glow" aria-hidden="true"></div>
 
         <!-- Header -->
         <header class="app-header">
@@ -1022,6 +1024,16 @@
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+    // V-3: SW posts this when a shell file changed in the background (stale-while-
+    // revalidate). Show a gentle toast inviting a reload; guarded because app.js
+    // (which defines showToast) may not have finished loading yet.
+    let _duskUpdateNotified = false;
+    navigator.serviceWorker.addEventListener('message', e => {
+        if (e.data && e.data.type === 'dusk-update-ready' && !_duskUpdateNotified) {
+            _duskUpdateNotified = true;
+            if (typeof showToast === 'function') showToast('Доступна новая версия — обновите страницу');
+        }
     });
 }
 </script>

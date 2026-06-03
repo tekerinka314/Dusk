@@ -255,9 +255,12 @@ body::after {
         0 0 90px rgba(115, 32, 238, 0.12),
         0 0 140px rgba(90, 20, 200, 0.07);
 }
-/* Animated glow layer — opacity-only, GPU-composited */
-.todo-app::after {
-    content: '';
+/* Animated glow layer — opacity-only, GPU-composited.
+   C-2: lives on a dedicated .app-glow child, NOT .todo-app::after — the ::after
+   pseudo is already the bottom hairline below, and stacking both on one
+   pseudo-element collapsed the glow into a 1px strip and pushed the bottom line
+   to the top. Separate element = each role renders correctly. */
+.todo-app > .app-glow {
     position: absolute;
     inset: -1px;
     border-radius: inherit;
@@ -275,7 +278,7 @@ body::after {
 
 /* Honour reduced-motion: keep static glow, kill the infinite pulse */
 @media (prefers-reduced-motion: reduce) {
-    .todo-app::after { animation: none; opacity: 0.6; }
+    .todo-app > .app-glow { animation: none; opacity: 0.6; }
 }
 
 .todo-app::before {
@@ -1282,11 +1285,9 @@ body::after {
     to   { opacity: 0; transform: translateX(-50%) translateY(9px) scale(0.93); }
 }
 
-/* Modal improved — veil lifts / stone falls */
-@keyframes modalIn {
-    from { opacity: 0; transform: scale(0.91) translateY(18px); }
-    to   { opacity: 1; transform: scale(1)    translateY(0);    }
-}
+/* Modal improved — veil lifts / stone falls.
+   D-2: the single source of truth for @keyframes modalIn is in the MODAL section
+   below; the duplicate that used to sit here was dead (the later definition won). */
 @keyframes modalOut {
     from { opacity: 1; transform: scale(1)    translateY(0);    }
     to   { opacity: 0; transform: scale(0.94) translateY(12px); }
@@ -4653,7 +4654,7 @@ kbd {
 /* ── Group focus mode ────────────────────────────────────────── */
 .group-section.group-focused > .group-header {
     box-shadow: 0 0 0 1px rgba(160, 80, 255, 0.35);
-    border-radius: var(--radius) var(--radius) 0 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 /* ── Archive search ──────────────────────────────────────────── */
@@ -4769,14 +4770,14 @@ kbd {
     padding: 5px 9px;
     background: var(--bg-input);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     color: var(--text-muted);
     font-family: var(--font-label);
     font-size: 10px;
     cursor: pointer;
     transition: background var(--transition), border-color var(--transition);
 }
-.prio-bulk-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+.prio-bulk-btn:hover { background: var(--bg-item-hover); border-color: var(--accent); }
 .prio-bulk-btn .prio-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .prio-bulk-btn .prio-dot.prio-high   { background: var(--prio-high); }
 .prio-bulk-btn .prio-dot.prio-medium { background: var(--prio-medium); }
@@ -4982,7 +4983,7 @@ kbd {
     flex-direction: column;
     gap: 2px;
     padding: 4px 2px;
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     transition: background 0.15s;
 }
 .form-sub-item:hover { background: rgba(255,255,255,0.03); }
@@ -4994,7 +4995,7 @@ kbd {
 .form-sub-text {
     flex: 1;
     font-size: 13px;
-    color: var(--text-dim);
+    color: var(--text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -5012,7 +5013,7 @@ kbd {
     justify-content: center;
     background: none;
     border: 1px solid transparent;
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     color: var(--text-muted);
     cursor: pointer;
     opacity: 0.55;

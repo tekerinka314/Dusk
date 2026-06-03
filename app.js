@@ -892,9 +892,8 @@ function loadUiState() {
         sortBtn.title = state.sortMode === 'order' ? 'Режим: по порядку' : 'Режим: по приоритету';
         sortBtn.classList.toggle('active', state.sortMode === 'order');
     }
-    // Focus mode button
-    const focusBtn = document.getElementById('btn-focus-mode');
-    if (focusBtn) focusBtn.classList.toggle('active', !!focusGroupId);
+    // D-1: removed dead #btn-focus-mode lookup — no such element exists (focus is
+    // toggled per-group from the group header), the getElementById always returned null.
     // Color filter swatch active state
     _syncColorFilterUI();
 }
@@ -1252,6 +1251,8 @@ function filterAndSortDeadline(tasks, query) {
         // Search inside subtask texts (audit B-3)
         (t.subtasks && t.subtasks.some(s => s.text.toLowerCase().includes(query)))
     );
+    // V-1: colour filter must apply in schedule mode too (was silently ignored).
+    if (colorFilter) list = list.filter(t => t.color === colorFilter);
     const P = { high: 0, medium: 1, low: 2, none: 3 };
     const withDl  = list.filter(t => t.deadline && getDeadlineTimestamp(t.deadline) !== null);
     const withDlNoTs = list.filter(t => t.deadline && getDeadlineTimestamp(t.deadline) === null); // month/year/etc
@@ -1464,10 +1465,14 @@ function importData(event) {
                 showToast('Неверный формат файла'); return;
             }
             const clamp = (s, max) => (typeof s === 'string' ? s.slice(0, max) : s);
+            const validColor = c => (typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c)) ? c : null;
             const sanitizeTask = t => ({
                 ...t,
                 text:  clamp(t.text,  200),
                 note:  clamp(t.note,  500),
+                // V-4: validate the colour label (was passed through unchecked and later
+                // interpolated into style/onclick — broken values could corrupt markup).
+                color: validColor(t.color),
                 subtasks: Array.isArray(t.subtasks) ? t.subtasks.map(s => ({
                     ...s, text: clamp(s.text, 200), note: clamp(s.note, 500),
                 })) : [],
@@ -1582,20 +1587,22 @@ function requestNotificationPermission() {
 function _checkDeadlineNotifications() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     state.tasks.forEach(task => {
-        if (task.checked || task.cycleChecked) return;
-        if (!task.deadline) return;
+        const status = (!task.checked && !task.cycleChecked && task.deadline)
+            ? deadlineStatus(task.deadline) : null;
+        const due = status === 'critical' || status === 'over';
+        // D-5: when a task is NOT currently due (completed, deadline removed, or
+        // pushed back so it's no longer critical/over), clear its notified flag so a
+        // later re-entry (e.g. the new deadline approaches) can notify again.
+        if (!due) { _notifiedDeadlines.delete(task.id); return; }
         if (_notifiedDeadlines.has(task.id)) return;
-        const status = deadlineStatus(task.deadline);
-        if (status === 'critical' || status === 'over') {
-            _notifiedDeadlines.add(task.id);
-            try {
-                new Notification('DUSK — дедлайн', {
-                    body: task.text,
-                    icon: './icon-192.svg',
-                    tag:  'dusk-deadline-' + task.id,
-                });
-            } catch(e) { /* ignore */ }
-        }
+        _notifiedDeadlines.add(task.id);
+        try {
+            new Notification('DUSK — дедлайн', {
+                body: task.text,
+                icon: './icon-192.svg',
+                tag:  'dusk-deadline-' + task.id,
+            });
+        } catch(e) { /* ignore */ }
     });
 }
 
@@ -1914,20 +1921,7 @@ function restoreSelected() {
     ids.forEach(id => {
         const item = state.archive.find(a => a.id === id);
         if (!item) return;
-        let groupId = item.groupId;
-        if (groupId && !state.groups.find(g => g.id === groupId)) groupId = null;
-        state.tasks.push({
-            id: item.id, text: item.text, checked: false,
-            priority: item.priority || 'none', groupId,
-            deadline: item.deadline, note: item.note, noteOpen: false,
-            order: state.tasks.length,
-            repeat: item.repeat || 'none',
-            cycleChecked: false, nextReset: null,
-            subtasks: JSON.parse(JSON.stringify(item.subtasks || [])).map(s => ({
-                ...s, cycleChecked: false, nextReset: null,
-            })),
-            subtasksOpen: true,
-        });
+        state.tasks.push(taskFromArchive(item));
         _newTaskIds.add(item.id);
     });
     state.archive = state.archive.filter(a => !selectedArchiveIds.has(a.id));
@@ -1942,22 +1936,8 @@ function restoreSelected() {
 function restoreAll() {
     if (!state.archive.length) return;
     pushUndo();
-    const now = Date.now();
     state.archive.forEach(item => {
-        let groupId = item.groupId;
-        if (groupId && !state.groups.find(g => g.id === groupId)) groupId = null;
-        state.tasks.push({
-            id: item.id, text: item.text, checked: false,
-            priority: item.priority || 'none', groupId,
-            deadline: item.deadline, note: item.note, noteOpen: false,
-            order: state.tasks.length,
-            repeat: item.repeat || 'none',
-            cycleChecked: false, nextReset: null,
-            subtasks: JSON.parse(JSON.stringify(item.subtasks || [])).map(s => ({
-                ...s, cycleChecked: false, nextReset: null,
-            })),
-            subtasksOpen: true,
-        });
+        state.tasks.push(taskFromArchive(item));
         _newTaskIds.add(item.id); // IMP-1: restored tasks get entrance animation
     });
     state.archive = [];
@@ -1986,6 +1966,30 @@ function updateArchiveBadge() {
     }
 }
 function getGroupColor(id) { const g = state.groups.find(g => g.id === id); return g ? g.color : '#9090cc'; }
+
+// C-1: build an active task from an archived item, preserving ALL fields
+// (color, pinned, repeatAnchor*, subNotesAlwaysOpen, …). Resets completion +
+// cycle state and reassigns order. Single source of truth for archive→task so
+// restoreTask / restoreAll / restoreSelected never drop fields again.
+function taskFromArchive(item) {
+    let groupId = item.groupId;
+    if (groupId && !state.groups.find(g => g.id === groupId)) groupId = null;
+    // Strip archive-only metadata; keep everything else verbatim.
+    const { archivedAt, originalGroupName, originalGroupColor, ...rest } = item;
+    return {
+        ...rest,
+        groupId,
+        checked:      false,
+        cycleChecked: false,
+        nextReset:    null,
+        noteOpen:     false,
+        order:        state.tasks.length,
+        subtasksOpen: true,
+        subtasks: JSON.parse(JSON.stringify(item.subtasks || [])).map(s => ({
+            ...s, cycleChecked: false, nextReset: null,
+        })),
+    };
+}
 
 // ============================================================
 //  TASK ELEMENT FACTORY
@@ -2681,10 +2685,29 @@ function toggleCheck(id) {
     if (task.checked) { playSound('check'); vibrate(30); }
     saveState(); // persist immediately — render is deferred until the fade-out ends
 
-    // ── Coffin seal ritual + smooth move (problem 4) ─────────────────────────
-    // The checkbox seals/unseals while the whole row fades out, then re-renders
-    // in its new active/completed position. A checked row dims into place via
-    // taskCheckIn; an unchecked row fades back in via .reentering.
+    // M-2: when CHECKING, let the coffin-seal ritual play to completion BEFORE the
+    // row fades out + re-renders (parity with the cyclic-spin path). Previously seal
+    // (220ms) and the row fade-out (200ms) ran together, so the seal's burst/settle
+    // was masked by the row already going transparent. Unchecking keeps the original
+    // simultaneous unseal + fade-in (reads fine).
+    if (task.checked && !prefersReducedMotion()) {
+        const li      = document.querySelector(`.task-item[data-id="${id}"]`);
+        const checkEl = li && li.querySelector('.task-check');
+        if (checkEl) {
+            checkEl.classList.add('sealing');
+            let sealed = false;
+            const afterSeal = () => {
+                if (sealed) return; sealed = true;
+                // Seal already played — fade the row out and re-render into place.
+                _leaveTaskThenRender(id, { fadeIn: false, checkAllDone: true });
+            };
+            checkEl.addEventListener('animationend', afterSeal, { once: true });
+            setTimeout(afterSeal, 260); // safety net (coffinSeal ≈ --dur-quick 220ms)
+            return;
+        }
+    }
+
+    // Unchecking (or no checkbox / reduced motion): seal+leave together as before.
     _leaveTaskThenRender(id, {
         sealClass:    task.checked ? 'sealing' : 'unsealing',
         fadeIn:       !task.checked,
@@ -3079,20 +3102,7 @@ function restoreTask(id) {
 
     // Mutate state immediately
     pushUndo();
-    let groupId = item.groupId;
-    if (groupId && !state.groups.find(g => g.id === groupId)) groupId = null;
-    state.tasks.push({
-        id: item.id, text: item.text, checked: false,
-        priority: item.priority || 'none', groupId,
-        deadline: item.deadline, note: item.note, noteOpen: false,
-        order: state.tasks.length,
-        repeat: item.repeat || 'none',
-        cycleChecked: false, nextReset: null,
-        subtasks: JSON.parse(JSON.stringify(item.subtasks || [])).map(s => ({
-            ...s, cycleChecked: false, nextReset: null,
-        })),
-        subtasksOpen: true,
-    });
+    state.tasks.push(taskFromArchive(item));
     _newTaskIds.add(item.id);
     state.archive = state.archive.filter(a => a.id !== id);
     updateArchiveBadge();
@@ -3284,7 +3294,9 @@ function toggleSubtask(taskId, subId) {
             const allSubsDone = task.subtasks.length > 0 &&
                 task.subtasks.every(s => s.checked || s.cycleChecked);
             if (allSubsDone) {
-                pushUndo(); // W-1: separate undo point for the parent auto-completion
+                // V-5: no extra pushUndo — the snapshot at the top of toggleSubtask
+                // already covers this whole action, so one Ctrl+Z reverts both the
+                // subtask toggle and the parent auto-completion.
                 const isRecurring = task.repeat && task.repeat !== 'none';
                 if (isRecurring) {
                     if (!task.cycleChecked) {
@@ -3321,7 +3333,7 @@ function toggleSubtask(taskId, subId) {
         task.subtasks.every(s => s.checked || s.cycleChecked);
 
     if (sub.checked && allSubsDone) {
-        pushUndo(); // W-1: separate undo point for auto-completing the parent task
+        // V-5: single undo point (snapshot taken at the top of toggleSubtask).
         if (isRecurring) {
             if (!task.cycleChecked) {
                 task.cycleChecked = true;
@@ -5036,16 +5048,31 @@ function confirmDeadline() {
         const t  = segInputs['dl-weektime-time']?.getValue() || document.getElementById('dl-weektime-time').value;
         value = `${wd}|${t || '00:00'}`;
         const dl = { mode, value, timeSet: !!t };
-        if (dl) localStorage.setItem(K_DL_MODE, mode);
+        localStorage.setItem(K_DL_MODE, mode);
         // I-9: save before applyDeadline() resets editingTaskId to null
         const targetId = editingTaskId;
-        applyDeadline(dl);
-        closeModalWithAnim('deadline-modal');
-        if (targetId === null) updateRepeatAvailability(dl ? dl.mode : null);
-        if (dl && dl.mode === 'weektime' && targetId !== null) {
-            const task = state.tasks.find(t => t.id === targetId);
-            if (task && task.repeat === 'none') { task.repeat = 'weekly'; saveState(); }
+        if (targetId !== null) {
+            // V-7: set deadline AND auto-enable weekly repeat (anchored to the chosen
+            // weekday) in ONE mutation + single render, so the repeat badge shows
+            // immediately and the anchor day is filled. pushUndo first so Ctrl+Z
+            // reverts both deadline and repeat together.
+            const task = state.tasks.find(x => x.id === targetId);
+            if (task) {
+                pushUndo();
+                task.deadline = dl;
+                if (task.repeat === 'none') {
+                    task.repeat = 'weekly';
+                    task.repeatAnchorDay = parseInt(wd) || null;
+                }
+                saveState(); render();
+                showToast('Дедлайн установлен');
+            }
+            editingTaskId = null;
+        } else {
+            applyDeadline(dl);                       // form-creation path
+            updateRepeatAvailability(dl.mode);
         }
+        closeModalWithAnim('deadline-modal');
         return;
     }
     if (mode === 'monthday') {
@@ -6219,10 +6246,16 @@ function toggleExpand() {
         // ── Open: measure content height and animate to it ──────────
         extraFields.classList.add('open');
         extraFields.style.maxHeight = extraFields.scrollHeight + 'px';
-        // After transition ends, switch to 'none' so content can grow freely
-        extraFields.addEventListener('transitionend', () => {
+        // M-4: switch to 'none' only after the MAX-HEIGHT transition ends.
+        // Without the propertyName guard the listener fired on the faster opacity
+        // transition (0.30s) and set 'none' before max-height (0.42s) finished —
+        // a visible height "snap" on tall panels.
+        const _onExpandOpen = (e) => {
+            if (e.propertyName !== 'max-height') return;
+            extraFields.removeEventListener('transitionend', _onExpandOpen);
             if (expandOpen) extraFields.style.maxHeight = 'none';
-        }, { once: true });
+        };
+        extraFields.addEventListener('transitionend', _onExpandOpen);
     } else {
         // ── Close: pin current height first, then animate to 0 ──────
         extraFields.style.maxHeight = extraFields.scrollHeight + 'px';
@@ -6349,9 +6382,13 @@ function updateVisibility() {
 
     const query     = searchQuery.toLowerCase();
     // When filter is active, visible tasks exclude both checked and cycleChecked
-    const visibleTasks = isFiltered
+    let visibleTasks = isFiltered
         ? state.tasks.filter(t => !t.checked && !t.cycleChecked)
-        : state.tasks;
+        : [...state.tasks];
+    // V-2: colour filter and focus mode also decide whether the list is empty,
+    // so the empty-state plaque shows instead of a silent blank area.
+    if (colorFilter) visibleTasks = visibleTasks.filter(t => t.color === colorFilter);
+    if (focusGroupId !== null) visibleTasks = visibleTasks.filter(t => t.groupId === focusGroupId);
     const noVisible = query
         ? !visibleTasks.some(t =>
             t.text.toLowerCase().includes(query) ||
@@ -6766,6 +6803,9 @@ function bulkArchive() {
         const grp = state.groups.find(g => g.id === t.groupId);
         state.archive.push({
             ...t,
+            // D-4: deep-clone subtasks (parity with removeTask/archiveAll) so the
+            // archived copy never shares a subtask array reference with live state.
+            subtasks: JSON.parse(JSON.stringify(t.subtasks || [])),
             archivedAt: Date.now(),
             originalGroupName:  grp ? grp.name  : null,
             originalGroupColor: grp ? grp.color : null,
