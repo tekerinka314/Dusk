@@ -672,6 +672,7 @@ function init() {
     loadUiState();
     applySoundPref();
     setupEventListeners();
+    _labelColorSwatches(); // 6f: a11y names for colour swatches
     setupMonthdayStepper();
     setupYearStepper();
     setupRepeatMonthdayStepper();
@@ -1075,6 +1076,23 @@ function render() {
     positionDragHandles();
     updateCollapseAllBtn();
     renderTagCloud();
+    _syncCriticalPulse();
+}
+
+// 7b: partial render for hot paths that change ONLY the task list (check, pin,
+// priority, colour). Skips renderGroupBar / renderGroupSelect / renderTagCloud /
+// updateArchiveBadge — those depend on data these ops never touch (group names,
+// task text/tags, archive), so rebuilding them every time was wasted work.
+function renderListOnly() {
+    renderTasks();
+    updateProgress();
+    updateVisibility();
+    if (!prefersReducedMotion()) applyListStagger();
+    setupSortables();
+    attachPlainPasteHandlers();
+    positionDragHandles();
+    updateCollapseAllBtn();
+    _syncCriticalPulse();
 }
 
 function renderTasks() {
@@ -1372,6 +1390,28 @@ function clearTaskDeadline(id) {
     showToast('Дедлайн снят');
 }
 
+// 6f: give every static colour swatch an accessible name (they only had a
+// background colour, so screen readers announced nothing). Dynamic colour-filter
+// swatches are labelled where they're built (_populateColorFilterModal).
+function _labelColorSwatches() {
+    document.querySelectorAll('.color-swatch[data-color], .form-color-swatch[data-color]').forEach(sw => {
+        if (sw.getAttribute('aria-label')) return;
+        const c = sw.dataset.color;
+        sw.setAttribute('aria-label', c ? ('Цвет ' + c) : 'Без цвета');
+    });
+}
+
+// 6f: reflect the selected option to assistive tech on the custom listbox
+// dropdowns (month / weekday / form-weekday) via aria-activedescendant.
+function _syncListboxActive(listEl) {
+    if (!listEl) return;
+    listEl.querySelectorAll('.dl-month-option').forEach(opt => {
+        if (!opt.id) opt.id = listEl.id + '-opt-' + (opt.dataset.value || 'any');
+    });
+    const active = listEl.querySelector('.dl-month-option.active');
+    if (active) listEl.setAttribute('aria-activedescendant', active.id);
+}
+
 // ---- Color Filter ----
 function _syncColorFilterUI() {
     // Sync the toolbar button's active state
@@ -1421,6 +1461,7 @@ function _populateColorFilterModal() {
         <button class="color-filter-swatch${colorFilter === c ? ' active' : ''}"
                 style="background:${c}"
                 onclick="setColorFilter('${c}')"
+                aria-label="Цвет ${c}"
                 title="Цвет ${c}">
             ${colorFilter === c
                 ? `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`
@@ -1805,8 +1846,12 @@ function renderArchive() {
         header.innerHTML = `
             <span class="archive-month-name">${heading}</span>
             <span class="archive-month-count">${groupItems.length}</span>
-            <svg class="archive-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                <polyline points="6 9 12 15 18 9"/>
+            <svg class="archive-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="2" x2="12" y2="17"/>
+                <path d="M9 5L12 2L15 5"/>
+                <line x1="10" y1="14" x2="14" y2="14"/>
+                <path d="M11 17L10 20H14L13 17"/>
+                <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
             </svg>`;
         header.addEventListener('click', () => {
             const c = section.classList.toggle('collapsed');
@@ -2624,11 +2669,11 @@ function _leaveTaskThenRender(id, opts = {}) {
             if (allFinished) showAllDone();
         }
     };
-    if (!li || reduced) { render(); afterRender(); return; }
+    if (!li || reduced) { renderListOnly(); afterRender(); return; }
     if (checkEl && opts.sealClass) checkEl.classList.add(opts.sealClass);
     li.classList.add('task-leaving');
     let done = false;
-    const finish = () => { if (done) return; done = true; render(); afterRender(); };
+    const finish = () => { if (done) return; done = true; renderListOnly(); afterRender(); };
     li.addEventListener('animationend', e => {
         if (e.target === li && e.animationName === 'taskLeave') finish();
     });
@@ -3165,6 +3210,9 @@ function toggleSubtasksSection(taskId) {
     if (sec) {
         if (task.subtasksOpen) {
             sec.classList.add('open');
+            // 7b: lazily attach subtask DnD now the section is visible (setupSortables
+            // skips collapsed sections to avoid hundreds of idle Sortable instances).
+            if ((task.subtasks || []).length) initSubSortable(taskId);
             // Animate to actual height, then release to 'none' so content can grow freely.
             // ANIM-2: use transitionend instead of setTimeout(320) — timers are inaccurate
             // and can fire before/after the CSS transition completes.
@@ -4195,7 +4243,7 @@ document.getElementById('modal-prio-selector').addEventListener('click', e => {
     const task = state.tasks.find(t => t.id === editingTaskId);
     if (!task) return;
     pushUndo(); task.priority = btn.dataset.prio;
-    saveState(); render(); closePrioModal();
+    saveState(); renderListOnly(); closePrioModal(); // 7b: priority reorders the list only
     showToast('Приоритет изменён');
 });
 
@@ -4227,7 +4275,7 @@ document.getElementById('task-color-picker').addEventListener('click', e => {
     if (!task) return;
     pushUndo();
     task.color = sw.dataset.color || null; // empty string → null = no color
-    saveState(); render(); closeTaskColorModal();
+    saveState(); renderListOnly(); closeTaskColorModal(); // 7b: colour label affects the list only
     showToast(task.color ? 'Метка установлена' : 'Метка снята');
 });
 
@@ -5741,6 +5789,19 @@ function updateCycleUntilLabels() {
     });
 }
 
+// 6e: keep every "critical" deadline pulse in phase. A fixed epoch + negative
+// animation-delay places each badge at the correct CONTINUOUS position of the
+// 1.6s loop whenever it's (re)applied — so newly-rendered badges join the same
+// rhythm with no collective jump, instead of each starting from a random phase.
+const _PULSE_EPOCH = Date.now();
+const _PULSE_MS = 1600; // must match pulseCritical / pulseSide duration in CSS
+function _syncCriticalPulse() {
+    if (prefersReducedMotion()) return;
+    const delay = `-${(Date.now() - _PULSE_EPOCH) % _PULSE_MS}ms`;
+    document.querySelectorAll('.deadline-tag.critical, .dl-side-panel.dl-side-critical')
+        .forEach(el => { el.style.animationDelay = delay; });
+}
+
 function updateDeadlineBadges() {
     // Fast-exit: no tasks with deadlines at all
     const tasksWithDl = state.tasks.filter(t => t.deadline);
@@ -5769,6 +5830,7 @@ function updateDeadlineBadges() {
             else    { cdEl.style.display = 'none'; if (sep) sep.style.display = 'none'; }
         }
     });
+    _syncCriticalPulse(); // 6e: re-align any newly-critical badges to the shared phase
 }
 
 // ============================================================
@@ -5848,9 +5910,12 @@ function setupSortables() {
             });
         });
 
-        // Init all subtask sortables
+        // Init subtask sortables — 7b: only for OPEN sections. Collapsed subtask
+        // lists are hidden (can't be dragged anyway), so skipping them avoids
+        // creating hundreds of idle Sortable instances on large boards. A section
+        // gets its Sortable lazily when the user expands it (toggleSubtasksSection).
         state.tasks.forEach(task => {
-            if (task.subtasks && task.subtasks.length) initSubSortable(task.id);
+            if (task.subtasks && task.subtasks.length && task.subtasksOpen) initSubSortable(task.id);
         });
     });
 }
@@ -6752,7 +6817,7 @@ function togglePin(id) {
     if (!task) return;
     pushUndo();
     task.pinned = !task.pinned;
-    saveState(); render();
+    saveState(); renderListOnly(); // 7b: pin reorders the list only
     showToast(task.pinned ? 'Задача закреплена' : 'Задача откреплена');
 }
 
@@ -7469,6 +7534,7 @@ function initMonthPicker() {
             opt.classList.toggle('active', active);
             opt.setAttribute('aria-selected', active ? 'true' : 'false');
         });
+        _syncListboxActive(list);
     }
 
     function openPicker() {
@@ -7569,6 +7635,7 @@ function initWeekdayPicker() {
             opt.classList.toggle('active', active);
             opt.setAttribute('aria-selected', active ? 'true' : 'false');
         });
+        _syncListboxActive(list);
     }
 
     function openPicker() {
@@ -7674,6 +7741,7 @@ function initFormWeekdayPicker() {
             opt.classList.toggle('active', active);
             opt.setAttribute('aria-selected', active ? 'true' : 'false');
         });
+        _syncListboxActive(list);
     }
 
     // Problem 1: the .extra-fields params panel uses overflow:hidden for its
