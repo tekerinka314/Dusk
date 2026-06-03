@@ -388,6 +388,19 @@ const IC = {
         <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
         <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
     </svg>`,
+
+    // Promote subtask → task: arrow rising to a top rule ("raise to top level").
+    promote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="4" x2="19" y2="4" opacity="0.6"/>
+        <line x1="12" y1="20" x2="12" y2="8"/>
+        <path d="M7 13L12 8L17 13"/>
+    </svg>`,
+    // Demote task → subtask: arrow descending under a top rule ("nest into a parent").
+    demote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="4" x2="19" y2="4" opacity="0.6"/>
+        <line x1="12" y1="8" x2="12" y2="20"/>
+        <path d="M7 15L12 20L17 15"/>
+    </svg>`,
 };
 
 // ============================================================
@@ -1424,7 +1437,7 @@ function _deadlineTimeOfDay(dl) {
 }
 
 function snoozeDeadline(id, preset) {
-    closeSnoozeMenu();
+    closeFloatMenu();
     const task = state.tasks.find(t => t.id === id);
     if (!task || !task.deadline) return;
     pushUndo();
@@ -1452,33 +1465,40 @@ function snoozeDeadline(id, preset) {
     showToast(`Дедлайн отложен ${label}`.trim(), { undo: true });
 }
 
-let _snoozeMenuEl = null;
-function closeSnoozeMenu() {
-    if (_snoozeMenuEl) { _snoozeMenuEl.remove(); _snoozeMenuEl = null; }
-    document.removeEventListener('pointerdown', _snoozeOutside, true);
+// ── Shared floating popup-menu (used by snooze + demote parent-picker) ───────
+let _floatMenuEl = null;
+function closeFloatMenu() {
+    if (_floatMenuEl) { _floatMenuEl.remove(); _floatMenuEl = null; }
+    document.removeEventListener('pointerdown', _floatMenuOutside, true);
 }
-function _snoozeOutside(e) {
-    if (_snoozeMenuEl && !_snoozeMenuEl.contains(e.target)) closeSnoozeMenu();
+function _floatMenuOutside(e) {
+    if (_floatMenuEl && !_floatMenuEl.contains(e.target)) closeFloatMenu();
 }
-function openSnoozeMenu(event, id) {
-    event.stopPropagation();
-    if (_snoozeMenuEl) { closeSnoozeMenu(); return; } // toggle off if already open
-    const btn = event.currentTarget;
+// Opens a body-level menu anchored under `btn`. Returns false if it just toggled
+// an already-open menu closed.
+function _openFloatMenu(btn, innerHTML, extraClass) {
+    if (_floatMenuEl) { closeFloatMenu(); return false; }
     const menu = document.createElement('div');
-    menu.className = 'snooze-menu';
+    menu.className = 'snooze-menu' + (extraClass ? ' ' + extraClass : '');
     menu.setAttribute('role', 'menu');
-    menu.innerHTML = `
-        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, '1h')">${IC.snooze}<span>+1 час</span></button>
-        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'tomorrow')">${IC.moon}<span>До завтра</span></button>
-        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'week')">${IC.sundial}<span>+1 неделя</span></button>`;
+    menu.innerHTML = innerHTML;
     document.body.appendChild(menu);
-    const r = btn.getBoundingClientRect();
-    const mw = 150;
+    const r  = btn.getBoundingClientRect();
+    const mw = menu.offsetWidth || 160;
     menu.style.top  = Math.round(r.bottom + 5) + 'px';
     menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
-    _snoozeMenuEl = menu;
+    _floatMenuEl = menu;
     // Defer so this same click doesn't immediately close it
-    setTimeout(() => document.addEventListener('pointerdown', _snoozeOutside, true), 0);
+    setTimeout(() => document.addEventListener('pointerdown', _floatMenuOutside, true), 0);
+    return true;
+}
+
+function openSnoozeMenu(event, id) {
+    event.stopPropagation();
+    _openFloatMenu(event.currentTarget, `
+        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, '1h')">${IC.snooze}<span>+1 час</span></button>
+        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'tomorrow')">${IC.moon}<span>До завтра</span></button>
+        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'week')">${IC.sundial}<span>+1 неделя</span></button>`);
 }
 
 // 6f: give every static colour swatch an accessible name (they only had a
@@ -2281,6 +2301,7 @@ function createTaskEl(task, showDlSide) {
                     ${addNoteBtn}
                     <button class="btn-task-action" onclick="saveTaskAsTemplate(${task.id})" title="Сохранить как шаблон">${IC.template}</button>
                     <button class="btn-task-action" onclick="duplicateTask(${task.id})" title="Дублировать задачу">${IC.twinCoffin}</button>
+                    ${state.tasks.length > 1 ? `<button class="btn-task-action" onclick="openDemoteMenu(event, ${task.id})" title="Сделать подпунктом другой задачи">${IC.demote}</button>` : ''}
                     <button class="btn-task-action archive-btn" onclick="removeTask(${task.id})" title="В архив">${IC.archive}</button>
                     <button class="btn-task-action danger" onclick="deleteTaskForever(${task.id})" title="Удалить навсегда">${IC.skull}</button>
                 </div>
@@ -2469,6 +2490,7 @@ function buildSubtaskItemHTML(taskId, s) {
                 <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleSubPriority(${taskId},${s.id})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
                 ${subRepeatBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" onpointerdown="event.preventDefault()" onclick="toggleSubNote(${taskId},${s.id})" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
+                <button type="button" class="btn-sub-action" onclick="promoteSubtask(${taskId},${s.id})" title="Сделать самостоятельной задачей">${IC.promote}</button>
                 <button type="button" class="btn-sub-action danger" onclick="deleteSubtask(${taskId},${s.id})" title="Удалить подпункт">${IC.skull}</button>
             </div>
         </div>
@@ -3692,6 +3714,70 @@ function deleteSubtask(taskId, subId) {
     item.classList.add('sub-removing');
     item.addEventListener('animationend', e => { if (e.target === item) finish(); }, { once: true });
     setTimeout(finish, 240); // safety net
+}
+
+// ── Idea 3: promote a subtask into a standalone task ─────────────────────────
+function promoteSubtask(taskId, subId) {
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const sub = task.subtasks.find(s => s.id === subId);
+    if (!sub) return;
+    pushUndo();
+    const newId = state.nextId++;
+    state.tasks.push({
+        id: newId, text: sub.text, checked: !!sub.checked,
+        priority: sub.priority || 'none', color: null,
+        groupId: task.groupId,                 // inherit the parent's group
+        deadline: null, note: sub.note || '', noteOpen: false,
+        order: state.tasks.length,
+        repeat: sub.repeat || 'none',
+        repeatAnchorTime:     sub.repeatAnchorTime     || null,
+        repeatAnchorDay:      sub.repeatAnchorDay      || null,
+        repeatAnchorMonthday: sub.repeatAnchorMonthday || null,
+        cycleChecked: !!sub.cycleChecked, nextReset: sub.nextReset || null,
+        subtasks: [], subtasksOpen: false, pinned: false,
+    });
+    _newTaskIds.add(newId);
+    task.subtasks = task.subtasks.filter(s => s.id !== subId);
+    saveState(); render();
+    showToast('Подпункт стал задачей');
+}
+
+// ── Idea 3: demote a task into a subtask of another task ─────────────────────
+function openDemoteMenu(event, id) {
+    event.stopPropagation();
+    const candidates = state.tasks.filter(t => t.id !== id && !t.checked && !t.cycleChecked);
+    if (!candidates.length) { showToast('Нет другой задачи для вложения'); return; }
+    const items = candidates.slice(0, 40).map(t =>
+        `<button type="button" role="menuitem" onclick="demoteTask(${id}, ${t.id})"><span class="float-menu-name">${escHtml(t.text)}</span></button>`
+    ).join('');
+    _openFloatMenu(event.currentTarget, `<div class="float-menu-head">В подпункт к…</div>${items}`, 'demote-menu');
+}
+
+function demoteTask(id, targetId) {
+    closeFloatMenu();
+    const task   = state.tasks.find(t => t.id === id);
+    const target = state.tasks.find(t => t.id === targetId);
+    if (!task || !target || id === targetId) return;
+    pushUndo();
+    const base = target.subtasks.length;
+    target.subtasks.push({
+        id: state.nextSubId++, text: task.text, checked: !!task.checked,
+        priority: task.priority || 'none', note: task.note || '', order: base,
+        repeat: task.repeat || 'none',
+        repeatAnchorTime:     task.repeatAnchorTime     || null,
+        repeatAnchorDay:      task.repeatAnchorDay      || null,
+        repeatAnchorMonthday: task.repeatAnchorMonthday || null,
+        cycleChecked: !!task.cycleChecked, nextReset: task.nextReset || null,
+    });
+    // Subtasks can't nest — flatten the demoted task's own subtasks into the target.
+    (task.subtasks || []).forEach((s, i) => {
+        target.subtasks.push({ ...s, id: state.nextSubId++, order: base + 1 + i });
+    });
+    target.subtasksOpen = true;
+    state.tasks = state.tasks.filter(t => t.id !== id);
+    saveState(); render();
+    showToast('Задача стала подпунктом');
 }
 
 function cycleSubPriority(taskId, subId) {
