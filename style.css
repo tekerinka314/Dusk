@@ -2679,7 +2679,7 @@ textarea:focus-visible {
     background: transparent;          /* the wrap's fill shows through — seamless */
     color: var(--text-muted);
     white-space: nowrap;
-    transition: width var(--transition), padding var(--transition), opacity var(--transition);
+    transition: width var(--transition), padding var(--transition), opacity var(--transition), margin-left var(--transition);
 }
 .btn-tag-clear svg { width: 8px; height: 8px; pointer-events: none; flex-shrink: 0; }
 
@@ -2687,6 +2687,9 @@ textarea:focus-visible {
     width: 20px;
     min-width: 20px;
     padding: 0 6px 0 2px;
+    /* Pull 3px toward the text so the ✕ sits visually centred between the text
+       and the pill's right border (the text-side gap was 3px larger). */
+    margin-left: -3px;
     opacity: 1;
 }
 .meta-tag-wrap:hover .btn-tag-clear:hover { color: #e06070; }
