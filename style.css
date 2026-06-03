@@ -2642,25 +2642,26 @@ textarea:focus-visible {
 
 
 /* ── Tag inline clear button ─────────────────────────────────────────────
-   DESIGN (problem 3): on hover the tag flattens its right corner and the clear
-   button slides out from inside it — one continuous pill. The button shares the
-   tag's exact background AND border colour (top/bottom/right; no left border), so
-   the outline wraps the whole pill seamlessly — never a separate box.           */
+   DESIGN (problem 3): the WRAP is the pill — it carries the background, border
+   and radius. The tag content and the slide-out clear button sit inside it with
+   NO background/border of their own, so there is a single continuous fill: the
+   button is literally part of the tag body (no seam, no translucent-overlap line
+   between two separately-painted boxes).                                         */
 .meta-tag-wrap {
     display: inline-flex;
     align-items: stretch;
     vertical-align: middle;
     position: relative;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--bg-tag);
 }
+/* Inside a wrap the tag paints nothing — the wrap is the pill. (Standalone
+   .meta-tag elsewhere keep their own bg/border; only wrapped ones are stripped.) */
 .meta-tag-wrap > .meta-tag {
     margin: 0;
-    transition: padding-right var(--transition), border-radius var(--transition), border-color var(--transition);
-}
-/* Hover: tag right side flattens to make room for the slide-out button */
-.meta-tag-wrap:hover > .meta-tag {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-right-color: transparent;
+    background: transparent;
+    border: none;
 }
 
 .btn-tag-clear {
@@ -2671,15 +2672,11 @@ textarea:focus-visible {
     min-width: 0;
     overflow: hidden;
     padding: 0;
-    /* Border continues the tag's outline (per-variant colour below); no left
-       border so it merges flush with the tag at the seam. */
-    border: 1px solid var(--border);
-    border-left: none;
-    border-radius: 0 99px 99px 0;    /* continues the pill's right cap */
+    border: none;
     cursor: pointer;
     opacity: 0;
     flex-shrink: 0;
-    background: var(--bg-tag);        /* default; per-variant matches below */
+    background: transparent;          /* the wrap's fill shows through — seamless */
     color: var(--text-muted);
     white-space: nowrap;
     transition: width var(--transition), padding var(--transition), opacity var(--transition);
@@ -2689,23 +2686,25 @@ textarea:focus-visible {
 .meta-tag-wrap:hover .btn-tag-clear {
     width: 20px;
     min-width: 20px;
-    padding: 0 5px 0 3px;
+    padding: 0 6px 0 2px;
     opacity: 1;
 }
 .meta-tag-wrap:hover .btn-tag-clear:hover { color: #e06070; }
 
-/* Background AND border-colour = the tag's own values, so the button is a
-   seamless continuation of the pill with one unbroken outline. */
-.meta-tag-wrap:has(> .repeat-tag) .btn-tag-clear {
-    background: var(--accent-soft);
-    color: var(--accent-hover);
-    border-color: rgba(130, 50, 230, 0.35);
-}
-.meta-tag-wrap:has(> .deadline-tag)          .btn-tag-clear { background: var(--bg-tag);              border-color: var(--border); }
-.meta-tag-wrap:has(> .deadline-tag.warn)     .btn-tag-clear { background: var(--deadline-warn-bg);     color: var(--deadline-warn);     border-color: rgba(120, 120, 220, 0.35); }
-.meta-tag-wrap:has(> .deadline-tag.urgent)   .btn-tag-clear { background: var(--deadline-urgent-bg);   color: var(--deadline-urgent);   border-color: rgba(210, 120, 20, 0.4); }
-.meta-tag-wrap:has(> .deadline-tag.critical) .btn-tag-clear { background: var(--deadline-critical-bg); color: var(--deadline-critical); border-color: rgba(220, 30, 70, 0.45); }
-.meta-tag-wrap:has(> .deadline-tag.over)     .btn-tag-clear { background: var(--deadline-over-bg);     color: var(--deadline-over);     border-color: rgba(170, 15, 30, 0.5); }
+/* Per-variant pill background + border live on the WRAP so the whole pill
+   (tag body + revealed button) is one uniform colour. Button keeps the matching
+   icon colour only. */
+.meta-tag-wrap:has(> .repeat-tag)            { background: var(--accent-soft);        border-color: rgba(130, 50, 230, 0.35); }
+.meta-tag-wrap:has(> .repeat-tag) .btn-tag-clear { color: var(--accent-hover); }
+.meta-tag-wrap:has(> .deadline-tag)          { background: var(--bg-tag);             border-color: var(--border); }
+.meta-tag-wrap:has(> .deadline-tag.warn)     { background: var(--deadline-warn-bg);     border-color: rgba(120, 120, 220, 0.35); }
+.meta-tag-wrap:has(> .deadline-tag.warn) .btn-tag-clear     { color: var(--deadline-warn); }
+.meta-tag-wrap:has(> .deadline-tag.urgent)   { background: var(--deadline-urgent-bg);   border-color: rgba(210, 120, 20, 0.4); }
+.meta-tag-wrap:has(> .deadline-tag.urgent) .btn-tag-clear   { color: var(--deadline-urgent); }
+.meta-tag-wrap:has(> .deadline-tag.critical) { background: var(--deadline-critical-bg); border-color: rgba(220, 30, 70, 0.45); }
+.meta-tag-wrap:has(> .deadline-tag.critical) .btn-tag-clear { color: var(--deadline-critical); }
+.meta-tag-wrap:has(> .deadline-tag.over)     { background: var(--deadline-over-bg);     border-color: rgba(170, 15, 30, 0.5); }
+.meta-tag-wrap:has(> .deadline-tag.over) .btn-tag-clear     { color: var(--deadline-over); }
 
 /* Persistent "done until …" label for cycle-completed recurring tasks.
    Violet-purple tint — matches the project's gothic palette exactly.
