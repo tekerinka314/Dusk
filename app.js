@@ -2582,6 +2582,39 @@ function removeTask(id) {
     showToast('Задача перемещена в архив');
 }
 
+// Problem 4: fade the task's current row out, then re-render so it re-appears in
+// its new active/completed slot — smooth in both the normal list and the split
+// active/done zones. The coffin seal/unseal still plays on the checkbox during
+// the fade. Falls back to an immediate render when motion is reduced.
+function _leaveTaskThenRender(id, opts = {}) {
+    const li      = document.querySelector(`.task-item[data-id="${id}"]`);
+    const checkEl = li && li.querySelector('.task-check');
+    const reduced = prefersReducedMotion();
+    const afterRender = () => {
+        if (opts.fadeIn && !reduced) {
+            const newLi = document.querySelector(`.task-item[data-id="${id}"]`);
+            if (newLi) {
+                newLi.classList.add('reentering');
+                requestAnimationFrame(() => requestAnimationFrame(() => newLi.classList.remove('reentering')));
+            }
+        }
+        if (opts.checkAllDone) {
+            const allFinished = state.tasks.length > 0 &&
+                state.tasks.every(t => t.checked || t.cycleChecked);
+            if (allFinished) showAllDone();
+        }
+    };
+    if (!li || reduced) { render(); afterRender(); return; }
+    if (checkEl && opts.sealClass) checkEl.classList.add(opts.sealClass);
+    li.classList.add('task-leaving');
+    let done = false;
+    const finish = () => { if (done) return; done = true; render(); afterRender(); };
+    li.addEventListener('animationend', e => {
+        if (e.target === li && e.animationName === 'taskLeave') finish();
+    });
+    setTimeout(finish, 320); // safety net if animationend never fires
+}
+
 function toggleCheck(id) {
     pushUndo();
     const task = state.tasks.find(t => t.id === id);
@@ -2618,9 +2651,11 @@ function toggleCheck(id) {
 
             showToast(`Цикл завершён · ${repeatLabel(task.repeat)}`);
         } else {
+            // Cycle un-complete → fade the row out, then re-render it as active.
             task.cycleChecked = false;
             task.nextReset    = null;
-            saveState(); render();
+            saveState();
+            _leaveTaskThenRender(id, { fadeIn: true });
         }
         return;
     }
@@ -2628,47 +2663,17 @@ function toggleCheck(id) {
     task.checked = !task.checked;
     // Subtasks are fully independent — parent toggle does NOT change their state
     if (task.checked) { playSound('check'); vibrate(30); }
+    saveState(); // persist immediately — render is deferred until the fade-out ends
 
-    // ── Coffin seal ritual animation ─────────────────────────────
-    // BUG-3 fix: saveState() persists immediately; render() is DEFERRED to
-    // animationend (~220ms) so the coffinSeal / coffinUnseal keyframe has time
-    // to play before the DOM element is replaced.  Mirrors the cycle-spinning
-    // pattern used above.  The seal-flash on li is cosmetic and will be
-    // replaced by render() — that is intentional and visually correct.
-    if (!prefersReducedMotion()) {
-        const li       = document.querySelector(`.task-item[data-id="${id}"]`);
-        const checkEl  = li && li.querySelector('.task-check');
-        if (li && checkEl) {
-            const animClass = task.checked ? 'sealing' : 'unsealing';
-            const isUnchecking = !task.checked;
-            checkEl.classList.add(animClass);
-            li.classList.add('seal-flash');
-            saveState(); // persist immediately — render deferred until animation ends
-            checkEl.addEventListener('animationend', () => {
-                render();
-                // Add reentering class so unchecked item fades in smoothly
-                if (isUnchecking) {
-                    const newLi = document.querySelector(`.task-item[data-id="${id}"]`);
-                    if (newLi) {
-                        newLi.classList.add('reentering');
-                        requestAnimationFrame(() => requestAnimationFrame(() => {
-                            newLi.classList.remove('reentering');
-                        }));
-                    }
-                }
-                const allFinished = state.tasks.length > 0 &&
-                    state.tasks.every(t => t.checked || t.cycleChecked);
-                if (allFinished) showAllDone();
-            }, { once: true });
-            return;
-        }
-    }
-    // ─────────────────────────────────────────────────────────────
-    // Fallback: reduced motion or element not in DOM — render immediately
-    saveState(); render();
-    const allFinished = state.tasks.length > 0 &&
-        state.tasks.every(t => t.checked || t.cycleChecked);
-    if (allFinished) showAllDone();
+    // ── Coffin seal ritual + smooth move (problem 4) ─────────────────────────
+    // The checkbox seals/unseals while the whole row fades out, then re-renders
+    // in its new active/completed position. A checked row dims into place via
+    // taskCheckIn; an unchecked row fades back in via .reentering.
+    _leaveTaskThenRender(id, {
+        sealClass:    task.checked ? 'sealing' : 'unsealing',
+        fadeIn:       !task.checked,
+        checkAllDone: true,
+    });
 }
 
 // "Архивировать всё" — moves all to archive (non-destructive)
@@ -3222,6 +3227,15 @@ function addSubtask(taskId) {
     // (a raw append broke the split layout and DnD). renderSubList re-inits DnD
     // and refreshes the toggle/progress counters.
     renderSubList(taskId);
+    // Problem 5: gently animate just the newly inserted item in (other items keep
+    // their place; in split mode this also overrides the blanket splitItemIn).
+    if (!prefersReducedMotion()) {
+        const newEl = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${sub.id}"]`);
+        if (newEl) {
+            newEl.classList.add('sub-adding');
+            newEl.addEventListener('animationend', () => newEl.classList.remove('sub-adding'), { once: true });
+        }
+    }
     input.value = '';
     input.focus();
     saveState();
@@ -3352,11 +3366,21 @@ function _animateSubThenRefresh(taskId, subId) {
 function deleteSubtask(taskId, subId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
-    pushUndo();
-    task.subtasks = task.subtasks.filter(s => s.id !== subId);
-    // Rebuild so split-zone counts/layout stay correct (problem 6).
-    renderSubList(taskId);
-    saveState();
+    const commit = () => {
+        pushUndo();
+        task.subtasks = task.subtasks.filter(s => s.id !== subId);
+        // Rebuild so split-zone counts/layout stay correct (problem 6).
+        renderSubList(taskId);
+        saveState();
+    };
+    // Problem 5: fade the item out before it's removed from state.
+    const item = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
+    if (!item || prefersReducedMotion()) { commit(); return; }
+    let done = false;
+    const finish = () => { if (done) return; done = true; commit(); };
+    item.classList.add('sub-removing');
+    item.addEventListener('animationend', e => { if (e.target === item) finish(); }, { once: true });
+    setTimeout(finish, 240); // safety net
 }
 
 function cycleSubPriority(taskId, subId) {
