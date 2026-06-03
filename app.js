@@ -373,6 +373,14 @@ const IC = {
         <line x1="7" y1="12.5" x2="13" y2="12.5" stroke="rgba(200,130,255,0.95)" stroke-width="1.8"/>
         <circle cx="10" cy="8.5" r="1.2" fill="rgba(200,130,255,0.9)" stroke="none"/>
     </svg>`,
+
+    // Snooze (postpone deadline) — gothic tower-clock face + a forward "skip" arc.
+    snooze: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="13" r="7"/>
+        <path d="M11 9.5V13L13.4 14.4"/>
+        <path d="M16.5 3.5L20.5 4.5L19.5 8.5"/>
+        <path d="M20.5 4.5C20.5 4.5 18 6.5 15.5 6.7"/>
+    </svg>`,
 };
 
 // ============================================================
@@ -1390,6 +1398,78 @@ function clearTaskDeadline(id) {
     showToast('Дедлайн снят');
 }
 
+// ── Idea 1: Snooze (quick postpone) ──────────────────────────────────────────
+// Snoozing converts the deadline to a concrete date(+time) — predictable across
+// all deadline modes. Time-of-day is preserved when the original had one.
+const _pad2 = n => String(n).padStart(2, '0');
+const _ymd  = d => `${d.getFullYear()}-${_pad2(d.getMonth() + 1)}-${_pad2(d.getDate())}`;
+
+function _deadlineTimeOfDay(dl) {
+    if (!dl) return null;
+    if (dl.mode === 'time')     return dl.value;
+    if (dl.mode === 'date')     return dl.time || null;
+    if (dl.mode === 'weektime') { const [, t] = dl.value.split('|'); return dl.timeSet !== false ? (t || null) : null; }
+    return null;
+}
+
+function snoozeDeadline(id, preset) {
+    closeSnoozeMenu();
+    const task = state.tasks.find(t => t.id === id);
+    if (!task || !task.deadline) return;
+    pushUndo();
+    const time = _deadlineTimeOfDay(task.deadline);
+    let dl;
+    if (preset === '1h') {
+        const d = new Date(Date.now() + 3600000);
+        dl = { mode: 'date', value: _ymd(d), time: `${_pad2(d.getHours())}:${_pad2(d.getMinutes())}` };
+    } else if (preset === 'tomorrow') {
+        const d = new Date(); d.setDate(d.getDate() + 1);
+        dl = { mode: 'date', value: _ymd(d) };
+        if (time) dl.time = time;
+    } else { // 'week' — +7 days from the later of (existing deadline, now)
+        const base = Math.max(getDeadlineTimestamp(task.deadline) || Date.now(), Date.now());
+        const d = new Date(base + 7 * 86400000);
+        dl = { mode: 'date', value: _ymd(d) };
+        if (time) dl.time = time;
+    }
+    task.deadline = dl;
+    // A snoozed deadline is in the future → clear any "notified" flag so it can fire again.
+    _notifiedDeadlines.delete(id);
+    saveState();
+    renderListOnly();
+    const label = { '1h': 'на 1 час', 'tomorrow': 'до завтра', 'week': 'на неделю' }[preset] || '';
+    showToast(`Дедлайн отложен ${label}`.trim(), { undo: true });
+}
+
+let _snoozeMenuEl = null;
+function closeSnoozeMenu() {
+    if (_snoozeMenuEl) { _snoozeMenuEl.remove(); _snoozeMenuEl = null; }
+    document.removeEventListener('pointerdown', _snoozeOutside, true);
+}
+function _snoozeOutside(e) {
+    if (_snoozeMenuEl && !_snoozeMenuEl.contains(e.target)) closeSnoozeMenu();
+}
+function openSnoozeMenu(event, id) {
+    event.stopPropagation();
+    if (_snoozeMenuEl) { closeSnoozeMenu(); return; } // toggle off if already open
+    const btn = event.currentTarget;
+    const menu = document.createElement('div');
+    menu.className = 'snooze-menu';
+    menu.setAttribute('role', 'menu');
+    menu.innerHTML = `
+        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, '1h')">${IC.snooze}<span>+1 час</span></button>
+        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'tomorrow')">${IC.moon}<span>До завтра</span></button>
+        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'week')">${IC.sundial}<span>+1 неделя</span></button>`;
+    document.body.appendChild(menu);
+    const r = btn.getBoundingClientRect();
+    const mw = 150;
+    menu.style.top  = Math.round(r.bottom + 5) + 'px';
+    menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
+    _snoozeMenuEl = menu;
+    // Defer so this same click doesn't immediately close it
+    setTimeout(() => document.addEventListener('pointerdown', _snoozeOutside, true), 0);
+}
+
 // 6f: give every static colour swatch an accessible name (they only had a
 // background colour, so screen readers announced nothing). Dynamic colour-filter
 // swatches are labelled where they're built (_populateColorFilterModal).
@@ -2184,6 +2264,7 @@ function createTaskEl(task, showDlSide) {
                         </svg>
                     </button>
                     <button class="btn-task-action" onclick="openDeadlineModal(${task.id})" title="Дедлайн">${IC.window}</button>
+                    ${task.deadline ? `<button class="btn-task-action btn-snooze" onclick="openSnoozeMenu(event, ${task.id})" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
                     <button class="btn-task-action" onclick="openRepeatModal(${task.id})" title="Повтор">${IC.ouroboros}</button>
                     <button class="btn-task-action" onclick="openPrioModal(${task.id})" title="Приоритет">${IC.spires}</button>
                     ${addNoteBtn}
@@ -2644,7 +2725,7 @@ function removeTask(id) {
     } else {
         render();
     }
-    showToast('Задача перемещена в архив');
+    showToast('Задача перемещена в архив', { undo: true });
 }
 
 // Problem 4: fade the task's current row out, then re-render so it re-appears in
@@ -2777,7 +2858,7 @@ function archiveAll() {
     });
     state.tasks = [];
     saveState(); render();
-    showToast('Все задачи архивированы');
+    showToast('Все задачи архивированы', { undo: true });
 }
 
 // ── Two-step confirm helpers ──────────────────────────────────────────────────
@@ -2828,7 +2909,7 @@ function clearAll() {
     });
     state.tasks = [];
     saveState(); render();
-    showToast('Все задачи удалены навсегда');
+    showToast('Все задачи удалены навсегда', { undo: true });
 }
 
 // Delete group — two-step confirm keyed by group id
@@ -2869,7 +2950,7 @@ function deleteGroup(id) {
     // B6: remove any sort-mode override for this group
     if (state.sortModeOverrides) delete state.sortModeOverrides[String(id)];
     saveState(); render();
-    showToast('Группа удалена');
+    showToast('Группа удалена', { undo: true });
 }
 
 // ---- Repeating tasks ----
@@ -4049,7 +4130,7 @@ function deleteNote(event, id) {
     if (!task) return;
     pushUndo(); task.note = ''; task.noteOpen = false;
     saveState(); render();
-    showToast('Заметка удалена');
+    showToast('Заметка удалена', { undo: true });
 }
 
 // ============================================================
@@ -4214,7 +4295,7 @@ function deleteTaskForever(id) {
     } else {
         render();
     }
-    showToast('Задача удалена навсегда');
+    showToast('Задача удалена навсегда', { undo: true });
 }
 
 // ============================================================
@@ -6637,7 +6718,16 @@ function applySoundPref() {
 let toastTimer  = null;
 let toastHideTimer = null;
 
-function showToast(msg) {
+// Idea 7: showToast(msg, { undo: true }) appends an "Отменить" action that calls
+// undo() — a safety net for destructive/mutating actions (archive, delete, …),
+// reinforcing "never lose data". The undo window is longer (5s) than a plain toast.
+function _hideToast() {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    toastHideTimer = setTimeout(() => toast.classList.remove('hide'), 280);
+}
+
+function showToast(msg, opts = {}) {
     // Cancel any in-flight hide
     clearTimeout(toastTimer);
     clearTimeout(toastHideTimer);
@@ -6646,18 +6736,29 @@ function showToast(msg) {
     // Force reflow so removing classes takes effect before re-adding
     void toast.offsetWidth;
 
-    toast.textContent = msg;
+    toast.classList.toggle('has-undo', !!opts.undo);
+    toast.innerHTML = '';
+    const span = document.createElement('span');
+    span.className = 'toast-msg';
+    span.textContent = msg;
+    toast.appendChild(span);
+
+    if (opts.undo) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'toast-undo-btn';
+        btn.innerHTML = `${IC.restore}<span>Отменить</span>`;
+        btn.addEventListener('click', () => { _hideToast(); undo(); });
+        toast.appendChild(btn);
+    }
+
     toast.classList.add('show');
 
     // Mirror to screen-reader live region so assistive tech hears every toast
-    announce(msg);
+    announce(opts.undo ? `${msg}. Доступна отмена` : msg);
 
     // After display time, trigger vanish animation then clean up
-    toastTimer = setTimeout(() => {
-        toast.classList.remove('show');
-        toast.classList.add('hide');
-        toastHideTimer = setTimeout(() => toast.classList.remove('hide'), 280);
-    }, 2400);
+    toastTimer = setTimeout(_hideToast, opts.undo ? 5000 : 2400);
 }
 
 function shakeInput() {
@@ -6885,7 +6986,7 @@ function bulkArchive() {
     if (btn) btn.classList.remove('active');
     if (bar) bar.style.display = 'none';
     saveState(); render();
-    showToast(`Архивировано: ${count}`);
+    showToast(`Архивировано: ${count}`, { undo: true });
 }
 
 function bulkDelete() {
@@ -6917,7 +7018,7 @@ function bulkDelete() {
     if (mainBtn) mainBtn.classList.remove('active');
     if (bar) bar.style.display = 'none';
     saveState(); render();
-    showToast(`Удалено: ${count}`);
+    showToast(`Удалено: ${count}`, { undo: true });
 }
 let _focusedTaskId = null;
 let _focusedByKeyboard = false; // UX-2: true only when task was selected via J/K, not just hovered

@@ -968,6 +968,67 @@ body::after {
 .toast.hide {
     animation: toastVanish 0.25s ease-in forwards;
 }
+/* Idea 7: toast with an inline "Отменить" action */
+.toast.has-undo { display: flex; align-items: center; gap: 12px; }
+.toast-undo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 11px 3px 8px;
+    border-radius: 99px;
+    border: 1px solid var(--border-mid);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition);
+}
+.toast-undo-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+.toast-undo-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 10px rgba(140, 60, 255, 0.3); }
+
+/* Idea 1: snooze quick-menu (floating, appended to <body>) */
+.snooze-menu {
+    position: fixed;
+    z-index: 320;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 5px;
+    background: #06021a;
+    border: 1px solid rgba(140, 60, 255, 0.32);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(80, 20, 180, 0.18);
+    animation: snoozeMenuIn 0.16s var(--ease-emerge) both;
+}
+@keyframes snoozeMenuIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.snooze-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-label);
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    text-align: left;
+    transition: background var(--dur-micro), color var(--dur-micro);
+}
+.snooze-menu button svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.8; }
+.snooze-menu button:hover { background: rgba(100, 25, 200, 0.20); color: var(--text-primary); }
+@media (prefers-reduced-motion: reduce) { .snooze-menu { animation: none; } }
 
 /* ===== TOOLBAR ===== */
 .toolbar {
