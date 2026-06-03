@@ -1976,14 +1976,14 @@ body::after {
     opacity: 0;
     transition: max-height 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
     margin-top: 0;
-    /* P10: break out of task-content column to span full task-item width.
-       Left: cancel task-check (21px) + flex gap (8px) = 29px
-       Right: cancel flex gap (8px) + task-actions (7×27px + 6×2px = 201px) = 209px
-       Internal padding restores visual indent. */
-    margin-left: -29px;
-    margin-right: -209px;
-    padding-left: 29px;
-    padding-right: 8px;
+    /* Subtasks fill the task-content column. The task-actions now live INSIDE
+       .task-content (in .task-head), so .task-content already spans the full
+       task-item width — no horizontal break-out is needed (an old -209px right
+       margin used to reach under the action buttons and now overflows). */
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
 .subtask-section.open {
     max-height: none;   /* I-4: was hardcoded 1200px — removed to support any number of subtasks */
@@ -2778,14 +2778,12 @@ textarea:focus-visible {
     transition: max-height 0.28s var(--ease-gothic),
                 opacity 0.22s var(--ease-gothic),
                 visibility 0s linear 0.28s;
-    /* P10: span full task-item width — break-out via negative margins.
-       I-18 KNOWN RISK: -29px = .task-check(21px) + gap(8px); -209px = 7 actions×27px + gaps + 8px gap.
-       If action button count changes, -209px must be recalculated.
-       Full fix requires refactoring .task-item to CSS Grid — deferred to avoid layout breakage. */
-    margin-left: -29px;
-    margin-right: -209px;
-    padding-left: 29px;
-    padding-right: 8px;
+    /* The note fills .task-content, which now spans the full task-item width
+       (task-actions moved inside .task-head) — no negative-margin break-out. */
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
 .task-note-wrapper.visible {
     max-height: 600px;
