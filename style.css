@@ -1953,10 +1953,12 @@ body::after {
     align-items: center;
     transition: padding-right var(--transition), border-radius var(--transition);
 }
-/* When hovered: right side flattens to make room for delete button */
+/* When hovered: right side flattens to make room for delete button. padding-right
+   is tightened so the tombstone ✕ sits centred between the name and the pill's
+   right border (the text-side gap was ~5px larger than the border-side gap). */
 .group-pill-wrap:hover .meta-tag.group-pill {
     border-radius: 99px 0 0 99px;
-    padding-right: 8px;
+    padding-right: 3px;
     border-right: none;
 }
 .btn-pill-delete {
