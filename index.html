@@ -406,6 +406,15 @@
                     </svg>
                     Группа
                 </button>
+                <!-- Idea 6: templates launcher (hidden until at least one template exists) -->
+                <button class="btn-add-group btn-templates" id="btn-templates" onclick="openTemplatesModal()" style="display:none" title="Создать задачу из шаблона">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
+                        <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
+                        <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
+                    </svg>
+                    Шаблоны
+                </button>
                 <div class="groups-list" id="groups-list"></div>
             </div>
 
@@ -1052,6 +1061,18 @@ if ('serviceWorker' in navigator) {
             Фильтр по цвету
         </h3>
         <div class="color-filter-swatches" id="color-filter-swatches"></div>
+    </div>
+</div>
+
+<!-- Templates Modal (Idea 6) -->
+<div class="modal-overlay" id="templates-modal" style="display:none" onclick="closeTemplatesModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="templates-modal-title">
+    <div class="modal modal-templates">
+        <h3 class="modal-title" id="templates-modal-title">Шаблоны задач</h3>
+        <div class="templates-list" id="templates-list"></div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeTemplatesModal()">Закрыть</button>
+        </div>
     </div>
 </div>
 

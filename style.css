@@ -4837,6 +4837,51 @@ kbd {
     gap: 8px;
 }
 
+/* ── Idea 6: templates ───────────────────────────────────────── */
+.btn-templates svg { width: 11px; height: 11px; }
+.modal-templates { width: 400px; }
+.templates-list {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 16px; max-height: 52vh; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent;
+}
+.templates-empty {
+    font-family: var(--font-label); font-size: 11px; letter-spacing: 1px;
+    color: var(--text-muted); text-transform: uppercase; opacity: 0.6;
+    padding: 16px 4px; text-align: center;
+}
+.template-item { display: flex; align-items: stretch; gap: 6px; }
+.template-create {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 5px;
+    padding: 9px 12px; text-align: left;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-primary);
+    cursor: pointer; transition: all var(--transition); font-family: var(--font-main);
+}
+.template-create:hover { border-color: var(--border-mid); background: var(--accent-dim); }
+.template-name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.template-meta { display: flex; flex-wrap: wrap; gap: 5px; }
+.tpl-bit {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-family: var(--font-label); font-size: 9px; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--text-muted);
+    background: var(--bg-tag); border: 1px solid var(--border);
+    border-radius: 99px; padding: 1px 7px;
+}
+.tpl-bit svg { width: 9px; height: 9px; }
+.tpl-bit.tpl-prio-high   { color: var(--prio-high); }
+.tpl-bit.tpl-prio-medium { color: var(--prio-medium); }
+.tpl-bit.tpl-prio-low    { color: var(--prio-low); }
+.template-del {
+    flex-shrink: 0; width: 36px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: transparent; color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all var(--transition);
+}
+.template-del svg { width: 15px; height: 15px; }
+.template-del:hover { background: var(--prio-high-bg); color: var(--prio-high); border-color: var(--prio-high-border); }
+
 /* ── Bulk priority buttons ───────────────────────────────────── */
 .prio-bulk-btn {
     display: inline-flex;

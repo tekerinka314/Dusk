@@ -381,6 +381,13 @@ const IC = {
         <path d="M16.5 3.5L20.5 4.5L19.5 8.5"/>
         <path d="M20.5 4.5C20.5 4.5 18 6.5 15.5 6.7"/>
     </svg>`,
+
+    // Template (save task as a reusable grimoire) — gothic tome with a ribbon bookmark.
+    template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
+        <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
+        <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
+    </svg>`,
 };
 
 // ============================================================
@@ -677,6 +684,8 @@ function init() {
     // Ensure new state fields exist for older stored data
     if (!state.sortMode) state.sortMode = 'priority';
     if (!state.sortModeOverrides) state.sortModeOverrides = {};
+    if (!state.templates) state.templates = [];              // Idea 6: task templates
+    if (!state.nextTemplateId) state.nextTemplateId = 1;
     loadUiState();
     applySoundPref();
     setupEventListeners();
@@ -1085,6 +1094,7 @@ function render() {
     updateCollapseAllBtn();
     renderTagCloud();
     _syncCriticalPulse();
+    updateTemplatesBtn();
 }
 
 // 7b: partial render for hot paths that change ONLY the task list (check, pin,
@@ -1159,6 +1169,7 @@ function renderTasks() {
                             onclick="toggleGroupSortMode(${group.id})" title="${grpSortMode === 'order' ? 'Режим: по порядку' : 'Режим: по приоритету'}">${grpSortMode === 'order' ? IC.sortOrder : IC.sortPriority}</button>
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
                             onclick="toggleFocusGroup(${group.id})" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
+                    <button class="btn-group-action" onclick="duplicateGroup(${group.id})" title="Дублировать группу">${IC.twinCoffin}</button>
                     <button class="btn-group-action" onclick="openRenameGroupModal(${group.id})" title="Переименовать">${IC.quill}</button>
                     <button class="btn-group-action danger" onclick="deleteGroup(${group.id})" title="Удалить группу">${IC.tombstone}</button>
                 </div>
@@ -2268,6 +2279,7 @@ function createTaskEl(task, showDlSide) {
                     <button class="btn-task-action" onclick="openRepeatModal(${task.id})" title="Повтор">${IC.ouroboros}</button>
                     <button class="btn-task-action" onclick="openPrioModal(${task.id})" title="Приоритет">${IC.spires}</button>
                     ${addNoteBtn}
+                    <button class="btn-task-action" onclick="saveTaskAsTemplate(${task.id})" title="Сохранить как шаблон">${IC.template}</button>
                     <button class="btn-task-action" onclick="duplicateTask(${task.id})" title="Дублировать задачу">${IC.twinCoffin}</button>
                     <button class="btn-task-action archive-btn" onclick="removeTask(${task.id})" title="В архив">${IC.archive}</button>
                     <button class="btn-task-action danger" onclick="deleteTaskForever(${task.id})" title="Удалить навсегда">${IC.skull}</button>
@@ -2951,6 +2963,148 @@ function deleteGroup(id) {
     if (state.sortModeOverrides) delete state.sortModeOverrides[String(id)];
     saveState(); render();
     showToast('Группа удалена', { undo: true });
+}
+
+// Idea 6: duplicate a group + all its tasks (new ids), placed right after it.
+function duplicateGroup(id) {
+    const group = state.groups.find(g => g.id === id);
+    if (!group) return;
+    pushUndo();
+    const newId = state.nextGroupId++;
+    const gidx  = state.groups.findIndex(g => g.id === id);
+    state.groups.splice(gidx + 1, 0, { id: newId, name: group.name + ' (копия)', color: group.color });
+
+    const baseOrder = state.tasks.length;
+    state.tasks.filter(t => t.groupId === id).forEach((t, i) => {
+        const copy = {
+            ...JSON.parse(JSON.stringify(t)),
+            id:           state.nextId++,
+            groupId:      newId,
+            order:        baseOrder + i,
+            checked:      false,
+            cycleChecked: false,
+            nextReset:    null,
+            noteOpen:     false,
+            subtasks: (t.subtasks || []).map(s => ({
+                ...s, id: state.nextSubId++, checked: false, cycleChecked: false, nextReset: null,
+            })),
+        };
+        state.tasks.push(copy);
+        _newTaskIds.add(copy.id);
+    });
+    saveState(); render();
+    showToast(`Группа «${escHtml(group.name)}» скопирована`);
+}
+
+// ── Idea 6: task templates ───────────────────────────────────────────────────
+function saveTaskAsTemplate(id) {
+    const task = state.tasks.find(t => t.id === id);
+    if (!task) return;
+    if (!state.templates) state.templates = [];
+    if (!state.nextTemplateId) state.nextTemplateId = 1;
+    pushUndo();
+    state.templates.push({
+        id:        state.nextTemplateId++,
+        name:      (task.text || 'Шаблон').slice(0, 60),
+        text:      task.text,
+        priority:  task.priority || 'none',
+        color:     task.color || null,
+        deadline:  task.deadline ? JSON.parse(JSON.stringify(task.deadline)) : null,
+        note:      task.note || '',
+        repeat:    task.repeat || 'none',
+        repeatAnchorTime:     task.repeatAnchorTime     || null,
+        repeatAnchorDay:      task.repeatAnchorDay      || null,
+        repeatAnchorMonthday: task.repeatAnchorMonthday || null,
+        subtasks: (task.subtasks || []).map(s => ({
+            text: s.text, priority: s.priority || 'none', note: s.note || '',
+            repeat: s.repeat || 'none', repeatAnchorTime: s.repeatAnchorTime || null,
+            repeatAnchorDay: s.repeatAnchorDay || null, repeatAnchorMonthday: s.repeatAnchorMonthday || null,
+        })),
+    });
+    saveState();
+    updateTemplatesBtn();
+    showToast('Сохранено как шаблон');
+}
+
+function createTaskFromTemplate(tid) {
+    const tpl = (state.templates || []).find(t => t.id === tid);
+    if (!tpl) return;
+    pushUndo();
+    const newId = state.nextId++;
+    state.tasks.push({
+        id: newId, text: tpl.text, checked: false,
+        priority: tpl.priority || 'none', color: tpl.color || null,
+        groupId: null,
+        deadline: tpl.deadline ? JSON.parse(JSON.stringify(tpl.deadline)) : null,
+        note: tpl.note || '', noteOpen: false,
+        order: state.tasks.length,
+        repeat: tpl.repeat || 'none',
+        repeatAnchorTime:     tpl.repeatAnchorTime     || null,
+        repeatAnchorDay:      tpl.repeatAnchorDay      || null,
+        repeatAnchorMonthday: tpl.repeatAnchorMonthday || null,
+        cycleChecked: false, nextReset: null,
+        subtasks: (tpl.subtasks || []).map((s, i) => ({
+            id: state.nextSubId++, text: s.text, checked: false,
+            priority: s.priority || 'none', note: s.note || '', order: i,
+            repeat: s.repeat || 'none', repeatAnchorTime: s.repeatAnchorTime || null,
+            repeatAnchorDay: s.repeatAnchorDay || null, repeatAnchorMonthday: s.repeatAnchorMonthday || null,
+            cycleChecked: false, nextReset: null,
+        })),
+        subtasksOpen: (tpl.subtasks || []).length > 0,
+        pinned: false,
+    });
+    _newTaskIds.add(newId);
+    saveState(); render();
+    closeTemplatesModal();
+    showToast('Задача создана из шаблона');
+}
+
+function deleteTemplate(tid) {
+    state.templates = (state.templates || []).filter(t => t.id !== tid);
+    saveState();
+    _renderTemplatesList();
+    updateTemplatesBtn();
+    showToast('Шаблон удалён');
+}
+
+// Show/hide the "Шаблоны" launcher in the groups bar based on whether any exist.
+function updateTemplatesBtn() {
+    const btn = document.getElementById('btn-templates');
+    if (!btn) return;
+    btn.style.display = (state.templates && state.templates.length) ? '' : 'none';
+}
+
+function openTemplatesModal() {
+    _renderTemplatesList();
+    openModalWithFocus('templates-modal');
+}
+function closeTemplatesModal(event) {
+    if (!event || event.target === document.getElementById('templates-modal')) {
+        closeModalWithAnim('templates-modal');
+    }
+}
+function _renderTemplatesList() {
+    const cont = document.getElementById('templates-list');
+    if (!cont) return;
+    const tpls = state.templates || [];
+    if (!tpls.length) {
+        cont.innerHTML = '<p class="templates-empty">Нет сохранённых шаблонов</p>';
+        return;
+    }
+    cont.innerHTML = tpls.map(t => {
+        const bits = [];
+        if (t.priority && t.priority !== 'none') bits.push(`<span class="tpl-bit tpl-prio-${t.priority}">${{high:'высокий',medium:'средний',low:'низкий'}[t.priority]}</span>`);
+        if (t.repeat && t.repeat !== 'none')     bits.push(`<span class="tpl-bit">${IC.ouroboros}${repeatLabel(t.repeat)}</span>`);
+        if (t.deadline)                          bits.push(`<span class="tpl-bit">${IC.window}дедлайн</span>`);
+        if (t.subtasks && t.subtasks.length)     bits.push(`<span class="tpl-bit">${t.subtasks.length} подп.</span>`);
+        return `<div class="template-item">
+            <button class="template-create" onclick="createTaskFromTemplate(${t.id})" title="Создать задачу из шаблона">
+                <span class="template-name">${escHtml(t.name)}</span>
+                ${bits.length ? `<span class="template-meta">${bits.join('')}</span>` : ''}
+            </button>
+            <button class="template-del" onclick="deleteTemplate(${t.id})" title="Удалить шаблон">${IC.skull}</button>
+        </div>`;
+    }).join('');
 }
 
 // ---- Repeating tasks ----
