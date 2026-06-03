@@ -2359,12 +2359,28 @@ function addFormSubtask() {
     });
     input.value = '';
     renderFormSubtasks();
+    // Problem 5: animate the freshly added form-subtask in (same motion as the
+    // inline subtask list).
+    if (!prefersReducedMotion()) {
+        const newEl = document.querySelector(`#form-sub-list .form-sub-item[data-form-sub-idx="${formSubtasks.length - 1}"]`);
+        if (newEl) {
+            newEl.classList.add('sub-adding');
+            newEl.addEventListener('animationend', () => newEl.classList.remove('sub-adding'), { once: true });
+        }
+    }
     input.focus();
 }
 
 function removeFormSubtask(idx) {
-    formSubtasks.splice(idx, 1);
-    renderFormSubtasks();
+    const commit = () => { formSubtasks.splice(idx, 1); renderFormSubtasks(); };
+    // Problem 5: fade the item out before it's removed.
+    const el = document.querySelector(`#form-sub-list .form-sub-item[data-form-sub-idx="${idx}"]`);
+    if (!el || prefersReducedMotion()) { commit(); return; }
+    let done = false;
+    const finish = () => { if (done) return; done = true; commit(); };
+    el.classList.add('sub-removing');
+    el.addEventListener('animationend', e => { if (e.target === el) finish(); }, { once: true });
+    setTimeout(finish, 240);
 }
 
 function clearFormSubtasks() {

@@ -1478,13 +1478,16 @@ body::after {
 /* Problem 4: a task fades + drifts out of its old row before re-rendering in its
    new active/completed position, so the move reads smoothly instead of the row
    just vanishing. Mirrors the subtask checking-out behaviour. Works in both the
-   normal list and the split active/done zones. */
+   normal list and the split active/done zones.
+   NOTE: no `from` keyframe — the animation starts from the row's CURRENT opacity
+   (1 when active, 0.65 when checked) so unchecking a completed row fades cleanly
+   without a brightness jump. `!important` is required because .task-item.checked
+   also sets `animation` (taskCheckIn) and would otherwise win on source order. */
 @keyframes taskLeave {
-    from { opacity: 1; transform: scale(1); }
-    to   { opacity: 0; transform: scale(0.97) translateX(8px); }
+    to { opacity: 0; transform: scale(0.97) translateX(8px); }
 }
 .task-item.task-leaving {
-    animation: taskLeave 0.20s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: taskLeave 0.20s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
     pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2165,11 +2168,15 @@ body::after {
     from { opacity: 1; transform: scale(1); }
     to   { opacity: 0; transform: scale(0.93) translateX(6px); }
 }
-.subtask-item.sub-adding   { animation: subItemAdd 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-.subtask-item.sub-removing { animation: subItemRemove 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards; pointer-events: none; }
+.subtask-item.sub-adding,
+.form-sub-item.sub-adding   { animation: subItemAdd 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.subtask-item.sub-removing,
+.form-sub-item.sub-removing { animation: subItemRemove 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
     .subtask-item.sub-adding,
-    .subtask-item.sub-removing { animation: none; }
+    .subtask-item.sub-removing,
+    .form-sub-item.sub-adding,
+    .form-sub-item.sub-removing { animation: none; }
 }
 
 /* Subtask drag handle — matches task-level IC.drag pattern */
@@ -2635,11 +2642,10 @@ textarea:focus-visible {
 
 
 /* ── Tag inline clear button ─────────────────────────────────────────────
-   DESIGN (problem 3): mirrors the group-pill delete button exactly. On hover the
-   tag flattens its right corner and the clear button slides out from inside it —
-   one continuous pill. The button has NO border (no square insert / visual break)
-   and its background EXACTLY matches the tag's own background per variant, so it
-   reads as a seamless extension of the метка, not a foreign block.              */
+   DESIGN (problem 3): on hover the tag flattens its right corner and the clear
+   button slides out from inside it — one continuous pill. The button shares the
+   tag's exact background AND border colour (top/bottom/right; no left border), so
+   the outline wraps the whole pill seamlessly — never a separate box.           */
 .meta-tag-wrap {
     display: inline-flex;
     align-items: stretch;
@@ -2665,7 +2671,9 @@ textarea:focus-visible {
     min-width: 0;
     overflow: hidden;
     padding: 0;
-    border: 1px solid transparent;   /* invisible — never a visible box */
+    /* Border continues the tag's outline (per-variant colour below); no left
+       border so it merges flush with the tag at the seam. */
+    border: 1px solid var(--border);
     border-left: none;
     border-radius: 0 99px 99px 0;    /* continues the pill's right cap */
     cursor: pointer;
@@ -2686,17 +2694,18 @@ textarea:focus-visible {
 }
 .meta-tag-wrap:hover .btn-tag-clear:hover { color: #e06070; }
 
-/* Background = the tag's own background, so the button is a seamless continuation.
-   No borders, no colour break. */
+/* Background AND border-colour = the tag's own values, so the button is a
+   seamless continuation of the pill with one unbroken outline. */
 .meta-tag-wrap:has(> .repeat-tag) .btn-tag-clear {
     background: var(--accent-soft);
     color: var(--accent-hover);
+    border-color: rgba(130, 50, 230, 0.35);
 }
-.meta-tag-wrap:has(> .deadline-tag)          .btn-tag-clear { background: var(--bg-tag); }
-.meta-tag-wrap:has(> .deadline-tag.warn)     .btn-tag-clear { background: var(--deadline-warn-bg);     color: var(--deadline-warn); }
-.meta-tag-wrap:has(> .deadline-tag.urgent)   .btn-tag-clear { background: var(--deadline-urgent-bg);   color: var(--deadline-urgent); }
-.meta-tag-wrap:has(> .deadline-tag.critical) .btn-tag-clear { background: var(--deadline-critical-bg); color: var(--deadline-critical); }
-.meta-tag-wrap:has(> .deadline-tag.over)     .btn-tag-clear { background: var(--deadline-over-bg);     color: var(--deadline-over); }
+.meta-tag-wrap:has(> .deadline-tag)          .btn-tag-clear { background: var(--bg-tag);              border-color: var(--border); }
+.meta-tag-wrap:has(> .deadline-tag.warn)     .btn-tag-clear { background: var(--deadline-warn-bg);     color: var(--deadline-warn);     border-color: rgba(120, 120, 220, 0.35); }
+.meta-tag-wrap:has(> .deadline-tag.urgent)   .btn-tag-clear { background: var(--deadline-urgent-bg);   color: var(--deadline-urgent);   border-color: rgba(210, 120, 20, 0.4); }
+.meta-tag-wrap:has(> .deadline-tag.critical) .btn-tag-clear { background: var(--deadline-critical-bg); color: var(--deadline-critical); border-color: rgba(220, 30, 70, 0.45); }
+.meta-tag-wrap:has(> .deadline-tag.over)     .btn-tag-clear { background: var(--deadline-over-bg);     color: var(--deadline-over);     border-color: rgba(170, 15, 30, 0.5); }
 
 /* Persistent "done until …" label for cycle-completed recurring tasks.
    Violet-purple tint — matches the project's gothic palette exactly.
