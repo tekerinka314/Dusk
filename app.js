@@ -2124,7 +2124,25 @@ function createTaskEl(task, showDlSide) {
             <div class="drag-handle" aria-hidden="true">${IC.drag}</div>
         </div>
         <div class="task-content">
-            <span class="task-text" data-id="${task.id}" title="Двойной клик — редактировать" ondblclick="startInlineEdit(event, ${task.id})">${displayText}</span>
+            <div class="task-head">
+                <span class="task-text" data-id="${task.id}" title="Двойной клик — редактировать" ondblclick="startInlineEdit(event, ${task.id})">${displayText}</span>
+                <div class="task-actions">
+                    <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" onclick="togglePin(${task.id})" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
+                    <button class="btn-task-action btn-task-color${(task.priority && task.priority !== 'none') ? ' color-btn-prio-disabled' : ''}" onclick="${(task.priority && task.priority !== 'none') ? '' : `openTaskColorModal(${task.id})`}" ${(task.priority && task.priority !== 'none') ? 'disabled title="Цветовая метка недоступна при заданном приоритете"' : `title="Цветовая метка"`} style="${task.color ? `color:${task.color}` : ''}">
+                        <svg viewBox="0 0 24 24" fill="${task.color || 'none'}" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="7" ${task.color ? `fill="${task.color}" opacity="0.85"` : 'fill="none"'}/>
+                            ${task.color ? '' : '<circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.35"/>'}
+                        </svg>
+                    </button>
+                    <button class="btn-task-action" onclick="openDeadlineModal(${task.id})" title="Дедлайн">${IC.window}</button>
+                    <button class="btn-task-action" onclick="openRepeatModal(${task.id})" title="Повтор">${IC.ouroboros}</button>
+                    <button class="btn-task-action" onclick="openPrioModal(${task.id})" title="Приоритет">${IC.spires}</button>
+                    ${addNoteBtn}
+                    <button class="btn-task-action" onclick="duplicateTask(${task.id})" title="Дублировать задачу">${IC.twinCoffin}</button>
+                    <button class="btn-task-action archive-btn" onclick="removeTask(${task.id})" title="В архив">${IC.archive}</button>
+                    <button class="btn-task-action danger" onclick="deleteTaskForever(${task.id})" title="Удалить навсегда">${IC.skull}</button>
+                </div>
+            </div>
             <div class="task-meta">${deadlineHtml}${rptHtml}${cycleUntilHtml}${noteToggle}${subToggle}${subNotesAlwaysBtn}</div>
             ${hasNote ? `
             <div class="task-note-wrapper${task.noteOpen ? ' visible' : ''}" id="note-wrapper-${task.id}">
@@ -2135,22 +2153,6 @@ function createTaskEl(task, showDlSide) {
             </div>` : ''}
             ${inlineNoteAdd}
             ${subsHtml}
-        </div>
-        <div class="task-actions">
-            <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" onclick="togglePin(${task.id})" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
-            <button class="btn-task-action btn-task-color${(task.priority && task.priority !== 'none') ? ' color-btn-prio-disabled' : ''}" onclick="${(task.priority && task.priority !== 'none') ? '' : `openTaskColorModal(${task.id})`}" ${(task.priority && task.priority !== 'none') ? 'disabled title="Цветовая метка недоступна при заданном приоритете"' : `title="Цветовая метка"`} style="${task.color ? `color:${task.color}` : ''}">
-                <svg viewBox="0 0 24 24" fill="${task.color || 'none'}" stroke="currentColor" stroke-width="1.8">
-                    <circle cx="12" cy="12" r="7" ${task.color ? `fill="${task.color}" opacity="0.85"` : 'fill="none"'}/>
-                    ${task.color ? '' : '<circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.35"/>'}
-                </svg>
-            </button>
-            <button class="btn-task-action" onclick="openDeadlineModal(${task.id})" title="Дедлайн">${IC.window}</button>
-            <button class="btn-task-action" onclick="openRepeatModal(${task.id})" title="Повтор">${IC.ouroboros}</button>
-            <button class="btn-task-action" onclick="openPrioModal(${task.id})" title="Приоритет">${IC.spires}</button>
-            ${addNoteBtn}
-            <button class="btn-task-action" onclick="duplicateTask(${task.id})" title="Дублировать задачу">${IC.twinCoffin}</button>
-            <button class="btn-task-action archive-btn" onclick="removeTask(${task.id})" title="В архив">${IC.archive}</button>
-            <button class="btn-task-action danger" onclick="deleteTaskForever(${task.id})" title="Удалить навсегда">${IC.skull}</button>
         </div>`;
 
     // FIX-3: In mainSelectMode, clicking free space (outside actions/check/drag) toggles selection
@@ -2197,8 +2199,36 @@ function buildSubtaskSection(task, forceOpen) {
         </div>` : '';
 
     // Problem 1: if group-split mode is on, split subtasks into active/done zones
-    let subsListHtml;
-    let splitUlExtra = '';
+    const { html: subsListHtml, splitMode } = _buildSubListContent(task);
+    const splitUlExtra = splitMode ? ' sub-split-mode' : '';
+
+    return `
+    <div class="subtask-section${isOpen ? ' open' : ''}${task.subNotesAlwaysOpen ? ' notes-always-open' : ''}" id="sub-section-${task.id}">
+        <div class="sub-section-inner">
+            ${progressHtml}
+            <ul class="subtask-list${splitUlExtra}" id="sub-list-${task.id}">
+                ${subsListHtml}
+            </ul>
+            <div class="subtask-add-row">
+                <input class="subtask-add-input" id="sub-input-${task.id}"
+                       placeholder="Новый подпункт..." autocomplete="off" maxlength="200"
+                       onkeydown="handleSubAdd(event, ${task.id})">
+                <button class="btn-subtask-confirm" onclick="addSubtask(${task.id})" title="Добавить">
+                    ${IC.crossSm}
+                </button>
+            </div>
+        </div>
+    </div>`;
+}
+
+// ── Builds the inner HTML of a task's subtask UL (problem 6) ──────────────────
+// Single source of truth used by both buildSubtaskSection (full render) and
+// renderSubList (incremental rebuild). Returns the markup + whether split-mode
+// markup was produced, so the caller can set the matching UL class.
+function _buildSubListContent(task) {
+    const subs   = sortSubtasks(task.subtasks || []);
+    const sTotal = subs.length;
+
     if (isGroupSplitMode && sTotal > 0) {
         const active = subs.filter(s => !s.checked && !s.cycleChecked);
         const done   = subs.filter(s =>  s.checked ||  s.cycleChecked);
@@ -2237,29 +2267,26 @@ function buildSubtaskSection(task, forceOpen) {
                 <ul class="sub-split-inner">${doneHtml}</ul>
             </li>` : '';
 
-        subsListHtml = activeSection + doneSection;
-        splitUlExtra = ' sub-split-mode';
-    } else {
-        subsListHtml = subs.map(s => buildSubtaskItemHTML(task.id, s)).join('');
+        return { html: activeSection + doneSection, splitMode: true };
     }
 
-    return `
-    <div class="subtask-section${isOpen ? ' open' : ''}${task.subNotesAlwaysOpen ? ' notes-always-open' : ''}" id="sub-section-${task.id}">
-        <div class="sub-section-inner">
-            ${progressHtml}
-            <ul class="subtask-list${splitUlExtra}" id="sub-list-${task.id}">
-                ${subsListHtml}
-            </ul>
-            <div class="subtask-add-row">
-                <input class="subtask-add-input" id="sub-input-${task.id}"
-                       placeholder="Новый подпункт..." autocomplete="off" maxlength="200"
-                       onkeydown="handleSubAdd(event, ${task.id})">
-                <button class="btn-subtask-confirm" onclick="addSubtask(${task.id})" title="Добавить">
-                    ${IC.crossSm}
-                </button>
-            </div>
-        </div>
-    </div>`;
+    return { html: subs.map(s => buildSubtaskItemHTML(task.id, s)).join(''), splitMode: false };
+}
+
+// ── Rebuilds one task's subtask UL in place (problem 6) ───────────────────────
+// Works for BOTH normal (2-column grid) and split (active/done zones) modes,
+// keeping the surrounding section (progress bar, add-row, open state) intact.
+// Always re-inits the correct Sortable instances afterwards so DnD keeps working.
+function renderSubList(taskId) {
+    const task = state.tasks.find(t => t.id === taskId);
+    const ul   = document.getElementById(`sub-list-${taskId}`);
+    if (!task || !ul) return;
+    const { html, splitMode } = _buildSubListContent(task);
+    ul.className = 'subtask-list' + (splitMode ? ' sub-split-mode' : '');
+    ul.innerHTML = html;
+    initSubSortable(taskId);
+    updateSubProgressBar(taskId);
+    updateSubToggleBtn(taskId);
 }
 
 function buildSubtaskItemHTML(taskId, s) {
@@ -2920,6 +2947,7 @@ function checkCycleResets() {
             }
         }
         // Subtask cycle resets
+        let subReset = false;
         (t.subtasks || []).forEach(s => {
             if (s.cycleChecked) {
                 // Guard: if nextReset is missing, recompute from subtask repeat settings
@@ -2930,9 +2958,21 @@ function checkCycleResets() {
                     s.cycleChecked = false;
                     s.nextReset    = null;
                     changed = true;
+                    subReset = true;
                 }
             }
         });
+        // Problem 5: a subtask returning to "active" must also re-open a parent that
+        // was auto-completed because every subtask was done — otherwise the parent
+        // stays marked done until the user manually toggles it. Mirrors the
+        // "any sub unchecked → uncheck parent" rule in toggleSubtask().
+        if (subReset && (t.subtasks || []).length > 0) {
+            const allSubsDone = t.subtasks.every(s => s.checked || s.cycleChecked);
+            if (!allSubsDone) {
+                if (t.cycleChecked) { t.cycleChecked = false; t.nextReset = null; changed = true; }
+                else if (t.checked) { t.checked = false; changed = true; }
+            }
+        }
     });
     if (changed) { saveState(); render(); }
 }
@@ -3177,14 +3217,13 @@ function addSubtask(taskId) {
     const sub = { id: state.nextSubId++, text, checked: false, priority: 'none', note: '', order: task.subtasks.length, repeat: 'none', cycleChecked: false };
     task.subtasks.push(sub);
 
-    const ul = document.getElementById(`sub-list-${taskId}`);
-    if (ul) {
-        ul.insertAdjacentHTML('beforeend', buildSubtaskItemHTML(taskId, sub));
-        initSubSortable(taskId);
-    }
-    updateSubToggleBtn(taskId);
-    updateSubProgressBar(taskId);
+    // Problem 6: rebuild the whole list so the new item lands in the correct
+    // place — including the active zone + 2-column grid when split mode is on
+    // (a raw append broke the split layout and DnD). renderSubList re-inits DnD
+    // and refreshes the toggle/progress counters.
+    renderSubList(taskId);
     input.value = '';
+    input.focus();
     saveState();
     playSound('check');
 }
@@ -3236,19 +3275,14 @@ function toggleSubtask(taskId, subId) {
         }
 
         saveState();
-        // Re-sort so cycle-checked items move to their correct position group
-        refreshSubtaskList(taskId);
         if (sub.cycleChecked) playSound('check');
+        // Re-sort so cycle-checked items move to their correct position group,
+        // with a smooth fade-out of the old position first (problem 4).
+        _animateSubThenRefresh(taskId, subId);
         return;
     }
 
     sub.checked = !sub.checked;
-
-    // Animate the item out before rebuilding the list
-    const itemEl = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
-    if (itemEl && !isGroupSplitMode) {
-        itemEl.classList.add(sub.checked ? 'checking-out' : 'checking-in');
-    }
 
     const isRecurring = task.repeat && task.repeat !== 'none';
 
@@ -3291,10 +3325,28 @@ function toggleSubtask(taskId, subId) {
         }
     }
 
-    // Re-sort: checked items sink to bottom, unchecked float back up
+    // Re-sort: checked items sink to bottom, unchecked float back up.
+    // Fade the old position out first so the move reads smoothly in both the
+    // normal and split layouts (problem 4).
     saveState();
-    refreshSubtaskList(taskId);
     if (sub.checked) playSound('check');
+    _animateSubThenRefresh(taskId, subId);
+}
+
+// Smoothly fades the toggled subtask's old node out, then rebuilds the list so
+// it re-appears (with the existing enter animation) in its new active/done slot.
+// Falls back to an immediate rebuild when motion is reduced or the node is gone.
+function _animateSubThenRefresh(taskId, subId) {
+    const itemEl = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
+    if (!itemEl || (typeof prefersReducedMotion === 'function' && prefersReducedMotion())) {
+        refreshSubtaskList(taskId);
+        return;
+    }
+    let done = false;
+    const finish = () => { if (done) return; done = true; refreshSubtaskList(taskId); };
+    itemEl.classList.add('checking-out');
+    itemEl.addEventListener('animationend', finish, { once: true });
+    setTimeout(finish, 220); // safety net if animationend never fires
 }
 
 function deleteSubtask(taskId, subId) {
@@ -3302,10 +3354,8 @@ function deleteSubtask(taskId, subId) {
     if (!task) return;
     pushUndo();
     task.subtasks = task.subtasks.filter(s => s.id !== subId);
-    const item = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
-    if (item) item.remove();
-    updateSubToggleBtn(taskId);
-    updateSubProgressBar(taskId);
+    // Rebuild so split-zone counts/layout stay correct (problem 6).
+    renderSubList(taskId);
     saveState();
 }
 
@@ -3316,18 +3366,11 @@ function cycleSubPriority(taskId, subId) {
     if (!sub) return;
     const cycle = ['none', 'low', 'medium', 'high'];
     sub.priority = cycle[(cycle.indexOf(sub.priority || 'none') + 1) % cycle.length];
-    // saveState() called AFTER sortSubtasks updates order values below
-    // Re-sort subtasks by new priority and refresh list
-    const ul = document.getElementById(`sub-list-${taskId}`);
-    if (ul) {
-        const sorted = sortSubtasks(task.subtasks);
-        sorted.forEach((s, i) => { s.order = i; });
-        ul.innerHTML = sorted.map(s => buildSubtaskItemHTML(taskId, s)).join('');
-        initSubSortable(taskId);
-        saveState();
-    } else {
-        saveState(); // fallback if DOM not available
-    }
+    // Re-sort subtasks by new priority and refresh list (handles split layout).
+    const sorted = sortSubtasks(task.subtasks);
+    sorted.forEach((s, i) => { s.order = i; });
+    renderSubList(taskId);
+    saveState();
 }
 
 function toggleSubSplitDone(hdr, key) {
@@ -3644,24 +3687,22 @@ function refreshSubtaskList(taskId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
     checkCycleResets(); // ensure any due resets are applied before rebuilding
-    if (isGroupSplitMode) {
-        // Full re-render preserves split view and all state
-        render();
-        return;
-    }
-    const ul = document.getElementById(`sub-list-${taskId}`);
-    if (!ul) return;
-    const sorted = sortSubtasks(task.subtasks);
-    ul.innerHTML = sorted.map(s => buildSubtaskItemHTML(taskId, s)).join('');
-    initSubSortable(taskId);
-    updateSubProgressBar(taskId);
-    updateSubToggleBtn(taskId);
+    // renderSubList rebuilds the list for BOTH normal (2-column) and split
+    // (active/done zones) layouts and re-inits DnD — problem 6. (If
+    // checkCycleResets already triggered a full render this is a cheap no-op.)
+    renderSubList(taskId);
 }
 
 function initSubSortable(taskId) {
     const ul = document.getElementById(`sub-list-${taskId}`);
     if (!ul) return;
-    if (sortableSubs[taskId]) { try { sortableSubs[taskId].destroy(); } catch(e){} }
+    // sortableSubs[taskId] may hold a single instance (legacy) or an array
+    // (split mode = one Sortable per active/done zone). Destroy them all.
+    const _prev = sortableSubs[taskId];
+    if (_prev) {
+        (Array.isArray(_prev) ? _prev : [_prev]).forEach(s => { try { s.destroy(); } catch(e){} });
+    }
+    sortableSubs[taskId] = [];
 
     // ── Note hover: attach mouseenter/mouseleave DIRECTLY on each item ───────
     // We intentionally avoid mouseover/mouseout delegation here because those events
@@ -3698,7 +3739,7 @@ function initSubSortable(taskId) {
     });
     // ─────────────────────────────────────────────────────────────────────────
 
-    sortableSubs[taskId] = new Sortable(ul, {
+    const activeOpts = {
         animation: 150,
         draggable: '.subtask-item:not(.checked):not(.cycle-checked)',
         delay: 120,
@@ -3710,17 +3751,35 @@ function initSubSortable(taskId) {
         chosenClass: 'sortable-chosen',
         group: { name: `subs-${taskId}`, pull: false, put: false },
         onEnd: (evt) => onSubDragEnd(evt, taskId),
-    });
+    };
+
+    if (ul.classList.contains('sub-split-mode')) {
+        // Problem 6: in split mode the draggable items live inside the per-zone
+        // .sub-split-inner grids — NOT as direct children of the UL. Attach a
+        // Sortable to each grid so DnD works and the 2-column layout is preserved.
+        const activeInner = ul.querySelector('.sub-split-active-wrap .sub-split-inner');
+        const doneInner   = ul.querySelector('.sub-split-done-wrap .sub-split-inner');
+        if (activeInner) sortableSubs[taskId].push(new Sortable(activeInner, activeOpts));
+        // Done zone: reordering disabled (mirrors the task-level split lock).
+        if (doneInner) sortableSubs[taskId].push(new Sortable(doneInner, {
+            group: { name: `subs-done-${taskId}`, pull: false, put: false },
+            disabled: true, sort: false, animation: 0,
+        }));
+    } else {
+        sortableSubs[taskId].push(new Sortable(ul, activeOpts));
+    }
 }
 
 function onSubDragEnd(evt, taskId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
-    const ul = document.getElementById(`sub-list-${taskId}`);
-    if (!ul) return;
+    // The drag container is the UL in normal mode, or the active .sub-split-inner
+    // grid in split mode (problem 6). Read positions from wherever the item landed.
+    const container = evt.to || evt.item.parentElement;
+    if (!container) return;
 
     // Reorder — store DOM position as order
-    const allItems = Array.from(ul.querySelectorAll(':scope > .subtask-item'));
+    const allItems = Array.from(container.querySelectorAll(':scope > .subtask-item'));
     allItems.forEach((el, i) => {
         const sid = parseInt(el.dataset.sid);
         const sub = task.subtasks.find(s => s.id === sid);
@@ -3752,10 +3811,7 @@ function onSubDragEnd(evt, taskId) {
     // saveState() intentionally called AFTER sortSubtasks updates order values below
     const sortedSubs = sortSubtasks(task.subtasks);
     sortedSubs.forEach((s, i) => { s.order = i; });
-    ul.innerHTML = sortedSubs.map(s => buildSubtaskItemHTML(taskId, s)).join('');
-    initSubSortable(taskId);
-    updateSubProgressBar(taskId);
-    updateSubToggleBtn(taskId);
+    renderSubList(taskId); // handles both normal + split layouts and re-inits DnD
     saveState();
 }
 
@@ -4255,6 +4311,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 sub.repeatAnchorDay      = anchorDay      || null;
                 sub.repeatAnchorMonthday = anchorMonthday || null;
                 if (sub.repeat === 'none') { sub.cycleChecked = false; sub.nextReset = null; }
+                // Problem 5: if the subtask is already cycle-completed, recompute its
+                // reset point from the NEW anchor so the automatic reset fires at the
+                // new reference time — without needing a manual un-/re-check.
+                else if (sub.cycleChecked) { sub.nextReset = getNextResetTimestamp(sub); }
                 saveState();
 
                 // Lightweight DOM update for repeat button
@@ -4295,6 +4355,9 @@ document.addEventListener('DOMContentLoaded', () => {
             task.repeatAnchorDay      = resolvedAnchorDay;
             task.repeatAnchorMonthday = anchorMonthday      || null;
             if (task.repeat === 'none') { task.cycleChecked = false; task.nextReset = null; }
+            // Problem 5: re-anchor an already cycle-completed task so the automatic
+            // reset honours the new reference point immediately (no manual toggle).
+            else if (task.cycleChecked) { task.nextReset = getNextResetTimestamp(task); }
             saveState(); render(); closeRepeatModal();
             showToast(_toastLabel());
         });
@@ -7533,17 +7596,29 @@ function initFormWeekdayPicker() {
         });
     }
 
+    // Problem 1: the .extra-fields params panel uses overflow:hidden for its
+    // open/close animation, which clipped the bottom of this dropdown (Fri–Sun
+    // were unreachable). While the picker is open we let the panel overflow so
+    // the full list is visible/scrollable, and open upward when near the
+    // viewport bottom (mirrors the modal weekday picker).
+    const extraFields = document.getElementById('extra-fields');
     function openPicker() {
         if (isOpen) return;
         isOpen = true;
+        const rect = trigger.getBoundingClientRect();
+        const listH = 290; // approx height for 8 options
+        const spaceBelow = window.innerHeight - rect.bottom;
+        picker.classList.toggle('open-up', spaceBelow < listH && rect.top > listH);
         picker.classList.add('open');
+        extraFields && extraFields.classList.add('dropdown-open');
         trigger.setAttribute('aria-expanded', 'true');
         list.setAttribute('aria-hidden', 'false');
     }
     function closePicker() {
         if (!isOpen) return;
         isOpen = false;
-        picker.classList.remove('open');
+        picker.classList.remove('open', 'open-up');
+        extraFields && extraFields.classList.remove('dropdown-open');
         trigger.setAttribute('aria-expanded', 'false');
         list.setAttribute('aria-hidden', 'true');
     }

@@ -644,6 +644,11 @@ body::after {
 }
 /* .open class still applied by JS, but max-height value is set inline by JS */
 .extra-fields.open { opacity: 1; }
+/* Problem 1: while an inline dropdown (e.g. the weekly weekday picker) is open,
+   drop the clip so the list isn't cut off by the panel's bottom edge. Only ever
+   active when the panel is already fully open (max-height:none), so the open/close
+   animation is unaffected. */
+.extra-fields.dropdown-open { overflow: visible; }
 
 .extra-row { display: flex; gap: 12px; margin-top: 13px; flex-wrap: wrap; }
 .field-group { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -2029,6 +2034,12 @@ body::after {
     margin-bottom: 5px;
     min-height: 2px;
 }
+/* Problem 6: a subtask left alone on the final row (odd count) stretches to the
+   full width instead of sitting awkwardly in the left half. Applies to the
+   normal 2-column list (split-mode grids handle this in their own rule). */
+.subtask-list:not(.sub-split-mode) > .subtask-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
 
 /* ── Item 7: fix vertical text — main-row is the flex container ── */
 /* Subtask item enter/exit animation */
@@ -2484,6 +2495,16 @@ textarea:focus-visible {
 
 /* ===== TASK CONTENT ===== */
 .task-content { flex: 1; min-width: 0; }
+/* Problem 3: title + action buttons share the top row; everything below it
+   (the meta tags + note/subtask toggles) then spans the FULL content width and
+   is no longer squeezed/pushed by the right-hand action buttons. */
+.task-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.task-head > .task-text { flex: 1; min-width: 0; }
+.task-head > .task-actions { margin-top: 1px; }
 .task-text {
     font-size: 16px;
     color: var(--text-primary);
@@ -2582,16 +2603,25 @@ textarea:focus-visible {
 
 
 /* ── Tag inline clear button ─────────────────────────────────────────────
-   DESIGN: Tag is completely unchanged. Button overlaps the tag's right border
-   by 1px (margin-left: -1px) so it appears as a seamless right extension.
-   Per-variant background/border match each tag type via :has().              */
+   DESIGN (problem 3): the tag (метка) smoothly widens on hover and the clear
+   button is revealed INSIDE that growth — one continuous pill, never a separate
+   square box. On hover the tag flattens its right corners and drops its right
+   border so it merges seamlessly into the button (whose bg/border match the tag
+   variant via :has()).                                                         */
 .meta-tag-wrap {
     display: inline-flex;
     align-items: stretch;
     vertical-align: middle;
 }
-/* Tag: absolutely untouched — keeps its own border, radius, background */
-.meta-tag-wrap > .meta-tag { margin: 0; }
+.meta-tag-wrap > .meta-tag {
+    margin: 0;
+    transition: border-radius 0.22s ease, border-color 0.18s ease;
+}
+.meta-tag-wrap:hover > .meta-tag {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right-color: transparent;
+}
 
 .btn-tag-clear {
     max-width: 0;
@@ -3833,10 +3863,27 @@ textarea:focus-visible {
     min-width: 0;
     width: 100%;
 }
+/* Problem 2: the time field itself fills the WHOLE row width — the clear & clock
+   icons become trailing affordances overlaid inside its right edge instead of
+   sitting beside it as separate boxes that left an empty gap. */
 .repeat-anchor-time-row .seg-input-row .seg-input {
     width: 100%;
     flex: 1;
+    padding-right: 78px; /* reserve room for the two overlaid icon buttons */
 }
+.repeat-anchor-time-row .seg-clear-btn,
+.repeat-anchor-time-row .seg-picker-btn {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    height: auto;
+    background: transparent;
+    border-color: transparent;
+}
+.repeat-anchor-time-row .seg-picker-btn { right: 6px; }
+.repeat-anchor-time-row .seg-clear-btn  { right: 42px; }
+.repeat-anchor-time-row .seg-clear-btn:hover,
+.repeat-anchor-time-row .seg-picker-btn:hover { background: var(--accent-soft); border-color: var(--border-mid); }
 .repeat-anchor-time-row .modal-input:not(.seg-input) { display: none; }
 /* Monthday label — same opacity as dl-hint notes */
 .repeat-anchor-monthday-label {
@@ -4199,6 +4246,7 @@ kbd {
     .priority-selector { gap: 3px; }
     .prio-btn { font-size: 10px; padding: 5px 8px; }
     .subtask-list { grid-template-columns: 1fr; }
+    .sub-split-inner { grid-template-columns: 1fr; }
     .shortcuts-hint { display: none !important; }
     .modal { width: calc(100vw - 24px); padding: 18px 16px; }
     .modal-deadline { width: calc(100vw - 24px); }
@@ -4773,6 +4821,11 @@ kbd {
     gap: 3px;
     list-style: none;
     padding: 0; margin: 0;
+}
+/* Problem 6: a lone subtask in its split subgroup spans the full row width
+   instead of leaving an empty right column. */
+.sub-split-inner > .subtask-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
 }
 @media (prefers-reduced-motion: reduce) {
     .sub-split-active-wrap, .sub-split-done-wrap { transition: none; }
