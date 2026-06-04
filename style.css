@@ -2860,20 +2860,30 @@ textarea:focus-visible {
 }
 /* Inside a wrap the tag paints nothing — the wrap is the pill. (Standalone
    .meta-tag elsewhere keep their own bg/border; only wrapped ones are stripped.) */
+/* Inside a wrap the tag paints nothing — the wrap is the pill. Its padding is
+   CONSTANT (never animated) — that is what kept biting us. */
 .meta-tag-wrap > .meta-tag {
     margin: 0;
     background: transparent;
     border: none;
-    /* On hover the trailing padding collapses (see below) so the revealed ✕
-       sits with EQUAL gaps to the text and to the pill edge. Transitioned so
-       the text doesn't jump. */
-    transition: padding-right 0.42s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── ✕ reveal, rebuilt from scratch ──────────────────────────────────────────
+   The bounce came from the icon MOVING horizontally during the reveal (first a
+   -3px margin pull, then a collapsing text padding — both shoved the icon left
+   while the width grew it right → "hits a wall and returns"). Centring it in a
+   growing box also slid it sideways.
+
+   New mechanism: the icon NEVER moves. It is pinned to the button's left edge
+   (justify-content:flex-start), and the button's left edge is fixed (the tag's
+   padding is constant). Growing the button's width just slides the overflow clip
+   window rightward, wiping the stationary icon into view; opacity fades it in on
+   the same curve. Nothing competes, nothing animates but width+opacity → no
+   bounce, no snap, fully smooth. */
 .btn-tag-clear {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;   /* pin icon left → it stays put while revealed */
     width: 0;
     min-width: 0;
     overflow: hidden;
@@ -2885,25 +2895,22 @@ textarea:focus-visible {
     background: transparent;          /* the wrap's fill shows through — seamless */
     color: var(--text-muted);
     white-space: nowrap;
-    /* Smooth reveal: width + opacity glide on ONE curve over 0.42s. No
-       margin-left — the old -3px pull fought the widening (icon went out, then
-       snapped back = the "bounce off a wall and return" feel). Pure widen +
-       fade now, so it just eases open and stays. */
-    transition: width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.45s cubic-bezier(0.33, 0, 0.2, 1),
+                opacity 0.45s cubic-bezier(0.33, 0, 0.2, 1);
 }
 .btn-tag-clear svg { width: 8px; height: 8px; pointer-events: none; flex-shrink: 0; }
 
-/* width 22px, icon centred, NO padding/margin: the ✕ sits (22-8)/2 = 7px from
-   both the button's left (→ text, whose trailing padding is collapsed to 0) and
-   its right (→ pill edge) — equal gaps in every pill variant. */
-.meta-tag-wrap:hover .btn-tag-clear {
-    width: 22px;
-    min-width: 22px;
+/* width 16px = icon(8) pinned left + 8px of trailing space. The text→icon gap is
+   the tag's constant 8px right padding; icon→pill-edge is the 8px button tail →
+   equal 8px gaps on both sides, identical in every pill variant. Keyboard focus
+   reveals it too. */
+.meta-tag-wrap:hover .btn-tag-clear,
+.meta-tag-wrap:focus-within .btn-tag-clear {
+    width: 16px;
+    min-width: 16px;
     opacity: 1;
 }
-.meta-tag-wrap:hover > .meta-tag { padding-right: 0; }
-.meta-tag-wrap:hover .btn-tag-clear:hover { color: #e06070; }
+.btn-tag-clear:hover { color: #e06070; }
 
 /* Per-variant pill background + border live on the WRAP so the whole pill
    (tag body + revealed button) is one uniform colour. Button keeps the matching
