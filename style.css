@@ -566,6 +566,10 @@ body::after {
     border-color: rgba(150, 70, 255, 0.55);
     /* No inner box-shadow — border highlight only (audit p.9) */
 }
+/* On focus the row frame turns violet; the add-button's static grey divider
+   then reads as a stray semi-transparent outline overlapping its left edge.
+   Drop it on focus so the highlighted frame stays clean. */
+.row:focus-within .btn-add { border-left-color: transparent; }
 .row.shake { animation: shake 0.4s ease; }
 
 @keyframes shake {
@@ -2875,7 +2879,10 @@ textarea:focus-visible {
     background: transparent;          /* the wrap's fill shows through — seamless */
     color: var(--text-muted);
     white-space: nowrap;
-    transition: width var(--transition), padding var(--transition), opacity var(--transition), margin-left var(--transition);
+    /* Smoother, slightly slower reveal: --ease-emerge starts promptly (stays
+       responsive) but settles gently instead of the old abrupt 0.15s ease.
+       Opacity leads a touch faster so the ✕ reads in as the pill widens. */
+    transition: width 0.26s var(--ease-emerge), padding 0.26s var(--ease-emerge), margin-left 0.26s var(--ease-emerge), opacity 0.2s var(--ease-emerge);
 }
 .btn-tag-clear svg { width: 8px; height: 8px; pointer-events: none; flex-shrink: 0; }
 

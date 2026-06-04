@@ -2237,13 +2237,13 @@ function createTaskEl(task, showDlSide) {
         else if (status === 'urgent')   tc += ' urgent';
         else if (status === 'warn')     tc += ' warn';
         const cdHtml = countdown ? `<span class="dl-countdown">${countdown}</span><span class="dl-sep">·</span>` : '';
-        deadlineHtml = `<span class="meta-tag-wrap"><span class="${tc}">${IC.window}<span class="dl-badge-inner">${cdHtml}<span class="dl-absolute">${absolute}</span></span></span><button class="btn-tag-clear" onclick="clearTaskDeadline(${task.id});event.stopPropagation();" title="Убрать дедлайн">${IC.crossedSwords}</button></span>`;
+        deadlineHtml = `<span class="meta-tag-wrap"><span class="${tc}" role="button" tabindex="0" title="Изменить дедлайн" onclick="openDeadlineModal(${task.id});event.stopPropagation();" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDeadlineModal(${task.id});}">${IC.window}<span class="dl-badge-inner">${cdHtml}<span class="dl-absolute">${absolute}</span></span></span><button class="btn-tag-clear" onclick="clearTaskDeadline(${task.id});event.stopPropagation();" title="Убрать дедлайн">${IC.crossedSwords}</button></span>`;
     }
 
     // ── Repeat badge ──
     const rptAnchorLabel = getRepeatAnchorLabel(task.repeat, task.repeatAnchorTime, task.repeatAnchorDay, task.repeatAnchorMonthday);
     const rptHtml = (task.repeat && task.repeat !== 'none')
-        ? `<span class="meta-tag-wrap"><span class="meta-tag repeat-tag">${IC.ouroboros}<span>${repeatLabel(task.repeat)}${rptAnchorLabel ? ` · ${rptAnchorLabel}` : ''}</span></span><button class="btn-tag-clear" onclick="clearTaskRepeat(${task.id});event.stopPropagation();" title="Убрать повтор">${IC.crossedSwords}</button></span>` : '';
+        ? `<span class="meta-tag-wrap"><span class="meta-tag repeat-tag" role="button" tabindex="0" title="Изменить повтор" onclick="openRepeatModal(${task.id});event.stopPropagation();" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRepeatModal(${task.id});}">${IC.ouroboros}<span>${repeatLabel(task.repeat)}${rptAnchorLabel ? ` · ${rptAnchorLabel}` : ''}</span></span><button class="btn-tag-clear" onclick="clearTaskRepeat(${task.id});event.stopPropagation();" title="Убрать повтор">${IC.crossedSwords}</button></span>` : '';
 
     // ── Note controls ──
     const hasNote = task.note && task.note.trim();
