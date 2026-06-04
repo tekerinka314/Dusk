@@ -50,6 +50,80 @@ introducing a new style.
 - Subtask priority is shown by a soft glowing "ember" accent (`::before`,
   coloured via `--sprio`), not a hard left bar.
 
+## Audit & extensions (June 2026) — DONE, DEFERRED, and the forward plan
+
+A full code audit was run and acted on. Everything below is on branch
+`fix/ui-repeat-meta-subtasks` (pushed to origin). Read this before planning new
+work so deferred items aren't accidentally redone or forgotten.
+
+### Already DONE this session (do NOT redo)
+- **Bug fixes (commit 8637bf9):** C-1 archive→restore lost fields → single
+  `taskFromArchive()` helper preserves all fields; C-2 the ambient card glow was
+  a duplicate `.todo-app::after` → moved to a dedicated `.app-glow` child; plus
+  V-1 colour filter in schedule mode, V-2 empty-state under colour/focus filter,
+  V-3 service worker now stale-while-revalidate + "new version" toast, V-4 import
+  validates colour, V-5 single undo for subtask→parent auto-complete, V-6
+  undefined CSS vars, V-7 weektime deadline auto-weekly, M-2 coffin seal plays
+  before row leaves, M-4 extra-fields `max-height:none` after transition ends,
+  and minor D-1/D-2/D-4/D-5.
+- **Polish (commit 0cfbd2c):** shared `--ease` tokens on row enter/leave; gothic
+  sword chevron in archive months; synced critical-deadline pulse; aria-labels on
+  colour swatches + `aria-activedescendant` on dropdowns; coarse-pointer (touch)
+  reveals actions + bigger tap targets; **`renderListOnly()`** partial render for
+  hot paths (check/pin/priority/colour) + lazy subtask Sortable (~2× faster on
+  200 tasks = the M-5 perf item); deep-clone in bulkArchive.
+- **Extensions (commits 178b5d2, 5bc075c, 09dab2f, c1fe947):** Undo-in-toast;
+  Snooze (per-task deadline quick-postpone); Duplicate group; Task templates
+  (`state.templates`); Promote/Demote (subtask⇄task); Quick-add inline syntax +
+  interactive typeahead dropdown.
+
+### DEFERRED — agreed to do as a LATER, separate stage (with detail)
+These were explicitly postponed (the user chose "later" for each). They are NOT
+abandoned — they form the next planned block. Do them roughly in this order and
+ONLY when the user greenlights the "refactor stage":
+
+1. **Idea 8 — data-layer refactor = the real sync foundation (HIGHEST priority
+   of the deferred block).** Replace incremental int ids (`nextId`/`nextGroupId`/
+   `nextSubId`) with stable string ids (`crypto.randomUUID()`); add per-record
+   `updatedAt`; make deletion a soft-delete **tombstone** (`deletedAt`) instead of
+   array removal; migrate old state (int→uuid) in `migrateTasks`. This removes the
+   fragile id-offset in merge-import and is platform-agnostic. High blast radius
+   (touches nearly every `find(t=>t.id===...)`, DnD, archive, undo) → needs a
+   sweep + thorough data-safety tests. This is step 1 of the **Sync** section below.
+2. **7c — modular split + event delegation.** `app.js` is a 7680-line monolith
+   wired with inline `onclick=` (forces all handlers global, invites XSS-class
+   bugs). Plan: convert handlers to `data-action` + delegation from the list root,
+   split into modules (state, render, deadlines, repeats, subtasks, dnd, modals,
+   widgets, quick-add). High regression risk; this is the "rewrite" CLAUDE.md says
+   not to start without an explicit go. Logically paired with the Svelte migration
+   (roadmap #1).
+3. **7a — unified `commit(mutator)` helper** (`pushUndo`+`saveState`+`render`,
+   used in ~30 places). Low-risk but broad churn; only worth doing as part of 7c.
+4. **6a — unify all collapse/expand onto `grid-template-rows: 0fr↔1fr`** (groups,
+   subtask-section, extra-fields, archive months). The BUGS it would fix (M-3/M-4/
+   D-3) are ALREADY fixed pointwise, so what remains is a pure refactor of four
+   tuned animations — risky for little gain; do it during the refactor stage.
+5. **Idea 5 — calendar view** (third page, monthly grid of deadlines). Large new
+   surface (markup + responsive + gothic grid). Own block, later.
+6. **Idea 2 — streak counter** for recurring tasks. Postponed (gothic-ascetic fit
+   doubts). A dead `Streak counter` CSS stub already exists.
+
+### Product decisions made this session (keep consistent going forward)
+- **Quick-add trigger symbols:** `!` = priority, and (per user) tags use **`*`**
+  and dates use **`%`** (replacing the original `#`/`~`). Tag highlighting,
+  `extractTags`, tag cloud and `filterByTag` all key off the chosen tag symbol.
+- **Deleting a group also deletes its tasks + subtasks** (was: orphan to
+  ungrouped). The two-step confirm toast must warn that contents go too.
+- **Never lose data** stays the #1 product rule (drives undo-in-toast, taskFromArchive, the tombstone plan).
+
+### Forward plan (order)
+First finish the current polish/feedback pass on the existing app. Then, when the
+user says to start the refactor stage: **Idea 8 data-layer (uuid+updatedAt+
+tombstones) → 7c modular split (+7a commit, +6a collapse) → then Sync (Google
+Drive appDataFolder) → then Capacitor/Tauri wrappers → optional Svelte/Vite/
+IndexedDB migration.** The Sync section below is the destination; the data-layer
+refactor is its prerequisite and the first concrete step.
+
 ## How the user works with me (preferences — this session)
 
 - **Language:** communicate in **Russian**.
