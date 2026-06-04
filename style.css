@@ -2813,7 +2813,10 @@ textarea:focus-visible {
 .meta-tag svg { width: 9px; height: 9px; }
 
 /* Deadline in one line */
-.dl-badge-inner { display: flex; flex-direction: row; align-items: center; gap: 4px; white-space: nowrap; }
+/* baseline (not center): countdown 10.5px and absolute 9.5px are different
+   sizes — centring them made the date sit visibly higher than the counter.
+   Sharing a baseline makes them read as one line. */
+.dl-badge-inner { display: flex; flex-direction: row; align-items: baseline; gap: 4px; white-space: nowrap; }
 .dl-countdown { font-size: 10.5px; font-weight: 700; }
 .dl-absolute  { font-size: 9.5px; opacity: 0.80; }
 .dl-sep { opacity: 0.35; font-size: 9px; }
@@ -2861,6 +2864,10 @@ textarea:focus-visible {
     margin: 0;
     background: transparent;
     border: none;
+    /* On hover the trailing padding collapses (see below) so the revealed ✕
+       sits with EQUAL gaps to the text and to the pill edge. Transitioned so
+       the text doesn't jump. */
+    transition: padding-right 0.42s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-tag-clear {
@@ -2878,26 +2885,24 @@ textarea:focus-visible {
     background: transparent;          /* the wrap's fill shows through — seamless */
     color: var(--text-muted);
     white-space: nowrap;
-    /* Smooth, deliberate reveal: a symmetric ease-in-out (gentle accelerate +
-       gentle decelerate) over 0.38s reads far softer than the old fast-start
-       ease-out, which "snapped" out. Opacity rides the same curve, finishing a
-       touch sooner so the ✕ is solid by the time the pill stops widening. */
-    transition: width 0.38s cubic-bezier(0.4, 0, 0.2, 1),
-                padding 0.38s cubic-bezier(0.4, 0, 0.2, 1),
-                margin-left 0.38s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Smooth reveal: width + opacity glide on ONE curve over 0.42s. No
+       margin-left — the old -3px pull fought the widening (icon went out, then
+       snapped back = the "bounce off a wall and return" feel). Pure widen +
+       fade now, so it just eases open and stays. */
+    transition: width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.42s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-tag-clear svg { width: 8px; height: 8px; pointer-events: none; flex-shrink: 0; }
 
+/* width 22px, icon centred, NO padding/margin: the ✕ sits (22-8)/2 = 7px from
+   both the button's left (→ text, whose trailing padding is collapsed to 0) and
+   its right (→ pill edge) — equal gaps in every pill variant. */
 .meta-tag-wrap:hover .btn-tag-clear {
-    width: 20px;
-    min-width: 20px;
-    padding: 0 6px 0 2px;
-    /* Pull 3px toward the text so the ✕ sits visually centred between the text
-       and the pill's right border (the text-side gap was 3px larger). */
-    margin-left: -3px;
+    width: 22px;
+    min-width: 22px;
     opacity: 1;
 }
+.meta-tag-wrap:hover > .meta-tag { padding-right: 0; }
 .meta-tag-wrap:hover .btn-tag-clear:hover { color: #e06070; }
 
 /* Per-variant pill background + border live on the WRAP so the whole pill
