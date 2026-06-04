@@ -2895,8 +2895,8 @@ textarea:focus-visible {
     background: transparent;          /* the wrap's fill shows through — seamless */
     color: var(--text-muted);
     white-space: nowrap;
-    transition: width 0.45s cubic-bezier(0.33, 0, 0.2, 1),
-                opacity 0.45s cubic-bezier(0.33, 0, 0.2, 1);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-tag-clear svg { width: 8px; height: 8px; pointer-events: none; flex-shrink: 0; }
 
@@ -2910,7 +2910,11 @@ textarea:focus-visible {
     min-width: 16px;
     opacity: 1;
 }
-.btn-tag-clear:hover { color: #e06070; }
+/* High enough specificity (0,4,0) to beat the per-variant base-colour rules
+   below — otherwise the repeat pill's accent-hover override kept the ✕ purple on
+   hover while the deadline pill (no such override) went red. */
+.meta-tag-wrap:hover .btn-tag-clear:hover,
+.meta-tag-wrap:focus-within .btn-tag-clear:focus-visible { color: #e06070; }
 
 /* Per-variant pill background + border live on the WRAP so the whole pill
    (tag body + revealed button) is one uniform colour. Button keeps the matching
