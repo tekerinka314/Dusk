@@ -130,10 +130,13 @@ html { scroll-behavior:smooth; }
     border-radius: inherit;
     box-shadow: 0 0 0 4px rgba(140, 60, 255, 0.20), 0 0 12px rgba(160, 80, 255, 0.15);
 }
-/* Inputs already show a border-color focus state — suppress duplicate ring  */
+/* Inputs already show a border-color focus state — suppress the duplicate ring.
+   Must kill the box-shadow too: text inputs match :focus-visible even on a
+   mouse click, and its 4px-spread glow bled past the input's right edge and
+   drew a rounded outline over the add-button's left edge. */
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible { outline: none; }
+select:focus-visible { outline: none; box-shadow: none; }
 
 /* P6: search-box is inside .search-wrap which gets its own border highlight —
    never show a focus ring on the input itself to avoid inner rounded glow     */
@@ -566,10 +569,6 @@ body::after {
     border-color: rgba(150, 70, 255, 0.55);
     /* No inner box-shadow — border highlight only (audit p.9) */
 }
-/* On focus the row frame turns violet; the add-button's static grey divider
-   then reads as a stray semi-transparent outline overlapping its left edge.
-   Drop it on focus so the highlighted frame stays clean. */
-.row:focus-within .btn-add { border-left-color: transparent; }
 .row.shake { animation: shake 0.4s ease; }
 
 @keyframes shake {
@@ -2879,10 +2878,14 @@ textarea:focus-visible {
     background: transparent;          /* the wrap's fill shows through — seamless */
     color: var(--text-muted);
     white-space: nowrap;
-    /* Smoother, slightly slower reveal: --ease-emerge starts promptly (stays
-       responsive) but settles gently instead of the old abrupt 0.15s ease.
-       Opacity leads a touch faster so the ✕ reads in as the pill widens. */
-    transition: width 0.26s var(--ease-emerge), padding 0.26s var(--ease-emerge), margin-left 0.26s var(--ease-emerge), opacity 0.2s var(--ease-emerge);
+    /* Smooth, deliberate reveal: a symmetric ease-in-out (gentle accelerate +
+       gentle decelerate) over 0.38s reads far softer than the old fast-start
+       ease-out, which "snapped" out. Opacity rides the same curve, finishing a
+       touch sooner so the ✕ is solid by the time the pill stops widening. */
+    transition: width 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-tag-clear svg { width: 8px; height: 8px; pointer-events: none; flex-shrink: 0; }
 
