@@ -231,8 +231,8 @@ body::after {
 /* PERF-2: appGlow refactored — animated glow moved to ::after with opacity-only
    animation (compositor-only, no repaint). Base box-shadow is static. */
 @keyframes appGlowPulse {
-    0%, 100% { opacity: 0.55; }
-    50%       { opacity: 1;    }
+    0%, 100% { opacity: 0.26; }
+    50%       { opacity: 0.48; }
 }
 
 .todo-app {
@@ -266,11 +266,11 @@ body::after {
     border-radius: inherit;
     pointer-events: none;
     box-shadow:
-        0 0 0 1px rgba(170, 80, 255, 0.38),
-        inset 0 1px 0 rgba(220, 160, 255, 0.14),
-        inset 0 0 80px rgba(80, 10, 170, 0.16),
-        0 0 80px rgba(130, 40, 255, 0.20),
-        0 0 140px rgba(90, 20, 200, 0.11);
+        0 0 0 1px rgba(150, 65, 225, 0.18),
+        inset 0 1px 0 rgba(200, 150, 255, 0.06),
+        inset 0 0 60px rgba(60, 8, 140, 0.09),
+        0 0 42px rgba(95, 28, 195, 0.09),
+        0 0 90px rgba(68, 15, 160, 0.05);
     animation: appGlowPulse var(--dur-ambient) ease-in-out infinite;
     will-change: opacity;
     z-index: -1;
@@ -278,7 +278,7 @@ body::after {
 
 /* Honour reduced-motion: keep static glow, kill the infinite pulse */
 @media (prefers-reduced-motion: reduce) {
-    .todo-app > .app-glow { animation: none; opacity: 0.6; }
+    .todo-app > .app-glow { animation: none; opacity: 0.38; }
 }
 
 .todo-app::before {
@@ -968,8 +968,10 @@ body::after {
 .toast.hide {
     animation: toastVanish 0.25s ease-in forwards;
 }
-/* Idea 7: toast with an inline "Отменить" action */
-.toast.has-undo { display: flex; align-items: center; gap: 12px; }
+/* Idea 7: toast with an inline "Отменить" action.
+   The base .toast is pointer-events:none (pass-through message); re-enable it
+   here so the undo button is actually clickable. */
+.toast.has-undo { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
 .toast-undo-btn {
     display: inline-flex;
     align-items: center;
@@ -1081,7 +1083,54 @@ body::after {
 .qa-dot.prio-high   { background: var(--prio-high); }
 .qa-dot.prio-medium { background: var(--prio-medium); }
 .qa-dot.prio-low    { background: var(--prio-low); }
+.qa-item.qa-disabled { cursor: default; opacity: 0.6; }
+.qa-item.qa-disabled:hover { background: transparent; color: var(--text-secondary); }
 @media (prefers-reduced-motion: reduce) { .qa-menu { animation: none; } }
+
+/* Idea 4: quick-add syntax hint (revealed while the new-task input is focused) */
+.qa-syntax-hint {
+    display: flex; gap: 14px;
+    max-height: 0; opacity: 0; overflow: hidden; margin-top: 0; padding-left: 4px;
+    transition: max-height 0.22s var(--ease-gothic), opacity 0.2s ease, margin-top 0.22s var(--ease-gothic);
+    font-family: var(--font-label); font-size: 10px; letter-spacing: 0.5px; color: var(--text-muted);
+}
+.qa-syntax-hint.show { max-height: 24px; opacity: 0.85; margin-top: 7px; }
+.qa-syntax-hint span { display: inline-flex; align-items: center; gap: 4px; }
+.qa-syntax-hint b { font-family: var(--font-mono); color: var(--accent-hover); font-weight: 600; }
+
+/* Idea 1: snooze custom relative input */
+.snooze-menu.snooze-with-custom { min-width: 172px; }
+.snooze-custom {
+    display: flex; align-items: center; gap: 4px;
+    margin-top: 4px; padding: 6px 6px 2px;
+    border-top: 1px solid var(--border);
+}
+.snooze-custom-input {
+    width: 38px; flex-shrink: 0;
+    background: var(--bg-input); border: 1px solid var(--border-input);
+    border-radius: var(--radius-xs); color: var(--text-primary);
+    font-family: var(--font-mono); font-size: 12px; text-align: center;
+    padding: 4px 2px; outline: none; -moz-appearance: textfield;
+}
+.snooze-custom-input::-webkit-inner-spin-button,
+.snooze-custom-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.snooze-custom-input:focus { border-color: rgba(150,70,255,0.5); }
+.snooze-units { display: flex; gap: 2px; flex: 1; }
+.snooze-unit {
+    flex: 1; padding: 4px 2px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted);
+    border-radius: var(--radius-xs); cursor: pointer;
+    font-family: var(--font-label); font-size: 9.5px; transition: all var(--transition);
+}
+.snooze-unit:hover { color: var(--text-secondary); border-color: var(--border-mid); }
+.snooze-unit.active { background: var(--accent-soft); color: var(--accent-hover); border-color: rgba(140,60,255,0.4); }
+.snooze-custom-go {
+    flex-shrink: 0; padding: 4px 9px; border: 1px solid rgba(140,60,255,0.4);
+    background: var(--accent-soft); color: var(--accent-hover);
+    border-radius: var(--radius-xs); cursor: pointer;
+    font-family: var(--font-label); font-size: 9.5px; letter-spacing: 0.5px; transition: all var(--transition);
+}
+.snooze-custom-go:hover { background: var(--accent); color: #fff; }
 
 /* ===== TOOLBAR ===== */
 .toolbar {

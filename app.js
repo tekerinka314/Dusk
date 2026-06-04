@@ -1498,7 +1498,53 @@ function openSnoozeMenu(event, id) {
     _openFloatMenu(event.currentTarget, `
         <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, '1h')">${IC.snooze}<span>+1 час</span></button>
         <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'tomorrow')">${IC.moon}<span>До завтра</span></button>
-        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'week')">${IC.sundial}<span>+1 неделя</span></button>`);
+        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'week')">${IC.sundial}<span>+1 неделя</span></button>
+        <div class="snooze-custom">
+            <input type="number" class="snooze-custom-input" id="snooze-custom-n" min="1" max="999" placeholder="N"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();_snoozeCustomApply(${id})}">
+            <div class="snooze-units">
+                <button type="button" class="snooze-unit active" data-u="h" onclick="_snoozeUnitPick(this)">ч</button>
+                <button type="button" class="snooze-unit" data-u="d" onclick="_snoozeUnitPick(this)">дн</button>
+                <button type="button" class="snooze-unit" data-u="w" onclick="_snoozeUnitPick(this)">нед</button>
+            </div>
+            <button type="button" class="snooze-custom-go" onclick="_snoozeCustomApply(${id})">ОК</button>
+        </div>`, 'snooze-with-custom');
+}
+
+function _snoozeUnitPick(btn) {
+    if (!_floatMenuEl) return;
+    _floatMenuEl.querySelectorAll('.snooze-unit').forEach(b => b.classList.toggle('active', b === btn));
+}
+function _snoozeCustomApply(id) {
+    const inp = document.getElementById('snooze-custom-n');
+    const n   = parseInt(inp && inp.value);
+    if (!n || n < 1) { if (inp) inp.focus(); return; }
+    const unitBtn = _floatMenuEl && _floatMenuEl.querySelector('.snooze-unit.active');
+    snoozeByRelative(id, n, unitBtn ? unitBtn.dataset.u : 'h');
+}
+// Postpone a deadline by a relative amount (n hours / days / weeks).
+function snoozeByRelative(id, n, unit) {
+    closeFloatMenu();
+    const task = state.tasks.find(t => t.id === id);
+    if (!task || !task.deadline) return;
+    pushUndo();
+    const time = _deadlineTimeOfDay(task.deadline);
+    let dl;
+    if (unit === 'h') {
+        const d = new Date(Date.now() + n * 3600000);
+        dl = { mode:'date', value:_ymd(d), time:`${_pad2(d.getHours())}:${_pad2(d.getMinutes())}` };
+    } else {
+        const days = unit === 'w' ? n * 7 : n;
+        const base = Math.max(getDeadlineTimestamp(task.deadline) || Date.now(), Date.now());
+        const d = new Date(base + days * 86400000);
+        dl = { mode:'date', value:_ymd(d) };
+        if (time) dl.time = time;
+    }
+    task.deadline = dl;
+    _notifiedDeadlines.delete(id);
+    saveState(); renderListOnly();
+    const u = { h:'ч', d:'дн', w:'нед' }[unit] || '';
+    showToast(`Дедлайн отложен на ${n} ${u}`, { undo: true });
 }
 
 // 6f: give every static colour swatch an accessible name (they only had a
@@ -2860,7 +2906,15 @@ function toggleCheck(id) {
         const li      = document.querySelector(`.task-item[data-id="${id}"]`);
         const checkEl = li && li.querySelector('.task-check');
         if (checkEl) {
+            // Swap to the FILLED coffin so the seal pulse reads as "sealed", then
+            // flash the row border — the ritual is now clearly visible (was pulsing
+            // the still-empty coffin, which looked like nothing happened).
+            checkEl.innerHTML = coffinSVG(21, true, false);
             checkEl.classList.add('sealing');
+            if (li) {
+                li.classList.add('seal-flash');
+                li.addEventListener('animationend', () => li.classList.remove('seal-flash'), { once: true });
+            }
             let sealed = false;
             const afterSeal = () => {
                 if (sealed) return; sealed = true;
@@ -2968,7 +3022,8 @@ function deleteGroup(id) {
             if (btn) btn.classList.remove('confirm-armed');
         }, 3000));
         if (btn) btn.classList.add('confirm-armed');
-        showToast('Нажмите ещё раз — удалить группу');
+        const n = state.tasks.filter(t => t.groupId === id).length;
+        showToast(n ? 'Нажмите ещё раз — удалить группу со всеми задачами' : 'Нажмите ещё раз — удалить группу');
         return;
     }
     // ── Fire ──
@@ -2977,7 +3032,8 @@ function deleteGroup(id) {
     if (btn) btn.classList.remove('confirm-armed');
 
     pushUndo();
-    state.tasks.forEach(t => { if (t.groupId === id) t.groupId = null; });
+    // Deleting a group deletes the tasks (and their subtasks) inside it.
+    state.tasks = state.tasks.filter(t => t.groupId !== id);
     state.groups = state.groups.filter(g => g.id !== id);
     // Clean up orphaned localStorage keys for this group
     localStorage.removeItem('groupCollapsed_' + id);
@@ -2990,7 +3046,7 @@ function deleteGroup(id) {
     // B6: remove any sort-mode override for this group
     if (state.sortModeOverrides) delete state.sortModeOverrides[String(id)];
     saveState(); render();
-    showToast('Группа удалена', { undo: true });
+    showToast('Группа удалена со всеми задачами', { undo: true });
 }
 
 // Idea 6: duplicate a group + all its tasks (new ids), placed right after it.
@@ -7016,13 +7072,14 @@ function shakeInput() {
 // ============================================================
 //  HASHTAGS & SEARCH HIGHLIGHT
 // ============================================================
+// Tags are written with a leading "*" (e.g. *дом). Highlighted + clickable.
 function highlightHashtags(html) {
-    return html.replace(/#([\wа-яёА-ЯЁ]+)/gu, '<span class="hashtag" onclick="filterByTag(\'#$1\')">#$1</span>');
+    return html.replace(/\*([\wа-яёА-ЯЁ]+)/gu, '<span class="hashtag" onclick="filterByTag(\'*$1\')">*$1</span>');
 }
 
-/** Extract all #tag strings from a text string. Returns lowercase array. */
+/** Extract all *tag strings from a text string. Returns lowercase array. */
 function extractTags(text) {
-    const matches = text.match(/#([\wа-яёА-ЯЁ]+)/gu) || [];
+    const matches = text.match(/\*([\wа-яёА-ЯЁ]+)/gu) || [];
     return [...new Set(matches.map(t => t.toLowerCase()))];
 }
 
@@ -7115,7 +7172,7 @@ function parseQuickInput(raw) {
         if (prioMap[key] !== undefined) { priority = prioMap[key]; return pre; }
         return m;
     });
-    text = text.replace(/(^|\s)~(\S+)/g, (m, pre, tok) => {
+    text = text.replace(/(^|\s)%(\S+)/g, (m, pre, tok) => {
         const dl = _parseQuickDate(tok);
         if (dl) { deadline = dl; return pre; }
         return m;
@@ -7163,8 +7220,8 @@ function _qaDetect() {
     if (!token) return null;
     const ch = token[0];
     if (ch === '!') return { type:'prio', query: token.slice(1), start:s, end:pos };
-    if (ch === '#') return { type:'tag',  query: token.slice(1), start:s, end:pos };
-    if (ch === '~') return { type:'date', query: token.slice(1), start:s, end:pos };
+    if (ch === '*') return { type:'tag',  query: token.slice(1), start:s, end:pos };
+    if (ch === '%') return { type:'date', query: token.slice(1), start:s, end:pos };
     return null;
 }
 
@@ -7184,20 +7241,23 @@ function _qaSuggest(type, query) {
             extractTags(t.text).forEach(tg => tags.add(tg));
             (t.subtasks || []).forEach(s => extractTags(s.text).forEach(tg => tags.add(tg)));
         });
-        const arr = [...tags].map(tg => tg.replace(/^#/, '')).filter(tg => !q || tg.includes(q)).sort();
-        const items = arr.slice(0, 8).map(tg => ({ label:'#'+tg, insert:'#'+tg }));
-        if (q && !arr.includes(q)) items.unshift({ label:'#'+query, insert:'#'+query, hint:'новый тег' });
+        const arr = [...tags].map(tg => tg.replace(/^\*/, '')).filter(tg => !q || tg.includes(q)).sort();
+        const items = arr.slice(0, 8).map(tg => ({ label:'*'+tg, insert:'*'+tg }));
+        if (q && !arr.includes(q)) items.unshift({ label:'*'+query, insert:'*'+query, hint:'новый тег' });
+        // Always show something so the dropdown appears (discoverability) even when
+        // there are no tags yet and nothing has been typed after the "*".
+        if (!items.length) items.push({ label:'Введите название тега…', insert:'', disabled:true });
         return items;
     }
     if (type === 'date') {
         const parsed = query ? _parseQuickDate(query) : null;
-        const out = parsed ? [{ label: formatDeadlineForm(parsed), insert:'~'+query, hint:'распознано' }] : [];
+        const out = parsed ? [{ label: formatDeadlineForm(parsed), insert:'%'+query, hint:'распознано' }] : [];
         const presets = [
-            { label:'Сегодня',      insert:'~сегодня' },
-            { label:'Завтра',       insert:'~завтра'  },
-            { label:'Через неделю', insert:'~+7d'     },
-            { label:'Понедельник',  insert:'~пн'      },
-            { label:'Суббота',      insert:'~сб'      },
+            { label:'Сегодня',      insert:'%сегодня' },
+            { label:'Завтра',       insert:'%завтра'  },
+            { label:'Через неделю', insert:'%+7d'     },
+            { label:'Понедельник',  insert:'%пн'      },
+            { label:'Суббота',      insert:'%сб'      },
         ].filter(o => !q || o.label.toLowerCase().includes(q));
         return out.concat(presets);
     }
@@ -7222,8 +7282,9 @@ function _qaRenderMenu() {
         document.body.appendChild(_qaMenuEl);
     }
     const { items, active } = _qaState;
-    _qaMenuEl.innerHTML = items.map((it, i) => `
-        <button type="button" role="option" class="qa-item${i === active ? ' active' : ''}" data-idx="${i}"
+    _qaMenuEl.innerHTML = items.map((it, i) => it.disabled
+        ? `<div class="qa-item qa-disabled"><span class="qa-dot qa-dot-blank"></span><span class="qa-label">${escHtml(it.label)}</span></div>`
+        : `<button type="button" role="option" class="qa-item${i === active ? ' active' : ''}" data-idx="${i}"
                 aria-selected="${i === active ? 'true' : 'false'}"
                 onmousedown="event.preventDefault()" onclick="_qaAccept(${i})" onmouseover="_qaHover(${i})">
             ${it.cls ? `<span class="qa-dot ${it.cls}"></span>` : `<span class="qa-dot qa-dot-blank"></span>`}
@@ -7255,6 +7316,7 @@ function _qaMove(dir) {
 function _qaAccept(idx) {
     if (!_qaState) return;
     const item = _qaState.items[idx]; if (!item) return;
+    if (!item.insert) return;   // informational/disabled row — nothing to insert
     const val = inputBox.value;
     const before = val.slice(0, _qaState.start);
     const after  = val.slice(_qaState.end);
@@ -7642,7 +7704,13 @@ function setupEventListeners() {
         if (e.key === 'Enter') addTask();
     });
     inputBox.addEventListener('input', _qaUpdate);
-    inputBox.addEventListener('blur', () => setTimeout(_qaClose, 150)); // allow item click first
+    inputBox.addEventListener('focus', () => {
+        const h = document.getElementById('qa-syntax-hint'); if (h) h.classList.add('show');
+    });
+    inputBox.addEventListener('blur', () => {
+        setTimeout(_qaClose, 150); // allow a typeahead item click to land first
+        const h = document.getElementById('qa-syntax-hint'); if (h) h.classList.remove('show');
+    });
     document.getElementById('note-modal-input').addEventListener('keydown', e => {
         if (e.key === 'Enter' && e.ctrlKey) confirmNote();
     });
