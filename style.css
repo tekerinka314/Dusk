@@ -2909,13 +2909,16 @@ textarea:focus-visible {
 .meta-tag-wrap:hover .btn-tag-clear,
 .meta-tag-wrap:focus-within .btn-tag-clear {
     width: 16px;
-    min-width: 16px;
+    /* NB: do NOT set min-width here. min-width isn't transitionable, so a
+       min-width:16px would clamp the used width to 16 on the very first frame
+       and the width animation would never be seen (instant reveal). Base keeps
+       min-width:0 so the width transition actually drives the open. */
     opacity: 1;
-    /* Transition declared HERE governs the REVEAL (base→hover): longer and
-       gently eased (soft onset + soft settle) so it opens smoothly, never sharp.
-       The hide uses the brisk base transition above. */
-    transition: width 0.72s cubic-bezier(0.2, 0, 0.2, 1),
-                opacity 0.72s cubic-bezier(0.2, 0, 0.2, 1);
+    /* Transition declared HERE governs the REVEAL (base→hover): fast but clearly
+       visible, gently eased so it opens smoothly rather than snapping. The hide
+       uses the brisk base transition above. */
+    transition: width 0.4s cubic-bezier(0.2, 0, 0.2, 1),
+                opacity 0.4s cubic-bezier(0.2, 0, 0.2, 1);
 }
 /* High enough specificity (0,4,0) to beat the per-variant base-colour rules
    below — otherwise the repeat pill's accent-hover override kept the ✕ purple on
