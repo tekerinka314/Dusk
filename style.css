@@ -3877,6 +3877,18 @@ textarea:focus-visible {
     pointer-events: auto;
 }
 
+/* S1-7: open-upward variant — when the trigger sits near the viewport bottom
+   (mirrors .dl-weekday-picker.open-up so the month list never spills offscreen). */
+.dl-month-picker.open-up .dl-month-list {
+    top: auto;
+    bottom: calc(100% + 5px);
+    transform-origin: bottom center;
+    transform: translateY(7px) scaleY(0.96);
+}
+.dl-month-picker.open.open-up .dl-month-list {
+    transform: translateY(0) scaleY(1);
+}
+
 .dl-month-option {
     padding: 10px 14px;
     font-family: var(--font-main);
@@ -4873,7 +4885,6 @@ kbd {
    BATCH 6 — NEW FEATURES
    ============================================================ */
 
-/* ── Streak counter ──────────────────────────────────────────── */
 /* ── Sort mode button overridden indicator in group ─────────── */
 .btn-group-sort.sort-overridden {
     opacity: 1;

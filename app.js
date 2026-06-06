@@ -8105,8 +8105,6 @@ function setupEventListeners() {
 //  SHORTCUTS HINT
 // ============================================================
 // UX-3: replaced auto-show-on-load with an always-accessible ? button.
-// showShortcutsHint() shim kept to avoid errors from any future callers.
-function showShortcutsHint() { /* no-op — hint is now toggled via btn-shortcuts-toggle */ }
 
 let _shortcutsHintOpen = false;
 
@@ -8512,6 +8510,12 @@ function initMonthPicker() {
     function openPicker() {
         if (isOpen) return;
         isOpen = true;
+        // S1-7: open upward when there isn't room below but there is above,
+        // so the list never spills past the viewport bottom on short screens.
+        const rect = trigger.getBoundingClientRect();
+        const listH = 224; // matches .dl-month-list max-height
+        const spaceBelow = window.innerHeight - rect.bottom;
+        picker.classList.toggle('open-up', spaceBelow < listH && rect.top > listH);
         picker.classList.add('open');
         trigger.setAttribute('aria-expanded', 'true');
         list.setAttribute('aria-hidden', 'false');
@@ -8523,7 +8527,7 @@ function initMonthPicker() {
     function closePicker() {
         if (!isOpen) return;
         isOpen = false;
-        picker.classList.remove('open');
+        picker.classList.remove('open', 'open-up');
         trigger.setAttribute('aria-expanded', 'false');
         list.setAttribute('aria-hidden', 'true');
     }

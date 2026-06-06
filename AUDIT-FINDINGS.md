@@ -38,6 +38,7 @@
 - `(P-C)` Блок 3: P-C — кольцевой бэкап (10 снимков, троттл 10 мин, дедуп, quota-safe) + готик-модалка «Точки восстановления» (песочные часы в тулбаре). Restore делает `pushUndo()` (откат отменяем). Логика проверена Node-тестом.
 - `(P-B)` Блок 4: P-B — вид «Сегодня» (`isTodayMode`, `isDueTodayOrOverdue`, тогл-арка в тулбаре). Предикат покрыт Node-тестом по всем режимам дедлайна.
 - `(P-D)` Блок 5: P-D — массовые группа/цвет/дедлайн в select-bar (переиспуск color/deadline модалок через bulk-флаги + мини-модалка групп).
+- `(polish)` Блок 6: S1-7 (month-picker open-up), G4-5 (удалён мёртвый showShortcutsHint + Streak-комментарий); S1-8 проверен — уже реализован (skip).
 
 Проверка: `node --check` чистый на каждом шаге; merge-арифметика — Node-тест.
 **Глазами в браузере проверить (накопилось):** two-step «Очистить архив»; Esc на всех модалках;
@@ -67,8 +68,8 @@ undo/redo (в т.ч. возврат архива); раскрытие/свора
 - [ ] **S1-6. Пять разных длительностей/easing у однотипных collapse.** extra-fields 0.42s, group-body 0.28s, sub-section 0.32s, sub-note 0.22s, schedule 0.28s. Свести на 2-3 motion-токена; идеально вместе с 6a. Риск: средний (тонко настроенные анимации).
 
 ### 🟡 Желательно
-- [ ] **S1-7. Month-picker без `open-up`.** `style.css:3826` (нет варианта вверх, в отличие от `.dl-weekday-picker` `3922`). На низком экране список месяца может уехать за вьюпорт.
-- [ ] **S1-8. Фокус при открытии deadline-модалки уходит на первую кнопку режима**, а не на активный инпут текущего режима. `openModalWithFocus` + `app.js:5257`.
+- [x] **S1-7. ИСПРАВЛЕНО.** Month-picker получил `open-up`: `openPicker` считает `spaceBelow<224 && rect.top>224` → класс `open-up`, `closePicker` его снимает; CSS `.dl-month-picker.open-up .dl-month-list` (bottom + bottom origin) зеркалит `.dl-weekday-picker`.
+- [skip] **S1-8. НЕ БАГ (проверено).** Фокус активного инпута УЖЕ реализован: `openDeadlineModal` после `openModalWithFocus` зовёт `_focusDeadlineModeInput(mode)` через двойной rAF (перебивает фокус первой кнопки). Функция фокусит нужный инпут для каждого режима.
 - [ ] **S1-9. `.task-item{overflow:hidden}` (`style.css:1627`)** — потолок для будущих inline-dropdown/тултипов на строке. Архитектурная заметка.
 - [ ] **S1-10. Дубль трёх+ готик-пикеров** (`initMonthPicker`/`initWeekdayPicker`/`initFormWeekdayPicker` + пикер repeat-модалки) ~95% идентичны → фабрика. (см. также Стадию 4)
 
@@ -128,7 +129,7 @@ undo/redo (в т.ч. возврат архива); раскрытие/свора
 ### 🟡 Желательно
 - [ ] **G4-3. Полный `render()` пересоздаёт все Sortable.** `setupSortables` `app.js:6222`. Смягчено `renderListOnly`+ленивые sub. Потолок масштаба → 7c/Svelte. Перф-замечание.
 - [x] **G4-4. `escHtml` не экранировал `'`** (`app.js:7148`). ИСПРАВЛЕНО: добавлен `.replace(/'/g,'&#39;')` — defense-in-depth.
-- [ ] **G4-5. Мёртвый/легаси-код:** `showShortcutsHint()` no-op (`app.js:7745`); CSS-заглушка Streak; скрытые `<select>` (group-select/dl-weekday/dl-month — нужны как value-источники, задокументировать). Сметать в 7c.
+- [x] **G4-5. ИСПРАВЛЕНО.** Удалён мёртвый `showShortcutsHint()` no-op (вызовов нет нигде) и осиротевший CSS-комментарий `/* Streak counter */`. Скрытые `<select>` (group-select/dl-weekday/dl-month) ОСТАВЛЕНЫ намеренно — они источники value для готик-пикеров (не мёртвый код).
 - [ ] **G4-6. 4+ постоянных `document`-click слушателя** (outside-click пикеров). Не течёт, но фабрика дропдаунов U-2 сведёт к одному делегированному.
 - [skip] **G4-7. НЕ БАГ (проверено 908482d).** `attachPlainPasteHandlers` делает `removeEventListener` перед `addEventListener` — дублей нет.
 
