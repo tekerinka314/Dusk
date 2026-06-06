@@ -2840,6 +2840,7 @@ function removeTask(id) {
 
     const li = document.querySelector(`.task-item[data-id="${id}"]`);
     if (li) {
+        li.style.setProperty('--row-h', li.scrollHeight + 'px'); // S1-1: real height for exit anim
         li.classList.add('removing');
         li.addEventListener('animationend', () => {
             render(); // DOM cleanup only — state already updated above
@@ -3528,6 +3529,7 @@ function restoreTask(id) {
             li.classList.remove('restoring'); // prevent fallback from re-firing
             doTransition();
         };
+        li.style.setProperty('--row-h', li.scrollHeight + 'px'); // S1-1: real height for exit anim
         li.classList.add('restoring');
         li.addEventListener('animationend', safeTransition, { once: true });
         setTimeout(safeTransition, 500);
@@ -4670,6 +4672,7 @@ function deleteTaskForever(id) {
     const li = document.querySelector(`.task-item[data-id="${id}"]`);
     if (li) {
         // Use removing-forever (vertical collapse) — semantically distinct from archive slide
+        li.style.setProperty('--row-h', li.scrollHeight + 'px'); // S1-1: real height for exit anim
         li.classList.add('removing-forever');
         li.addEventListener('animationend', () => {
             render(); // DOM cleanup only — state already updated above

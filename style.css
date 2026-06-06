@@ -1376,16 +1376,20 @@ body::after {
 
 /* Archive exit — slides right toward the sarcophagus nav tab.
    Semantically: "record laid to rest in the vault".           */
+/* S1-1: max-height uses --row-h (the row's real height, set by JS before the exit
+   class is added) instead of a hard-coded 80px — tall rows (open subtasks, note,
+   2-line text, meta tags) no longer snap to 80px on frame 0 before sliding out.
+   Falls back to 80px if JS didn't set the var. */
 @keyframes taskArchive {
-    0%   { opacity: 1;  transform: translateX(0)     scale(1);    max-height: 80px; margin-bottom: 5px; padding-top: 11px; padding-bottom: 11px; }
-    60%  { opacity: 0.3; transform: translateX(22px) scale(0.97); max-height: 80px; }
+    0%   { opacity: 1;  transform: translateX(0)     scale(1);    max-height: var(--row-h, 80px); margin-bottom: 5px; padding-top: 11px; padding-bottom: 11px; }
+    60%  { opacity: 0.3; transform: translateX(22px) scale(0.97); max-height: var(--row-h, 80px); }
     100% { opacity: 0;  transform: translateX(28px)  scale(0.95); max-height: 0;    margin-bottom: 0;   padding-top: 0;    padding-bottom: 0; }
 }
 
 /* Restore exit — mirror of taskArchive: slides LEFT, "record recalled from the vault". */
 @keyframes taskRestore {
-    0%   { opacity: 1;   transform: translateX(0)      scale(1);    max-height: 80px; margin-bottom: 5px; padding-top: 11px; padding-bottom: 11px; }
-    60%  { opacity: 0.3; transform: translateX(-22px)  scale(0.97); max-height: 80px; }
+    0%   { opacity: 1;   transform: translateX(0)      scale(1);    max-height: var(--row-h, 80px); margin-bottom: 5px; padding-top: 11px; padding-bottom: 11px; }
+    60%  { opacity: 0.3; transform: translateX(-22px)  scale(0.97); max-height: var(--row-h, 80px); }
     100% { opacity: 0;   transform: translateX(-28px)  scale(0.95); max-height: 0;    margin-bottom: 0;   padding-top: 0;    padding-bottom: 0; }
 }
 
@@ -1397,7 +1401,7 @@ body::after {
 /* Delete exit — collapses vertically, "consumed by darkness".
    Semantically different: annihilation, not preservation.     */
 @keyframes taskDelete {
-    0%   { opacity: 1;  transform: scaleY(1)    translateX(0);  max-height: 80px; margin-bottom: 5px; border-color: var(--border); }
+    0%   { opacity: 1;  transform: scaleY(1)    translateX(0);  max-height: var(--row-h, 80px); margin-bottom: 5px; border-color: var(--border); }
     25%  { border-color: rgba(220, 30, 70, 0.55); }
     100% { opacity: 0;  transform: scaleY(0.05) translateX(-4px); max-height: 0;    margin-bottom: 0;   padding: 0; }
 }
