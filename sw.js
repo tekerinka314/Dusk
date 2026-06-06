@@ -11,23 +11,32 @@
 // The CACHE name is still bumped per deploy only to garbage-collect old caches;
 // freshness no longer depends on remembering to bump it.
 const CACHE  = 'dusk-v2-swr';
-const ASSETS = [
+// G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
+// CORE is cached atomically (addAll) — these MUST be present for a reliable offline
+// boot. The 2.3 MB background is the most likely fetch to stall/fail on a slow first
+// load, and with addAll being all-or-nothing that would leave the app with NO offline
+// support at all. It's purely decorative, so it's cached best-effort instead and also
+// fills in lazily via the same-origin stale-while-revalidate path on first online view.
+const CORE_ASSETS = [
     './',
     './index.html',
     './style.css',
     './app.js',
     './manifest.json',
-    './bg-gothic.jpg',
     './icon-192.svg',
     './icon-512.svg',
     'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',
 ];
+const OPTIONAL_ASSETS = [
+    './bg-gothic.jpg',
+];
 
-// Install: pre-cache all shell assets
+// Install: core atomically; optional best-effort (failures ignored, never block install).
 self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE)
-            .then(c => c.addAll(ASSETS))
+            .then(c => c.addAll(CORE_ASSETS)
+                .then(() => Promise.allSettled(OPTIONAL_ASSETS.map(a => c.add(a)))))
             .then(() => self.skipWaiting())
     );
 });
@@ -54,6 +63,16 @@ function isReloadableShell(url) {
            /(\/|\.html|\.js|\.css)$/.test(url.pathname);
 }
 
+// G4-2: cheap change-detection from validators instead of reading the full body.
+// app.js (~390 KB) + style.css (~190 KB) were stringified and compared on EVERY
+// fetch. ETag/Last-Modified/Content-Length already capture "did this file change?"
+// for any normal server; we only fall back to a text diff when none are present.
+function shellSignature(resp) {
+    const h = resp.headers;
+    return [h.get('etag'), h.get('last-modified'), h.get('content-length')]
+        .map(v => v || '').join('|');
+}
+
 // Stale-while-revalidate for same-origin shell + the SortableJS CDN script.
 async function staleWhileRevalidate(request) {
     const url    = new URL(request.url);
@@ -64,14 +83,23 @@ async function staleWhileRevalidate(request) {
         // Cache successful same-origin responses and CORS-enabled CDN responses.
         if (resp && (resp.status === 200 || resp.type === 'opaque')) {
             const toStore = resp.clone();
-            // Notify only when a reloadable shell file's bytes actually changed.
+            // Notify only when a reloadable shell file actually changed.
             if (cached && isReloadableShell(url)) {
-                try {
-                    const [oldText, newText] = await Promise.all([
-                        cached.clone().text(), resp.clone().text(),
-                    ]);
-                    if (oldText !== newText) notifyClients();
-                } catch (_) { /* opaque/binary — skip diff */ }
+                const oldSig = shellSignature(cached);
+                const newSig = shellSignature(resp);
+                const haveValidators = oldSig !== '||' && newSig !== '||';
+                if (haveValidators) {
+                    if (oldSig !== newSig) notifyClients();
+                } else {
+                    // No ETag/Last-Modified/Content-Length (e.g. some dev servers) →
+                    // fall back to the full-text diff so updates aren't missed.
+                    try {
+                        const [oldText, newText] = await Promise.all([
+                            cached.clone().text(), resp.clone().text(),
+                        ]);
+                        if (oldText !== newText) notifyClients();
+                    } catch (_) { /* opaque/binary — skip diff */ }
+                }
             }
             cache.put(request, toStore);
         }
