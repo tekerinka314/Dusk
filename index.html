@@ -311,6 +311,16 @@
                             <circle cx="12" cy="20.5" r="0.9" stroke-width="1.3" opacity="0.65"/>
                         </svg>
                     </button>
+                    <!-- P-B: "Today" view — lancet-arch tablet with a marked day (today only) -->
+                    <button class="btn-tool" id="btn-today" onclick="toggleTodayMode()" title="Только на сегодня и просроченные">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 22V9.5C5 6.2 8.1 3.5 12 3.5C15.9 3.5 19 6.2 19 9.5V22Z"/>
+                            <line x1="3" y1="22" x2="21" y2="22" stroke-width="1.5"/>
+                            <line x1="5" y1="11.5" x2="19" y2="11.5" stroke-width="1.2" opacity="0.8"/>
+                            <circle cx="12" cy="16.5" r="2.6"/>
+                            <circle cx="12" cy="16.5" r="0.85" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </button>
                     <!-- P7: Split groups — gothic bifurcation rune (two lancet arches side by side) -->
                     <button class="btn-tool" id="btn-split-groups" onclick="toggleGroupSplitMode()" title="Разделить группы: активные / выполненные">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">

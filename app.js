@@ -571,6 +571,8 @@ let isScheduleMode   = false;       // global
 const scheduleModeGroups = new Set(); // per-group overrides (groupId numbers)
 // P7: Split groups mode — shows active/done as two collapsible zones inside each group
 let isGroupSplitMode = false;
+// P-B: "Today" view — show only tasks due today or overdue, ordered by deadline.
+let isTodayMode = false;
 
 // ---- DOM REFS ----
 const inputBox        = document.getElementById('input-box');
@@ -945,6 +947,7 @@ function loadUiState() {
     currentPage = localStorage.getItem(K_PAGE)   || 'main';
     isScheduleMode = localStorage.getItem('scheduleMode') === '1';
     isGroupSplitMode = localStorage.getItem('groupSplitMode') === '1';
+    isTodayMode = localStorage.getItem('todayMode') === '1';
     const smg = localStorage.getItem('scheduleModeGroups');
     if (smg) { try { JSON.parse(smg).forEach(id => scheduleModeGroups.add(id)); } catch(e){} }
     // Sort mode
@@ -965,6 +968,8 @@ function loadUiState() {
     btnFilter.classList.toggle('active', isFiltered);
     const schedBtn = document.getElementById('btn-schedule');
     if (schedBtn) schedBtn.classList.toggle('active', isScheduleMode);
+    const todayBtn = document.getElementById('btn-today');
+    if (todayBtn) todayBtn.classList.toggle('active', isTodayMode);
     const splitBtn = document.getElementById('btn-split-groups');
     if (splitBtn) splitBtn.classList.toggle('active', isGroupSplitMode);
     // Sort mode button
@@ -986,6 +991,7 @@ function saveUiState() {
     localStorage.setItem(K_EXPAND, expandOpen  ? '1' : '0');
     localStorage.setItem(K_PAGE,   currentPage);
     localStorage.setItem('scheduleMode', isScheduleMode ? '1' : '0');
+    localStorage.setItem('todayMode', isTodayMode ? '1' : '0');
     localStorage.setItem('scheduleModeGroups', JSON.stringify([...scheduleModeGroups]));
     localStorage.setItem('groupSplitMode', isGroupSplitMode ? '1' : '0');
     if (colorFilter) localStorage.setItem('dusk_colorFilter', colorFilter);
@@ -1228,8 +1234,16 @@ function renderTasks() {
             (t.subtasks && t.subtasks.some(s => s.text.toLowerCase().includes(query))));
         if (query && grouped.length === 0 && bf > 0) return;
 
-        const total    = allGrouped.length;
-        const done     = allGrouped.filter(t => t.checked || t.cycleChecked).length;
+        // P-B: in "Today" view drop tasks not due today/overdue; hide now-empty groups.
+        if (isTodayMode) {
+            grouped = grouped.filter(t => isDueTodayOrOverdue(t.deadline));
+            if (grouped.length === 0) return;
+        }
+
+        // Count badge reflects the visible scope: today's tasks in Today view, else the whole group.
+        const countSrc = isTodayMode ? grouped : allGrouped;
+        const total    = countSrc.length;
+        const done     = countSrc.filter(t => t.checked || t.cycleChecked).length;
         const collapsed = localStorage.getItem('groupCollapsed_' + group.id) === '1';
         const grpSched  = scheduleModeGroups.has(group.id);
         const effSched  = scheduleActive(group.id);
@@ -1331,10 +1345,27 @@ function getEffectiveSortMode(groupId) {
     return override ?? (state.sortMode || 'priority');
 }
 
+// P-B: a task belongs to the "Today" view if its deadline is overdue or falls
+// on the current calendar day. Coarse modes (month/year) are excluded unless
+// already overdue — "this month" is not "today".
+function isDueTodayOrOverdue(dl) {
+    if (!dl) return false;
+    if (deadlineStatus(dl) === 'over') return true;       // overdue always qualifies
+    const { mode } = dl;
+    if (mode === 'month' || mode === 'year') return false; // too coarse to be "today"
+    if (mode === 'time') return true;                      // a clock-time belongs to today
+    if (mode === 'weektime' && dl.timeSet === false) return weektimeDayDiff(dl) === 0;
+    const ts = getDeadlineTimestamp(dl);
+    if (ts === null) return false;
+    return calDayDiff(ts) === 0;                           // date / monthday / weektime(timeSet)
+}
+
 function filterAndSort(tasks, query, groupId = null) {
     let list = [...tasks];
     // Hide both permanently-done AND cycle-completed recurring tasks when filter is on.
     if (isFiltered) list = list.filter(t => !t.checked && !t.cycleChecked);
+    // P-B: "Today" view keeps only tasks due today or overdue.
+    if (isTodayMode) list = list.filter(t => isDueTodayOrOverdue(t.deadline));
     if (query) list = list.filter(t =>
         t.text.toLowerCase().includes(query) ||
         (t.note && t.note.toLowerCase().includes(query)) ||
@@ -1368,6 +1399,8 @@ function filterAndSort(tasks, query, groupId = null) {
 function filterAndSortDeadline(tasks, query) {
     let list = [...tasks];
     if (isFiltered) list = list.filter(t => !t.checked && !t.cycleChecked);
+    // P-B: "Today" view keeps only tasks due today or overdue.
+    if (isTodayMode) list = list.filter(t => isDueTodayOrOverdue(t.deadline));
     if (query) list = list.filter(t =>
         t.text.toLowerCase().includes(query) ||
         (t.note && t.note.toLowerCase().includes(query)) ||
@@ -1426,7 +1459,8 @@ function filterAndSortDeadline(tasks, query) {
 
 // Is schedule mode active for a given context (null = ungrouped)
 function scheduleActive(groupId) {
-    return isScheduleMode || (groupId != null && scheduleModeGroups.has(groupId));
+    // P-B: "Today" view is always deadline-ordered (schedule layout).
+    return isTodayMode || isScheduleMode || (groupId != null && scheduleModeGroups.has(groupId));
 }
 
 // ---- Sort Mode ----
@@ -6606,6 +6640,7 @@ function updateGroupCounts() {
     // I-19: build counts in a single O(N) pass, then apply in O(M) — was O(M*N).
     const counts = new Map();
     state.tasks.forEach(t => {
+        if (isTodayMode && !isDueTodayOrOverdue(t.deadline)) return; // P-B: badge matches Today scope
         const key = t.groupId;
         const c = counts.get(key) || { total: 0, done: 0 };
         c.total++;
@@ -6650,6 +6685,23 @@ function toggleScheduleMode(groupId) {
     }
     saveUiState();
     render();
+}
+
+// P-B: "Today" view — only tasks due today or overdue, deadline-ordered.
+function toggleTodayMode() {
+    isTodayMode = !isTodayMode;
+    const btn = document.getElementById('btn-today');
+    if (btn) btn.classList.toggle('active', isTodayMode);
+    saveUiState();
+    render();
+    showToast(isTodayMode ? 'Только на сегодня и просроченные' : 'Показаны все задачи');
+    if (isTodayMode) {
+        const visible = document.querySelectorAll(
+            '#list-container > .task-item, .group-body .task-item, .sched-zone-ul > .task-item').length;
+        announce(`На сегодня: ${visible} задач`);
+    } else {
+        announce('Показаны все задачи');
+    }
 }
 
 // ── P7: Split groups mode — divides each group into active / done zones ──────
@@ -7026,6 +7078,8 @@ function updateVisibility() {
     // so the empty-state plaque shows instead of a silent blank area.
     if (colorFilter) visibleTasks = visibleTasks.filter(t => t.color === colorFilter);
     if (focusGroupId !== null) visibleTasks = visibleTasks.filter(t => t.groupId === focusGroupId);
+    // P-B: Today view narrows the empty-state check to today's/overdue tasks.
+    if (isTodayMode) visibleTasks = visibleTasks.filter(t => isDueTodayOrOverdue(t.deadline));
     const noVisible = query
         ? !visibleTasks.some(t =>
             t.text.toLowerCase().includes(query) ||
