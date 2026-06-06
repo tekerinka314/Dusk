@@ -1986,6 +1986,85 @@ function bulkSetPriority(priority) {
     showToast('Приоритет изменён');
 }
 
+// ── P-D: bulk group / colour / deadline (parity with bulkSetPriority) ────────
+let bulkColorActive    = false;   // task-color modal is acting on the whole selection
+let bulkDeadlineActive = false;   // deadline modal is acting on the whole selection
+
+function bulkSetGroup(groupId) {
+    if (!selectedTaskIds.size) return;
+    pushUndo();
+    selectedTaskIds.forEach(id => {
+        const t = state.tasks.find(t => t.id === id);
+        if (t) t.groupId = groupId;
+    });
+    saveState();
+    closeBulkGroupModal();
+    const grp = groupId != null ? state.groups.find(g => g.id === groupId) : null;
+    toggleMainSelectMode(); // exit select mode and re-render
+    showToast(grp ? `Перемещено в «${grp.name}»` : 'Убрано из групп');
+}
+
+function bulkSetColor(color) {
+    if (!selectedTaskIds.size) return;
+    pushUndo();
+    selectedTaskIds.forEach(id => {
+        const t = state.tasks.find(t => t.id === id);
+        // Colour and priority are mutually exclusive accents — setting a colour clears priority.
+        if (t) { t.color = color || null; if (color) t.priority = 'none'; }
+    });
+    saveState();
+    toggleMainSelectMode();
+    showToast(color ? 'Метка установлена' : 'Метка снята');
+}
+
+function bulkSetDeadline(dl) {
+    if (!selectedTaskIds.size) return;
+    pushUndo();
+    selectedTaskIds.forEach(id => {
+        const t = state.tasks.find(t => t.id === id);
+        if (t) t.deadline = dl;
+    });
+    saveState();
+    toggleMainSelectMode();
+    showToast(dl ? 'Дедлайн установлен' : 'Дедлайн снят');
+}
+
+function openBulkColorModal() {
+    if (!selectedTaskIds.size) return;
+    bulkColorActive = true;
+    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s => s.classList.remove('active'));
+    openModalWithFocus('task-color-modal');
+}
+
+function openBulkDeadlineModal() {
+    if (!selectedTaskIds.size) return;
+    openDeadlineModal(null, true);
+}
+
+// ── Bulk group picker (small gothic modal listing group pills) ───────────────
+function openBulkGroupModal() {
+    if (!selectedTaskIds.size) return;
+    _renderBulkGroupList();
+    openModalWithFocus('bulk-group-modal');
+}
+function closeBulkGroupModal(event) {
+    if (!event || event.target === document.getElementById('bulk-group-modal')) {
+        closeModalWithAnim('bulk-group-modal');
+    }
+}
+function _renderBulkGroupList() {
+    const cont = document.getElementById('bulk-group-list');
+    if (!cont) return;
+    const pills = state.groups.map(g => {
+        const rgb = hexToRgb(g.color);
+        const bg  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.13)` : 'rgba(110,40,200,0.13)';
+        const bd  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.32)` : 'rgba(110,40,200,0.32)';
+        return `<button class="bulk-group-pill meta-tag group-pill" style="background:${bg};color:${g.color};border-color:${bd}"
+                    onclick="bulkSetGroup(${g.id})">${escHtml(g.name)}</button>`;
+    }).join('');
+    cont.innerHTML = `${pills}<button class="bulk-group-pill bulk-group-none" onclick="bulkSetGroup(null)">Без группы</button>`;
+}
+
 function renderGroupBar() {
     groupsList.innerHTML = '';
     state.groups.forEach(g => {
@@ -4869,6 +4948,7 @@ document.getElementById('modal-prio-selector').addEventListener('click', e => {
 // ─── Task color modal ────────────────────────────────────────────────────────
 function openTaskColorModal(id) {
     editingTaskId = id;
+    bulkColorActive = false;   // P-D: normal per-task open clears any stale bulk flag
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
     // FIX-1: block color editing when a priority is assigned
@@ -4882,6 +4962,7 @@ function openTaskColorModal(id) {
 
 function closeTaskColorModal(event) {
     if (!event || event.target === document.getElementById('task-color-modal')) {
+        bulkColorActive = false;   // P-D: cancelling bulk must not leak into the next open
         closeModalWithAnim('task-color-modal', () => { editingTaskId = null; });
         if (!event) editingTaskId = null;
     }
@@ -4890,6 +4971,13 @@ function closeTaskColorModal(event) {
 document.getElementById('task-color-picker').addEventListener('click', e => {
     const sw = e.target.closest('.color-swatch');
     if (!sw) return;
+    // P-D: bulk path applies the chosen colour to the whole selection.
+    if (bulkColorActive) {
+        bulkColorActive = false;
+        bulkSetColor(sw.dataset.color || null);
+        closeModalWithAnim('task-color-modal');
+        return;
+    }
     const task = state.tasks.find(t => t.id === editingTaskId);
     if (!task) return;
     pushUndo();
@@ -5479,11 +5567,13 @@ groupNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirm
 // ============================================================
 //  DEADLINE MODAL
 // ============================================================
-function openDeadlineModal(taskId) {
+function openDeadlineModal(taskId, bulk = false) {
     editingTaskId = taskId;
-    const existing = taskId !== null
-        ? (state.tasks.find(t => t.id === taskId) || {}).deadline
-        : formDeadline;
+    bulkDeadlineActive = bulk;   // P-D: when true, confirm applies to the whole selection
+    const existing = bulk ? null
+        : (taskId !== null
+            ? (state.tasks.find(t => t.id === taskId) || {}).deadline
+            : formDeadline);
 
     // If task has no existing deadline, restore last-used mode (default: 'time')
     const savedMode = localStorage.getItem(K_DL_MODE) || 'time';
@@ -5568,6 +5658,7 @@ function closeDeadlineModal(event) {
         const mn = document.getElementById('dl-monthday-note');
         if (mw) { mw.hidden = true; mw.textContent = ''; }
         if (mn) { mn.hidden = true; mn.textContent = ''; }
+        bulkDeadlineActive = false;   // P-D: cancelling bulk must not leak into the next open
         closeModalWithAnim('deadline-modal');
     }
 }
@@ -5685,6 +5776,7 @@ function clearDeadlineModal() {
 
 function confirmDeadline() {
     const mode = dlCurrentMode;
+    const wasBulk = bulkDeadlineActive;   // P-D: don't touch the add-form repeat state in bulk
     let value  = '';
     if (mode === 'time') {
         value = segInputs['dl-time']?.getValue() || document.getElementById('dl-time').value;
@@ -5725,8 +5817,8 @@ function confirmDeadline() {
             }
             editingTaskId = null;
         } else {
-            applyDeadline(dl);                       // form-creation path
-            updateRepeatAvailability(dl.mode);
+            applyDeadline(dl);                       // form-creation / bulk path
+            if (!wasBulk) updateRepeatAvailability(dl.mode);
         }
         closeModalWithAnim('deadline-modal');
         return;
@@ -5861,7 +5953,7 @@ function confirmDeadline() {
     applyDeadline(dl);
     closeModalWithAnim('deadline-modal');
     // Update repeat availability AFTER deadline is confirmed — not on tab click
-    if (targetId === null) updateRepeatAvailability(dl ? dl.mode : null);
+    if (targetId === null && !wasBulk) updateRepeatAvailability(dl ? dl.mode : null);
     if (dl && dl.mode === 'weektime' && targetId !== null) {
         const task = state.tasks.find(t => t.id === targetId);
         if (task && task.repeat === 'none') { task.repeat = 'weekly'; saveState(); }
@@ -5869,6 +5961,12 @@ function confirmDeadline() {
 }
 
 function applyDeadline(dl) {
+    if (bulkDeadlineActive) {                 // P-D: deadline modal opened for the selection
+        bulkDeadlineActive = false;
+        editingTaskId = null;
+        bulkSetDeadline(dl);
+        return;
+    }
     if (editingTaskId !== null) {
         const task = state.tasks.find(t => t.id === editingTaskId);
         if (task) {

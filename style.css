@@ -5077,6 +5077,25 @@ kbd {
     border-radius: 99px; padding: 1px 7px;
 }
 
+/* ── P-D: bulk group picker ──────────────────────────────────── */
+.modal-bulk-group { width: 360px; }
+.bulk-group-list {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 16px; max-height: 50vh; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent;
+}
+.bulk-group-pill {
+    cursor: pointer; border-width: 1px; border-style: solid;
+    font-family: var(--font-main); font-size: 13px;
+    transition: filter var(--transition), background var(--transition);
+}
+.bulk-group-pill:hover { filter: brightness(1.25); }
+.bulk-group-none {
+    background: var(--bg-input); color: var(--text-muted);
+    border-color: var(--border); border-radius: 99px; padding: 3px 12px;
+}
+.bulk-group-none:hover { background: var(--accent-dim); color: var(--text-primary); }
+
 /* ── Bulk priority buttons ───────────────────────────────────── */
 .prio-bulk-btn {
     display: inline-flex;

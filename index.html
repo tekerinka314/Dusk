@@ -454,6 +454,30 @@
                     <button class="btn-select-bar-restore prio-bulk-btn" onclick="bulkSetPriority('medium')" title="Средний приоритет"><span class="prio-dot prio-medium"></span></button>
                     <button class="btn-select-bar-restore prio-bulk-btn" onclick="bulkSetPriority('low')" title="Низкий приоритет"><span class="prio-dot prio-low"></span></button>
                     <button class="btn-select-bar-restore prio-bulk-btn" onclick="bulkSetPriority('none')" title="Без приоритета">—</button>
+                    <!-- P-D: bulk group / colour / deadline -->
+                    <button class="btn-select-bar-restore" onclick="openBulkGroupModal()" title="Переместить в группу">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 21V11C4 8 6 6 8 6C10 6 12 8 12 11V21"/>
+                            <path d="M12 21V11C12 8 14 6 16 6C18 6 20 8 20 11V21"/>
+                            <line x1="2" y1="21" x2="22" y2="21" stroke-width="1.4"/>
+                        </svg>
+                        Группа
+                    </button>
+                    <button class="btn-select-bar-restore" onclick="openBulkColorModal()" title="Цветовая метка">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="7"/>
+                            <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.35"/>
+                        </svg>
+                        Метка
+                    </button>
+                    <button class="btn-select-bar-restore" onclick="openBulkDeadlineModal()" title="Дедлайн">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                            <path d="M6 21V11.5C6 7.4 8.69 4 12 4C15.31 4 18 7.4 18 11.5V21"/>
+                            <line x1="3" y1="21" x2="21" y2="21"/>
+                            <path d="M9 21V15C9 12.8 10.34 11 12 11C13.66 11 15 12.8 15 15V21"/>
+                        </svg>
+                        Дедлайн
+                    </button>
                     <button class="btn-select-bar-restore btn-select-bar-archive" id="btn-bulk-archive"
                             onclick="bulkArchive()" disabled title="Архивировать отмеченные">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><use href="#icon-archive"/></svg>
@@ -1110,6 +1134,17 @@ if ('serviceWorker' in navigator) {
         <div class="backup-list" id="backup-list"></div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeBackupModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="bulk-group-modal" style="display:none" onclick="closeBulkGroupModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="bulk-group-modal-title">
+    <div class="modal modal-bulk-group">
+        <h3 class="modal-title" id="bulk-group-modal-title">Переместить в группу</h3>
+        <div class="bulk-group-list" id="bulk-group-list"></div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeBulkGroupModal()">Отмена</button>
         </div>
     </div>
 </div>
