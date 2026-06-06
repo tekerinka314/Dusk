@@ -954,6 +954,9 @@ function undo() {
     migrateTasks(state.tasks);
     migrateTasks(state.archive || []);
     saveState(); render();
+    // C3-1/C3-5: undo can restore archive contents (clear/delete-from-archive),
+    // so refresh the archive view + badge — render() only rebuilds the main list.
+    renderArchive(); updateArchiveBadge();
     // UX-4 + I-5: restore full form snapshot (text, note, priority, color,
     // repeat, deadline, group, subtasks) so the user can re-submit immediately.
     if (_undoFormSnapshot) {
@@ -1715,9 +1718,10 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             };
             migrateTasks(state.tasks);
             migrateTasks(state.archive || []);
-            undoStack = [];
-            saveState(); render();
-            showToast(`Импортировано: ${state.tasks.length} задач`);
+            // C3-2: do NOT wipe undoStack — pushUndo() above is the only safety net
+            // that lets the user undo a destructive "Replace" import.
+            saveState(); render(); updateArchiveBadge();
+            showToast(`Импортировано: ${state.tasks.length} задач`, { undo: true });
         };
 
         mergeBtn.onclick = () => {
@@ -1726,24 +1730,36 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             const idOffset = state.nextId;
             const gidOffset = state.nextGroupId;
             const sidOffset = state.nextSubId;
+            const baseOrder = state.tasks.length;
             // Remap IDs to avoid collisions
             const newGroups = (loaded.groups || []).map(sanitizeGroup).map(g => ({
                 ...g, id: g.id + gidOffset,
             }));
-            const newTasks = (loaded.tasks || []).map(sanitizeTask).map(t => ({
+            const remapTask = t => ({
                 ...t,
                 id:      t.id + idOffset,
                 groupId: t.groupId != null ? t.groupId + gidOffset : null,
                 subtasks: (t.subtasks || []).map(s => ({ ...s, id: (s.id || 0) + sidOffset })),
-                order:   t.order + state.tasks.length,
-            }));
+                // C3-3: guard missing order from older exports (was `t.order + len` → NaN).
+                order:   (t.order ?? 0) + baseOrder,
+            });
+            const newTasks   = (loaded.tasks   || []).map(sanitizeTask).map(remapTask);
+            // C3-4: merge must also bring the imported archive (was silently dropped).
+            const newArchive = (loaded.archive || []).map(sanitizeTask).map(remapTask);
             state.groups.push(...newGroups);
             state.tasks.push(...newTasks);
-            if (newTasks.length)  state.nextId      = Math.max(state.nextId,  ...newTasks.map(t => t.id + 1));
-            if (newGroups.length) state.nextGroupId = Math.max(state.nextGroupId, ...newGroups.map(g => g.id + 1));
+            state.archive.push(...newArchive);
+            // C3-2/C3-3: advance every counter past the highest imported id (tasks AND
+            // archive, plus their subtasks) so later-created records can't collide.
+            const allRecords = [...newTasks, ...newArchive];
+            if (allRecords.length) state.nextId   = Math.max(state.nextId,   ...allRecords.map(t => t.id + 1));
+            if (newGroups.length)  state.nextGroupId = Math.max(state.nextGroupId, ...newGroups.map(g => g.id + 1));
+            const allSubIds = allRecords.flatMap(t => (t.subtasks || []).map(s => s.id));
+            if (allSubIds.length)  state.nextSubId = Math.max(state.nextSubId, ...allSubIds.map(id => id + 1));
             migrateTasks(state.tasks);
-            saveState(); render();
-            showToast(`Добавлено: ${newTasks.length} задач`);
+            migrateTasks(state.archive);
+            saveState(); render(); updateArchiveBadge();
+            showToast(`Добавлено: ${newTasks.length} задач`, { undo: true });
         };
 
         cancelBtn.onclick = close;
@@ -1762,9 +1778,9 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         };
         migrateTasks(state.tasks);
         migrateTasks(state.archive || []);
-        undoStack = [];
-        saveState(); render();
-        showToast(`Импортировано: ${state.tasks.length} задач`);
+        // C3-2: keep the pre-import snapshot so Replace stays undoable.
+        saveState(); render(); updateArchiveBadge();
+        showToast(`Импортировано: ${state.tasks.length} задач`, { undo: true });
     }
 }
 
@@ -3501,20 +3517,46 @@ function restoreTask(id) {
 }
 
 function deleteFromArchive(id) {
+    // C3-5: a single permanent delete from the archive must be undoable like
+    // every other destructive action (the archive is the last safety net).
+    pushUndo();
     state.archive = state.archive.filter(a => a.id !== id);
     saveState(); renderArchive(); updateArchiveBadge();
-    showToast('Удалено из архива');
+    showToast('Удалено из архива', { undo: true });
 }
+
+// C3-1: two-step confirm for wiping the whole archive — mirrors clearAll().
+let _clearArchiveArmed = false;
+let _clearArchiveTimer = null;
 
 function clearArchive() {
     if (!state.archive.length) return;
-    // Reset select mode
+    const btn = document.getElementById('btn-clear-archive');
+
+    if (!_clearArchiveArmed) {
+        // ── Arm ──
+        _clearArchiveArmed = true;
+        if (btn) { btn.classList.add('confirm-armed'); btn.title = 'Нажмите ещё раз — очистить весь архив'; }
+        showToast('Нажмите ещё раз — очистить весь архив');
+        _clearArchiveTimer = setTimeout(() => {
+            _clearArchiveArmed = false;
+            if (btn) { btn.classList.remove('confirm-armed'); btn.title = ''; }
+        }, 3000);
+        return;
+    }
+    // ── Fire ──
+    clearTimeout(_clearArchiveTimer);
+    _clearArchiveArmed = false;
+    if (btn) { btn.classList.remove('confirm-armed'); btn.title = ''; }
+
+    // C3-1: snapshot before wiping so the whole archive can be restored.
+    pushUndo();
     selectMode = false; selectedArchiveIds.clear();
     const bar = document.getElementById('archive-select-bar');
     if (bar) bar.style.display = 'none';
     state.archive = [];
     saveState(); renderArchive(); updateArchiveBadge();
-    showToast('Архив очищен');
+    showToast('Архив очищен', { undo: true });
 }
 
 // ============================================================
@@ -7148,7 +7190,10 @@ function highlightSearch(html, query) {
 function escHtml(str) {
     return String(str)
         .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+        // G4-4: also escape single quotes — defense-in-depth for any value that
+        // ends up inside a single-quoted attribute (e.g. onclick="fn('...')").
+        .replace(/'/g,'&#39;');
 }
 
 // ============================================================
@@ -7570,11 +7615,15 @@ document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); undo(); return; }
 
     if (e.key === 'Escape') {
-        closeModalWithAnim('deadline-modal');
-        closeModalWithAnim('rename-group-modal');
-        closeModalWithAnim('repeat-modal');
-        closeModalWithAnim('task-color-modal');
-        closeGroupModal(); closeNoteModal(); closePrioModal(); closeTaskColorModal();
+        // S1-4: close the top-most OPEN modal — the old hard-coded list missed
+        // color-filter / templates / import-choice. Generic so future modals work too.
+        const openModals = [...document.querySelectorAll('.modal-overlay')]
+            .filter(m => m.style.display !== 'none' && !m.classList.contains('closing'));
+        if (openModals.length) {
+            closeModalWithAnim(openModals[openModals.length - 1].id);
+            return;
+        }
+        // No modal open → clear the keyboard-focus ring.
         _focusedTaskId = null;
         document.querySelectorAll('.task-item.kb-focused')
             .forEach(el => el.classList.remove('kb-focused'));
