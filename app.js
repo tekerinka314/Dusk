@@ -534,6 +534,7 @@ let soundEnabled     = false;
 let expandOpen       = false;
 let currentPage      = 'main';
 let undoStack        = [];
+let redoStack        = [];   // P-A: populated by undo(), cleared by any new pushUndo()
 let deadlineTimer    = null;
 let selectedColor    = '#6C8EF5';  // group color picker
 let selectedPriority = 'none';
@@ -946,10 +947,15 @@ function saveUiState() {
 function pushUndo() {
     undoStack.push(JSON.stringify(state));
     if (undoStack.length > 40) undoStack.shift();
+    // P-A: a fresh user action invalidates the redo timeline.
+    redoStack = [];
 }
 
 function undo() {
     if (!undoStack.length) { showToast('Нечего отменять'); return; }
+    // P-A: remember current state so the undo itself can be redone.
+    redoStack.push(JSON.stringify(state));
+    if (redoStack.length > 40) redoStack.shift();
     state = JSON.parse(undoStack.pop());
     migrateTasks(state.tasks);
     migrateTasks(state.archive || []);
@@ -1005,6 +1011,20 @@ function undo() {
         inputBox.selectionStart = inputBox.selectionEnd = inputBox.value.length;
     }
     showToast('Отменено');
+}
+
+// P-A: re-apply the most recently undone change. Mirror of undo() but without the
+// add-task form-restore nicety (redo is a pure state step). Ctrl+Shift+Z / Ctrl+Y.
+function redo() {
+    if (!redoStack.length) { showToast('Нечего повторить'); return; }
+    undoStack.push(JSON.stringify(state));
+    if (undoStack.length > 40) undoStack.shift();
+    state = JSON.parse(redoStack.pop());
+    migrateTasks(state.tasks);
+    migrateTasks(state.archive || []);
+    saveState(); render();
+    renderArchive(); updateArchiveBadge();
+    showToast('Повторено');
 }
 
 // ============================================================
@@ -7612,6 +7632,10 @@ function _matchKey(e, qwertyChar) {
 
 document.addEventListener('keydown', e => {
     // ── Global shortcuts (always active) ──────────────────────
+    // P-A: redo on Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y; undo on Ctrl/Cmd+Z.
+    // (Shift+Z must be checked before plain Z.)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyZ') { e.preventDefault(); redo(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY')               { e.preventDefault(); redo(); return; }
     if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); undo(); return; }
 
     if (e.key === 'Escape') {
