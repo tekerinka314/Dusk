@@ -2179,6 +2179,19 @@ body::after {
     /* inner wrapper so scrollHeight is measurable */
 }
 
+/* S1-2: honour reduced-motion for every JS-driven collapse. These are max-height
+   transitions (not @keyframes), so the keyframe-focused reduced-motion rules
+   elsewhere missed them. The JS finishers still run via onMaxHeightEnd()'s
+   fallback timer, so state stays consistent without the height animation. */
+@media (prefers-reduced-motion: reduce) {
+    .extra-fields,
+    .group-body,
+    .subtask-section,
+    .sub-note-wrapper {
+        transition: none !important;
+    }
+}
+
 /* ── Item 1: subtask progress bar ── */
 .sub-progress-bar-wrap {
     display: flex;

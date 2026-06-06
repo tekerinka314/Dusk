@@ -3582,6 +3582,29 @@ function clearArchive() {
 // ============================================================
 //  SUBTASK OPERATIONS
 // ============================================================
+// S1-5: run `cb` once when an element's max-height transition ends — OR after a
+// fallback timeout if `transitionend` never fires (reduced-motion sets
+// transition:none, or start==end height ⇒ no transition event). Returns a cancel()
+// that detaches the listener + timer WITHOUT running cb (for rapid re-toggle).
+function onMaxHeightEnd(el, cb, fallbackMs = 600) {
+    let done = false;
+    const onEnd = (e) => { if (e.propertyName === 'max-height') finish(); };
+    const finish = () => {
+        if (done) return; done = true;
+        el.removeEventListener('transitionend', onEnd);
+        clearTimeout(timer);
+        cb();
+    };
+    const cancel = () => {
+        if (done) return; done = true;
+        el.removeEventListener('transitionend', onEnd);
+        clearTimeout(timer);
+    };
+    el.addEventListener('transitionend', onEnd);
+    const timer = setTimeout(finish, fallbackMs);
+    return cancel;
+}
+
 function toggleSubtasksSection(taskId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -3589,25 +3612,22 @@ function toggleSubtasksSection(taskId) {
     const sec = document.getElementById(`sub-section-${taskId}`);
     const btn = document.querySelector(`.btn-subtask-toggle[data-tid="${taskId}"]`);
     if (sec) {
+        // S1-5: cancel any in-flight finisher before starting a new animation.
+        if (sec._collapseCancel) { sec._collapseCancel(); sec._collapseCancel = null; }
         if (task.subtasksOpen) {
             sec.classList.add('open');
             // 7b: lazily attach subtask DnD now the section is visible (setupSortables
             // skips collapsed sections to avoid hundreds of idle Sortable instances).
             if ((task.subtasks || []).length) initSubSortable(taskId);
             // Animate to actual height, then release to 'none' so content can grow freely.
-            // ANIM-2: use transitionend instead of setTimeout(320) — timers are inaccurate
-            // and can fire before/after the CSS transition completes.
             const inner = sec.querySelector('.sub-section-inner');
             if (inner) {
-                const h = inner.scrollHeight;
-                sec.style.maxHeight = h + 'px';
-                const _onOpened = (e) => {
-                    if (e.propertyName !== 'max-height') return;
-                    sec.removeEventListener('transitionend', _onOpened);
+                sec.style.maxHeight = inner.scrollHeight + 'px';
+                sec._collapseCancel = onMaxHeightEnd(sec, () => {
+                    sec._collapseCancel = null;
                     // Only unlock to 'none' if still open (not toggled back mid-animation)
                     if (task.subtasksOpen) sec.style.maxHeight = 'none';
-                };
-                sec.addEventListener('transitionend', _onOpened);
+                });
             }
         } else {
             // Collapse: pin the *current rendered* height first (not scrollHeight, which
@@ -3626,14 +3646,12 @@ function toggleSubtasksSection(taskId) {
                     sec.style.opacity = '0';
                 });
             });
-            const _onCollapsed = (e) => {
-                if (e.propertyName !== 'max-height') return;
-                sec.removeEventListener('transitionend', _onCollapsed);
+            sec._collapseCancel = onMaxHeightEnd(sec, () => {
+                sec._collapseCancel = null;
                 sec.classList.remove('open');
                 sec.style.maxHeight = '';
                 sec.style.opacity   = '';
-            };
-            sec.addEventListener('transitionend', _onCollapsed);
+            });
         }
     }
     if (btn) btn.classList.toggle('open', task.subtasksOpen);
@@ -5166,11 +5184,8 @@ function toggleGroupCollapse(id) {
     // on rapid re-click while animation is in progress.
     const isCurrentlyCollapsed = section.classList.contains('collapsed');
 
-    // Cancel any in-flight transitionend handler before starting a new animation.
-    if (body._collapseHandler) {
-        body.removeEventListener('transitionend', body._collapseHandler);
-        body._collapseHandler = null;
-    }
+    // S1-5: cancel any in-flight finisher before starting a new animation.
+    if (body._collapseCancel) { body._collapseCancel(); body._collapseCancel = null; }
 
     if (isCurrentlyCollapsed) {
         // ── Expand ──────────────────────────────────────────────────────────
@@ -5180,15 +5195,11 @@ function toggleGroupCollapse(id) {
         body.style.maxHeight = body.scrollHeight + 'px';
         body.style.opacity   = '1';
 
-        const _onOpen = (e) => {
-            if (e.propertyName !== 'max-height') return;
-            body.removeEventListener('transitionend', _onOpen);
-            body._collapseHandler = null;
+        body._collapseCancel = onMaxHeightEnd(body, () => {
+            body._collapseCancel = null;
             body.classList.add('unlocked');
             body.style.maxHeight = '';
-        };
-        body._collapseHandler = _onOpen;
-        body.addEventListener('transitionend', _onOpen);
+        });
         localStorage.setItem('groupCollapsed_' + id, '0');
     } else {
         // ── Collapse ─────────────────────────────────────────────────────────
@@ -5206,15 +5217,11 @@ function toggleGroupCollapse(id) {
             });
         });
 
-        const _onClose = (e) => {
-            if (e.propertyName !== 'max-height') return;
-            body.removeEventListener('transitionend', _onClose);
-            body._collapseHandler = null;
+        body._collapseCancel = onMaxHeightEnd(body, () => {
+            body._collapseCancel = null;
             body.classList.remove('expanded');
             body.style.maxHeight = '';
-        };
-        body._collapseHandler = _onClose;
-        body.addEventListener('transitionend', _onClose);
+        });
         localStorage.setItem('groupCollapsed_' + id, '1');
     }
     updateCollapseAllBtn();
@@ -6756,16 +6763,14 @@ function toggleExpand() {
         // ── Open: measure content height and animate to it ──────────
         extraFields.classList.add('open');
         extraFields.style.maxHeight = extraFields.scrollHeight + 'px';
-        // M-4: switch to 'none' only after the MAX-HEIGHT transition ends.
-        // Without the propertyName guard the listener fired on the faster opacity
-        // transition (0.30s) and set 'none' before max-height (0.42s) finished —
-        // a visible height "snap" on tall panels.
-        const _onExpandOpen = (e) => {
-            if (e.propertyName !== 'max-height') return;
-            extraFields.removeEventListener('transitionend', _onExpandOpen);
+        // M-4: switch to 'none' only after the MAX-HEIGHT transition ends (the
+        // propertyName filter inside onMaxHeightEnd avoids firing on the faster
+        // opacity transition). S1-5: fallback timer covers reduced-motion / no-op.
+        if (extraFields._collapseCancel) extraFields._collapseCancel();
+        extraFields._collapseCancel = onMaxHeightEnd(extraFields, () => {
+            extraFields._collapseCancel = null;
             if (expandOpen) extraFields.style.maxHeight = 'none';
-        };
-        extraFields.addEventListener('transitionend', _onExpandOpen);
+        });
     } else {
         // ── Close: pin current height first, then animate to 0 ──────
         extraFields.style.maxHeight = extraFields.scrollHeight + 'px';
@@ -7255,6 +7260,18 @@ function _parseQuickDate(tok) {
     if (wd[t]) return { mode:'weektime', value:`${wd[t]}|00:00`, timeSet:false };
     const mm = t.match(/^(\d{1,2}):(\d{2})$/);
     if (mm) { const h=+mm[1], mi=+mm[2]; if (h<24 && mi<60) return { mode:'time', value:`${_pad2(h)}:${_pad2(mi)}` }; }
+    // P-G: bare day-of-month (e.g. "15") → nearest future date with that day.
+    const dn = t.match(/^(\d{1,2})$/);
+    if (dn) {
+        const day = +dn[1];
+        if (day >= 1 && day <= 31) {
+            const d = new Date(today.getFullYear(), today.getMonth(), day);
+            if (d.getDate() === day) {
+                if (d < new Date(today.toDateString())) d.setMonth(d.getMonth() + 1);
+                if (d.getDate() === day) return { mode:'date', value:_ymd(d) };
+            }
+        }
+    }
     const rel = t.match(/^\+(\d+)(d|д|дн|w|н|нед)?$/);
     if (rel) { const n=+rel[1], u=rel[2]||'d'; const days=(u==='w'||u==='н'||u==='нед')?n*7:n; const d=new Date(); d.setDate(d.getDate()+days); return { mode:'date', value:_ymd(d) }; }
     const dm = t.match(/^(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?$/);
