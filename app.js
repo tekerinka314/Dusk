@@ -793,6 +793,56 @@ function playLoadAnimations() {
 // ============================================================
 function saveState() {
     localStorage.setItem(K_STATE, JSON.stringify(state));
+    try { maybeBackup(); } catch (_) { /* backups must never break a save */ }
+}
+
+// ============================================================
+//  RING-BUFFER BACKUPS  (P-C — safety net, rule #1 "never lose data")
+//  A throttled wrapper over saveState keeps the last N full-state
+//  snapshots in a separate LS key, so a bad import / mass-delete /
+//  future data migration can always be rolled back from the UI.
+// ============================================================
+const K_BACKUPS          = 'dusk_backups_v1';
+const BACKUP_RING_SIZE   = 10;               // keep the last 10 snapshots
+const BACKUP_THROTTLE_MS  = 10 * 60 * 1000;  // at most one auto-snapshot / 10 min
+
+function loadBackups() {
+    try { return JSON.parse(localStorage.getItem(K_BACKUPS)) || []; }
+    catch (_) { return []; }
+}
+
+/** Quota-safe write: on failure drop the oldest snapshot(s) and retry. */
+function persistBackups(arr) {
+    while (arr.length) {
+        try { localStorage.setItem(K_BACKUPS, JSON.stringify(arr)); return true; }
+        catch (_) { arr.shift(); }
+    }
+    try { localStorage.removeItem(K_BACKUPS); } catch (_) {}
+    return false;
+}
+
+/**
+ * Capture a snapshot of the just-saved state, throttled by time.
+ * Skips storing a duplicate when nothing changed since the last snapshot.
+ */
+function maybeBackup() {
+    const backups = loadBackups();
+    const last = backups[backups.length - 1];
+    const now = Date.now();
+    if (last && now - last.ts < BACKUP_THROTTLE_MS) return;
+    const json = JSON.stringify(state);
+    if (last && last.json === json) { last.ts = now; persistBackups(backups); return; }
+    backups.push({
+        ts: now,
+        json,
+        counts: {
+            tasks:   Array.isArray(state.tasks)   ? state.tasks.length   : 0,
+            groups:  Array.isArray(state.groups)  ? state.groups.length  : 0,
+            archive: Array.isArray(state.archive) ? state.archive.length : 0,
+        },
+    });
+    while (backups.length > BACKUP_RING_SIZE) backups.shift();
+    persistBackups(backups);
 }
 
 function loadState() {
@@ -3226,6 +3276,75 @@ function _renderTemplatesList() {
             <button class="template-del" onclick="deleteTemplate(${t.id})" title="Удалить шаблон">${IC.skull}</button>
         </div>`;
     }).join('');
+}
+
+// ============================================================
+//  BACKUP RESTORE MODAL  (P-C)
+// ============================================================
+function _formatBackupAge(ts) {
+    const min = Math.floor((Date.now() - ts) / 60000);
+    if (min < 1)  return 'только что';
+    if (min < 60) return `${min} мин назад`;
+    const hrs = Math.floor(min / 60);
+    if (hrs < 24) return `${hrs} ч назад`;
+    const days = Math.floor(hrs / 24);
+    return `${days} дн назад`;
+}
+function _formatBackupStamp(ts) {
+    const d = new Date(ts);
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function openBackupModal() {
+    _renderBackupList();
+    openModalWithFocus('backup-modal');
+}
+function closeBackupModal(event) {
+    if (!event || event.target === document.getElementById('backup-modal')) {
+        closeModalWithAnim('backup-modal');
+    }
+}
+function _renderBackupList() {
+    const cont = document.getElementById('backup-list');
+    if (!cont) return;
+    const backups = loadBackups().slice().reverse(); // newest first
+    if (!backups.length) {
+        cont.innerHTML = '<p class="backups-empty">Точек восстановления пока нет</p>';
+        return;
+    }
+    cont.innerHTML = backups.map(b => {
+        const c = b.counts || {};
+        const bits = [`${c.tasks ?? '?'} задач`, `${c.groups ?? '?'} групп`, `${c.archive ?? '?'} в архиве`];
+        return `<div class="backup-item">
+            <button class="backup-restore" onclick="restoreBackup(${b.ts})" title="Восстановить это состояние">
+                <span class="backup-when">
+                    <span class="backup-age">${_formatBackupAge(b.ts)}</span>
+                    <span class="backup-stamp">${_formatBackupStamp(b.ts)}</span>
+                </span>
+                <span class="backup-meta">${bits.map(x => `<span class="backup-bit">${x}</span>`).join('')}</span>
+            </button>
+        </div>`;
+    }).join('');
+}
+
+function restoreBackup(ts) {
+    const snap = loadBackups().find(b => b.ts === ts);
+    if (!snap) { showToast('Точка восстановления не найдена'); return; }
+    let loaded;
+    try { loaded = JSON.parse(snap.json); }
+    catch (_) { showToast('Снимок повреждён'); return; }
+    pushUndo(); // restoring is itself undoable — the current state is never lost
+    state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...loaded };
+    migrateTasks(state.tasks);
+    migrateTasks(state.archive);
+    saveState();
+    render();
+    renderArchive();
+    updateArchiveBadge();
+    updateTemplatesBtn();
+    closeModalWithAnim('backup-modal');
+    showToast('Состояние восстановлено', { undo: true });
 }
 
 // ---- Repeating tasks ----

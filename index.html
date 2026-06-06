@@ -388,6 +388,16 @@
                         </svg>
                     </button>
                     <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+                    <!-- Restore points (gothic hourglass — saved states in time) -->
+                    <button class="btn-tool" onclick="openBackupModal()" title="Точки восстановления">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="6" y1="3.5" x2="18" y2="3.5"/>
+                            <line x1="6" y1="20.5" x2="18" y2="20.5"/>
+                            <path d="M7.5 3.5 C7.5 3.5 11 8.5 12 12 C13 15.5 16.5 20.5 16.5 20.5"/>
+                            <path d="M16.5 3.5 C16.5 3.5 13 8.5 12 12 C11 15.5 7.5 20.5 7.5 20.5"/>
+                            <path d="M8.8 19 Q12 14.8 15.2 19" fill="currentColor" stroke="none" opacity="0.8"/>
+                        </svg>
+                    </button>
                     <button class="btn-tool" id="btn-archive-all" onclick="archiveAll()" title="Архивировать всё"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><use href="#icon-archive"/></svg></button>
                     <button class="btn-tool btn-danger" onclick="clearAll()" title="Удалить всё навсегда">
                         <!-- Skull icon inline -->
@@ -1078,6 +1088,18 @@ if ('serviceWorker' in navigator) {
         <div class="templates-list" id="templates-list"></div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeTemplatesModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="backup-modal" style="display:none" onclick="closeBackupModal(event)"
+     role="dialog" aria-modal="true" aria-labelledby="backup-modal-title">
+    <div class="modal modal-backups">
+        <h3 class="modal-title" id="backup-modal-title">Точки восстановления</h3>
+        <p class="backups-desc">Автоснимки сохраняются по ходу работы. Выбери, чтобы откатиться — текущее состояние можно вернуть отменой.</p>
+        <div class="backup-list" id="backup-list"></div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeBackupModal()">Закрыть</button>
         </div>
     </div>
 </div>
