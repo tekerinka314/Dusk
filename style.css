@@ -1137,20 +1137,27 @@ body::after {
 
 /* ===== TOOLBAR ===== */
 .toolbar {
+    /* Stacked layout: search on its own full-width row, tool buttons on the row below.
+       A single horizontal row could not fit the search field + all tool buttons, so the
+       search shrank to nothing and the buttons spilled past the right border. */
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--bg-toolbar);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 14px;
+    /* The same dark, violet-tinted surface every other control in the app uses —
+       not the light glass slab (read as detached) the previous pass introduced. */
+    background: var(--bg-input);
     border-radius: var(--radius-md);
     margin-bottom: 15px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-mid);
+    box-shadow: inset 0 1px 0 rgba(200, 140, 255, 0.05);
     backdrop-filter: blur(8px);
 }
 
 .search-wrap {
-    flex: 2;
-    min-width: 180px;
+    flex: 0 0 auto;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1177,7 +1184,47 @@ body::after {
 }
 #search-box::placeholder { color: var(--text-muted); font-style: italic; }
 
-.toolbar-actions { display: flex; gap: 4px; }
+/* Tool buttons live in labelled clusters (вид / фильтр / выбор / данные) separated
+   by hairline gothic dividers, distributed edge-to-edge so the row reads as an
+   intentional, structured bar rather than a scattered handful of icons. */
+.toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 8px 0;
+}
+.toolbar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 0 18px;
+    position: relative;
+}
+.toolbar-group:first-child { padding-left: 6px; }
+.toolbar-group:last-child  { padding-right: 6px; }
+/* Hairline divider between adjacent clusters — fades at top/bottom like the card's seams */
+.toolbar-group + .toolbar-group::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 16px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(160, 80, 255, 0.32) 30%, rgba(160, 80, 255, 0.32) 70%, transparent);
+}
+.toolbar-group-btns { display: flex; gap: 5px; }
+.toolbar-group-label {
+    font-family: var(--font-label);
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    opacity: 0.85;
+    user-select: none;
+    pointer-events: none;
+}
 .btn-tool {
     width: 33px;
     height: 33px;
@@ -1623,7 +1670,12 @@ body::after {
     border-radius: var(--radius-md);
     margin-bottom: 5px;
     border: 1px solid var(--border);
-    border-left: 2px solid transparent;
+    border-left: 3px solid transparent;
+    /* The ONLY glow a task carries is a small, subtle bleed just left of its stripe,
+       coloured to match it. Set per stripe-type via --stripe-glow; transparent by
+       default (plain tasks have no glow). Kept consistent across hover too. */
+    --stripe-glow: 0 0 transparent;
+    box-shadow: var(--stripe-glow);
     transition: background var(--transition), border-color var(--transition),
                 box-shadow var(--transition), opacity 0.25s ease;
     position: relative;
@@ -1683,7 +1735,8 @@ body::after {
 .task-item:hover {
     background: var(--bg-item-hover);
     border-color: var(--border-mid);
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(80, 20, 160, 0.08);
+    /* depth shadow only — no ambient purple glow; the stripe glow persists */
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4), var(--stripe-glow);
 }
 /* ANIM-4: while the entrance animation is running, don't respond to hover
    so the fade-in and background-hover don't fight each other visually. */
@@ -1694,43 +1747,156 @@ body::after {
     transition: none;
 }
 
-/* Priority stripe */
-.task-item[data-prio="high"]   { border-left-color: var(--prio-high);   box-shadow: -2px 0 8px rgba(220, 30, 70, 0.18); }
-.task-item[data-prio="medium"] { border-left-color: var(--prio-medium); box-shadow: -2px 0 8px rgba(210, 120, 20, 0.15); }
-.task-item[data-prio="low"]    { border-left-color: var(--prio-low);    box-shadow: -2px 0 8px rgba(40, 200, 80, 0.12); }
+/* Priority stripe — colour the border + a small glow ONLY to the left of it.
+   The negative spread (== blur) collapses the shadow vertically so it never
+   bleeds past the top/bottom edges; only the left x-offset escapes the box. */
+.task-item[data-prio="high"]   { border-left-color: var(--prio-high);   --stripe-glow: -5px 0 5px -5px rgba(220, 30, 70, 0.60); }
+.task-item[data-prio="medium"] { border-left-color: var(--prio-medium); --stripe-glow: -5px 0 5px -5px rgba(210, 120, 20, 0.55); }
+.task-item[data-prio="low"]    { border-left-color: var(--prio-low);    --stripe-glow: -5px 0 5px -5px rgba(40, 200, 80, 0.48); }
 
 /* ── Task color label — custom left stripe via CSS var ──────────────────────
    Set by JS: li.style.setProperty('--task-color', '#hex') when task.color exists. */
 .task-item:has(> [style*="--task-color"]),
 .task-item[style*="--task-color"] {
     border-left-color: var(--task-color, transparent);
-    box-shadow: -2px 0 8px color-mix(in srgb, var(--task-color, transparent) 30%, transparent);
+    --stripe-glow: -5px 0 5px -5px color-mix(in srgb, var(--task-color, transparent) 65%, transparent);
 }
 
 /* Task color picker in modal */
+/* Recommended presets — fixed 5-column grid → always a symmetric 5×2 block */
 .task-color-picker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    padding: 4px 0 8px;
-}
-.task-color-clear {
-    background: var(--bg-item) !important;
-    border: 1px solid var(--border-mid) !important;
-    color: var(--text-secondary);
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.task-color-clear.active {
-    border-color: var(--accent) !important;
-    color: var(--accent);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 11px;
+    justify-items: center;
+    padding: 6px 0 12px;
 }
 .btn-task-color {
     transition: color var(--transition), opacity var(--transition);
 }
+
+/* ── Gothic custom-colour spectrum (RGB picker) ───────────────────────────── */
+.modal.modal-color { width: 348px; max-width: calc(100vw - 24px); }
+.gothic-rgb {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+}
+/* 2D saturation (x) / value (y) pad — base hue set by JS via --grgb-hue */
+.grgb-pad {
+    position: relative;
+    width: 100%;
+    height: 116px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    cursor: crosshair;
+    touch-action: none;
+    background:
+        linear-gradient(to top, #000, transparent),
+        linear-gradient(to right, #fff, transparent),
+        hsl(var(--grgb-hue, 270), 100%, 50%);
+    box-shadow: inset 0 0 18px rgba(0,0,0,0.35);
+}
+.grgb-thumb {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 0 6px rgba(0,0,0,0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+/* Hue band — styled native range so it stays keyboard/touch accessible */
+.grgb-hue {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 14px;
+    border-radius: 7px;
+    border: 1px solid var(--border-mid);
+    background: linear-gradient(to right,
+        #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+    cursor: pointer;
+}
+.grgb-hue::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 20px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #f0e8ff, #b880e8);
+    border: 1px solid rgba(20,8,40,0.8);
+    box-shadow: 0 0 6px rgba(160,80,255,0.6);
+    cursor: pointer;
+}
+.grgb-hue::-moz-range-thumb {
+    width: 12px;
+    height: 20px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #f0e8ff, #b880e8);
+    border: 1px solid rgba(20,8,40,0.8);
+    box-shadow: 0 0 6px rgba(160,80,255,0.6);
+    cursor: pointer;
+}
+.grgb-foot {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+.grgb-preview {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    flex-shrink: 0;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.4);
+}
+.grgb-hex {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    min-width: 64px;
+}
+.grgb-apply {
+    margin-left: auto;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(140, 60, 255, 0.45);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+.grgb-apply:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 12px rgba(140,60,255,0.3); }
+.grgb-clear {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 11px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+.grgb-clear svg { width: 13px; height: 13px; flex-shrink: 0; }
+.grgb-clear:hover { color: var(--text-secondary); border-color: var(--border-bright); background: var(--bg-input); }
 
 /* ── Pinned task visual — dagger stripe on left, faint ethereal glow ───────── */
 .task-item.pinned:not(.checked):not(.cycle-checked) {
@@ -3424,7 +3590,64 @@ textarea:focus-visible {
     letter-spacing: 1px;
     white-space: nowrap;
 }
-.select-bar-actions { display: flex; gap: 6px; align-items: center; }
+.select-bar-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+/* ── Main bulk-select bar — mirrors the toolbar: a centred row of compact square
+   icon-buttons in clustered groups split by hairline gothic dividers, with the
+   count as a leading title. No space-between (which left a dead gap in the middle)
+   and no wide text pills (which wrapped into two ragged rows). ───────────────── */
+.main-select-bar {
+    justify-content: center;   /* override archive bar's space-between → no centre void */
+    gap: 14px;
+}
+.main-select-bar .select-bar-count {
+    flex-shrink: 0;
+    padding-right: 2px;
+}
+.main-select-bar .select-bar-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 0;
+}
+.select-bar-group { display: flex; align-items: center; gap: 6px; padding: 0 12px; position: relative; }
+.select-bar-group:first-child { padding-left: 0; }
+.select-bar-group + .select-bar-group::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(160, 80, 255, 0.32) 28%, rgba(160, 80, 255, 0.32) 72%, transparent);
+}
+/* Square icon button — same footprint/feel as the toolbar's .btn-tool */
+.sb-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: color var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+}
+.sb-btn svg { width: 15px; height: 15px; }
+.sb-btn:hover:not(:disabled) { color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.5); background: var(--accent-dim); }
+.sb-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+.sb-btn.sb-prio-none { font-family: var(--font-label); font-size: 15px; color: var(--text-muted); }
+.sb-archive:hover:not(:disabled) { color: var(--accent-hover); }
+.sb-delete { border-color: rgba(200, 40, 60, 0.32); color: var(--prio-high); }
+.sb-delete:hover:not(:disabled) { background: rgba(200, 30, 50, 0.18); border-color: rgba(230, 60, 80, 0.55); color: var(--prio-high); }
+.sb-delete.confirm-armed {
+    background: rgba(200, 30, 50, 0.28);
+    border-color: rgba(230, 60, 80, 0.8);
+    animation: dangerPulse 0.5s ease infinite alternate;
+}
+.main-select-bar .btn-select-bar-cancel { margin-left: 4px; }
 .btn-select-bar-cancel {
     padding: 6px 13px;
     border-radius: var(--radius-sm);
@@ -3455,6 +3678,7 @@ textarea:focus-visible {
     transition: all var(--transition);
     letter-spacing: 1px;
     text-transform: uppercase;
+    white-space: nowrap; /* keep multi-word labels ("В архив") on one line so the button never grows taller than its row-mates */
 }
 .btn-select-bar-restore svg { width: 11px; height: 11px; flex-shrink: 0; }
 .btn-select-bar-restore:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 12px rgba(140,60,255,0.3); }
@@ -3571,11 +3795,14 @@ textarea:focus-visible {
 /* Form color picker — compact row in extra-fields */
 .field-color-form { min-width: 0; }
 .form-color-picker {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    /* Fixed 6-column grid → a symmetric 6×2 block (10 presets + "без цвета" + the
+       custom-spectrum crystal), instead of a ragged wrapping flex row. */
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 9px 6px;
+    justify-items: center;
     align-items: center;
-    padding: 3px 0;
+    padding: 4px 0 2px;
 }
 .form-color-swatch {
     width: 20px;
@@ -3607,28 +3834,33 @@ textarea:focus-visible {
     box-shadow: 0 0 6px rgba(160, 80, 255, 0.35);
     color: var(--accent-hover);
 }
-
-/* FIX-1: Disabled color picker when priority is set */
-.form-color-picker.color-picker-prio-disabled {
-    opacity: 0.28;
-    pointer-events: none;
-    cursor: not-allowed;
-    filter: grayscale(0.5);
-    position: relative;
+/* Custom-spectrum crystal — opens the colour modal; matches a swatch's footprint.
+   Default: a clean violet crystal glyph on dark (the "open spectrum" affordance).
+   When a custom colour is chosen, the button fills with that colour like a preset
+   swatch (glyph hidden, white selection ring) so the pick reads clearly. */
+.form-color-custom {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border-mid);
+    background: var(--bg-item);
+    color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition), color var(--transition);
 }
-.form-color-picker.color-picker-prio-disabled::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    cursor: not-allowed;
-    pointer-events: all;
+.form-color-custom svg { display: block; }
+.form-color-custom:hover { transform: scale(1.18); color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.6); }
+.form-color-custom.has-color {
+    border-color: rgba(255, 255, 255, 0.7);
+    transform: scale(1.12);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
 }
-/* Disabled task color button when priority is assigned */
-.btn-task-color.color-btn-prio-disabled {
-    opacity: 0.25;
-    cursor: not-allowed;
-    pointer-events: none;
-}
+.form-color-custom.has-color svg { display: none; }
 
 .modal-actions {
     display: flex;
@@ -3651,6 +3883,11 @@ textarea:focus-visible {
     text-transform: uppercase;
 }
 .btn-modal-cancel:hover { background: var(--bg-input); border-color: var(--border-bright); color: var(--text-primary); }
+/* "Без цвета" — same weight/brightness as Отмена, with a gothic ⊘ glyph; sits in the
+   colour modal's action row so the modal has no dangling empty space below the spectrum. */
+.btn-modal-clear { display: inline-flex; align-items: center; gap: 7px; }
+.btn-modal-clear svg { width: 14px; height: 14px; flex-shrink: 0; }
+.modal-color .modal-actions { justify-content: flex-end; margin-top: 14px; }
 
 .btn-modal-danger {
     padding: 7px 16px;
@@ -4495,8 +4732,11 @@ kbd {
 /* R-1: 600-820px gap — iPad mini / landscape phones. Toolbar has 8+ buttons and
    can overflow horizontally without this breakpoint. */
 @media (max-width: 640px) {
-    .toolbar { flex-wrap: wrap; gap: 6px; }
-    .toolbar-actions { flex-wrap: wrap; gap: 3px; }
+    .toolbar { gap: 8px; }
+    /* On narrow screens centre the wrapped clusters so a half-empty last row
+       doesn't get stretched apart by space-between. */
+    .toolbar-actions { justify-content: center; gap: 8px 0; }
+    .toolbar-group { padding: 0 9px; }
     .btn-tool { width: 30px; height: 30px; }
     .btn-tool svg { width: 13px; height: 13px; }
     .search-wrap { min-width: 0; }
@@ -5107,26 +5347,11 @@ kbd {
 }
 .bulk-group-none:hover { background: var(--accent-dim); color: var(--text-primary); }
 
-/* ── Bulk priority buttons ───────────────────────────────────── */
-.prio-bulk-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 9px;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text-muted);
-    font-family: var(--font-label);
-    font-size: 10px;
-    cursor: pointer;
-    transition: background var(--transition), border-color var(--transition);
-}
-.prio-bulk-btn:hover { background: var(--bg-item-hover); border-color: var(--accent); }
-.prio-bulk-btn .prio-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.prio-bulk-btn .prio-dot.prio-high   { background: var(--prio-high); }
-.prio-bulk-btn .prio-dot.prio-medium { background: var(--prio-medium); }
-.prio-bulk-btn .prio-dot.prio-low    { background: var(--prio-low); }
+/* ── Bulk priority buttons — box comes from .sb-btn; this only owns the dot ──── */
+.prio-bulk-btn .prio-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px currentColor; }
+.prio-bulk-btn .prio-dot.prio-high   { background: var(--prio-high);   color: var(--prio-high); }
+.prio-bulk-btn .prio-dot.prio-medium { background: var(--prio-medium); color: var(--prio-medium); }
+.prio-bulk-btn .prio-dot.prio-low    { background: var(--prio-low);    color: var(--prio-low); }
 
 /* ============================================================
    BATCH 7 — SUBTASK SPLIT, MONTHLY REPEAT, FORM ANCHORS,

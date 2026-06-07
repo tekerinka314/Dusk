@@ -1033,11 +1033,8 @@ function undo() {
         document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.prio === selectedPriority));
 
-        // Color
-        selectedFormColor = snap.color || null;
-        document.querySelectorAll('#form-color-picker .form-color-swatch').forEach(s =>
-            s.classList.toggle('active', s.dataset.color === (snap.color || '')));
-        _syncFormColorPickerState();
+        // Color (reflects presets + the custom crystal button)
+        _setFormColor(snap.color || null);
 
         // Repeat
         setFormRepeat(snap.repeat || 'none');
@@ -1974,12 +1971,22 @@ function initGroupDnD() {
 }
 
 // ---- Bulk priority change ----
+// Shared guard for every bulk entry point — nudges the user instead of silently no-op'ing
+// when they trigger a bulk action with nothing selected.
+function _requireSelection() {
+    if (!selectedTaskIds.size) { showToast('Сначала выберите задачи'); return false; }
+    return true;
+}
+
 function bulkSetPriority(priority) {
-    if (!selectedTaskIds.size) return;
+    if (!_requireSelection()) return;
     pushUndo();
     selectedTaskIds.forEach(id => {
         const t = state.tasks.find(t => t.id === id);
-        if (t) t.priority = priority;
+        // Priority and colour are mutually exclusive accents — a real priority clears the colour
+        // (mirror of bulkSetColor clearing priority). Without this the colour stripe, defined later
+        // in CSS with equal specificity, would keep overriding the new priority stripe.
+        if (t) { t.priority = priority; if (priority && priority !== 'none') t.color = null; }
     });
     saveState();
     toggleMainSelectMode(); // exit select mode and re-render
@@ -1989,6 +1996,7 @@ function bulkSetPriority(priority) {
 // ── P-D: bulk group / colour / deadline (parity with bulkSetPriority) ────────
 let bulkColorActive    = false;   // task-color modal is acting on the whole selection
 let bulkDeadlineActive = false;   // deadline modal is acting on the whole selection
+let formColorActive    = false;   // task-color modal opened from the creation form (writes selectedFormColor)
 
 function bulkSetGroup(groupId) {
     if (!selectedTaskIds.size) return;
@@ -2014,7 +2022,7 @@ function bulkSetColor(color) {
     });
     saveState();
     toggleMainSelectMode();
-    showToast(color ? 'Метка установлена' : 'Метка снята');
+    showToast(color ? 'Цвет установлен' : 'Цвет снят');
 }
 
 function bulkSetDeadline(dl) {
@@ -2030,20 +2038,22 @@ function bulkSetDeadline(dl) {
 }
 
 function openBulkColorModal() {
-    if (!selectedTaskIds.size) return;
+    if (!_requireSelection()) return;
     bulkColorActive = true;
+    formColorActive = false;
     document.querySelectorAll('#task-color-picker .color-swatch').forEach(s => s.classList.remove('active'));
+    _grgbSyncFromColor(null); // bulk has no single current colour — show the default gothic violet
     openModalWithFocus('task-color-modal');
 }
 
 function openBulkDeadlineModal() {
-    if (!selectedTaskIds.size) return;
+    if (!_requireSelection()) return;
     openDeadlineModal(null, true);
 }
 
 // ── Bulk group picker (small gothic modal listing group pills) ───────────────
 function openBulkGroupModal() {
-    if (!selectedTaskIds.size) return;
+    if (!_requireSelection()) return;
     _renderBulkGroupList();
     openModalWithFocus('bulk-group-modal');
 }
@@ -2513,10 +2523,10 @@ function createTaskEl(task, showDlSide) {
 
     li.innerHTML = `
         ${dlSideHtml}
-        ${mainSelectMode ? `<button class="task-select-checkbox${selectedTaskIds.has(task.id) ? ' selected' : ''}"
-            onclick="toggleMainSelectTask(${task.id})" title="Выбрать задачу" aria-label="Выбрать для массового действия">
+        ${mainSelectMode ? `<span class="task-select-checkbox${selectedTaskIds.has(task.id) ? ' selected' : ''}"
+            aria-hidden="true">
             ${selectedTaskIds.has(task.id) ? IC.selectChecked : IC.selectEmpty}
-        </button>` : ''}
+        </span>` : ''}
         <div class="task-check-col">
             <button class="task-check${task.cycleChecked ? ' cycle-check' : ''}"
                     type="button"
@@ -2533,10 +2543,12 @@ function createTaskEl(task, showDlSide) {
                 <span class="task-text" data-id="${task.id}" title="Двойной клик — редактировать" ondblclick="startInlineEdit(event, ${task.id})">${displayText}</span>
                 <div class="task-actions">
                     <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" onclick="togglePin(${task.id})" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
-                    <button class="btn-task-action btn-task-color${(task.priority && task.priority !== 'none') ? ' color-btn-prio-disabled' : ''}" onclick="${(task.priority && task.priority !== 'none') ? '' : `openTaskColorModal(${task.id})`}" ${(task.priority && task.priority !== 'none') ? 'disabled title="Цветовая метка недоступна при заданном приоритете"' : `title="Цветовая метка"`} style="${task.color ? `color:${task.color}` : ''}">
-                        <svg viewBox="0 0 24 24" fill="${task.color || 'none'}" stroke="currentColor" stroke-width="1.8">
-                            <circle cx="12" cy="12" r="7" ${task.color ? `fill="${task.color}" opacity="0.85"` : 'fill="none"'}/>
-                            ${task.color ? '' : '<circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.35"/>'}
+                    <button class="btn-task-action btn-task-color" onclick="openTaskColorModal(${task.id})" title="Цветовая метка" style="${task.color ? `color:${task.color}` : ''}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z" ${task.color ? `fill="${task.color}" opacity="0.9"` : 'fill="none"'}/>
+                            <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
+                            <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
+                            ${task.color ? '' : '<circle cx="12" cy="10.5" r="1.3" fill="currentColor" stroke="none" opacity="0.55"/>'}
                         </svg>
                     </button>
                     <button class="btn-task-action" onclick="openDeadlineModal(${task.id})" title="Дедлайн">${IC.window}</button>
@@ -2964,11 +2976,8 @@ function addTask() {
     selectedPriority = 'none';
     document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.prio === 'none'));
-    // Reset form color to none
-    selectedFormColor = null;
-    document.querySelectorAll('#form-color-picker .form-color-swatch').forEach(s =>
-        s.classList.toggle('active', s.dataset.color === ''));
-    _syncFormColorPickerState(); // FIX-1: re-enable color picker after reset
+    // Reset form color to none (also clears the custom crystal button)
+    _setFormColor(null);
     // Reset group chip to none
     taskGroupSelect.value = '';
     renderGroupChips('');
@@ -4941,6 +4950,8 @@ document.getElementById('modal-prio-selector').addEventListener('click', e => {
     const task = state.tasks.find(t => t.id === editingTaskId);
     if (!task) return;
     pushUndo(); task.priority = btn.dataset.prio;
+    // Priority and colour are mutually exclusive accents — applying a real priority clears the colour.
+    if (task.priority && task.priority !== 'none') task.color = null;
     saveState(); renderListOnly(); closePrioModal(); // 7b: priority reorders the list only
     showToast('Приоритет изменён');
 });
@@ -4949,42 +4960,147 @@ document.getElementById('modal-prio-selector').addEventListener('click', e => {
 function openTaskColorModal(id) {
     editingTaskId = id;
     bulkColorActive = false;   // P-D: normal per-task open clears any stale bulk flag
+    formColorActive = false;
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
-    // FIX-1: block color editing when a priority is assigned
-    if (task.priority && task.priority !== 'none') return;
     // Highlight current colour in picker
     document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
         s.classList.toggle('active', s.dataset.color === (task.color || ''))
     );
+    _grgbSyncFromColor(task.color); // seed the spectrum from the task's current colour
+    openModalWithFocus('task-color-modal');
+}
+
+// Opened from the creation form's "свой цвет" crystal — the modal writes back into
+// selectedFormColor (no task exists yet) and reuses the same presets + spectrum.
+function openFormColorModal() {
+    formColorActive = true;
+    bulkColorActive = false;
+    editingTaskId = null;
+    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
+        s.classList.toggle('active', s.dataset.color === (selectedFormColor || ''))
+    );
+    _grgbSyncFromColor(selectedFormColor);
     openModalWithFocus('task-color-modal');
 }
 
 function closeTaskColorModal(event) {
     if (!event || event.target === document.getElementById('task-color-modal')) {
         bulkColorActive = false;   // P-D: cancelling bulk must not leak into the next open
+        formColorActive = false;
         closeModalWithAnim('task-color-modal', () => { editingTaskId = null; });
         if (!event) editingTaskId = null;
     }
 }
 
-document.getElementById('task-color-picker').addEventListener('click', e => {
-    const sw = e.target.closest('.color-swatch');
-    if (!sw) return;
-    // P-D: bulk path applies the chosen colour to the whole selection.
+// Single commit path for ANY colour choice in the modal — preset swatch, custom
+// spectrum, or "без цвета". Branches on bulkColorActive so bulk and per-task reuse it.
+function _commitColorChoice(color) {
+    const c = color || null; // '' / undefined → null = no colour
+    if (formColorActive) {
+        formColorActive = false;
+        _setFormColor(c);
+        closeModalWithAnim('task-color-modal');
+        return;
+    }
     if (bulkColorActive) {
         bulkColorActive = false;
-        bulkSetColor(sw.dataset.color || null);
+        bulkSetColor(c);
         closeModalWithAnim('task-color-modal');
         return;
     }
     const task = state.tasks.find(t => t.id === editingTaskId);
     if (!task) return;
     pushUndo();
-    task.color = sw.dataset.color || null; // empty string → null = no color
+    task.color = c;
+    if (c) task.priority = null; // colour replaces priority — the two are mutually exclusive
     saveState(); renderListOnly(); closeTaskColorModal(); // 7b: colour label affects the list only
-    showToast(task.color ? 'Метка установлена' : 'Метка снята');
+    showToast(task.color ? 'Цвет установлен' : 'Цвет снят');
+}
+
+document.getElementById('task-color-picker').addEventListener('click', e => {
+    const sw = e.target.closest('.color-swatch');
+    if (!sw) return;
+    _commitColorChoice(sw.dataset.color);
 });
+
+// ─── Gothic custom-colour spectrum (RGB picker) ──────────────────────────────
+// A 2D saturation/value pad + a hue band. State is HSV; converted to/from hex.
+let _grgbH = 270, _grgbS = 0.62, _grgbV = 0.92; // default: gothic violet ≈ #A060FF
+
+function _hsvToRgb(h, s, v) {
+    const c = v * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = v - c;
+    let r = 0, g = 0, b = 0;
+    if (h < 60)       { r = c; g = x; }
+    else if (h < 120) { r = x; g = c; }
+    else if (h < 180) { g = c; b = x; }
+    else if (h < 240) { g = x; b = c; }
+    else if (h < 300) { r = x; b = c; }
+    else              { r = c; b = x; }
+    return { r: Math.round((r + m) * 255), g: Math.round((g + m) * 255), b: Math.round((b + m) * 255) };
+}
+function _rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(n => n.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+function _hexToHsv(hex) {
+    let h = (hex || '').replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+    const r = parseInt(h.slice(0, 2), 16) / 255, g = parseInt(h.slice(2, 4), 16) / 255, b = parseInt(h.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    let hue = 0;
+    if (d !== 0) {
+        if (max === r)      hue = ((g - b) / d) % 6;
+        else if (max === g) hue = (b - r) / d + 2;
+        else                hue = (r - g) / d + 4;
+        hue *= 60; if (hue < 0) hue += 360;
+    }
+    return { h: hue, s: max === 0 ? 0 : d / max, v: max };
+}
+function _grgbHex() {
+    const { r, g, b } = _hsvToRgb(_grgbH, _grgbS, _grgbV);
+    return _rgbToHex(r, g, b);
+}
+function _grgbRender() {
+    const pad     = document.getElementById('grgb-pad');
+    const thumb   = document.getElementById('grgb-thumb');
+    const hue     = document.getElementById('grgb-hue');
+    const preview = document.getElementById('grgb-preview');
+    const hexEl   = document.getElementById('grgb-hex');
+    if (!pad) return;
+    const hex = _grgbHex();
+    pad.style.setProperty('--grgb-hue', _grgbH);
+    if (thumb) { thumb.style.left = (_grgbS * 100) + '%'; thumb.style.top = ((1 - _grgbV) * 100) + '%'; thumb.style.background = hex; }
+    if (hue && +hue.value !== Math.round(_grgbH)) hue.value = Math.round(_grgbH);
+    if (preview) preview.style.background = hex;
+    if (hexEl) hexEl.textContent = hex;
+}
+function _grgbSyncFromColor(color) {
+    const hsv = color ? _hexToHsv(color) : null;
+    if (hsv) { _grgbH = hsv.h; _grgbS = hsv.s; _grgbV = hsv.v; }
+    // else keep the last/default gothic violet
+    _grgbRender();
+}
+function _grgbHue(val) { _grgbH = +val; _grgbRender(); }
+function _grgbApply() { _commitColorChoice(_grgbHex()); }
+
+// Pad pointer handling (mouse + touch via pointer events), attached once.
+(function _grgbInitPad() {
+    const pad = document.getElementById('grgb-pad');
+    if (!pad) return;
+    let dragging = false;
+    const apply = e => {
+        const rect = pad.getBoundingClientRect();
+        if (rect.width === 0) return;
+        _grgbS = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+        _grgbV = 1 - Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
+        _grgbRender();
+    };
+    pad.addEventListener('pointerdown', e => { dragging = true; pad.setPointerCapture(e.pointerId); apply(e); });
+    pad.addEventListener('pointermove', e => { if (dragging) apply(e); });
+    pad.addEventListener('pointerup',   () => { dragging = false; });
+    pad.addEventListener('pointercancel', () => { dragging = false; });
+})();
 
 // ─── Populate anchor section ─────────────────────────────────────────────────
 // repeatMode: current repeat value; anchorTime: "HH:MM"|""; anchorDay: 1-7|0
@@ -5231,10 +5347,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formColorPicker.addEventListener('click', e => {
             const sw = e.target.closest('.form-color-swatch');
             if (!sw) return;
-            selectedFormColor = sw.dataset.color || null;
-            formColorPicker.querySelectorAll('.form-color-swatch').forEach(s =>
-                s.classList.toggle('active', s === sw)
-            );
+            _setFormColor(sw.dataset.color || null);
         });
     }
 });
@@ -6973,20 +7086,46 @@ document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(btn => {
     });
 });
 
+// Mutual exclusion in the form: picking a priority clears any chosen colour
+// (and vice-versa via _setFormColor). No longer disables the picker — colour and
+// priority simply replace one another, matching per-task behaviour.
 function _syncFormColorPickerState() {
     const hasPrio = selectedPriority && selectedPriority !== 'none';
     const picker  = document.getElementById('form-color-picker');
     if (!picker) return;
-    picker.classList.toggle('color-picker-prio-disabled', hasPrio);
-    picker.querySelectorAll('.form-color-swatch').forEach(sw => {
-        sw.disabled = hasPrio;
-        sw.tabIndex = hasPrio ? -1 : 0;
-    });
     if (hasPrio) {
-        // Clear any previously selected colour
         selectedFormColor = null;
         picker.querySelectorAll('.form-color-swatch').forEach(s =>
             s.classList.toggle('active', s.dataset.color === ''));
+        const custom = picker.querySelector('.form-color-custom');
+        if (custom) { custom.classList.remove('has-color'); custom.style.background = ''; }
+    }
+}
+
+// Set the form's chosen colour (from a preset swatch OR the spectrum modal),
+// reflect it in the picker, and clear any chosen priority (mutual exclusion).
+function _setFormColor(c) {
+    selectedFormColor = c || null;
+    const picker = document.getElementById('form-color-picker');
+    if (picker) {
+        let matched = false;
+        picker.querySelectorAll('.form-color-swatch').forEach(s => {
+            const on = (s.dataset.color || null) === selectedFormColor;
+            s.classList.toggle('active', on);
+            if (on) matched = true;
+        });
+        // Custom (non-preset) colour → fill the crystal button with it like a swatch
+        const custom = picker.querySelector('.form-color-custom');
+        if (custom) {
+            const isCustom = !!selectedFormColor && !matched;
+            custom.classList.toggle('has-color', isCustom);
+            custom.style.background = isCustom ? selectedFormColor : '';
+        }
+    }
+    if (selectedFormColor) {
+        selectedPriority = 'none';
+        document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.prio === 'none'));
     }
 }
 
@@ -7061,8 +7200,7 @@ function toggleExpand() {
         selectedPriority = 'none';
         document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.prio === 'none'));
-        selectedFormColor = null;
-        _syncFormColorPickerState(); // FIX-1: re-enable color picker on collapse
+        _setFormColor(null); // also clears the custom crystal button on collapse
         taskGroupSelect.value = '';
         renderGroupChips('');
         if (taskNote) taskNote.value = '';
@@ -7784,6 +7922,7 @@ function toggleMainSelectMode() {
     const bar = document.getElementById('main-select-bar');
     if (btn) btn.classList.toggle('active', mainSelectMode);
     if (bar) bar.style.display = mainSelectMode ? 'flex' : 'none';
+    _updateMainSelectBar(); // reset "0 отмечено" + disable bulk buttons on (re)open after the clear above
     render(); // re-render to show/hide checkboxes on task items
 }
 
