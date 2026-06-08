@@ -560,7 +560,10 @@ body::after {
 }
 
 /* ===== INPUT SECTION ===== */
-.input-section { margin-bottom: 18px; }
+/* P-fix: bottom gap under the "Параметры" toggle = its 9px top margin PLUS the keystone
+   diamond's ~4px upward protrusion above the plate frame, so the visible top/bottom air
+   around the plate reads symmetric (the diamond makes the top reach higher than the frame). */
+.input-section { margin-bottom: 11px; }
 
 .row {
     display: flex;
@@ -768,6 +771,10 @@ body::after {
     letter-spacing: 1px;
 }
 .prio-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+/* "Нет" priority — gothic crescent moons flanking the label on both sides */
+.prio-none-ic { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.8; margin: 0 -2px; }
+/* right-hand crescent is the mirror of the left one (used in prio + group dropdown) */
+.none-moon-r { transform: scaleX(-1); }
 .prio-btn.prio-low   .prio-dot { background: var(--prio-low);    }
 .prio-btn.prio-medium .prio-dot { background: var(--prio-medium); }
 .prio-btn.prio-high  .prio-dot { background: var(--prio-high);   }
@@ -843,53 +850,57 @@ body::after {
 .prio-grid-btn[data-prio="high"].active   { background: var(--prio-high-bg);   color: var(--prio-high);   border-color: var(--prio-high-border); }
 
 /* ── Group inline chip selector (params form) ── Item 8 */
-.group-inline-sel {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    /* R-2: cap height so the add-task form doesn't stretch to 800px+ with 15+ groups.
-       3 rows of chips ≈ 72px. overflow-y:auto shows a subtle scrollbar when needed. */
-    max-height: 80px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-mid) transparent;
-}
-.grp-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 10px;
-    border-radius: 99px;
-    border: 1px solid var(--border);
-    background: var(--bg-input);
-    color: var(--text-muted);
-    font-family: var(--font-label);
-    font-size: 10.5px;
-    cursor: pointer;
-    transition: all var(--transition);
-    letter-spacing: 1px;
-    white-space: nowrap;
-}
-@keyframes chipEnter {
-    0%   { transform: scale(0.45); opacity: 0; }
-    60%  { transform: scale(1.10); opacity: 1; }
-    80%  { transform: scale(0.95); }
-    100% { transform: scale(1);    opacity: 1; }
-}
-/* Applied via JS when a new group chip is added to the bar */
-.grp-chip.entering {
-    animation: chipEnter 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@media (prefers-reduced-motion: reduce) {
-    .grp-chip.entering { animation: none; }
-}
+/* P8: group dropdown — reuses .dl-month-picker / .dl-month-trigger / .dl-month-list /
+   .dl-month-option. Only the group-specific bits live here: the colour dot, the row
+   layout that holds a per-group delete button, and the "+ Создать" accent row. */
+.grp-trigger-label { display: inline-flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grp-dd-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
+/* gothic glyphs that stand in for the colour dot: "∅" (без группы) / cross (создать) */
+.grp-trigger-label > svg, .grp-dd-opt > svg { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.8; }
 
-.grp-chip:hover { border-color: var(--border-mid); color: var(--text-secondary); }
-.grp-chip.active { border-color: var(--border-mid); color: var(--text-primary); background: rgba(80,30,160,0.20); }
-.grp-chip-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.grp-chip-new { color: var(--accent); border-style: dashed; }
-.grp-chip-new:hover { background: var(--accent-dim); border-color: var(--accent); }
+/* P-fix #1: the group trigger (label + sword chevron) reads violet by default — like a
+   hover — and inverts to white on actual hover. Scoped to .grp-picker so the deadline/
+   month/weekday triggers keep their normal white-default look. */
+.grp-picker .dl-month-trigger { color: var(--accent-hover); }
+.grp-picker .dl-month-trigger .dl-month-chevron { opacity: 0.85; }
+.grp-picker .dl-month-trigger:hover { color: var(--text-primary); }
+.grp-picker .dl-month-trigger:hover .dl-month-chevron { opacity: 1; }
+
+/* Group option row: dot + name + delete button */
+.grp-dd-opt { display: flex; align-items: center; gap: 9px; padding-right: 9px; }
+.grp-dd-none { gap: 5px; }
+.grp-dd-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grp-dd-del {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; margin: 0;                      /* symmetric box → equal padding around the icon */
+    border: 1px solid transparent;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--transition), background var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+.grp-dd-del svg { width: 13px; height: 13px; pointer-events: none; display: block; }
+.grp-dd-opt:hover .grp-dd-del { opacity: 0.75; }
+.grp-dd-del:hover { opacity: 1; background: var(--prio-high-bg); color: var(--prio-high); border-color: var(--prio-high-border); }
+/* Touch / coarse pointers can't hover — keep the delete affordance visible there */
+@media (hover: none) { .grp-dd-del { opacity: 0.7; } }
+/* Two-step armed state (mirrors .btn-group-action.confirm-armed) */
+.grp-dd-del.confirm-armed {
+    opacity: 1;
+    background: var(--prio-high-bg);
+    color: var(--prio-high);
+    border-color: var(--prio-high-border);
+    animation: armedPulse 0.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .grp-dd-del.confirm-armed { animation: none; } }
+
+/* "+ Создать группу" — accent row that closes the list / opens the create modal */
+.grp-dd-new { color: var(--accent); font-weight: 600; }
+.grp-dd-new:hover { background: var(--accent-dim); color: var(--accent-hover); }
 
 /* Archive subtasks display */
 .archive-subs {
@@ -919,7 +930,7 @@ body::after {
 .archive-sub-text { min-width: 0; word-break: break-word; }
 
 /* Repeat selector */
-.repeat-selector { display: flex; gap: 5px; flex-wrap: wrap; }
+.repeat-selector { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
 .repeat-btn {
     padding: 6px 12px;
     border-radius: 99px;
@@ -3837,7 +3848,6 @@ textarea:focus-visible {
 .modal-textarea::placeholder { color: var(--text-muted); font-style: italic; }
 .modal-textarea:focus { border-color: rgba(150, 70, 255, 0.55); }
 
-.color-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .color-swatch {
     width: 27px;
     height: 27px;
@@ -3919,6 +3929,12 @@ textarea:focus-visible {
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
 }
 .form-color-custom.has-color svg { display: none; }
+
+/* P6 + P-fix#2: group colour block — 10 presets (reuse .task-color-picker grid) +
+   the full gothic spectrum embedded directly (markup in index.html reuses .gothic-rgb;
+   the group copy has no Apply/Clear — drag = live group colour). */
+.group-color-block { padding: 2px 0 4px; }
+.gothic-rgb-group { margin-top: 0; }
 
 .modal-actions {
     display: flex;

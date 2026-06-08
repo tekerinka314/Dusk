@@ -107,7 +107,7 @@
                         <div class="field-group">
                             <label class="field-label">Приоритет</label>
                             <div class="prio-grid" id="priority-selector">
-                                <button class="prio-grid-btn active" data-prio="none">— Нет</button>
+                                <button class="prio-grid-btn active" data-prio="none"><svg class="prio-none-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>Нет<svg class="prio-none-ic none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg></button>
                                 <button class="prio-grid-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
                                 <button class="prio-grid-btn prio-medium" data-prio="medium"><span class="prio-dot"></span>Средний</button>
                                 <button class="prio-grid-btn prio-high" data-prio="high"><span class="prio-dot"></span>Высокий</button>
@@ -147,9 +147,26 @@
                         </div>
                         <div class="field-group">
                             <label class="field-label">Группа</label>
-                            <div class="group-inline-sel" id="group-inline-sel">
-                                <button class="grp-chip active" data-gid="">— без группы —</button>
-                                <!-- dynamic group chips injected by JS -->
+                            <!-- P7+P8: gothic dropdown (replaces the chip row). Trigger shows the
+                                 current group's colour dot + name; the list carries a colour dot per
+                                 group and a per-group delete button (same tombstone icon + two-step
+                                 confirm as the group bar). Options injected by renderGroupChips(). -->
+                            <div class="dl-month-picker grp-picker" id="grp-picker">
+                                <button class="dl-month-trigger" id="grp-trigger" type="button"
+                                        aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="grp-trigger-label" id="grp-trigger-label">— без группы —</span>
+                                    <!-- Gothic sword chevron — same collapse/expand glyph as every other picker -->
+                                    <svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <line x1="12" y1="2" x2="12" y2="17"/>
+                                        <path d="M9 5L12 2L15 5"/>
+                                        <line x1="10" y1="14" x2="14" y2="14"/>
+                                        <path d="M11 17L10 20H14L13 17"/>
+                                        <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                                    </svg>
+                                </button>
+                                <div class="dl-month-list grp-list" id="grp-list" role="listbox" aria-label="Группа" aria-hidden="true">
+                                    <!-- options injected by JS -->
+                                </div>
                             </div>
                             <!-- hidden select for compat -->
                             <select id="task-group-select" class="group-select" style="display:none">
@@ -635,15 +652,36 @@
         <h3 class="modal-title" id="group-modal-title">Новая группа</h3>
         <div class="modal-row">
             <input type="text" id="group-name-input" class="modal-input" placeholder="Название группы..." maxlength="40" autocomplete="off">
-            <div class="color-picker" id="color-picker">
-                <button class="color-swatch active" data-color="#6C8EF5" style="background:#6C8EF5"></button>
-                <button class="color-swatch" data-color="#F56C6C" style="background:#F56C6C"></button>
-                <button class="color-swatch" data-color="#6CBF8E" style="background:#6CBF8E"></button>
-                <button class="color-swatch" data-color="#F5A56C" style="background:#F5A56C"></button>
-                <button class="color-swatch" data-color="#B06CF5" style="background:#B06CF5"></button>
-                <button class="color-swatch" data-color="#6CD4F5" style="background:#6CD4F5"></button>
-                <button class="color-swatch" data-color="#F5D56C" style="background:#F5D56C"></button>
-                <button class="color-swatch" data-color="#F06CAE" style="background:#F06CAE"></button>
+        </div>
+        <!-- P6 + P-fix#2: group colour = same 10 presets as task labels + the FULL gothic
+             RGB spectrum embedded directly here (no hop to the colour-label modal). The
+             spectrum uses classes only — the grgb engine resolves its elements within the
+             active modal (group vs colour-label), so there are no duplicate ids. -->
+        <div class="group-color-block">
+            <div class="task-color-picker" id="group-color-picker">
+                <button class="color-swatch" data-color="#6C8EF5" style="background:#6C8EF5" title="Синий"></button>
+                <button class="color-swatch" data-color="#6CD4F5" style="background:#6CD4F5" title="Голубой"></button>
+                <button class="color-swatch" data-color="#4FC9B7" style="background:#4FC9B7" title="Бирюзовый"></button>
+                <button class="color-swatch" data-color="#6CBF8E" style="background:#6CBF8E" title="Зелёный"></button>
+                <button class="color-swatch" data-color="#B8D45C" style="background:#B8D45C" title="Лайм"></button>
+                <button class="color-swatch" data-color="#F5D56C" style="background:#F5D56C" title="Золотой"></button>
+                <button class="color-swatch" data-color="#F5A56C" style="background:#F5A56C" title="Оранжевый"></button>
+                <button class="color-swatch" data-color="#F56C6C" style="background:#F56C6C" title="Красный"></button>
+                <button class="color-swatch" data-color="#F06CAE" style="background:#F06CAE" title="Розовый"></button>
+                <button class="color-swatch" data-color="#B06CF5" style="background:#B06CF5" title="Фиолетовый"></button>
+            </div>
+            <!-- Embedded spectrum: live binding (drag pad / hue → group colour), no
+                 Apply/Clear button — a group always keeps a colour. -->
+            <div class="gothic-rgb gothic-rgb-group">
+                <div class="grgb-pad" role="application" aria-label="Поле насыщенности и яркости">
+                    <div class="grgb-thumb"></div>
+                </div>
+                <input type="range" class="grgb-hue" min="0" max="360" value="270"
+                       oninput="_grgbHue(this.value)" aria-label="Оттенок">
+                <div class="grgb-foot">
+                    <span class="grgb-preview" aria-hidden="true"></span>
+                    <span class="grgb-hex">#6C8EF5</span>
+                </div>
             </div>
         </div>
         <div class="modal-actions">
@@ -846,7 +884,7 @@
     <div class="modal modal-small">
         <h3 class="modal-title" id="prio-modal-title">Изменить приоритет</h3>
         <div class="priority-selector modal-prio-selector" id="modal-prio-selector">
-            <button class="prio-btn prio-none" data-prio="none">— Нет</button>
+            <button class="prio-btn prio-none" data-prio="none"><svg class="prio-none-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>Нет<svg class="prio-none-ic none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg></button>
             <button class="prio-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
             <button class="prio-btn prio-medium" data-prio="medium"><span class="prio-dot"></span>Средний</button>
             <button class="prio-btn prio-high" data-prio="high"><span class="prio-dot"></span>Высокий</button>

@@ -272,6 +272,17 @@ const IC = {
         <line x1="12" y1="8" x2="12" y2="13" stroke-width="1.2"/>
     </svg>`,
 
+    // "Ничего/отсутствие" — a pair of gothic crescent moons that flank the label on both
+    // sides (horns toward the text). noneMoonL opens right; noneMoonR is its mirror.
+    noneMoonL: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>`,
+    noneMoonR: `<svg class="none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>`,
+
+    // Gothic Latin cross — the same "add" glyph as the toolbar's «Группа» button.
+    crossAdd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+        <line x1="12" y1="2" x2="12" y2="22"/>
+        <line x1="4.5" y1="8" x2="19.5" y2="8"/>
+    </svg>`,
+
     // ── NEW GOTHIC ICONS ──────────────────────────────────────
 
     // Gothic arch clock — for "set deadline" in params
@@ -591,7 +602,7 @@ const extraFields     = document.getElementById('extra-fields');
 const searchBox       = document.getElementById('search-box');
 const btnFilter       = document.getElementById('btn-filter');
 const btnSound        = document.getElementById('btn-sound');
-const colorPicker     = document.getElementById('color-picker');
+const colorPicker     = document.getElementById('group-color-picker');
 const mainPage        = document.getElementById('main-page');
 const archivePage     = document.getElementById('archive-page');
 const archiveList     = document.getElementById('archive-list');
@@ -2036,7 +2047,7 @@ function openBulkColorModal() {
     bulkColorActive = true;
     formColorActive = false;
     document.querySelectorAll('#task-color-picker .color-swatch').forEach(s => s.classList.remove('active'));
-    _grgbSyncFromColor(null); // bulk has no single current colour — show the default gothic violet
+    _grgbSyncFromColor(null, 'task'); // bulk has no single current colour — show the default gothic violet
     openModalWithFocus('task-color-modal');
 }
 
@@ -2104,41 +2115,83 @@ function renderGroupSelect() {
     renderGroupChips(taskGroupSelect.value);
 }
 
+// P7+P8: render the gothic group dropdown — trigger label (colour dot + name) + the
+// option list (each group row carries a colour dot + a two-step delete button). Keeps the
+// historical name renderGroupChips so all existing call sites stay valid.
 function renderGroupChips(currentVal) {
-    const container = document.getElementById('group-inline-sel');
-    if (!container) return;
+    const list    = document.getElementById('grp-list');
+    const trigEl  = document.getElementById('grp-trigger-label');
+    if (!list || !trigEl) return;
     const currentGid = currentVal || '';
-    let html = `<button class="grp-chip${currentGid === '' ? ' active' : ''}" data-gid="" onclick="selectGroupChip('')">— без группы —</button>`;
+
+    // Trigger label reflects the current selection
+    const curGroup = state.groups.find(g => String(g.id) === String(currentGid));
+    trigEl.innerHTML = curGroup
+        ? `<span class="grp-dd-dot" style="background:${curGroup.color}"></span>${escHtml(curGroup.name)}`
+        : `${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}`;
+
+    let html = `<div class="dl-month-option grp-dd-opt grp-dd-none${currentGid === '' ? ' active' : ''}" role="option" data-gid="" onclick="selectGroupChip('')">${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}</div>`;
     state.groups.forEach(g => {
-        const rgb  = hexToRgb(g.color);
-        const bg   = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.14)` : 'rgba(110,40,200,0.14)';
-        const bord = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.35)` : 'rgba(110,40,200,0.35)';
         const isActive = String(g.id) === String(currentGid);
-        html += `<button class="grp-chip${isActive ? ' active' : ''}" data-gid="${g.id}"
-            style="color:${g.color};border-color:${bord};${isActive ? `background:${bg}` : ''}"
-            onclick="selectGroupChip('${g.id}')"><span class="grp-chip-dot" style="background:${g.color}"></span>${escHtml(g.name)}</button>`;
+        html += `<div class="dl-month-option grp-dd-opt${isActive ? ' active' : ''}" role="option" data-gid="${g.id}" onclick="selectGroupChip('${g.id}')">
+            <span class="grp-dd-dot" style="background:${g.color}"></span>
+            <span class="grp-dd-name">${escHtml(g.name)}</span>
+            <button class="grp-dd-del" type="button" data-gid="${g.id}" onclick="event.stopPropagation();deleteGroup(${g.id})" title="Удалить группу">${IC.tombstone}</button>
+        </div>`;
     });
-    html += `<button class="grp-chip grp-chip-new" onclick="selectGroupChip('__new__')">+ Создать</button>`;
-    container.innerHTML = html;
+    html += `<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" onclick="selectGroupChip('__new__')">${IC.crossAdd}<span class="grp-dd-name">Создать группу</span></div>`;
+    list.innerHTML = html;
 }
 
 function selectGroupChip(gid) {
+    if (window._closeGroupPicker) window._closeGroupPicker();
     if (gid === '__new__') {
-        // D-6: deactivate current chip visually so state looks clean
-        // while the user is in the "create group" modal
-        const container = document.getElementById('task-group-chips');
-        if (container) {
-            container.querySelectorAll('.grp-chip.active').forEach(c => {
-                c.classList.remove('active');
-                c.style.background = '';
-            });
-        }
         pendingGroupForSelector = true;
         showAddGroupModal();
         return;
     }
     taskGroupSelect.value = gid;
     renderGroupChips(gid);
+}
+
+// P8: open/close + outside-click wiring for the group dropdown. Mirrors
+// initFormWeekdayPicker (incl. the .extra-fields overflow unclip + open-upward).
+function initGroupPicker() {
+    const picker  = document.getElementById('grp-picker');
+    const trigger = document.getElementById('grp-trigger');
+    const list    = document.getElementById('grp-list');
+    if (!picker || !trigger || !list) return;
+    const extraFields = document.getElementById('extra-fields');
+    let isOpen = false;
+
+    function openPicker() {
+        if (isOpen) return;
+        isOpen = true;
+        const rect = trigger.getBoundingClientRect();
+        const listH = Math.min(224, 80 + state.groups.length * 40);
+        const spaceBelow = window.innerHeight - rect.bottom;
+        picker.classList.toggle('open-up', spaceBelow < listH && rect.top > listH);
+        picker.classList.add('open');
+        extraFields && extraFields.classList.add('dropdown-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        list.setAttribute('aria-hidden', 'false');
+    }
+    function closePicker() {
+        if (!isOpen) return;
+        isOpen = false;
+        picker.classList.remove('open', 'open-up');
+        extraFields && extraFields.classList.remove('dropdown-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        list.setAttribute('aria-hidden', 'true');
+    }
+    window._closeGroupPicker = closePicker; // selectGroupChip closes after a pick
+
+    trigger.addEventListener('click', e => { e.stopPropagation(); isOpen ? closePicker() : openPicker(); });
+    trigger.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closePicker(); return; }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isOpen ? closePicker() : openPicker(); }
+    });
+    document.addEventListener('click', e => { if (!picker.contains(e.target)) closePicker(); }, { passive: true });
 }
 
 // ---- Archive ----
@@ -3222,18 +3275,18 @@ function clearAll() {
 const _deleteGroupArmed = new Map(); // groupId → timerId
 
 function deleteGroup(id) {
-    // Find the danger button for this group in the DOM
-    const btn = document.querySelector(
-        `.group-section[data-group-id="${id}"] .btn-group-action.danger`
-    );
+    // Find every danger button for this group: the group-bar one AND the params dropdown one.
+    const setArmed = on => document.querySelectorAll(
+        `.group-section[data-group-id="${id}"] .btn-group-action.danger, .grp-dd-del[data-gid="${id}"]`
+    ).forEach(b => b.classList.toggle('confirm-armed', on));
 
     if (!_deleteGroupArmed.has(id)) {
         // ── Arm ──
         _deleteGroupArmed.set(id, setTimeout(() => {
             _deleteGroupArmed.delete(id);
-            if (btn) btn.classList.remove('confirm-armed');
+            setArmed(false);
         }, 3000));
-        if (btn) btn.classList.add('confirm-armed');
+        setArmed(true);
         const n = state.tasks.filter(t => t.groupId === id).length;
         showToast(n ? 'Нажмите ещё раз — удалить группу со всеми задачами' : 'Нажмите ещё раз — удалить группу');
         return;
@@ -3241,7 +3294,7 @@ function deleteGroup(id) {
     // ── Fire ──
     clearTimeout(_deleteGroupArmed.get(id));
     _deleteGroupArmed.delete(id);
-    if (btn) btn.classList.remove('confirm-armed');
+    setArmed(false);
 
     pushUndo();
     // Whether the group actually contained tasks — controls the toast wording (P9).
@@ -4972,7 +5025,7 @@ function openTaskColorModal(id) {
     document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
         s.classList.toggle('active', s.dataset.color === (task.color || ''))
     );
-    _grgbSyncFromColor(task.color); // seed the spectrum from the task's current colour
+    _grgbSyncFromColor(task.color, 'task'); // seed the spectrum from the task's current colour
     openModalWithFocus('task-color-modal');
 }
 
@@ -4985,7 +5038,7 @@ function openFormColorModal() {
     document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
         s.classList.toggle('active', s.dataset.color === (selectedFormColor || ''))
     );
-    _grgbSyncFromColor(selectedFormColor);
+    _grgbSyncFromColor(selectedFormColor, 'task');
     openModalWithFocus('task-color-modal');
 }
 
@@ -5032,6 +5085,9 @@ document.getElementById('task-color-picker').addEventListener('click', e => {
 // ─── Gothic custom-colour spectrum (RGB picker) ──────────────────────────────
 // A 2D saturation/value pad + a hue band. State is HSV; converted to/from hex.
 let _grgbH = 270, _grgbS = 0.62, _grgbV = 0.92; // default: gothic violet ≈ #A060FF
+// P-fix#2: the spectrum lives in two modals (colour-label + group). _grgbScope picks
+// which one the engine reads/writes; both copies share the same class names (no dup ids).
+let _grgbScope = 'task'; // 'task' (colour-label modal) | 'group' (group modal, live binding)
 
 function _hsvToRgb(h, s, v) {
     const c = v * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = v - c;
@@ -5066,12 +5122,24 @@ function _grgbHex() {
     const { r, g, b } = _hsvToRgb(_grgbH, _grgbS, _grgbV);
     return _rgbToHex(r, g, b);
 }
+// Resolve the spectrum's elements within the currently active modal (by class, so the
+// two copies don't need unique ids).
+function _grgbEls() {
+    const root = _grgbScope === 'group'
+        ? document.getElementById('group-modal')
+        : document.getElementById('task-color-modal');
+    if (!root) return {};
+    return {
+        pad:     root.querySelector('.grgb-pad'),
+        thumb:   root.querySelector('.grgb-thumb'),
+        hue:     root.querySelector('.grgb-hue'),
+        preview: root.querySelector('.grgb-preview'),
+        hexEl:   root.querySelector('.grgb-hex'),
+    };
+}
+// Pure visual render of the active spectrum — never mutates the chosen colour.
 function _grgbRender() {
-    const pad     = document.getElementById('grgb-pad');
-    const thumb   = document.getElementById('grgb-thumb');
-    const hue     = document.getElementById('grgb-hue');
-    const preview = document.getElementById('grgb-preview');
-    const hexEl   = document.getElementById('grgb-hex');
+    const { pad, thumb, hue, preview, hexEl } = _grgbEls();
     if (!pad) return;
     const hex = _grgbHex();
     pad.style.setProperty('--grgb-hue', _grgbH);
@@ -5080,31 +5148,45 @@ function _grgbRender() {
     if (preview) preview.style.background = hex;
     if (hexEl) hexEl.textContent = hex;
 }
-function _grgbSyncFromColor(color) {
+// In group mode the spectrum is the live source of truth — a drag/hue change becomes the
+// group's chosen colour and clears any highlighted preset.
+function _groupColorFromSpectrum() {
+    selectedColor = _grgbHex();
+    if (colorPicker) colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+}
+function _grgbSyncFromColor(color, scope) {
+    if (scope) _grgbScope = scope;
     const hsv = color ? _hexToHsv(color) : null;
     if (hsv) { _grgbH = hsv.h; _grgbS = hsv.s; _grgbV = hsv.v; }
     // else keep the last/default gothic violet
     _grgbRender();
 }
-function _grgbHue(val) { _grgbH = +val; _grgbRender(); }
+function _grgbHue(val) {
+    _grgbH = +val; _grgbRender();
+    if (_grgbScope === 'group') _groupColorFromSpectrum();
+}
 function _grgbApply() { _commitColorChoice(_grgbHex()); }
 
-// Pad pointer handling (mouse + touch via pointer events), attached once.
-(function _grgbInitPad() {
-    const pad = document.getElementById('grgb-pad');
-    if (!pad) return;
-    let dragging = false;
-    const apply = e => {
-        const rect = pad.getBoundingClientRect();
-        if (rect.width === 0) return;
-        _grgbS = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-        _grgbV = 1 - Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
-        _grgbRender();
-    };
-    pad.addEventListener('pointerdown', e => { dragging = true; pad.setPointerCapture(e.pointerId); apply(e); });
-    pad.addEventListener('pointermove', e => { if (dragging) apply(e); });
-    pad.addEventListener('pointerup',   () => { dragging = false; });
-    pad.addEventListener('pointercancel', () => { dragging = false; });
+// Pad pointer handling (mouse + touch via pointer events). Attached to BOTH spectrum
+// copies; each handler sets the scope from the modal it lives in.
+(function _grgbInitPads() {
+    document.querySelectorAll('.grgb-pad').forEach(pad => {
+        const scopeOf = () => pad.closest('#group-modal') ? 'group' : 'task';
+        let dragging = false;
+        const apply = e => {
+            const rect = pad.getBoundingClientRect();
+            if (rect.width === 0) return;
+            _grgbScope = scopeOf();
+            _grgbS = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+            _grgbV = 1 - Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
+            _grgbRender();
+            if (_grgbScope === 'group') _groupColorFromSpectrum();
+        };
+        pad.addEventListener('pointerdown', e => { dragging = true; pad.setPointerCapture(e.pointerId); apply(e); });
+        pad.addEventListener('pointermove', e => { if (dragging) apply(e); });
+        pad.addEventListener('pointerup',   () => { dragging = false; });
+        pad.addEventListener('pointercancel', () => { dragging = false; });
+    });
 })();
 
 // ─── Populate anchor section ─────────────────────────────────────────────────
@@ -5476,11 +5558,20 @@ function closeModalWithAnim(overlayId, onAfterClose) {
 // ============================================================
 function showAddGroupModal() {
     groupNameInput.value = '';
-    selectedColor = '#6C8EF5';
-    colorPicker.querySelectorAll('.color-swatch').forEach(s =>
-        s.classList.toggle('active', s.dataset.color === selectedColor)
-    );
+    _setGroupColor('#6C8EF5');   // P-fix#2: highlights the preset + seeds the embedded spectrum
     openModalWithFocus('group-modal');
+}
+
+// P6 + P-fix#2: reflect a chosen group colour — highlight the matching preset and move
+// the embedded spectrum's thumb to it. Called on preset clicks and on modal open.
+function _setGroupColor(c) {
+    selectedColor = c || '#6C8EF5';
+    if (colorPicker) {
+        colorPicker.querySelectorAll('.color-swatch').forEach(s =>
+            s.classList.toggle('active', s.dataset.color === selectedColor)
+        );
+    }
+    _grgbSyncFromColor(selectedColor, 'group'); // position the spectrum on the chosen colour
 }
 
 function closeGroupModal(event) {
@@ -5515,23 +5606,6 @@ function confirmAddGroup() {
     closeModalWithAnim('group-modal');
     render();
     showToast(`Группа «${name}» создана`);
-
-    // ── Chip entry ripple: animate the newly created chip ─────────
-    if (!prefersReducedMotion()) {
-        requestAnimationFrame(() => {
-            const newChip = document.querySelector(
-                `#group-inline-sel .grp-chip[data-gid="${newId}"]`
-            );
-            if (newChip) {
-                newChip.classList.add('entering');
-                newChip.addEventListener('animationend',
-                    () => newChip.classList.remove('entering'),
-                    { once: true }
-                );
-            }
-        });
-    }
-    // ─────────────────────────────────────────────────────────────
 }
 
 
@@ -5674,8 +5748,7 @@ document.getElementById('rename-group-input').addEventListener('keydown', e => {
 colorPicker.addEventListener('click', e => {
     const s = e.target.closest('.color-swatch');
     if (!s) return;
-    selectedColor = s.dataset.color;
-    colorPicker.querySelectorAll('.color-swatch').forEach(sw => sw.classList.toggle('active', sw === s));
+    _setGroupColor(s.dataset.color);   // P-fix#2: highlights preset + moves the spectrum thumb
 });
 
 groupNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddGroup(); });
@@ -8833,6 +8906,7 @@ function initSegmentedInputs() {
     initMonthPicker();
     initWeekdayPicker();
     initFormWeekdayPicker();
+    initGroupPicker();
 }
 
 // ---- Form params weekday picker (mirrors modal's initWeekdayPicker) ----
