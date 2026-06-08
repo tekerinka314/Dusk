@@ -442,28 +442,31 @@ body::after {
 }
 
 /* ===== PROGRESS ===== */
+/* P3 (variant A): vertical stack — tasks header + dominant bar, then secondary subtask bar */
 .progress-section {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 14px;
+    flex-direction: column;
+    gap: 7px;
     margin-bottom: 20px;
 }
 
-/* Main bar and counter column side by side */
-.progress-bar-wrap { flex: 1; min-width: 0; }
-.progress-counter-col {
-    flex-shrink: 0;
+/* Header line above the main bar: tag on the left, count on the right */
+.progress-head {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 1px;
+    align-items: baseline;
+    justify-content: space-between;
 }
-.progress-label { /* kept as-is for counter pop animation */ }
+/* The main "задачи" label reads as a header — larger than the secondary footnote tag */
+.progress-head .counter-tag {
+    font-size: 10.5px;
+    opacity: 0.9;
+    margin-right: 0;
+}
 
+/* Main (dominant) bar — full width, thicker, glowing */
 .progress-bar-wrap {
-    flex: 1;
-    height: 2px;
+    width: 100%;
+    height: 4px;
     background: var(--border);
     border-radius: 99px;
     overflow: visible;
@@ -505,8 +508,30 @@ body::after {
 }
 .prog-sep { margin: 0 1px; opacity: 0.45; }
 
-/* Subtask progress row — compact block inside .progress-section, below main bar */
-/* Subtask footnote — compact line under main counter */
+/* P3 (variant A): secondary subtask block under the main bar — thin muted full-width
+   bar + a right-aligned footnote. Deliberately lighter/thinner than the tasks bar
+   so the hierarchy reads at a glance. */
+.subtask-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 1px;
+}
+.progress-sub-wrap {
+    width: 100%;
+    height: 2px;                          /* thinner than the 4px main bar */
+    background: rgba(140, 60, 220, 0.14);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.progress-sub-fill {
+    height: 100%;
+    width: 0%;
+    /* muted gradient, no glow — secondary to the main bar */
+    background: linear-gradient(90deg, rgba(110, 45, 190, 0.55), rgba(165, 95, 230, 0.62));
+    border-radius: 99px;
+    transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+}
 .subtask-footnote {
     display: flex;
     align-items: center;
@@ -518,28 +543,9 @@ body::after {
     color: var(--text-secondary);
     letter-spacing: 0.6px;
     line-height: 1;
+    opacity: 0.85;
 }
 .subtask-footnote .prog-sep { margin: 0 1px; opacity: 0.5; }
-
-/* Inline mini-bar — lives in the subtask footnote row */
-.sub-inline-bar-wrap {
-    display: inline-flex;
-    align-items: center;
-    width: 28px;
-    height: 2px;
-    background: rgba(140, 60, 220, 0.18);
-    border-radius: 99px;
-    overflow: hidden;
-    margin-right: 6px;
-    flex-shrink: 0;
-}
-.sub-inline-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, rgba(120,50,200,0.70), rgba(180,100,255,0.80));
-    border-radius: 99px;
-    transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
-}
 
 /* Shared label tag before both counters */
 .counter-tag {
@@ -616,27 +622,78 @@ body::after {
 .btn-add svg { width: 18px; height: 18px; }
 
 /* ===== EXPAND BUTTON ===== */
+/* P4: gothic reliquary-tablet toggle — compact, centred. Engraved double frame,
+   corner studs, mirrored filigree filling the side gaps, and a keystone diamond
+   that lights up when the params panel is open (replaces the old chevron). */
 .btn-expand {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 7px;
-    background: transparent;
-    border: 1px solid var(--border);
+    gap: 13px;
+    width: fit-content;
+    margin: 9px auto 0;           /* compact + centred */
+    padding: 10px 20px;
     border-radius: var(--radius-sm);
-    padding: 7px 13px;
-    font-size: 12px;
-    color: var(--text-muted);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
     cursor: pointer;
-    margin-top: 9px;
-    transition: all var(--transition);
+    color: var(--text-muted);
     font-family: var(--font-label);
-    letter-spacing: 1px;
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
+    transition: color var(--transition), box-shadow 0.25s ease, border-color var(--transition);
 }
-.btn-expand svg:first-child { width: 13px; height: 13px; flex-shrink: 0; }
-.btn-expand .chevron { width: 12px; height: 12px; transition: transform var(--transition); margin-left: auto; flex-shrink: 0; }
-.btn-expand:hover { color: var(--accent); border-color: rgba(140, 60, 255, 0.4); background: var(--accent-dim); }
-.btn-expand.open .chevron { transform: rotate(180deg); }
+/* inner engraved hairline (the "carved" second line) */
+.btn-expand::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(130, 50, 220, 0.16);
+    border-radius: 3px;
+    pointer-events: none;
+    transition: border-color var(--transition);
+}
+.btn-expand:hover { color: var(--accent); border-color: rgba(140, 60, 255, 0.42); box-shadow: 0 0 14px rgba(160, 80, 255, 0.16); }
+.btn-expand:hover::before { border-color: rgba(150, 80, 230, 0.32); }
+
+/* corner studs */
+.be-stud { position: absolute; width: 3px; height: 3px; background: var(--border-mid); transform: rotate(45deg); opacity: 0.6; transition: all var(--transition); }
+.be-stud.tl { left: 6px; top: 6px; }
+.be-stud.tr { right: 6px; top: 6px; }
+.be-stud.bl { left: 6px; bottom: 6px; }
+.be-stud.br { right: 6px; bottom: 6px; }
+.btn-expand:hover .be-stud { background: var(--accent); opacity: 0.85; }
+
+/* keystone diamond — open/closed state indicator (replaces the chevron) */
+.be-keystone {
+    position: absolute;
+    top: -3.5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 6.5px;
+    height: 6.5px;
+    border: 1px solid var(--border-mid);
+    background: linear-gradient(135deg, rgba(150, 100, 220, 0.30), rgba(36, 16, 72, 0.65));
+    transition: background 0.3s ease, border-color 0.25s ease, box-shadow 0.3s ease;
+}
+.btn-expand.open .be-keystone {
+    background: linear-gradient(135deg, #b189ef, #7c47c8);
+    border-color: rgba(150, 90, 235, 0.7);
+    box-shadow: 0 0 5px rgba(150, 90, 235, 0.42);
+}
+
+/* mirrored filigree flankers filling the side gaps */
+.be-fil { width: 22px; height: 12px; flex-shrink: 0; opacity: 0.6; transition: opacity var(--transition); }
+.be-fil-r { transform: scaleX(-1); }
+.btn-expand:hover .be-fil { opacity: 0.95; }
+
+.btn-expand .be-label { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    .be-keystone, .be-fil, .be-stud { transition: none; }
+}
 
 /* ===== EXTRA FIELDS ===== */
 /* max-height is controlled by JS (toggleExpand) using scrollHeight — no magic
@@ -3258,6 +3315,7 @@ textarea:focus-visible {
     line-height: 1;
     flex-shrink: 0;
 }
+.btn-note-delete svg { width: 13px; height: 13px; pointer-events: none; }
 .btn-note-delete:hover { background: var(--prio-high-bg); color: var(--prio-high); }
 
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }

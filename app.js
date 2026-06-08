@@ -280,12 +280,6 @@ const IC = {
     // Gothic eight-pointed starburst seal (heraldic wax-seal form, deeply medieval) + thin
     // cancellation X inside. The starburst outline = official document / sealed note;
     // the X = voided / erased. Compact, does not overlap with any existing icon.
-    scrollX: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2.8L13.9 6.9L18.4 5.6L17.1 10.1L21.2 12L17.1 13.9L18.4 18.4L13.9 17.1L12 21.2L10.1 17.1L5.6 18.4L6.9 13.9L2.8 12L6.9 10.1L5.6 5.6L10.1 6.9Z"/>
-        <line x1="9.5" y1="9.5" x2="14.5" y2="14.5" stroke-width="1.5"/>
-        <line x1="14.5" y1="9.5" x2="9.5" y2="14.5" stroke-width="1.5"/>
-    </svg>`,
-
     // Gothic tower clock — for "sort by deadline"
     // Medieval mechanical tower clock: lancet arch casing + clock face + pendulum.
     // The lancet arch is the defining gothic architectural form; the pendulum clock
@@ -2578,7 +2572,7 @@ function createTaskEl(task, showDlSide) {
                 <div class="task-note-text" id="note-${task.id}"
                      ondblclick="startNoteInlineEdit(event, ${task.id})"
                      title="Двойной клик — редактировать">${escHtml(task.note)}</div>
-                <button class="btn-note-delete" onclick="deleteNote(event, ${task.id})" title="Удалить заметку">${IC.scrollX}</button>
+                <button class="btn-note-delete" onclick="deleteNote(event, ${task.id})" title="Удалить заметку">${IC.dagger}</button>
             </div>` : ''}
             ${inlineNoteAdd}
             ${subsHtml}
@@ -2767,7 +2761,7 @@ function buildSubtaskItemHTML(taskId, s) {
                  onblur="saveSubNote(${taskId},${s.id},this.textContent.trim())"
                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}"
                 >${escHtml(s.note || '')}</div>
-            ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="deleteSubNote(event,${taskId},${s.id})" title="Удалить заметку">${IC.scrollX}</button>` : ''}
+            ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="deleteSubNote(event,${taskId},${s.id})" title="Удалить заметку">${IC.dagger}</button>` : ''}
         </div>
     </li>`;
 }
@@ -4410,7 +4404,7 @@ function saveSubNote(taskId, subId, text) {
                 delBtn.type = 'button';
                 delBtn.className = 'btn-sub-note-delete';
                 delBtn.title = 'Удалить заметку';
-                delBtn.innerHTML = IC.scrollX;
+                delBtn.innerHTML = IC.dagger;
                 delBtn.addEventListener('click', e => deleteSubNote(e, taskId, subId));
                 wrap.appendChild(delBtn);
             }

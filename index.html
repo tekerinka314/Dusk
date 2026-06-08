@@ -67,18 +67,20 @@
         <div id="main-page">
 
             <!-- Progress -->
+            <!-- P3 (variant A): dominant tasks bar on top, secondary thin subtasks bar below -->
             <div class="progress-section" id="progress-section" style="display:none">
+                <!-- Main: tasks — header line (tag left, count right) + dominant bar -->
+                <div class="progress-head">
+                    <span class="counter-tag">задачи</span>
+                    <div class="progress-label" id="counter"><span id="done-count">0</span><span class="prog-sep">/</span><span id="quantity-count">0</span></div>
+                </div>
                 <div class="progress-bar-wrap">
                     <div class="progress-bar-fill" id="progress-bar"></div>
                 </div>
-                <div class="progress-counter-col">
-                    <div class="progress-label" id="counter">
-                        <span class="counter-tag">задачи</span><span id="done-count">0</span><span class="prog-sep">/</span><span id="quantity-count">0</span>
-                    </div>
-                    <div class="subtask-footnote" id="subtask-progress-row" style="display:none">
-                        <span class="counter-tag">подпункты</span><span class="sub-inline-bar-wrap"><span class="sub-inline-bar-fill" id="subtask-prog-bar"></span></span><span id="subtask-done-count">0</span><span class="prog-sep">/</span><span id="subtask-total-count">0</span>
-                    </div>
-
+                <!-- Secondary: subtasks — thin muted full-width bar + footnote -->
+                <div class="subtask-progress" id="subtask-progress-row" style="display:none">
+                    <div class="progress-sub-wrap"><div class="progress-sub-fill" id="subtask-prog-bar"></div></div>
+                    <div class="subtask-footnote"><span class="counter-tag">подпункты</span><span id="subtask-done-count">0</span><span class="prog-sep">/</span><span id="subtask-total-count">0</span></div>
                 </div>
             </div>
 
@@ -268,22 +270,23 @@
                     </div>
                 </div>
 
+                <!-- P4: gothic "reliquary tablet" toggle. Engraved double frame, corner
+                     studs, mirrored filigree filling the side gaps, and a keystone diamond
+                     at the apex that lights up when the params panel is open — it replaces
+                     the old chevron (no separate toggle glyph). -->
                 <button class="btn-expand" id="btn-expand" onclick="toggleExpand()">
-                    <!-- Gothic spires as params icon -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                        <line x1="4" y1="20" x2="4" y2="16"/><path d="M2.5 16L4 12L5.5 16"/>
-                        <line x1="12" y1="20" x2="12" y2="10"/><path d="M10.5 10L12 5.5L13.5 10"/>
-                        <line x1="20" y1="20" x2="20" y2="13"/><path d="M18.5 13L20 9L21.5 13"/>
-                        <line x1="1" y1="20" x2="23" y2="20"/>
+                    <span class="be-stud tl" aria-hidden="true"></span><span class="be-stud tr" aria-hidden="true"></span><span class="be-stud bl" aria-hidden="true"></span><span class="be-stud br" aria-hidden="true"></span>
+                    <span class="be-keystone" aria-hidden="true"></span>
+                    <svg class="be-fil" viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
+                        <path d="M21 6 C15 6 15 2 10 2 C7 2 7 6 4 6"/>
+                        <path d="M4 6 C7 6 7 10 10 10 C12.5 10 13.5 8 13.5 7"/>
+                        <circle cx="2.5" cy="6" r="1.1" fill="currentColor" stroke="none"/>
                     </svg>
-                    Параметры
-                    <!-- Gothic sword as chevron -->
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="2" x2="12" y2="17"/>
-                        <path d="M9 5L12 2L15 5"/>
-                        <line x1="10" y1="14" x2="14" y2="14"/>
-                        <path d="M11 17L10 20H14L13 17"/>
-                        <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                    <span class="be-label">Параметры</span>
+                    <svg class="be-fil be-fil-r" viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
+                        <path d="M21 6 C15 6 15 2 10 2 C7 2 7 6 4 6"/>
+                        <path d="M4 6 C7 6 7 10 10 10 C12.5 10 13.5 8 13.5 7"/>
+                        <circle cx="2.5" cy="6" r="1.1" fill="currentColor" stroke="none"/>
                     </svg>
                 </button>
             </div>
