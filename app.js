@@ -2162,12 +2162,20 @@ function renderArchive() {
     const archiveBtns    = document.getElementById('archive-btns');
     const clearBtn       = document.getElementById('btn-clear-archive');
     const selectBar      = document.getElementById('archive-select-bar');
+    const searchWrap     = document.querySelector('.archive-search-wrap');
 
     if (!items.length) {
         archiveEmpty.style.display = 'flex';
         if (archiveBtns) archiveBtns.style.display = 'none';
         if (clearBtn)    clearBtn.style.display    = 'none';
         if (selectBar)   { selectBar.style.display = 'none'; selectMode = false; selectedArchiveIds.clear(); }
+        // P2: nothing to search → collapse the search row smoothly, drop any stale query.
+        if (searchWrap) searchWrap.classList.add('is-hidden');
+        if (archiveSearchQuery) {
+            archiveSearchQuery = '';
+            const sb = document.getElementById('archive-search-box');
+            if (sb) sb.value = '';
+        }
         // (archive stats removed)
         return;
     }
@@ -2175,6 +2183,7 @@ function renderArchive() {
     archiveEmpty.style.display = 'none';
     if (archiveBtns) archiveBtns.style.display = 'flex';
     if (clearBtn)    clearBtn.style.display    = 'flex';
+    if (searchWrap)  searchWrap.classList.remove('is-hidden');
 
     // Render statistics
     const now7  = Date.now() - 7  * 86400000;
@@ -3241,6 +3250,8 @@ function deleteGroup(id) {
     if (btn) btn.classList.remove('confirm-armed');
 
     pushUndo();
+    // Whether the group actually contained tasks — controls the toast wording (P9).
+    const hadTasks = state.tasks.some(t => t.groupId === id);
     // Deleting a group deletes the tasks (and their subtasks) inside it.
     state.tasks = state.tasks.filter(t => t.groupId !== id);
     state.groups = state.groups.filter(g => g.id !== id);
@@ -3255,7 +3266,7 @@ function deleteGroup(id) {
     // B6: remove any sort-mode override for this group
     if (state.sortModeOverrides) delete state.sortModeOverrides[String(id)];
     saveState(); render();
-    showToast('Группа удалена со всеми задачами', { undo: true });
+    showToast(hadTasks ? 'Группа удалена со всеми задачами' : 'Группа удалена', { undo: true });
 }
 
 // Idea 6: duplicate a group + all its tasks (new ids), placed right after it.
