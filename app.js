@@ -364,6 +364,21 @@ const IC = {
         <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
     </svg>`,
 
+    // Pinned-card mark — a forged iron spike driven diagonally into the top-left
+    // corner. Built for VOLUME: the head + shaft are each split along their
+    // centre-line into a lit upper-left facet and a shadowed lower-right facet
+    // (white/black overlays on the theme colour), plus a specular glint — so it
+    // reads as a 3-D forged nail, not a flat glyph.
+    pinSpike: `<svg viewBox="0 0 24 24" stroke="none" stroke-linejoin="round">
+        <path d="M2.8 5.6 L5.6 2.8 L16 16 Z" fill="currentColor"/>
+        <path d="M4 0.8 L7.2 4 L4 7.2 L0.8 4 Z" fill="currentColor"/>
+        <path d="M5.6 2.8 L16 16 L4 4 Z" fill="#ffffff" opacity="0.30"/>
+        <path d="M2.8 5.6 L16 16 L4 4 Z" fill="#000000" opacity="0.32"/>
+        <path d="M4 0.8 L4 4 L0.8 4 Z" fill="#ffffff" opacity="0.42"/>
+        <path d="M7.2 4 L4 7.2 L4 4 Z" fill="#000000" opacity="0.34"/>
+        <circle cx="3" cy="3" r="0.85" fill="#ffffff" opacity="0.75"/>
+    </svg>`,
+
     // Gothic select checkbox — unchecked: lancet arch empty vessel
     selectEmpty: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 19V11C5 7.5 7.24 5 10 5C12.76 5 15 7.5 15 11V19"/>
@@ -1059,6 +1074,14 @@ function undo() {
         formSubtasks = snap.subtasks || [];
         renderFormSubtasks();
 
+        // Pin flag (P5)
+        formPinned = !!snap.pinned;
+        const _pinBtn = document.getElementById('form-pin-toggle');
+        if (_pinBtn) {
+            _pinBtn.classList.toggle('active', formPinned);
+            _pinBtn.setAttribute('aria-pressed', formPinned ? 'true' : 'false');
+        }
+
         // Open extra-fields panel if any extra data was captured
         if (!expandOpen && (snap.deadline || snap.priority !== 'none' ||
             snap.color || snap.repeat !== 'none' || snap.subtasks.length)) {
@@ -1214,11 +1237,15 @@ function renderTasks() {
 
     // Ungrouped tasks — only show if not focused on a specific group
     if (focusGroupId === null) {
+        const ung = state.tasks.filter(t => !t.groupId);
+        // Pinned float to the top of the "no group" context (above everything here).
+        const { pinned, rest } = extractPinned(ung, query);
+        appendPinnedBlock(listContainer, pinned, null);
         if (scheduleActive(null)) {
-            const { withDl, noDl } = filterAndSortDeadline(state.tasks.filter(t => !t.groupId), query);
+            const { withDl, noDl } = filterAndSortDeadline(rest, query);
             appendScheduleSection(listContainer, withDl, noDl, null);
         } else {
-            filterAndSort(state.tasks.filter(t => !t.groupId), query, null)
+            filterAndSort(rest, query, null)
                 .forEach(t => listContainer.appendChild(createTaskEl(t, false)));
         }
     }
@@ -1282,17 +1309,21 @@ function renderTasks() {
         groupsContainer.appendChild(section);
         const ul = section.querySelector(`#group-list-${group.id}`);
 
+        // Pinned float to the top of THIS group, above its active/done/schedule zones.
+        const { pinned, rest } = extractPinned(grouped, query);
+        appendPinnedBlock(ul, pinned, group.id);
+
         if (effSched && isGroupSplitMode) {
-            const { withDl, noDl } = filterAndSortDeadline(grouped, '');
+            const { withDl, noDl } = filterAndSortDeadline(rest, '');
             appendScheduleSplitSection(ul, withDl, noDl, group.id);
         } else if (effSched) {
-            const { withDl, noDl } = filterAndSortDeadline(grouped, '');
+            const { withDl, noDl } = filterAndSortDeadline(rest, '');
             appendScheduleSection(ul, withDl, noDl, group.id);
         } else if (isGroupSplitMode) {
-            const sorted = filterAndSort(grouped, query, group.id);
+            const sorted = filterAndSort(rest, query, group.id);
             appendSplitSection(ul, sorted, group.id, group.id);
         } else {
-            filterAndSort(grouped, query, group.id).forEach(t => ul.appendChild(createTaskEl(t, false)));
+            filterAndSort(rest, query, group.id).forEach(t => ul.appendChild(createTaskEl(t, false)));
         }
 
         if (!collapsed) {
@@ -1338,6 +1369,79 @@ function appendScheduleSection(container, withDl, noDl, groupId) {
         noDl.forEach(t => ndlUl.appendChild(createTaskEl(t, false)));
         container.appendChild(ndlUl);
     }
+}
+
+// ── Pinned tasks (P5/pin redesign) ───────────────────────────────────────────
+// A pinned, not-yet-completed task floats to the very top of ITS OWN context
+// (its group, or the "no group" context) — above every other task there. We
+// extract them BEFORE the mode-specific sort so they sit on top in normal,
+// schedule AND split modes. In split mode they get their own gothic
+// "Закреплённые" zone (see appendPinnedBlock); elsewhere they're plain cards.
+function extractPinned(tasks, query) {
+    // Mirror the visibility filters used by filterAndSort so a hidden task never
+    // surfaces in the pinned block.
+    let list = [...tasks];
+    if (isFiltered)  list = list.filter(t => !t.checked && !t.cycleChecked);
+    if (isTodayMode) list = list.filter(t => isDueTodayOrOverdue(t.deadline));
+    if (query) list = list.filter(t =>
+        t.text.toLowerCase().includes(query) ||
+        (t.note && t.note.toLowerCase().includes(query)) ||
+        (t.subtasks && t.subtasks.some(s => s.text.toLowerCase().includes(query))));
+    if (colorFilter) list = list.filter(t => t.color === colorFilter);
+
+    const pinned = list
+        .filter(t => t.pinned && !t.checked && !t.cycleChecked)
+        .sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id));
+    const pinnedIds = new Set(pinned.map(t => t.id));
+    // `rest` keeps the ORIGINAL list (incl. completed pinned) minus the active
+    // pinned; the caller passes it through the normal sort which re-filters.
+    const rest = tasks.filter(t => !pinnedIds.has(t.id));
+    return { pinned, rest };
+}
+
+// Gothic glyphs for the pinned zone header (split mode): the pin/spike icon and
+// the shared sword chevron used by every other split header.
+const _PIN_HDR_CHEVRON = `<svg class="split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/><path d="M11 17L10 20H14L13 17"/><circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/></svg>`;
+
+// Renders a context's pinned tasks at the top of `container`.
+//  • split mode → collapsible gothic "Закреплённые" zone (own sortable UL;
+//    dragging a card OUT unpins it — handled in onDragAdd).
+//  • normal / schedule → plain cards at the very top (no header).
+function appendPinnedBlock(container, pinned, groupId) {
+    if (!pinned.length) return;
+    const showDl = scheduleActive(groupId);
+
+    if (!isGroupSplitMode) {
+        pinned.forEach(t => container.appendChild(createTaskEl(t, showDl && !!t.deadline)));
+        return;
+    }
+
+    const key       = 'pinned_' + (groupId != null ? groupId : 'ung');
+    const collapsed = localStorage.getItem('groupSplit_' + key) === '1';
+
+    const hdr = document.createElement('li');
+    hdr.className = 'split-zone-header split-pinned-header' + (collapsed ? ' collapsed' : '');
+    hdr.innerHTML = `${IC.pin}<span>Закреплённые · ${pinned.length}</span>${_PIN_HDR_CHEVRON}`;
+    hdr.onclick = () => {
+        const c = hdr.classList.toggle('collapsed');
+        localStorage.setItem('groupSplit_' + key, c ? '1' : '0');
+        const wrap = hdr.nextElementSibling;
+        if (wrap && wrap.classList.contains('split-pinned-wrap')) wrap.classList.toggle('collapsed', c);
+    };
+    container.appendChild(hdr);
+
+    const wrap = document.createElement('li');
+    wrap.className = 'split-pinned-wrap' + (collapsed ? ' collapsed' : '');
+    wrap.style.cssText = 'list-style:none;padding:0;margin:0;';
+
+    const ul = document.createElement('ul');
+    ul.className = 'split-pinned-body';
+    ul.dataset.sortableGroup = 'split_active';   // share the active pool so drag-out unpins
+    ul.dataset.groupId       = groupId != null ? groupId : '';
+    ul.dataset.zonePinned    = '1';
+    pinned.forEach(t => ul.appendChild(createTaskEl(t, showDl && !!t.deadline)));
+    wrap.appendChild(ul);
+    container.appendChild(wrap);
 }
 
 /** Returns the effective sort mode for a given groupId (null = ungrouped). */
@@ -2577,7 +2681,12 @@ function createTaskEl(task, showDlSide) {
             ? `Отмечено как выполненное: ${task.text} — нажмите чтобы снять отметку`
             : `Отметить как выполненное: ${task.text}`;
 
+    // Pinned mark — forged spike in the top-left corner (active pins only).
+    const pinSpike = (task.pinned && !task.checked && !task.cycleChecked)
+        ? `<span class="pin-spike" aria-hidden="true">${IC.pinSpike}</span>` : '';
+
     li.innerHTML = `
+        ${pinSpike}
         ${dlSideHtml}
         ${mainSelectMode ? `<span class="task-select-checkbox${selectedTaskIds.has(task.id) ? ' selected' : ''}"
             aria-hidden="true">
@@ -2824,6 +2933,22 @@ function buildSubtaskItemHTML(taskId, s) {
 // ============================================================
 let formSubtasks = []; // [{text, priority, note, repeat, repeatAnchorTime, repeatAnchorDay, repeatAnchorMonthday}]
 
+// P5: form-level "pin the new task" flag — applied to the task created by addTask().
+let formPinned = false;
+function toggleFormPin() {
+    formPinned = !formPinned;
+    const btn = document.getElementById('form-pin-toggle');
+    if (btn) {
+        btn.classList.toggle('active', formPinned);
+        btn.setAttribute('aria-pressed', formPinned ? 'true' : 'false');
+    }
+}
+function _resetFormPin() {
+    formPinned = false;
+    const btn = document.getElementById('form-pin-toggle');
+    if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+}
+
 function addFormSubtask() {
     const input = document.getElementById('form-sub-input');
     if (!input) return;
@@ -2901,6 +3026,39 @@ function renderFormSubtasks() {
             ${s.note ? `<div class="form-sub-note-preview">${escHtml(s.note)}</div>` : ''}
         </div>`;
     }).join('');
+    initFormSubSortable();
+}
+
+// P12: drag-to-reorder for the form's subtask list (parity with in-task subtasks).
+let _formSubSortable = null;
+function initFormSubSortable() {
+    const list = document.getElementById('form-sub-list');
+    if (!list || typeof Sortable === 'undefined') return;
+    if (_formSubSortable) { try { _formSubSortable.destroy(); } catch (e) {} _formSubSortable = null; }
+    if (!formSubtasks.length) return;
+    _formSubSortable = new Sortable(list, {
+        animation: 150,
+        draggable: '.form-sub-item',
+        delay: 120,
+        delayOnTouchOnly: false,
+        fallbackTolerance: 5,
+        // Keep clicks on the action buttons from starting a drag.
+        filter: '.form-sub-actions, .btn-form-sub-action, .btn-form-sub-del',
+        preventOnFilter: false,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd: onFormSubDragEnd,
+    });
+}
+function onFormSubDragEnd() {
+    const list = document.getElementById('form-sub-list');
+    if (!list) return;
+    // Read the new DOM order via each item's original index, then rebuild the array.
+    const order = Array.from(list.querySelectorAll('.form-sub-item'))
+        .map(el => parseInt(el.dataset.formSubIdx));
+    const reordered = order.map(i => formSubtasks[i]).filter(Boolean);
+    if (reordered.length === formSubtasks.length) formSubtasks = reordered;
+    renderFormSubtasks();
 }
 
 function handleFormSubAdd(event) { if (event.key === 'Enter') addFormSubtask(); }
@@ -2968,6 +3126,7 @@ function addTask() {
         deadline:  formDeadline ? JSON.parse(JSON.stringify(formDeadline)) : null,
         groupId:   taskGroupSelect ? taskGroupSelect.value : '',
         subtasks:  formSubtasks.slice(),
+        pinned:    formPinned,
     };
 
     pushUndo();
@@ -3009,7 +3168,7 @@ function addTask() {
         nextReset: null,
         subtasks: newSubtasks,
         subtasksOpen: newSubtasks.length > 0,
-        pinned: false,
+        pinned: formPinned,
     });
     // IMP-1: mark the new task so only it gets taskIn animation on render
     _newTaskIds.add(state.tasks[state.tasks.length - 1].id);
@@ -3037,6 +3196,8 @@ function addTask() {
     // Reset group chip to none
     taskGroupSelect.value = '';
     renderGroupChips('');
+    // P5: reset the pin flag/toggle for the next task
+    _resetFormPin();
 
     saveState(); render();
     showToast('Задача добавлена');
@@ -3366,7 +3527,48 @@ function saveTaskAsTemplate(id) {
         repeatAnchorTime:     task.repeatAnchorTime     || null,
         repeatAnchorDay:      task.repeatAnchorDay      || null,
         repeatAnchorMonthday: task.repeatAnchorMonthday || null,
+        pinned:    !!task.pinned,
         subtasks: (task.subtasks || []).map(s => ({
+            text: s.text, priority: s.priority || 'none', note: s.note || '',
+            repeat: s.repeat || 'none', repeatAnchorTime: s.repeatAnchorTime || null,
+            repeatAnchorDay: s.repeatAnchorDay || null, repeatAnchorMonthday: s.repeatAnchorMonthday || null,
+        })),
+    });
+    saveState();
+    updateTemplatesBtn();
+    showToast('Сохранено как шаблон');
+}
+
+// P5: save the current ADD-TASK FORM as a template — saves only, does NOT create a
+// task. Mirrors saveTaskAsTemplate() but reads from the live form state.
+function saveFormAsTemplate() {
+    const raw = inputBox.value.trim();
+    if (!raw) { shakeInput(); showToast('Введите название для шаблона'); return; }
+    const parsed = parseQuickInput(raw);
+    const text = parsed.text;
+    if (!text) { shakeInput(); showToast('Введите название для шаблона'); return; }
+    if (!state.templates) state.templates = [];
+    if (!state.nextTemplateId) state.nextTemplateId = 1;
+
+    const effPriority = parsed.priority || selectedPriority;
+    const deadline    = parsed.deadline || (formDeadline ? { ...formDeadline } : null);
+    const _fRAt       = segInputs['form-repeat-anchor-time']?.value || formRepeatAnchorTime || null;
+
+    pushUndo();
+    state.templates.push({
+        id:        state.nextTemplateId++,
+        name:      text.slice(0, 60),
+        text,
+        priority:  effPriority || 'none',
+        color:     (effPriority && effPriority !== 'none') ? null : (selectedFormColor || null),
+        deadline:  deadline ? JSON.parse(JSON.stringify(deadline)) : null,
+        note:      taskNote ? taskNote.value.trim() : '',
+        repeat:    selectedRepeat || 'none',
+        repeatAnchorTime:     _fRAt || null,
+        repeatAnchorDay:      formRepeatAnchorDay || null,
+        repeatAnchorMonthday: formRepeatAnchorMonthday || null,
+        pinned:    formPinned,
+        subtasks: (formSubtasks || []).map(s => ({
             text: s.text, priority: s.priority || 'none', note: s.note || '',
             repeat: s.repeat || 'none', repeatAnchorTime: s.repeatAnchorTime || null,
             repeatAnchorDay: s.repeatAnchorDay || null, repeatAnchorMonthday: s.repeatAnchorMonthday || null,
@@ -3402,7 +3604,7 @@ function createTaskFromTemplate(tid) {
             cycleChecked: false, nextReset: null,
         })),
         subtasksOpen: (tpl.subtasks || []).length > 0,
-        pinned: false,
+        pinned: !!tpl.pinned,
     });
     _newTaskIds.add(newId);
     saveState(); render();
@@ -6797,6 +6999,15 @@ function setupSortables() {
             });
         });
 
+        // ── Pinned zone (split mode): shares the 'split_active' pool so a card can
+        //    be dragged OUT into the active zone (→ unpins) or reordered within.
+        document.querySelectorAll('.split-pinned-body').forEach((ul, i) => {
+            sortableZones[`split_pinned_${i}`] = new Sortable(ul, {
+                ...SORTABLE_OPTS,
+                group: { name: 'split_active', pull: true, put: ['split_active'] },
+            });
+        });
+
         // ── Done zones: fully disabled — no drag initiation, no drops accepted.
         document.querySelectorAll('.split-done-body').forEach(ul => {
             new Sortable(ul, {
@@ -6850,6 +7061,15 @@ function onDragAdd(evt) {
     const task   = state.tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    // ── Pin / unpin via the split "Закреплённые" zone ──────────────────────
+    // Drop INTO the pinned zone → pin; drag OUT of it elsewhere → unpin. Pin
+    // state changes never inherit a neighbour's priority (the task keeps its own).
+    const toPinned   = evt.to.dataset.zonePinned === '1';
+    const fromPinned = evt.from.dataset.zonePinned === '1';
+    let pinnedChanged = false;
+    if (toPinned && !task.pinned)        { task.pinned = true;  pinnedChanged = true; }
+    else if (fromPinned && !toPinned && task.pinned) { task.pinned = false; pinnedChanged = true; }
+
     // Determine new groupId
     let newGid = null;
     if (evt.to.id && evt.to.id.startsWith('group-list-')) {
@@ -6867,14 +7087,16 @@ function onDragAdd(evt) {
     task.groupId = newGid;
     reorderList(evt.to);
     reorderList(evt.from);
-    applyPriorityInheritance(taskId, evt.to);
+    // Skip priority inheritance when pin state changed or a pinned zone is involved
+    // — a pinned task must keep its own priority (so unpin restores its real state).
+    if (!pinnedChanged && !toPinned && !fromPinned) applyPriorityInheritance(taskId, evt.to);
     saveState();
     updateGroupCounts();
 
-    // Cross-group drop in schedule or split mode: the task may have landed in a
-    // bare group-body (no zone UL existed yet). A full render() re-builds the
-    // zone structure (С дедлайном / Без дедлайна) correctly for both groups.
-    if (groupChanged && (isScheduleMode || isGroupSplitMode)) {
+    // Re-render when the zone structure must change: a cross-group drop in
+    // schedule/split mode, OR any pin/unpin (the task must hop into/out of the
+    // "Закреплённые" zone and the header count must refresh).
+    if (pinnedChanged || (groupChanged && (isScheduleMode || isGroupSplitMode))) {
         render();
     }
 }
@@ -6883,7 +7105,10 @@ function onDragEnd(evt) {
     const taskId = parseInt(evt.item.dataset.id);
     reorderList(evt.from);
     if (evt.from !== evt.to) reorderList(evt.to);
-    applyPriorityInheritance(taskId, evt.to);
+    // A reorder inside the pinned zone must not rewrite the task's priority.
+    if (evt.to.dataset.zonePinned !== '1' && evt.from.dataset.zonePinned !== '1') {
+        applyPriorityInheritance(taskId, evt.to);
+    }
     saveState();
     document.body.classList.remove('is-dragging');
     // Always clean up portal glow regardless of where drag ended

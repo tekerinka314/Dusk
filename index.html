@@ -285,6 +285,31 @@
                             </div>
                         </div>
                     </div>
+                    <!-- P5: form-level actions — pin the about-to-be-created task, and
+                         save the current form as a reusable template (saves only, does
+                         NOT create a task). -->
+                    <div class="extra-row form-action-row">
+                        <button type="button" class="form-flag-toggle" id="form-pin-toggle"
+                                onclick="toggleFormPin()" aria-pressed="false"
+                                title="Закрепить новую задачу вверху списка">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="3" x2="12" y2="19"/>
+                                <path d="M9 7L12 3L15 7"/>
+                                <line x1="8" y1="10" x2="16" y2="10"/>
+                                <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                            </svg>
+                            <span>Закрепить задачу</span>
+                        </button>
+                        <button type="button" class="form-tpl-btn" onclick="saveFormAsTemplate()"
+                                title="Сохранить параметры формы как шаблон (без создания задачи)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
+                                <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
+                                <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
+                            </svg>
+                            <span>Сохранить как шаблон</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- P4: gothic "reliquary tablet" toggle. Engraved double frame, corner
