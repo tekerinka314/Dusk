@@ -2967,7 +2967,7 @@ function addFormSubtask() {
     // Problem 5: animate the freshly added form-subtask in (same motion as the
     // inline subtask list).
     if (!prefersReducedMotion()) {
-        const newEl = document.querySelector(`#form-sub-list .form-sub-item[data-form-sub-idx="${formSubtasks.length - 1}"]`);
+        const newEl = document.querySelector(`#form-sub-list .subtask-item[data-form-sub-idx="${formSubtasks.length - 1}"]`);
         if (newEl) {
             newEl.classList.add('sub-adding');
             newEl.addEventListener('animationend', () => newEl.classList.remove('sub-adding'), { once: true });
@@ -2979,7 +2979,7 @@ function addFormSubtask() {
 function removeFormSubtask(idx) {
     const commit = () => { formSubtasks.splice(idx, 1); renderFormSubtasks(); };
     // Problem 5: fade the item out before it's removed.
-    const el = document.querySelector(`#form-sub-list .form-sub-item[data-form-sub-idx="${idx}"]`);
+    const el = document.querySelector(`#form-sub-list .subtask-item[data-form-sub-idx="${idx}"]`);
     if (!el || prefersReducedMotion()) { commit(); return; }
     let done = false;
     const finish = () => { if (done) return; done = true; commit(); };
@@ -2994,42 +2994,167 @@ function clearFormSubtasks() {
     renderFormSubtasks();
 }
 
+// P12: render the form's subtasks using the SAME markup/classes as in-task
+// subtasks (buildSubtaskItemHTML) so they look and behave identically — drag
+// handle, priority ember (data-sprio), hover-reveal actions, inline text edit,
+// inline note. Index-based handlers (no ids/state, the task isn't created yet).
+// Skipped vs in-task (meaningless before creation): checkbox, promote, split.
 function renderFormSubtasks() {
     const list = document.getElementById('form-sub-list');
     if (!list) return;
-    const PRIO_COLORS = { high: 'var(--prio-high)', medium: 'var(--prio-medium)', low: 'var(--prio-low)', none: 'var(--border-mid)' };
     list.innerHTML = formSubtasks.map((s, i) => {
-        const prioColor = PRIO_COLORS[s.priority] || PRIO_COLORS.none;
         const repeatSet = s.repeat && s.repeat !== 'none';
         const anchorLabel = repeatSet ? getRepeatAnchorLabel(s.repeat, s.repeatAnchorTime, s.repeatAnchorDay, s.repeatAnchorMonthday) : '';
         const repeatTitle = repeatSet
-            ? `Повтор: ${repeatLabel(s.repeat)}${anchorLabel ? ` · ${anchorLabel}` : ''}`
+            ? `Повтор: ${repeatLabel(s.repeat)}${anchorLabel ? ` · ${anchorLabel}` : ''} — нажмите чтобы изменить`
             : 'Назначить повтор';
-        return `
-        <div class="form-sub-item" data-form-sub-idx="${i}">
-            <div class="form-sub-main-row">
-                ${subCoffinSVG(false)}
-                <span class="form-sub-text">${escHtml(s.text)}</span>
-                <div class="form-sub-actions">
-                    <button class="btn-form-sub-action${s.priority !== 'none' ? ' active' : ''}"
-                            onclick="cycleFormSubPriority(${i})" title="Приоритет подпункта">
-                        <div class="sub-prio-dot" style="background:${prioColor}"></div>
-                    </button>
-                    <button class="btn-form-sub-action${repeatSet ? ' active' : ''}"
-                            onclick="openFormSubRepeat(${i})" title="${repeatTitle}">
-                        ${IC.ouroboros}
-                    </button>
-                    <button class="btn-form-sub-action${s.note ? ' has-note' : ''}"
-                            onclick="editFormSubNote(${i})" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">
-                        ${s.note ? IC.editNote : IC.addNote}
-                    </button>
-                    <button class="btn-form-sub-del" onclick="removeFormSubtask(${i})" title="Удалить">${IC.dagger}</button>
-                </div>
+        const noteWrapClass = s.note ? 'has-note' : '';
+        return `<li class="subtask-item" data-form-sub-idx="${i}" data-sprio="${s.priority || 'none'}">
+        <div class="sub-main-row">
+            <div class="sub-drag-handle" aria-hidden="true">${IC.drag}</div>
+            <span class="sub-text" title="Двойной клик — редактировать" ondblclick="startFormSubEdit(event,${i})">${escHtml(s.text)}</span>
+            <div class="sub-actions">
+                <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleFormSubPriority(${i})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
+                <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" onclick="openFormSubRepeat(${i})" title="${repeatTitle}">${IC.ouroboros}</button>
+                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" onpointerdown="event.preventDefault()" onclick="toggleFormSubNote(${i})" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
+                <button type="button" class="btn-sub-action danger" onclick="removeFormSubtask(${i})" title="Удалить подпункт">${IC.skull}</button>
             </div>
-            ${s.note ? `<div class="form-sub-note-preview">${escHtml(s.note)}</div>` : ''}
-        </div>`;
+        </div>
+        <div class="sub-note-wrapper ${noteWrapClass}" id="form-subnote-${i}">
+            <div class="sub-note-text" id="form-subnote-text-${i}"
+                 ${s.note ? 'contenteditable="true"' : ''}
+                 onfocus="this.contentEditable='true'"
+                 onblur="saveFormSubNote(${i}, this.textContent.trim())"
+                 onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}"
+                >${escHtml(s.note || '')}</div>
+            ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="deleteFormSubNote(event,${i})" title="Удалить заметку">${IC.dagger}</button>` : ''}
+        </div>
+    </li>`;
     }).join('');
     initFormSubSortable();
+}
+
+// ── Inline text edit for a form subtask (mirror of startSubEdit) ──────────────
+function startFormSubEdit(event, i) {
+    event.stopPropagation();
+    const s = formSubtasks[i];
+    if (!s) return;
+    const span = event.target;
+    if (span.contentEditable === 'true') return;
+    span.contentEditable = 'true';
+    span.textContent = s.text;
+    span.focus();
+    span.addEventListener('paste', plainTextPaste, { once: false });
+    const range = document.createRange(); range.selectNodeContents(span);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+    const commit = () => {
+        span.removeEventListener('paste', plainTextPaste);
+        span.contentEditable = 'false';
+        const nw = span.textContent.trim();
+        if (nw && nw !== s.text) s.text = nw;
+        span.textContent = s.text;
+    };
+    span.addEventListener('blur', commit, { once: true });
+    span.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
+        if (e.key === 'Escape') {
+            span.removeEventListener('paste', plainTextPaste);
+            span.textContent = s.text;
+            span.contentEditable = 'false';
+            span.removeEventListener('blur', commit);
+        }
+    });
+}
+
+// ── Inline note for a form subtask (mirrors toggleSubNote / saveSubNote /
+//    deleteSubNote, reusing the generic _openNoteWrap/_closeNoteWrap) ──────────
+function toggleFormSubNote(i) {
+    const wrap = document.getElementById(`form-subnote-${i}`);
+    if (!wrap) return;
+    const noteEl    = wrap.querySelector('.sub-note-text');
+    const toggleBtn = document.querySelector(`.subtask-item[data-form-sub-idx="${i}"] .btn-sub-note-toggle`);
+
+    if (wrap.classList.contains('has-note')) {
+        const isVisible = wrap.style.opacity === '1' || parseFloat(getComputedStyle(wrap).opacity) > 0.5;
+        if (isVisible && !wrap._dismissed) {
+            wrap._dismissed = true; _closeNoteWrap(wrap);
+            if (noteEl) noteEl.contentEditable = 'false';
+            if (toggleBtn) toggleBtn.title = 'Редактировать заметку';
+        } else {
+            wrap._dismissed = false; _openNoteWrap(wrap);
+            if (noteEl) { noteEl.contentEditable = 'true'; noteEl.focus(); }
+            if (toggleBtn) toggleBtn.title = 'Скрыть заметку';
+        }
+    } else {
+        if (wrap.classList.contains('open')) {
+            _closeNoteWrap(wrap);
+            if (noteEl) noteEl.contentEditable = 'false';
+            if (toggleBtn) toggleBtn.title = 'Добавить заметку';
+            setTimeout(() => wrap.classList.remove('open'), 220);
+        } else {
+            wrap.classList.add('open'); _openNoteWrap(wrap);
+            if (noteEl) { noteEl.contentEditable = 'true'; noteEl.focus(); }
+            if (toggleBtn) toggleBtn.title = 'Отменить добавление заметки';
+        }
+    }
+}
+
+function saveFormSubNote(i, text) {
+    const s = formSubtasks[i];
+    if (!s) return;
+    s.note = text;
+    const toggleBtn = document.querySelector(`.subtask-item[data-form-sub-idx="${i}"] .btn-sub-note-toggle`);
+    if (toggleBtn) {
+        toggleBtn.classList.toggle('has-note', !!text);
+        toggleBtn.title = text ? 'Редактировать заметку' : 'Добавить заметку';
+        toggleBtn.innerHTML = text ? IC.editNote : IC.addNote;
+    }
+    const wrap = document.getElementById(`form-subnote-${i}`);
+    if (!wrap) return;
+    const wasEmpty = !wrap.classList.contains('has-note');
+    if (text) {
+        wrap.classList.add('has-note');
+        wrap.classList.remove('open');
+        if (wasEmpty) { wrap._dismissed = false; _openNoteWrap(wrap); }
+        if (!wrap.querySelector('.btn-sub-note-delete')) {
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'btn-sub-note-delete';
+            delBtn.title = 'Удалить заметку';
+            delBtn.innerHTML = IC.dagger;
+            delBtn.addEventListener('click', e => deleteFormSubNote(e, i));
+            wrap.appendChild(delBtn);
+        }
+    } else {
+        wrap.classList.remove('has-note', 'open');
+        wrap._dismissed = false;
+        _closeNoteWrap(wrap);
+        const ex = wrap.querySelector('.btn-sub-note-delete');
+        if (ex) ex.remove();
+    }
+}
+
+function deleteFormSubNote(event, i) {
+    event.stopPropagation();
+    const s = formSubtasks[i];
+    if (!s) return;
+    s.note = '';
+    const wrap = document.getElementById(`form-subnote-${i}`);
+    if (wrap) {
+        wrap.classList.remove('has-note', 'open');
+        wrap._dismissed = false;
+        _closeNoteWrap(wrap);
+        const txt = document.getElementById(`form-subnote-text-${i}`);
+        if (txt) { txt.textContent = ''; txt.contentEditable = 'false'; }
+        const delBtn = wrap.querySelector('.btn-sub-note-delete');
+        if (delBtn) delBtn.remove();
+    }
+    const toggleBtn = document.querySelector(`.subtask-item[data-form-sub-idx="${i}"] .btn-sub-note-toggle`);
+    if (toggleBtn) {
+        toggleBtn.classList.remove('has-note');
+        toggleBtn.title = 'Добавить заметку';
+        toggleBtn.innerHTML = IC.addNote;
+    }
 }
 
 // P12: drag-to-reorder for the form's subtask list (parity with in-task subtasks).
@@ -3041,12 +3166,12 @@ function initFormSubSortable() {
     if (!formSubtasks.length) return;
     _formSubSortable = new Sortable(list, {
         animation: 150,
-        draggable: '.form-sub-item',
+        draggable: '.subtask-item',
         delay: 120,
         delayOnTouchOnly: false,
         fallbackTolerance: 5,
-        // Keep clicks on the action buttons from starting a drag.
-        filter: '.form-sub-actions, .btn-form-sub-action, .btn-form-sub-del',
+        // Keep clicks on actions / inline edit fields from starting a drag.
+        filter: '.sub-actions, .btn-sub-action, .sub-note-wrapper, [contenteditable="true"]',
         preventOnFilter: false,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
@@ -3057,7 +3182,7 @@ function onFormSubDragEnd() {
     const list = document.getElementById('form-sub-list');
     if (!list) return;
     // Read the new DOM order via each item's original index, then rebuild the array.
-    const order = Array.from(list.querySelectorAll('.form-sub-item'))
+    const order = Array.from(list.querySelectorAll('.subtask-item'))
         .map(el => parseInt(el.dataset.formSubIdx));
     const reordered = order.map(i => formSubtasks[i]).filter(Boolean);
     if (reordered.length === formSubtasks.length) formSubtasks = reordered;
@@ -3090,15 +3215,6 @@ function openFormSubRepeat(idx) {
     // Patch confirm handler for this session: standard handler checks editingTaskId/SubId
     // We intercept via _formSubRepeatIdx flag (checked first in the patched handler).
     openModalWithFocus('repeat-modal');
-}
-
-function editFormSubNote(idx) {
-    const s = formSubtasks[idx];
-    if (!s) return;
-    const newNote = prompt('Заметка подпункта:', s.note || '');
-    if (newNote === null) return; // cancelled
-    s.note = newNote.trim().slice(0, 300);
-    renderFormSubtasks();
 }
 
 // UX-4: snapshot of the form state captured just before addTask() commits,
