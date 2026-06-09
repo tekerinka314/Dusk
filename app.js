@@ -231,10 +231,13 @@ const IC = {
     </svg>`,
     // Middle diamond at full opacity creates a natural gradient peak.
     // Thin stroke sharpens edges; fills provide the solid presence.
-    drag: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 1L11 4L8 7L5 4Z"  fill="currentColor" opacity="0.65" stroke-width="0.6" stroke-opacity="0.3"/>
-        <path d="M8 5.5L11 8.5L8 11.5L5 8.5Z" fill="currentColor" opacity="1"    stroke-width="0.6" stroke-opacity="0.4"/>
-        <path d="M8 10L11 13L8 16L5 13Z" fill="currentColor" opacity="0.65" stroke-width="0.6" stroke-opacity="0.3"/>
+    // Drag handle — a gothic quatrefoil chain: two four-lobed (quatrefoil) links
+    // joined by a round link, evoking cathedral-tracery jewellery. Stroke-only so
+    // it stays legible and elegant at handle sizes.
+    drag: `<svg viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="0.95" stroke-linejoin="round">
+        <g><circle cx="8" cy="3" r="1.45"/><circle cx="9.6" cy="4.6" r="1.45"/><circle cx="8" cy="6.2" r="1.45"/><circle cx="6.4" cy="4.6" r="1.45"/></g>
+        <circle cx="8" cy="10" r="1.7"/>
+        <g><circle cx="8" cy="13.8" r="1.45"/><circle cx="9.6" cy="15.4" r="1.45"/><circle cx="8" cy="17" r="1.45"/><circle cx="6.4" cy="15.4" r="1.45"/></g>
     </svg>`,
     // Sound on — gothic church bell (lancet-arch silhouette, clapper, crown ring).
     // Bells are the original sound/notification symbol; universally recognised,
@@ -7329,7 +7332,7 @@ function appendSplitSection(ul, tasks, splitKey, realGroupId) {
         const doneHdr = document.createElement('li');
         doneHdr.className = 'split-zone-header split-done-header' + (doneCollapsed ? ' collapsed' : '');
         doneHdr.setAttribute('data-split-key', splitKey);
-        doneHdr.innerHTML = `<svg viewBox="0 0 14 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5L10 3.5L13 6L13 16Q7 18.5 1 16L1 6Z" opacity="0.6"/><line x1="7" y1="7" x2="7" y2="13" stroke-width="1.1" opacity="0.55"/><line x1="4.5" y1="9.5" x2="9.5" y2="9.5" stroke-width="1.1" opacity="0.55"/></svg><span>Выполненные · ${done.length}</span><svg class="split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/><path d="M11 17L10 20H14L13 17"/><circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/></svg>`;
+        doneHdr.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 H15.5 L18 10 L14.5 21 H9.5 L6 10 Z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9.5" y1="10.5" x2="14.5" y2="10.5"/></svg><span>Выполненные · ${done.length}</span><svg class="split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/><path d="M11 17L10 20H14L13 17"/><circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/></svg>`;
         doneHdr.onclick = () => {
             const c = doneHdr.classList.toggle('collapsed');
             localStorage.setItem('groupSplit_done_' + splitKey, c ? '1' : '0');

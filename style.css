@@ -2677,7 +2677,7 @@ body::after {
     opacity: 0.62;
     pointer-events: auto;
 }
-.sub-drag-handle svg { width: 11px; height: 11px; flex-shrink: 0; }
+.sub-drag-handle svg { width: 13px; height: 13px; flex-shrink: 0; }
 
 /* Subtask drag-handle visibility is controlled by the hover rules above */
 
