@@ -87,7 +87,7 @@
             <!-- Input Section -->
             <div class="input-section">
                 <div class="row" id="input-row">
-                    <input type="text" id="input-box" placeholder="Новая задача..." autocomplete="off" maxlength="200">
+                    <input type="text" id="input-box" placeholder="Новая задача..." autocomplete="off" spellcheck="false" maxlength="200">
                     <button class="btn-add" id="btn-add" onclick="addTask()" title="Добавить задачу">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                             <line x1="12" y1="3" x2="12" y2="21"/>
@@ -192,7 +192,7 @@
                         </div>
                         <div class="field-group field-note">
                             <label class="field-label">Заметка</label>
-                            <input type="text" id="task-note" class="note-input" placeholder="Краткий комментарий..." maxlength="300">
+                            <input type="text" id="task-note" class="note-input" placeholder="Краткий комментарий..." maxlength="300" spellcheck="false">
                         </div>
                     </div>
                     <div class="extra-row">
@@ -272,7 +272,7 @@
                                 <div class="form-sub-add-row">
                                     <input class="form-sub-input" id="form-sub-input"
                                         placeholder="Новый подпункт..."
-                                        maxlength="200" autocomplete="off"
+                                        maxlength="200" autocomplete="off" spellcheck="false"
                                         onkeydown="handleFormSubAdd(event)">
                                     <button class="btn-form-sub-add" onclick="addFormSubtask()" title="Добавить подпункт">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
@@ -342,7 +342,7 @@
                         <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
                         <line x1="14.5" y1="16" x2="21" y2="21"/>
                     </svg>
-                    <input type="text" id="search-box" placeholder="Поиск..." autocomplete="off">
+                    <input type="text" id="search-box" placeholder="Поиск..." autocomplete="off" spellcheck="false">
                 </div>
                 <!-- Tag cloud — rendered by JS, hidden when no tags exist -->
                 <div class="tag-cloud" id="tag-cloud" style="display:none"></div>
@@ -601,7 +601,7 @@
                         <line x1="14.5" y1="16" x2="21" y2="21"/>
                     </svg>
                     <input type="text" id="archive-search-box"
-                           placeholder="Поиск в архиве..." autocomplete="off"
+                           placeholder="Поиск в архиве..." autocomplete="off" spellcheck="false"
                            oninput="archiveSearchQuery=this.value.trim();_applyArchiveSearch()">
                 </div>
                 <div class="archive-btns" id="archive-btns" style="display:none">
@@ -676,7 +676,7 @@
     <div class="modal">
         <h3 class="modal-title" id="group-modal-title">Новая группа</h3>
         <div class="modal-row">
-            <input type="text" id="group-name-input" class="modal-input" placeholder="Название группы..." maxlength="40" autocomplete="off">
+            <input type="text" id="group-name-input" class="modal-input" placeholder="Название группы..." maxlength="40" autocomplete="off" spellcheck="false">
         </div>
         <!-- P6 + P-fix#2: group colour = same 10 presets as task labels + the FULL gothic
              RGB spectrum embedded directly here (no hop to the colour-label modal). The
@@ -722,7 +722,7 @@
     <div class="modal modal-small">
         <h3 class="modal-title" id="rename-group-modal-title">Переименовать группу</h3>
         <div class="modal-row">
-            <input type="text" id="rename-group-input" class="modal-input" placeholder="Новое название..." maxlength="40" autocomplete="off">
+            <input type="text" id="rename-group-input" class="modal-input" placeholder="Новое название..." maxlength="40" autocomplete="off" spellcheck="false">
         </div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeRenameGroupModal()">Отмена</button>
@@ -1114,7 +1114,7 @@
      role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
     <div class="modal modal-note">
         <h3 class="modal-title" id="note-modal-title">Добавить заметку</h3>
-        <textarea class="modal-textarea" id="note-modal-input" placeholder="Введите заметку..." maxlength="500" rows="4"></textarea>
+        <textarea class="modal-textarea" id="note-modal-input" placeholder="Введите заметку..." maxlength="500" rows="4" spellcheck="false"></textarea>
         <div class="modal-actions">
             <button class="btn-modal-cancel" onclick="closeNoteModal()">Отмена</button>
             <button class="btn-modal-confirm" onclick="confirmNote()">Сохранить</button>

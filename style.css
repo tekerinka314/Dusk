@@ -2450,7 +2450,8 @@ body::after {
     .extra-fields,
     .group-body,
     .subtask-section,
-    .sub-note-wrapper {
+    .sub-note-wrapper,
+    .sub-note-inner {
         transition: none !important;
     }
 }
@@ -2745,29 +2746,33 @@ body::after {
 .btn-sub-action:hover { background: var(--bg-tag); color: var(--text-secondary); }
 .btn-sub-action.danger:hover { background: var(--prio-high-bg); color: var(--prio-high); }
 
-/* Sub-note: single fixed transition — NEVER changes. JS drives open/close via inline styles.
-   This avoids the "transition-switching" problem where changing both transition+value
-   in the same frame causes no animation (open) or jerk (close). */
+/* Sub-note collapse: grid-template-rows 0fr↔1fr — the row track itself animates
+   from collapsed to its natural content height, so there is NO fixed max-height
+   clip (notes of any length up to the scroll cap reveal fully) and no inline-style
+   bookkeeping. .note-open is a pure class toggle driven by _openNoteWrap/_close. */
 .sub-note-wrapper {
     width: 100%;
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    pointer-events: none;
+    display: grid;
+    grid-template-rows: 0fr;
     position: relative;
     flex-shrink: 0;
-    /* Single stable transition — always present, never overridden by class switching */
-    transition: max-height 0.22s ease, opacity 0.18s ease;
+    transition: grid-template-rows 0.24s ease;
 }
-/* .open: state marker only — animation is driven by _openNoteWrap/_closeNoteWrap inline styles.
-   No max-height/opacity here to avoid CSS↔inline conflict that caused 2-frame jump on close. */
-.sub-note-wrapper.open { /* intentionally empty — see toggleSubNote */ }
-/* Always-open mode — inline styles from toggleSubNotesAlwaysOpen drive visibility,
-   but this CSS rule handles the initial render when subNotesAlwaysOpen is already true */
+.sub-note-wrapper.note-open,
 .subtask-section.notes-always-open .sub-note-wrapper.has-note {
-    max-height: 160px;
+    grid-template-rows: 1fr;
+}
+/* The inner track must have min-height:0 + overflow:hidden so 0fr truly collapses. */
+.sub-note-inner {
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+.sub-note-wrapper.note-open > .sub-note-inner,
+.subtask-section.notes-always-open .sub-note-wrapper.has-note > .sub-note-inner {
     opacity: 1;
-    pointer-events: auto;
 }
 
 /* ── "Always show notes" toggle button ── */
@@ -2793,15 +2798,56 @@ body::after {
     font-size: 12px;
     font-style: italic;
     color: var(--text-secondary);
-    padding: 4px 28px 4px 26px; /* P8: right padding to clear delete button */
-    border-left: 2px solid var(--border-mid);
+    padding: 4px 28px 4px 30px; /* left clears the filigree flourish; right clears the dagger */
     margin-top: 3px;
     line-height: 1.45;
     word-break: break-word;
+    overflow-wrap: anywhere;
     cursor: text;
+    min-height: 0;
+    max-height: 200px;          /* long notes scroll instead of growing unbounded */
+    overflow-y: auto;
     font-variant-numeric: lining-nums tabular-nums;
+    /* V2 · филигранный росчерк — a delicate gothic vine running down the left margin.
+       One full sine period per 14px tile (x returns to centre at 0/7/14) so it tiles
+       seamlessly AND a short one-line note still shows a complete wave, not a stub. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'%3E%3Cpath d='M5 0 C1 3 9 5 5 7 C1 9 9 11 5 14' fill='none' stroke='%23a060ff' stroke-width='1.2' stroke-opacity='0.7' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: repeat-y;
+    background-position: left 5px top 2px;
+    background-size: 10px 14px;
 }
-.sub-note-text[contenteditable="true"] { outline: none; border-left-color: var(--accent); user-select: text; -webkit-user-select: text; }
+/* While editing/creating: keep the SAME V2 flourish (consistent design in every
+   state) — only enable text selection and suppress the focus outline. */
+.sub-note-text.editing {
+    outline: none;
+    user-select: text;
+    -webkit-user-select: text;
+}
+/* Placeholder for an empty note field (shown during the create flow). */
+.sub-note-text:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.75;
+    pointer-events: none;
+}
+/* Auto-linkified URLs (display-only; raw text returns on edit). */
+.note-link { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 2px; }
+.note-link:hover { color: var(--accent); }
+/* Unobtrusive char counter, shown only near the limit. */
+.sub-note-count {
+    position: absolute;
+    right: 6px;
+    bottom: 2px;
+    font-size: 9px;
+    font-style: normal;
+    color: var(--text-muted);
+    opacity: 0.7;
+    pointer-events: none;
+    background: var(--bg-item);
+    padding: 0 2px;
+    border-radius: 3px;
+}
 
 /* P8: sub-note delete button — same system as btn-note-delete, proportionally smaller */
 .btn-sub-note-delete {

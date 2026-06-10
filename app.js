@@ -2666,7 +2666,7 @@ function createTaskEl(task, showDlSide) {
     const inlineNoteAdd = !hasNote ? `
         <div class="inline-note-add" id="inline-note-add-${task.id}">
             <input class="inline-note-input" id="inline-note-input-${task.id}"
-                   placeholder="Краткая заметка..." maxlength="300" autocomplete="off"
+                   placeholder="Краткая заметка..." maxlength="300" autocomplete="off" spellcheck="false"
                    onkeydown="handleInlineNoteKey(event,${task.id})"
                    onblur="commitInlineNote(${task.id})">
         </div>` : '';
@@ -2708,7 +2708,7 @@ function createTaskEl(task, showDlSide) {
         </div>
         <div class="task-content">
             <div class="task-head">
-                <span class="task-text" data-id="${task.id}" title="Двойной клик — редактировать" ondblclick="startInlineEdit(event, ${task.id})">${displayText}</span>
+                <span class="task-text" data-id="${task.id}" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startInlineEdit(event, ${task.id})">${displayText}</span>
                 <div class="task-actions">
                     <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" onclick="togglePin(${task.id})" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
                     <button class="btn-task-action btn-task-color" onclick="openTaskColorModal(${task.id})" title="Цветовая метка" style="${task.color ? `color:${task.color}` : ''}">
@@ -2735,6 +2735,7 @@ function createTaskEl(task, showDlSide) {
             ${hasNote ? `
             <div class="task-note-wrapper${task.noteOpen ? ' visible' : ''}" id="note-wrapper-${task.id}">
                 <div class="task-note-text" id="note-${task.id}"
+                     spellcheck="false"
                      ondblclick="startNoteInlineEdit(event, ${task.id})"
                      title="Двойной клик — редактировать">${escHtml(task.note)}</div>
                 <button class="btn-note-delete" onclick="deleteNote(event, ${task.id})" title="Удалить заметку">${IC.dagger}</button>
@@ -2897,8 +2898,8 @@ function buildSubtaskItemHTML(taskId, s) {
         ? `Повтор: ${repeatLabel(s.repeat)}${subAnchorLabel ? ` · ${subAnchorLabel}` : ''} — нажмите чтобы изменить`
         : 'Назначить повтор';
     const subRepeatBtn = `<button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" onclick="openSubRepeatModal(${taskId},${s.id})" title="${subRepeatTitle}">${IC.ouroboros}</button>`;
-    // Note wrapper: .has-note means CSS :hover + :focus-within show it automatically.
-    // .open is only used for the "create note" flow (no existing note).
+    // Note wrapper: .has-note marks an existing note (hover/always-open reveal it);
+    // .note-open is the live "expanded" state driven by the unified note system.
     const noteWrapClass = s.note ? 'has-note' : '';
     return `<li class="subtask-item${isChecked ? ' checked' : ''}${isCycleChecked ? ' cycle-checked' : ''}"
                data-tid="${taskId}" data-sid="${s.id}" data-sprio="${s.priority || 'none'}">
@@ -2910,7 +2911,7 @@ function buildSubtaskItemHTML(taskId, s) {
                     aria-checked="${(isChecked || isCycleChecked) ? 'true' : 'false'}"
                     aria-label="${escHtml(subCheckLabel)}"
                     >${subCheckIcon}</button>
-            <span class="sub-text" title="Двойной клик — редактировать" ondblclick="startSubEdit(event,${taskId},${s.id})">${subDisplayText}</span>
+            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startSubEdit(event,${taskId},${s.id})">${subDisplayText}</span>
             <div class="sub-actions">
                 <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleSubPriority(${taskId},${s.id})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
                 ${subRepeatBtn}
@@ -2920,13 +2921,17 @@ function buildSubtaskItemHTML(taskId, s) {
             </div>
         </div>
         <div class="sub-note-wrapper ${noteWrapClass}" id="subnote-${taskId}-${s.id}">
-            <div class="sub-note-text" id="subnote-text-${taskId}-${s.id}"
-                 ${s.note ? 'contenteditable="true"' : ''}
-                 onfocus="this.contentEditable='true'"
-                 onblur="saveSubNote(${taskId},${s.id},this.textContent.trim())"
-                 onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}"
-                >${escHtml(s.note || '')}</div>
-            ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="deleteSubNote(event,${taskId},${s.id})" title="Удалить заметку">${IC.dagger}</button>` : ''}
+            <div class="sub-note-inner">
+                <div class="sub-note-text" id="subnote-text-${taskId}-${s.id}"
+                     spellcheck="false" data-placeholder="начертайте примечание…"
+                     aria-label="Заметка подпункта"
+                     ondblclick="_noteEdit(this)"
+                     oninput="_noteInput(this)"
+                     onkeydown="_noteKeydown(event,this)"
+                     onblur="_noteCommit(this)"
+                    >${s.note ? noteDisplayHTML(s.note) : ''}</div>
+                ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="_noteDeleteClick(event,this.parentElement.querySelector('.sub-note-text'))" title="Удалить заметку">${IC.dagger}</button>` : ''}
+            </div>
         </div>
     </li>`;
 }
@@ -3012,7 +3017,7 @@ function renderFormSubtasks() {
         return `<li class="subtask-item" data-form-sub-idx="${i}" data-sprio="${s.priority || 'none'}">
         <div class="sub-main-row">
             <div class="sub-drag-handle" aria-hidden="true">${IC.drag}</div>
-            <span class="sub-text" title="Двойной клик — редактировать" ondblclick="startFormSubEdit(event,${i})">${escHtml(s.text)}</span>
+            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startFormSubEdit(event,${i})">${escHtml(s.text)}</span>
             <div class="sub-actions">
                 <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleFormSubPriority(${i})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
                 <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" onclick="openFormSubRepeat(${i})" title="${repeatTitle}">${IC.ouroboros}</button>
@@ -3021,13 +3026,17 @@ function renderFormSubtasks() {
             </div>
         </div>
         <div class="sub-note-wrapper ${noteWrapClass}" id="form-subnote-${i}">
-            <div class="sub-note-text" id="form-subnote-text-${i}"
-                 ${s.note ? 'contenteditable="true"' : ''}
-                 onfocus="this.contentEditable='true'"
-                 onblur="saveFormSubNote(${i}, this.textContent.trim())"
-                 onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}"
-                >${escHtml(s.note || '')}</div>
-            ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="deleteFormSubNote(event,${i})" title="Удалить заметку">${IC.dagger}</button>` : ''}
+            <div class="sub-note-inner">
+                <div class="sub-note-text" id="form-subnote-text-${i}"
+                     spellcheck="false" data-placeholder="начертайте примечание…"
+                     aria-label="Заметка подпункта"
+                     ondblclick="_noteEdit(this)"
+                     oninput="_noteInput(this)"
+                     onkeydown="_noteKeydown(event,this)"
+                     onblur="_noteCommit(this)"
+                    >${s.note ? noteDisplayHTML(s.note) : ''}</div>
+                ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="_noteDeleteClick(event,this.parentElement.querySelector('.sub-note-text'))" title="Удалить заметку">${IC.dagger}</button>` : ''}
+            </div>
         </div>
     </li>`;
     }).join('');
@@ -3042,6 +3051,7 @@ function startFormSubEdit(event, i) {
     const span = event.target;
     if (span.contentEditable === 'true') return;
     span.contentEditable = 'true';
+    span.spellcheck = false;
     span.textContent = s.text;
     span.focus();
     span.addEventListener('paste', plainTextPaste, { once: false });
@@ -3066,95 +3076,11 @@ function startFormSubEdit(event, i) {
     });
 }
 
-// ── Inline note for a form subtask (mirrors toggleSubNote / saveSubNote /
-//    deleteSubNote, reusing the generic _openNoteWrap/_closeNoteWrap) ──────────
+// ── Inline note for a form subtask — now handled by the unified note system
+//    (_noteCtx resolves form context from data-form-sub-idx). Only the toggle
+//    button needs a thin wrapper; create/save/delete go through the shared path.
 function toggleFormSubNote(i) {
-    const wrap = document.getElementById(`form-subnote-${i}`);
-    if (!wrap) return;
-    const noteEl    = wrap.querySelector('.sub-note-text');
-    const toggleBtn = document.querySelector(`.subtask-item[data-form-sub-idx="${i}"] .btn-sub-note-toggle`);
-
-    if (wrap.classList.contains('has-note')) {
-        const isVisible = wrap.style.opacity === '1' || parseFloat(getComputedStyle(wrap).opacity) > 0.5;
-        if (isVisible && !wrap._dismissed) {
-            wrap._dismissed = true; _closeNoteWrap(wrap);
-            if (noteEl) noteEl.contentEditable = 'false';
-            if (toggleBtn) toggleBtn.title = 'Редактировать заметку';
-        } else {
-            wrap._dismissed = false; _openNoteWrap(wrap);
-            if (noteEl) { noteEl.contentEditable = 'true'; noteEl.focus(); }
-            if (toggleBtn) toggleBtn.title = 'Скрыть заметку';
-        }
-    } else {
-        if (wrap.classList.contains('open')) {
-            _closeNoteWrap(wrap);
-            if (noteEl) noteEl.contentEditable = 'false';
-            if (toggleBtn) toggleBtn.title = 'Добавить заметку';
-            setTimeout(() => wrap.classList.remove('open'), 220);
-        } else {
-            wrap.classList.add('open'); _openNoteWrap(wrap);
-            if (noteEl) { noteEl.contentEditable = 'true'; noteEl.focus(); }
-            if (toggleBtn) toggleBtn.title = 'Отменить добавление заметки';
-        }
-    }
-}
-
-function saveFormSubNote(i, text) {
-    const s = formSubtasks[i];
-    if (!s) return;
-    s.note = text;
-    const toggleBtn = document.querySelector(`.subtask-item[data-form-sub-idx="${i}"] .btn-sub-note-toggle`);
-    if (toggleBtn) {
-        toggleBtn.classList.toggle('has-note', !!text);
-        toggleBtn.title = text ? 'Редактировать заметку' : 'Добавить заметку';
-        toggleBtn.innerHTML = text ? IC.editNote : IC.addNote;
-    }
-    const wrap = document.getElementById(`form-subnote-${i}`);
-    if (!wrap) return;
-    const wasEmpty = !wrap.classList.contains('has-note');
-    if (text) {
-        wrap.classList.add('has-note');
-        wrap.classList.remove('open');
-        if (wasEmpty) { wrap._dismissed = false; _openNoteWrap(wrap); }
-        if (!wrap.querySelector('.btn-sub-note-delete')) {
-            const delBtn = document.createElement('button');
-            delBtn.type = 'button';
-            delBtn.className = 'btn-sub-note-delete';
-            delBtn.title = 'Удалить заметку';
-            delBtn.innerHTML = IC.dagger;
-            delBtn.addEventListener('click', e => deleteFormSubNote(e, i));
-            wrap.appendChild(delBtn);
-        }
-    } else {
-        wrap.classList.remove('has-note', 'open');
-        wrap._dismissed = false;
-        _closeNoteWrap(wrap);
-        const ex = wrap.querySelector('.btn-sub-note-delete');
-        if (ex) ex.remove();
-    }
-}
-
-function deleteFormSubNote(event, i) {
-    event.stopPropagation();
-    const s = formSubtasks[i];
-    if (!s) return;
-    s.note = '';
-    const wrap = document.getElementById(`form-subnote-${i}`);
-    if (wrap) {
-        wrap.classList.remove('has-note', 'open');
-        wrap._dismissed = false;
-        _closeNoteWrap(wrap);
-        const txt = document.getElementById(`form-subnote-text-${i}`);
-        if (txt) { txt.textContent = ''; txt.contentEditable = 'false'; }
-        const delBtn = wrap.querySelector('.btn-sub-note-delete');
-        if (delBtn) delBtn.remove();
-    }
-    const toggleBtn = document.querySelector(`.subtask-item[data-form-sub-idx="${i}"] .btn-sub-note-toggle`);
-    if (toggleBtn) {
-        toggleBtn.classList.remove('has-note');
-        toggleBtn.title = 'Добавить заметку';
-        toggleBtn.innerHTML = IC.addNote;
-    }
+    _noteToggle(document.getElementById(`form-subnote-${i}`));
 }
 
 // P12: drag-to-reorder for the form's subtask list (parity with in-task subtasks).
@@ -4594,36 +4520,10 @@ function openSubRepeatModal(taskId, subId) {
     openModalWithFocus('repeat-modal');
 }
 
-// P8: delete subtask note
+// P8: delete subtask note — thin wrapper over the unified _noteDeleteClick.
 function deleteSubNote(event, taskId, subId) {
-    event.stopPropagation();
-    const task = state.tasks.find(t => t.id === taskId);
-    if (!task) return;
-    const sub = task.subtasks.find(s => s.id === subId);
-    if (!sub) return;
-    pushUndo();
-    sub.note = '';
-    saveState();
     const wrap = document.getElementById(`subnote-${taskId}-${subId}`);
-    if (wrap) {
-        wrap.classList.remove('has-note', 'open');
-        wrap._dismissed = false;
-        _closeNoteWrap(wrap);
-        const txt = document.getElementById(`subnote-text-${taskId}-${subId}`);
-        if (txt) { txt.textContent = ''; txt.contentEditable = 'false'; }
-        const delBtn = wrap.querySelector('.btn-sub-note-delete');
-        if (delBtn) delBtn.remove();
-    }
-    // Update toggle button indicator
-    const noteToggleBtn = document.querySelector(
-        `.subtask-item[data-tid="${taskId}"][data-sid="${subId}"] .btn-sub-note-toggle`
-    );
-    if (noteToggleBtn) {
-        noteToggleBtn.classList.remove('has-note');
-        noteToggleBtn.title = 'Добавить заметку';
-    }
-    // May remove eye button if this was the last note
-    updateSubNotesAlwaysBtn(taskId);
+    _noteDeleteClick(event, wrap ? wrap.querySelector('.sub-note-text') : null);
 }
 
 function startSubEdit(event, taskId, subId) {
@@ -4635,6 +4535,7 @@ function startSubEdit(event, taskId, subId) {
     const span = event.target;
     if (span.contentEditable === 'true') return;
     span.contentEditable = 'true';
+    span.spellcheck = false;
     span.textContent = sub.text;
     span.focus();
     // Attach plain-text paste directly here — attachPlainPasteHandlers() runs
@@ -4661,140 +4562,216 @@ function startSubEdit(event, taskId, subId) {
     });
 }
 
-function _openNoteWrap(wrap) {
-    if (!wrap) return;
-    // Guard: don't restart animation if already open/opening
-    if (wrap._noteOpen) return;
-    wrap._noteOpen = true;
-    wrap.style.maxHeight    = '0';
-    wrap.style.opacity      = '0';
-    wrap.style.pointerEvents = 'none';
-    // Force reflow so the browser registers start values before animating
-    void wrap.offsetHeight;
-    wrap.style.maxHeight    = '160px';
-    wrap.style.opacity      = '1';
-    wrap.style.pointerEvents = 'auto';
-}
-function _closeNoteWrap(wrap) {
-    if (!wrap) return;
-    wrap._noteOpen = false;
-    // Transition directly from the current computed value (even if mid-animation) to 0.
-    // The old pattern of setting maxHeight = scrollHeight first caused a visible snap:
-    // if the open animation was still running at e.g. 120px, the intermediate
-    // scrollHeight assignment (say 60px) jumped the element to 60px before animating
-    // to 0 — the browser saw two distinct layout changes instead of one smooth one.
-    // With no intermediate assignment the CSS transition always starts from whatever
-    // the browser currently has computed, giving a perfectly smooth close.
-    wrap.style.maxHeight    = '0';
-    wrap.style.opacity      = '0';
-    wrap.style.pointerEvents = 'none';
-}
+// ============================================================
+//  UNIFIED INLINE NOTE SYSTEM (subtask + form subtask)
+//  Context is resolved from the closest .subtask-item:
+//    in-task → data-tid + data-sid    form → data-form-sub-idx
+//  Collapse is a pure class toggle (.note-open) over the CSS
+//  grid-template-rows 0fr↔1fr model — no inline-style bookkeeping.
+//  At rest the note text is NON-editable so auto-links stay clickable;
+//  dblclick / the note button enter edit mode (raw text), blur re-renders.
+// ============================================================
+const NOTE_MAX = 300;
 
-function toggleSubNote(taskId, subId) {
-    const wrap = document.getElementById(`subnote-${taskId}-${subId}`);
-    if (!wrap) return;
-    const noteEl  = wrap.querySelector('.sub-note-text');
-    const toggleBtn = document.querySelector(
-        `.subtask-item[data-tid="${taskId}"][data-sid="${subId}"] .btn-sub-note-toggle`
+// URLs → anchors (display only). Escapes first, so it's XSS-safe.
+function linkifyNote(text) {
+    return escHtml(text).replace(
+        /(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer" class="note-link">$1</a>'
     );
-
-    if (wrap.classList.contains('has-note')) {
-        // Existing note — .showing controls visibility via inline style
-        const isVisible = wrap.style.opacity === '1' ||
-                          parseFloat(getComputedStyle(wrap).opacity) > 0.5;
-        if (isVisible && !wrap._dismissed) {
-            // Close it
-            wrap._dismissed = true;
-            _closeNoteWrap(wrap);
-            if (noteEl) { noteEl.contentEditable = 'false'; }
-            if (toggleBtn) toggleBtn.title = 'Редактировать заметку';
-        } else {
-            // Open it for editing
-            wrap._dismissed = false;
-            _openNoteWrap(wrap);
-            if (noteEl) { noteEl.contentEditable = 'true'; noteEl.focus(); }
-            if (toggleBtn) toggleBtn.title = 'Скрыть заметку';
-        }
-    } else {
-        // No note yet — creation flow
-        const isOpen = wrap.classList.contains('open');
-        if (isOpen) {
-            // Close: first animate via inline styles, THEN remove class after transition
-            // Removing .open before _closeNoteWrap caused CSS .open{max-height:160px} to
-            // race with inline style setting → 2-frame jump.
-            _closeNoteWrap(wrap);
-            if (noteEl) { noteEl.contentEditable = 'false'; }
-            if (toggleBtn) toggleBtn.title = 'Добавить заметку';
-            // Remove class after transition completes so it doesn't fight inline styles
-            const dur = 220; // matches CSS transition: max-height 0.22s
-            setTimeout(() => wrap.classList.remove('open'), dur);
-        } else {
-            wrap.classList.add('open');
-            _openNoteWrap(wrap);
-            if (noteEl) { noteEl.contentEditable = 'true'; noteEl.focus(); }
-            if (toggleBtn) toggleBtn.title = 'Отменить добавление заметки';
-        }
-    }
+}
+// Display HTML for a stored note value. During a search, highlight wins over
+// links (mixing <mark> inside <a> would produce invalid nested markup).
+function noteDisplayHTML(text) {
+    if (!text) return '';
+    if (searchQuery) return highlightSearch(escHtml(text), searchQuery);
+    return linkifyNote(text);
 }
 
-function saveSubNote(taskId, subId, text) {
+// Resolve {kind, sub, item, …} from any element inside a .subtask-item.
+function _noteCtx(el) {
+    const item = el && el.closest ? el.closest('.subtask-item') : null;
+    if (!item) return null;
+    if (item.dataset.formSubIdx != null && item.dataset.formSubIdx !== '') {
+        const idx = parseInt(item.dataset.formSubIdx);
+        const sub = formSubtasks[idx];
+        return sub ? { kind: 'form', idx, item, sub } : null;
+    }
+    const taskId = parseInt(item.dataset.tid);
+    const subId  = parseInt(item.dataset.sid);
     const task = state.tasks.find(t => t.id === taskId);
-    if (!task) return;
+    if (!task) return null;
     const sub = task.subtasks.find(s => s.id === subId);
-    if (!sub) return;
-    sub.note = text;
+    return sub ? { kind: 'sub', taskId, subId, item, sub, task } : null;
+}
 
-    // Update the note-toggle button indicator
-    const noteToggleBtn = document.querySelector(
-        `.subtask-item[data-tid="${taskId}"][data-sid="${subId}"] .btn-sub-note-toggle`
-    );
-    if (noteToggleBtn) {
-        noteToggleBtn.classList.toggle('has-note', !!text);
-        noteToggleBtn.title = text ? 'Редактировать заметку' : 'Добавить заметку';
+// Collapse helpers — pure class toggles. Names kept so every existing caller
+// (hover handlers, always-open mode, toggle) keeps working unchanged.
+function _openNoteWrap(wrap)  { if (wrap) { wrap.classList.add('note-open');    wrap._noteOpen = true;  } }
+function _closeNoteWrap(wrap) { if (wrap) { wrap.classList.remove('note-open'); wrap._noteOpen = false; } }
+
+// Enter edit mode: flatten links/marks back to raw text, enable editing, caret end.
+function _noteEdit(el) {
+    if (!el) return;
+    const ctx = _noteCtx(el);
+    if (!ctx) return;
+    if (el.getAttribute('contenteditable') === 'true') { el.focus(); return; }
+    el._noteCancel = false;
+    el.setAttribute('contenteditable', 'true');
+    el.spellcheck = false;
+    el.classList.add('editing');
+    el.textContent = ctx.sub.note || '';
+    el.focus();
+    const range = document.createRange(); range.selectNodeContents(el); range.collapse(false);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    _noteCounter(el, (el.textContent || '').length);
+}
+
+// Char limit (truncate), live counter, debounced persist while typing.
+function _noteInput(el) {
+    let txt = el.textContent || '';
+    if (txt.length > NOTE_MAX) {
+        el.textContent = txt = txt.slice(0, NOTE_MAX);
+        const range = document.createRange(); range.selectNodeContents(el); range.collapse(false);
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
     }
+    _noteCounter(el, txt.length);
+    clearTimeout(el._noteSaveT);
+    el._noteSaveT = setTimeout(() => {
+        const ctx = _noteCtx(el);
+        if (ctx) _notePersist(ctx, (el.textContent || '').trim(), { keepEditing: true });
+    }, 350);
+}
 
-    const wrap = document.getElementById(`subnote-${taskId}-${subId}`);
+// Unobtrusive counter near the limit (appears within the last 60 chars).
+function _noteCounter(el, len) {
+    const inner = el.closest('.sub-note-inner');
+    if (!inner) return;
+    let c = inner.querySelector('.sub-note-count');
+    if (len >= NOTE_MAX - 60) {
+        if (!c) { c = document.createElement('span'); c.className = 'sub-note-count'; inner.appendChild(c); }
+        c.textContent = `${len}/${NOTE_MAX}`;
+    } else if (c) {
+        c.remove();
+    }
+}
+
+// Enter = save (blur), Shift+Enter = newline, Esc = cancel (revert).
+function _noteKeydown(e, el) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+    else if (e.key === 'Escape')          { e.preventDefault(); el._noteCancel = true; el.blur(); }
+}
+
+// Blur → finalize. Esc-cancel reverts; otherwise persist + render display (links).
+function _noteCommit(el) {
+    clearTimeout(el._noteSaveT);
+    const ctx  = _noteCtx(el);
+    const wrap = el.closest('.sub-note-wrapper');
+    el.removeAttribute('contenteditable');
+    el.classList.remove('editing');
+    const inner = el.closest('.sub-note-inner');
+    const counter = inner ? inner.querySelector('.sub-note-count') : null;
+    if (counter) counter.remove();
+    if (!ctx) return;
+
+    if (el._noteCancel) {
+        el._noteCancel = false;
+        el.innerHTML = noteDisplayHTML(ctx.sub.note || '');
+        // create flow that was cancelled with nothing saved → collapse + clean up
+        if (!ctx.sub.note && wrap && !wrap.classList.contains('has-note')) _closeNoteWrap(wrap);
+        return;
+    }
+    const text = (el.textContent || '').trim().slice(0, NOTE_MAX);
+    _notePersist(ctx, text, { keepEditing: false });
+    el.innerHTML = noteDisplayHTML(text);
+}
+
+// Write the note to state/formSubtasks and sync wrapper class + toggle button.
+// keepEditing (debounced mid-typing): never rebuild the editable element's HTML
+// and never collapse on a transient empty value.
+function _notePersist(ctx, text, opts = {}) {
+    ctx.sub.note = text;
+    const wrap      = ctx.item.querySelector('.sub-note-wrapper');
+    const toggleBtn = ctx.item.querySelector('.btn-sub-note-toggle');
+    if (toggleBtn) {
+        toggleBtn.classList.toggle('has-note', !!text);
+        toggleBtn.title = text ? 'Редактировать заметку' : 'Добавить заметку';
+        toggleBtn.innerHTML = text ? IC.editNote : IC.addNote;
+    }
     if (wrap) {
-        // wasEmpty: note didn't exist before this save — first-time creation path.
-        // If the note already existed, we must NOT touch .showing/.dismissed because
-        // toggleSubNote may have just set .dismissed to close the note, and this blur
-        // handler fires synchronously after contentEditable='false' — overwriting it
-        // would reopen the note and break the toggle.
-        const wasEmpty = !wrap.classList.contains('has-note');
-
         if (text) {
-            wrap.classList.add('has-note');
-            wrap.classList.remove('open');
-            if (wasEmpty) {
-                // Fresh note: stay visible (cursor still on item)
-                wrap._dismissed = false;
-                _openNoteWrap(wrap);
-            }
-            // If note already existed: do NOT touch inline styles — toggleSubNote owns them
-
-            // Inject delete button if missing
-            if (!wrap.querySelector('.btn-sub-note-delete')) {
+            wrap.classList.add('has-note', 'note-open');
+            const inner = wrap.querySelector('.sub-note-inner') || wrap;
+            if (!inner.querySelector('.btn-sub-note-delete')) {
                 const delBtn = document.createElement('button');
                 delBtn.type = 'button';
                 delBtn.className = 'btn-sub-note-delete';
                 delBtn.title = 'Удалить заметку';
                 delBtn.innerHTML = IC.dagger;
-                delBtn.addEventListener('click', e => deleteSubNote(e, taskId, subId));
-                wrap.appendChild(delBtn);
+                delBtn.addEventListener('click', e => _noteDeleteClick(e, inner.querySelector('.sub-note-text')));
+                inner.appendChild(delBtn);
             }
-        } else {
-            // Note cleared: collapse wrapper fully
-            wrap.classList.remove('has-note', 'open');
-            wrap._dismissed = false;
-            _closeNoteWrap(wrap);
-            const existingDelBtn = wrap.querySelector('.btn-sub-note-delete');
-            if (existingDelBtn) existingDelBtn.remove();
+        } else if (!opts.keepEditing) {
+            wrap.classList.remove('has-note', 'note-open');
+            const ex = wrap.querySelector('.btn-sub-note-delete');
+            if (ex) ex.remove();
         }
     }
+    if (ctx.kind === 'sub') {
+        saveState();
+        updateSubNotesAlwaysBtn(ctx.taskId);
+    }
+}
 
-    saveState();
-    // Keep the eye button (always-show-notes) in sync with note presence
-    updateSubNotesAlwaysBtn(taskId);
+// Delete the note (both contexts). Undoable for in-task subtasks.
+function _noteDeleteClick(e, textEl) {
+    if (e) e.stopPropagation();
+    const ctx = _noteCtx(textEl || (e && e.currentTarget));
+    if (!ctx) return;
+    if (ctx.kind === 'sub') pushUndo();
+    ctx.sub.note = '';
+    const wrap = ctx.item.querySelector('.sub-note-wrapper');
+    if (textEl) { textEl.removeAttribute('contenteditable'); textEl.classList.remove('editing'); textEl.innerHTML = ''; }
+    if (wrap) {
+        wrap.classList.remove('has-note', 'note-open');
+        wrap._dismissed = false;
+        const del = wrap.querySelector('.btn-sub-note-delete'); if (del) del.remove();
+        const cnt = wrap.querySelector('.sub-note-count');      if (cnt) cnt.remove();
+    }
+    const toggleBtn = ctx.item.querySelector('.btn-sub-note-toggle');
+    if (toggleBtn) { toggleBtn.classList.remove('has-note'); toggleBtn.title = 'Добавить заметку'; toggleBtn.innerHTML = IC.addNote; }
+    if (ctx.kind === 'sub') { saveState(); updateSubNotesAlwaysBtn(ctx.taskId); }
+}
+
+// Shared toggle for the note button. For a note-less subtask it opens straight
+// into edit (create flow); for an existing note it shows/hides (and commits if
+// it was being edited).
+function _noteToggle(wrap) {
+    if (!wrap) return;
+    const noteEl = wrap.querySelector('.sub-note-text');
+    const open   = wrap.classList.contains('note-open');
+    if (wrap.classList.contains('has-note')) {
+        if (open) {
+            if (noteEl && noteEl.getAttribute('contenteditable') === 'true') noteEl.blur();
+            wrap._dismissed = true; _closeNoteWrap(wrap);
+        } else {
+            wrap._dismissed = false; _openNoteWrap(wrap); if (noteEl) _noteEdit(noteEl);
+        }
+    } else {
+        // No saved note yet (create flow).
+        if (open && noteEl && noteEl.getAttribute('contenteditable') === 'true') {
+            noteEl.blur(); // commit in-progress text — collapses if empty, keeps if non-empty
+        } else if (open) {
+            _closeNoteWrap(wrap);
+        } else {
+            _openNoteWrap(wrap); if (noteEl) _noteEdit(noteEl);
+        }
+    }
+}
+
+// Thin context wrapper kept for the in-task note button's onclick.
+function toggleSubNote(taskId, subId) {
+    _noteToggle(document.getElementById(`subnote-${taskId}-${subId}`));
 }
 
 /**
@@ -5011,6 +4988,7 @@ function startInlineEdit(event, id) {
     if (!span) return;
     if (span.contentEditable === 'true') return; // already editing
     span.contentEditable = 'true';
+    span.spellcheck = false;
     span.textContent = task.text;
     span.focus();
     const range = document.createRange(); range.selectNodeContents(span);
@@ -5046,6 +5024,7 @@ function startNoteInlineEdit(event, id) {
     const noteEl  = document.getElementById('note-' + id);
     if (!noteEl || !wrapper || !wrapper.classList.contains('visible')) return;
     noteEl.contentEditable = 'true';
+    noteEl.spellcheck = false;
     noteEl.classList.add('editing');
     noteEl.focus();
     const range = document.createRange(); range.selectNodeContents(noteEl);
