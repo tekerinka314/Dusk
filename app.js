@@ -2434,7 +2434,7 @@ function renderArchive() {
                 <div class="task-content">
                     <span class="task-text">${escHtml(item.text)}</span>
                     <div class="task-meta">${groupHtml}${dlHtml}${rptHtml}<span class="meta-tag muted-tag">${date}</span></div>
-                    ${item.note ? `<div class="task-note-wrapper visible"><div class="task-note-text">${escHtml(item.note)}</div></div>` : ''}
+                    ${item.note ? `<div class="task-note-wrapper visible"><div class="task-note-inner"><div class="task-note-text">${escHtml(item.note)}</div></div></div>` : ''}
                     ${subsHtml}
                 </div>
                 ${actions}`;
@@ -2619,12 +2619,9 @@ function createTaskEl(task, showDlSide) {
 
     // ── Note controls ──
     const hasNote = task.note && task.note.trim();
-    // Note toggle — always visible:
-    //   • has note  → open/close note-wrapper
-    //   • no note   → open/close inline-note-add field
-    const noteToggle = hasNote
-        ? `<button class="btn-note-toggle${task.noteOpen ? ' open' : ''}" onclick="toggleNote(event, ${task.id})" title="${task.noteOpen ? 'Скрыть заметку' : 'Показать заметку'}">${IC.sword}<span>заметка</span></button>`
-        : `<button class="btn-note-toggle" id="note-add-toggle-${task.id}" onpointerdown="(function(e){var w=document.getElementById('inline-note-add-${task.id}');if(w&&w.classList.contains('open'))_inlineNoteClosingId=${task.id};})(event)" onclick="toggleInlineNoteAdd(event,${task.id})" title="Добавить заметку">${IC.sword}<span>заметка</span></button>`;
+    // Single meta toggle (reads live DOM state): has note → show/hide the panel
+    // (persisted in noteOpen); no note → open the panel straight into inline edit.
+    const noteToggle = `<button class="btn-note-toggle${(hasNote && task.noteOpen) ? ' open' : ''}" id="note-toggle-${task.id}" onmousedown="event.preventDefault()" onclick="toggleTaskNote(${task.id})" title="${hasNote ? (task.noteOpen ? 'Скрыть заметку' : 'Показать заметку') : 'Добавить заметку'}">${IC.sword}<span>заметка</span></button>`;
 
     // ── Subtask toggle + always-show-notes button ──
     const subs    = task.subtasks || [];
@@ -2655,21 +2652,10 @@ function createTaskEl(task, showDlSide) {
         ? `<span class="meta-tag cycle-until-tag">${IC.cycleReturn}<span>${formatCycleUntil(task)}</span></span>`
         : '';
 
-    // ── Note/edit buttons ──
-    // P4: "add note" uses the modal (full textarea experience).
-    // The inline-note-add area below also exists for quick inline entry.
-    const addNoteBtn = !hasNote
-        ? `<button class="btn-task-action" onclick="openNoteModal(${task.id})" title="Добавить заметку">${IC.addNote}</button>`
-        : `<button class="btn-task-action edit-note-btn" onclick="openEditNoteModal(${task.id})" title="Изменить заметку">${IC.editNote}</button>`;
-
-    // Inline note-add — always rendered when no note; hidden via CSS max-height:0 by default
-    const inlineNoteAdd = !hasNote ? `
-        <div class="inline-note-add" id="inline-note-add-${task.id}">
-            <input class="inline-note-input" id="inline-note-input-${task.id}"
-                   placeholder="Краткая заметка..." maxlength="300" autocomplete="off" spellcheck="false"
-                   onkeydown="handleInlineNoteKey(event,${task.id})"
-                   onblur="commitInlineNote(${task.id})">
-        </div>` : '';
+    // ── Note "full editor" button (task-action) ──
+    // Secondary path: opens the modal textarea for comfortable long-note editing.
+    // Inline editing lives in the panel itself (primary path).
+    const addNoteBtn = `<button class="btn-task-action${hasNote ? ' edit-note-btn' : ''}" id="note-modal-btn-${task.id}" onclick="${hasNote ? `openEditNoteModal(${task.id})` : `openNoteModal(${task.id})`}" title="${hasNote ? 'Изменить заметку в окне' : 'Заметка в окне'}">${hasNote ? IC.editNote : IC.addNote}</button>`;
 
     // ── Subtasks section ──
     const subtaskSearchHit = searchQuery && task.subtasks && task.subtasks.some(
@@ -2732,15 +2718,19 @@ function createTaskEl(task, showDlSide) {
                 </div>
             </div>
             <div class="task-meta">${deadlineHtml}${rptHtml}${cycleUntilHtml}${noteToggle}${subToggle}${subNotesAlwaysBtn}</div>
-            ${hasNote ? `
-            <div class="task-note-wrapper${task.noteOpen ? ' visible' : ''}" id="note-wrapper-${task.id}">
-                <div class="task-note-text" id="note-${task.id}"
-                     spellcheck="false"
-                     ondblclick="startNoteInlineEdit(event, ${task.id})"
-                     title="Двойной клик — редактировать">${escHtml(task.note)}</div>
-                <button class="btn-note-delete" onclick="deleteNote(event, ${task.id})" title="Удалить заметку">${IC.dagger}</button>
-            </div>` : ''}
-            ${inlineNoteAdd}
+            <div class="task-note-wrapper${(hasNote && task.noteOpen) ? ' visible' : ''}${hasNote ? ' has-note' : ''}" id="note-wrapper-${task.id}">
+                <div class="task-note-inner">
+                    <div class="task-note-text" id="note-${task.id}"
+                         spellcheck="false" data-placeholder="начертайте примечание…"
+                         aria-label="Заметка задачи"
+                         ondblclick="_taskNoteEdit(this)"
+                         oninput="_taskNoteInput(this)"
+                         onkeydown="_taskNoteKeydown(event,this)"
+                         onblur="_taskNoteCommit(this)"
+                         title="Двойной клик — редактировать">${hasNote ? noteDisplayHTML(task.note) : ''}</div>
+                </div>
+                <button class="btn-note-delete" id="note-del-${task.id}" onclick="_taskNoteDelete(event, ${task.id})" title="Удалить заметку"${hasNote ? '' : ' style="display:none"'}>${IC.dagger}</button>
+            </div>
             ${subsHtml}
         </div>`;
 
@@ -5015,50 +5005,160 @@ function startInlineEdit(event, id) {
     });
 }
 
-// ---- Inline edit note ----
-function startNoteInlineEdit(event, id) {
-    event.stopPropagation();
-    const task    = state.tasks.find(t => t.id === id);
-    if (!task) return;
-    const wrapper = document.getElementById('note-wrapper-' + id);
-    const noteEl  = document.getElementById('note-' + id);
-    if (!noteEl || !wrapper || !wrapper.classList.contains('visible')) return;
-    noteEl.contentEditable = 'true';
-    noteEl.spellcheck = false;
-    noteEl.classList.add('editing');
-    noteEl.focus();
-    const range = document.createRange(); range.selectNodeContents(noteEl);
-    window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
-    const commit = () => {
-        noteEl.contentEditable = 'false'; noteEl.classList.remove('editing');
-        const nw = noteEl.textContent.trim();
-        if (nw !== task.note) { pushUndo(); task.note = nw; saveState(); }
-        render();
-    };
-    noteEl.addEventListener('blur', commit, { once: true });
-    noteEl.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); noteEl.blur(); }
-        if (e.key === 'Escape') {
-            noteEl.textContent = task.note || '';
-            noteEl.contentEditable = 'false'; noteEl.classList.remove('editing');
-            noteEl.removeEventListener('blur', commit);
+// ============================================================
+//  TASK NOTE — unified inline editor (variant A "illuminated page").
+//  Mirrors the subtask note UX (auto-links, Esc/Enter/Shift+Enter, char
+//  limit + counter, debounced save, placeholder, search highlight) but on
+//  the task model: one persistent panel toggled via noteOpen, plus the modal
+//  as an optional full editor. Reuses the shared linkifyNote/noteDisplayHTML.
+// ============================================================
+const TASK_NOTE_MAX = 500;
+
+// Meta "заметка" button: has note → show/hide panel (persist noteOpen);
+// no note → reveal panel straight into inline edit (create flow).
+function toggleTaskNote(id) {
+    const task = state.tasks.find(t => t.id === id);
+    const wrap = document.getElementById('note-wrapper-' + id);
+    if (!task || !wrap) return;
+    const btn    = document.getElementById('note-toggle-' + id);
+    const noteEl = document.getElementById('note-' + id);
+    // Editor open (create/edit in progress): the toggle acts as "finish & hide".
+    // The button's onmousedown preventDefault keeps the caret in the field, so the
+    // field is still contenteditable here — commit it (or cancel if empty), then
+    // collapse. This avoids the blur-collapse + click-reopen double-fire.
+    if (noteEl && noteEl.getAttribute('contenteditable') === 'true') {
+        const hasText = !!(noteEl.textContent && noteEl.textContent.trim());
+        if (!hasText) noteEl._noteCancel = true;   // empty → cancel cleanly
+        noteEl.blur();                              // commit persists / cancels + collapses
+        if (hasText) {                             // text saved → honour the hide intent
+            task.noteOpen = false;
+            wrap.classList.remove('visible');
+            if (btn) { btn.classList.remove('open'); btn.title = 'Показать заметку'; }
+            saveState();
         }
-    });
+        return;
+    }
+    const hasNote = !!(task.note && task.note.trim());
+    if (hasNote) {
+        const willOpen = !wrap.classList.contains('visible');
+        task.noteOpen = willOpen;
+        wrap.classList.toggle('visible', willOpen);
+        if (btn) { btn.classList.toggle('open', willOpen); btn.title = willOpen ? 'Скрыть заметку' : 'Показать заметку'; }
+        saveState();
+    } else {
+        wrap.classList.add('visible');
+        if (btn) btn.classList.add('open');
+        _taskNoteEdit(noteEl);
+    }
 }
 
-// ============================================================
-//  NOTES
-// ============================================================
-function toggleNote(event, id) {
-    event.stopPropagation();
-    const task    = state.tasks.find(t => t.id === id);
-    const wrapper = document.getElementById('note-wrapper-' + id);
-    const btn     = event.currentTarget;
-    if (!wrapper || !task) return;
-    task.noteOpen = !task.noteOpen;
-    wrapper.classList.toggle('visible', task.noteOpen);
-    btn.classList.toggle('open', task.noteOpen);
-    saveState(); // persist open state
+// Resolve {id, task, item, wrap} from any element inside a .task-item.
+function _taskNoteCtx(el) {
+    const item = el && el.closest ? el.closest('.task-item') : null;
+    if (!item) return null;
+    const id = parseInt(item.dataset.id);
+    const task = state.tasks.find(t => t.id === id);
+    return task ? { id, task, item, wrap: item.querySelector('.task-note-wrapper') } : null;
+}
+
+// Enter edit mode: flatten links back to raw text, enable editing, caret to end.
+function _taskNoteEdit(el) {
+    if (!el) return;
+    const ctx = _taskNoteCtx(el);
+    if (!ctx) return;
+    if (el.getAttribute('contenteditable') === 'true') { el.focus(); return; }
+    el._noteCancel = false;
+    el.setAttribute('contenteditable', 'true');
+    el.spellcheck = false;
+    el.classList.add('editing');
+    el.textContent = ctx.task.note || '';
+    el.focus();
+    const range = document.createRange(); range.selectNodeContents(el); range.collapse(false);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    _taskNoteCounter(el, (el.textContent || '').length);
+}
+
+// Char limit (truncate) + live counter + debounced save while typing.
+function _taskNoteInput(el) {
+    let txt = el.textContent || '';
+    if (txt.length > TASK_NOTE_MAX) {
+        el.textContent = txt = txt.slice(0, TASK_NOTE_MAX);
+        const range = document.createRange(); range.selectNodeContents(el); range.collapse(false);
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    }
+    _taskNoteCounter(el, txt.length);
+    clearTimeout(el._noteSaveT);
+    el._noteSaveT = setTimeout(() => {
+        const ctx = _taskNoteCtx(el);
+        if (ctx) { ctx.task.note = (el.textContent || '').trim(); saveState(); }
+    }, 350);
+}
+
+function _taskNoteCounter(el, len) {
+    const wrap = el.closest('.task-note-wrapper');
+    if (!wrap) return;
+    let c = wrap.querySelector('.task-note-count');
+    if (len >= TASK_NOTE_MAX - 80) {
+        if (!c) { c = document.createElement('span'); c.className = 'task-note-count'; wrap.appendChild(c); }
+        c.textContent = `${len}/${TASK_NOTE_MAX}`;
+    } else if (c) { c.remove(); }
+}
+
+// Enter = save (blur), Shift+Enter = newline, Esc = cancel (revert).
+function _taskNoteKeydown(e, el) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+    else if (e.key === 'Escape')          { e.preventDefault(); el._noteCancel = true; el.blur(); }
+}
+
+// Blur → finalize. Esc-cancel reverts; otherwise persist + render display (links).
+function _taskNoteCommit(el) {
+    clearTimeout(el._noteSaveT);
+    const ctx  = _taskNoteCtx(el);
+    el.removeAttribute('contenteditable');
+    el.classList.remove('editing');
+    const wrap = el.closest('.task-note-wrapper');
+    const counter = wrap ? wrap.querySelector('.task-note-count') : null;
+    if (counter) counter.remove();
+    if (!ctx) return;
+    if (el._noteCancel) {
+        el._noteCancel = false;
+        el.innerHTML = noteDisplayHTML(ctx.task.note || '');
+        if (!(ctx.task.note && ctx.task.note.trim())) {
+            // empty create flow cancelled → collapse panel
+            ctx.task.noteOpen = false;
+            if (wrap) { wrap.classList.remove('visible'); }
+            const btn = document.getElementById('note-toggle-' + ctx.id);
+            if (btn) btn.classList.remove('open');
+        }
+        return;
+    }
+    const text = (el.textContent || '').trim().slice(0, TASK_NOTE_MAX);
+    if (text !== (ctx.task.note || '')) pushUndo();
+    _taskNotePersist(ctx, text);
+    el.innerHTML = noteDisplayHTML(text);
+}
+
+// Write the note + sync panel state and both note buttons (no full re-render).
+function _taskNotePersist(ctx, text) {
+    ctx.task.note = text;
+    const wrap = ctx.wrap;
+    if (wrap) {
+        wrap.classList.toggle('has-note', !!text);
+        if (text) { wrap.classList.add('visible'); ctx.task.noteOpen = true; }
+        else      { wrap.classList.remove('visible'); ctx.task.noteOpen = false; }
+        const del = document.getElementById('note-del-' + ctx.id);
+        if (del) del.style.display = text ? '' : 'none';
+    }
+    const tgl = document.getElementById('note-toggle-' + ctx.id);
+    if (tgl) { tgl.classList.toggle('open', !!text); tgl.title = text ? 'Скрыть заметку' : 'Добавить заметку'; }
+    const mbtn = document.getElementById('note-modal-btn-' + ctx.id);
+    if (mbtn) {
+        mbtn.classList.toggle('edit-note-btn', !!text);
+        mbtn.innerHTML = text ? IC.editNote : IC.addNote;
+        mbtn.title = text ? 'Изменить заметку в окне' : 'Заметка в окне';
+        mbtn.setAttribute('onclick', text ? `openEditNoteModal(${ctx.id})` : `openNoteModal(${ctx.id})`);
+    }
+    saveState();
 }
 
 function openNoteModal(id) {
@@ -5107,8 +5207,9 @@ function confirmNote() {
     showToast('Заметка сохранена');
 }
 
-function deleteNote(event, id) {
-    event.stopPropagation();
+// Delete the task note (from the panel dagger). Undoable; full re-render.
+function _taskNoteDelete(event, id) {
+    if (event) event.stopPropagation();
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
     pushUndo(); task.note = ''; task.noteOpen = false;
@@ -5117,113 +5218,6 @@ function deleteNote(event, id) {
 }
 
 // ============================================================
-//  INLINE NOTE ADD  (opens input inside task, no modal)
-// ============================================================
-
-// Flag set by pointerdown on the toggle button — tells the blur handler
-// that the blur was caused by clicking the same toggle, so we should close
-// rather than commit-then-reopen.
-let _inlineNoteClosingId = null;
-
-function toggleInlineNoteAdd(event, id) {
-    event.stopPropagation();
-    const wrap = document.getElementById(`inline-note-add-${id}`);
-    const btn  = event.currentTarget;
-    if (!wrap) { openNoteModal(id); return; }
-
-    // If pointerdown already triggered a force-close (blur → cancelInlineNote),
-    // the field is already shut — consuming the flag prevents re-open on click.
-    if (_inlineNoteClosingId === id) {
-        _inlineNoteClosingId = null;
-        return;
-    }
-
-    const isOpen = wrap.classList.contains('open');
-    if (isOpen) {
-        wrap.classList.remove('open');
-        btn && btn.classList.remove('open');
-        const inp = document.getElementById(`inline-note-input-${id}`);
-        if (inp) {
-            inp.removeEventListener('paste', plainTextPaste); // I-19: remove on close
-            inp.value = '';
-        }
-    } else {
-        wrap.classList.add('open');
-        btn && btn.classList.add('open');
-        const inp = document.getElementById(`inline-note-input-${id}`);
-        if (inp) {
-            inp.removeEventListener('paste', plainTextPaste); // guard against duplicates
-            inp.addEventListener('paste', plainTextPaste);
-            inp.focus();
-        }
-    }
-}
-
-
-function handleInlineNoteKey(event, id) {
-    if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); commitInlineNote(id); }
-    if (event.key === 'Escape') { cancelInlineNote(id); }
-}
-
-function commitInlineNote(id) {
-    // If blur was triggered by clicking the same toggle button (pointerdown set the flag),
-    // just close the field — DON'T clear the flag here; toggleInlineNoteAdd consumes it.
-    if (_inlineNoteClosingId === id) { cancelInlineNote(id); return; }
-    const task = state.tasks.find(t => t.id === id);
-    const inp  = document.getElementById(`inline-note-input-${id}`);
-    if (!task || !inp) return;
-    const val = inp.value.trim();
-    if (!val) { cancelInlineNote(id); return; }
-    pushUndo();
-    task.note = val;
-    task.noteOpen = true;
-    saveState(); render();
-    showToast('Заметка сохранена');
-}
-
-function cancelInlineNote(id) {
-    const wrap = document.getElementById(`inline-note-add-${id}`);
-    if (!wrap) return;
-    wrap.classList.remove('open');
-    const btn = document.getElementById(`note-add-toggle-${id}`);
-    if (btn) btn.classList.remove('open');
-    const inp = document.getElementById(`inline-note-input-${id}`);
-    if (inp) {
-        inp.removeEventListener('paste', plainTextPaste); // I-19: clean up
-        inp.value = '';
-    }
-}
-
-// ============================================================
-//  AUTO-CLOSE OPEN SUB-NOTE WRAPPERS ON OUTSIDE CLICK  (P10)
-//  When user clicks anywhere outside an open sub-note-wrapper,
-//  close it — mirrors how main-task note fields behave.
-// ============================================================
-//  AUTO-CLOSE OPEN SUB-NOTE WRAPPERS ON OUTSIDE CLICK
-//  Only .open wrappers (empty-note creation flow) are handled here.
-//  .has-note wrappers are managed by mouseover/mouseout delegation in initSubSortable.
-// ============================================================
-document.addEventListener('pointerdown', e => {
-    document.querySelectorAll('.sub-note-wrapper.open').forEach(wrap => {
-        if (!wrap.contains(e.target)) {
-            const wrapId = wrap.id;
-            const parts  = wrapId.split('-');
-            const taskId = parts[1];
-            const subId  = parts[2];
-            const toggleBtn = document.querySelector(
-                `.subtask-item[data-tid="${taskId}"][data-sid="${subId}"] .btn-sub-note-toggle`
-            );
-            if (toggleBtn && toggleBtn.contains(e.target)) return;
-            // Animate first, THEN remove class — same pattern as toggleSubNote close
-            _closeNoteWrap(wrap);
-            const noteEl = wrap.querySelector('.sub-note-text');
-            if (noteEl) { noteEl.contentEditable = 'false'; }
-            if (toggleBtn) toggleBtn.title = 'Добавить заметку';
-            setTimeout(() => wrap.classList.remove('open'), 220);
-        }
-    });
-}, { passive: true });
-
 function plainTextPaste(e) {
     e.preventDefault();
     const text = (e.clipboardData || window.clipboardData).getData('text/plain');

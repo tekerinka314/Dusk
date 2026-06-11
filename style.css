@@ -3348,61 +3348,100 @@ textarea:focus-visible {
 }
 
 /* Note */
+/* Smooth collapse via grid-template-rows 0fr↔1fr (same model as .sub-note-wrapper):
+   the row track animates from collapsed to its natural content height — no fixed
+   max-height clip and no janky easing against a 600px cap. The wrapper is always
+   in the DOM (even note-less), so the margin lives on .visible to avoid a phantom
+   gap under note-less tasks. */
 .task-note-wrapper {
     position: relative;
-    margin-top: 7px;
-    /* I-2: animated show/hide via max-height + opacity instead of display:none/block.
-       max-height cap of 600px covers all realistic note lengths. */
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    visibility: hidden;
-    transition: max-height 0.28s var(--ease-gothic),
-                opacity 0.22s var(--ease-gothic),
-                visibility 0s linear 0.28s;
-    /* The note fills .task-content, which now spans the full task-item width
-       (task-actions moved inside .task-head) — no negative-margin break-out. */
+    display: grid;
+    grid-template-rows: 0fr;
+    margin-top: 0;
+    /* full-width fill of .task-content — no negative-margin break-out. */
     margin-left: 0;
     margin-right: 0;
     padding-left: 0;
     padding-right: 0;
+    transition: grid-template-rows 0.28s var(--ease-gothic),
+                margin-top 0.28s var(--ease-gothic);
 }
 .task-note-wrapper.visible {
-    max-height: 600px;
-    opacity: 1;
-    visibility: visible;
-    transition: max-height 0.28s var(--ease-gothic),
-                opacity 0.22s var(--ease-gothic),
-                visibility 0s linear 0s;
+    grid-template-rows: 1fr;
+    margin-top: 7px;
 }
+/* The inner track needs min-height:0 + overflow:hidden so 0fr truly collapses. */
+.task-note-inner {
+    min-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-gothic);
+}
+.task-note-wrapper.visible > .task-note-inner { opacity: 1; }
 
+/* Task note — variant A "illuminated page": a warm parchment tint over the dark
+   panel, a gothic corner fleuron top-left and an accent drop-cap initial, plus
+   auto-grow + internal scroll. Deliberately distinct from the subtask V2 vine. */
 .task-note-text {
+    position: relative;
     font-size: 14px;
     font-style: italic;
     color: var(--text-secondary);
     line-height: 1.55;
-    padding: 7px 36px 7px 12px;
-    background: var(--bg-input);
+    padding: 9px 38px 9px 46px;   /* left clears the corner fleuron */
     border-radius: var(--radius-sm);
     border-left: 2px solid var(--border-mid);
     cursor: text;
     transition: border-color var(--transition);
     word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;        /* honour Shift+Enter line breaks */
     display: block;
+    min-height: 0;
+    max-height: 320px;           /* long notes scroll instead of growing unbounded */
+    overflow-y: auto;
     user-select: text;
     -webkit-user-select: text;
     /* Cormorant Garamond italic uses old-style numerals which descend below baseline;
        lining-nums keeps 1–9 on the baseline even in italic weight. */
     font-variant-numeric: lining-nums tabular-nums;
+    background-color: var(--bg-input);
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none' stroke='%23a060ff' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M4 28 C4 14 14 4 28 4' stroke-opacity='0.5'/%3E%3Cpath d='M4 28 C10 24 12 18 12 12 C18 12 24 8 26 4' stroke-opacity='0.3'/%3E%3Ccircle cx='28' cy='4' r='1.5' fill='%23a060ff' fill-opacity='0.55' stroke='none'/%3E%3Ccircle cx='4' cy='28' r='1.5' fill='%23a060ff' fill-opacity='0.55' stroke='none'/%3E%3C/svg%3E"),
+        linear-gradient(180deg, rgba(120, 86, 40, 0.10), rgba(70, 48, 22, 0.035));
+    background-repeat: no-repeat, no-repeat;
+    background-position: left 11px top 9px, center;
+    background-size: 26px 26px, auto;
 }
 .task-note-text.editing { outline: none; border-left-color: var(--accent); cursor: text; }
 .task-note-text:hover:not(.editing) { border-left-color: var(--border-bright); }
+/* Placeholder shown while the note field is empty (create flow). */
+.task-note-text:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.78;
+    pointer-events: none;
+}
+/* Unobtrusive char counter, shown only near the limit. */
+.task-note-count {
+    position: absolute;
+    right: 12px;
+    bottom: 4px;
+    font-size: 10px;
+    font-style: normal;
+    color: var(--text-muted);
+    opacity: 0.72;
+    pointer-events: none;
+    background: var(--bg-input);
+    padding: 0 3px;
+    border-radius: 3px;
+}
 
 .btn-note-delete {
     position: absolute;
     right: 14px;          /* was 6px — shifted left to clear container border */
-    top: 50%;
-    transform: translateY(-50%);
+    top: 8px;             /* top-aligned: the panel can grow tall (multiline) */
     width: 20px;
     height: 20px;
     border-radius: 50%;
@@ -3423,21 +3462,6 @@ textarea:focus-visible {
 
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 
-/* ── Inline note add (P5) — expands inside task on note-button click ───────
-   Mirrors the subtask-add-row aesthetic: dashed border, same font, same spacing.
-   .open class triggers the CSS max-height transition for smooth reveal.          */
-.inline-note-add {
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transition: max-height 0.28s var(--ease-gothic), opacity 0.22s ease;
-    margin-top: 0;
-}
-.inline-note-add.open {
-    max-height: 56px;
-    opacity: 1;
-    margin-top: 6px;
-}
 .inline-note-input {
     width: 100%;
     background: rgba(8, 2, 28, 0.60);
