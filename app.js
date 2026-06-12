@@ -543,6 +543,8 @@ let state = {
     tasks:            [],   // {id,text,checked,priority,groupId,deadline,note,noteOpen,order,repeat,cycleChecked,nextReset,subtasks,subtasksOpen,subNotesAlwaysOpen}
     groups:           [],
     archive:          [],
+    notes:            [],   // п11 Гримуар: {id:uuid, title, body, createdAt, updatedAt} — независимы от задач
+    notesArchive:     [],   // п11 «Склеп»: архив заметок (ОТДЕЛЬНЫЙ от архива задач), +archivedAt
     nextId:           1,
     nextGroupId:      1,
     nextSubId:        1,
@@ -556,6 +558,10 @@ let searchQuery      = '';
 let soundEnabled     = false;
 let expandOpen       = false;
 let currentPage      = 'main';
+let currentNoteId    = null;   // п11: open grimoire note id (uuid) or null
+let notesSearchQuery = '';     // п11: grimoire search filter
+let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
+let _grimSaveT       = null;   // п11: debounced note-save timer
 let undoStack        = [];
 let redoStack        = [];   // P-A: populated by undo(), cleared by any new pushUndo()
 let deadlineTimer    = null;
@@ -623,6 +629,7 @@ const btnSound        = document.getElementById('btn-sound');
 const colorPicker     = document.getElementById('group-color-picker');
 const mainPage        = document.getElementById('main-page');
 const archivePage     = document.getElementById('archive-page');
+const notesPage       = document.getElementById('notes-page');
 const archiveList     = document.getElementById('archive-list');
 const archiveEmpty    = document.getElementById('archive-empty');
 const archiveBadge    = document.getElementById('archive-badge');
@@ -739,7 +746,7 @@ function init() {
     render();
     // Note: setupSortables() is called inside render() via rAF — no separate call needed here.
     startDeadlineTimer();
-    switchPage(currentPage);
+    _initPage();
     // P1: archive-all icon — clone the LIVE SVG node from nav-archive tab directly.
     const navArchiveSvg = document.querySelector('#nav-archive svg');
     const btnArchiveAll = document.getElementById('btn-archive-all');
@@ -878,6 +885,7 @@ function loadState() {
             state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...loaded };
             migrateTasks(state.tasks);
             migrateTasks(state.archive);
+            normalizeState();
         } catch(e) { migrateFromOld(); }
     } else {
         migrateFromOld();
@@ -926,6 +934,20 @@ function migrateTasks(arr) {
     });
 }
 
+// Stable string id for new records (grimoire notes — forward-compatible with the
+// planned uuid/sync data-layer; falls back if crypto.randomUUID is unavailable).
+function uid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'n-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
+}
+
+// Ensure optional collections exist after any whole-state replacement (load,
+// import, undo/redo, restore) so older snapshots without them never throw.
+function normalizeState() {
+    if (!Array.isArray(state.notes)) state.notes = [];
+    if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
+}
+
 function migrateFromOld() {
     const raw2 = localStorage.getItem('todoState_v2') || localStorage.getItem('todoState');
     if (raw2) {
@@ -934,6 +956,7 @@ function migrateFromOld() {
             state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...loaded };
             migrateTasks(state.tasks);
             migrateTasks(state.archive || []);
+            normalizeState();
             saveState();
             // L-2: clean up legacy keys so they don't linger in storage
             localStorage.removeItem('todoState_v2');
@@ -1038,10 +1061,14 @@ function undo() {
     state = JSON.parse(undoStack.pop());
     migrateTasks(state.tasks);
     migrateTasks(state.archive || []);
+    normalizeState();
     saveState(); render();
     // C3-1/C3-5: undo can restore archive contents (clear/delete-from-archive),
     // so refresh the archive view + badge — render() only rebuilds the main list.
     renderArchive(); updateArchiveBadge();
+    // п11: a note add/delete/edit can be undone — refresh the grimoire too.
+    if (currentNoteId && ![...(state.notes || []), ...(state.notesArchive || [])].some(n => n.id === currentNoteId)) currentNoteId = null;
+    renderNotes();
     // UX-4 + I-5: restore full form snapshot (text, note, priority, color,
     // repeat, deadline, group, subtasks) so the user can re-submit immediately.
     if (_undoFormSnapshot) {
@@ -1106,8 +1133,11 @@ function redo() {
     state = JSON.parse(redoStack.pop());
     migrateTasks(state.tasks);
     migrateTasks(state.archive || []);
+    normalizeState();
     saveState(); render();
     renderArchive(); updateArchiveBadge();
+    if (currentNoteId && ![...(state.notes || []), ...(state.notesArchive || [])].some(n => n.id === currentNoteId)) currentNoteId = null;
+    renderNotes();
     showToast('Повторено');
 }
 
@@ -1115,6 +1145,36 @@ function redo() {
 //  PAGE NAVIGATION
 // ============================================================
 let _pageTransitioning = false; // IMP-8: guard against rapid double-click
+
+// Page registry — generalised from the old binary main/archive switch so the
+// grimoire (notes) is a first-class third page. Add a page here + a nav button
+// + a render hook and switchPage handles it.
+const PAGE_EL  = { main: mainPage, archive: archivePage, notes: notesPage };
+const PAGE_TAB = { main: 'nav-main', archive: 'nav-archive', notes: 'nav-notes' };
+
+// Per-page render hook, run when a page becomes visible.
+function _renderPage(page) {
+    if (page === 'archive') renderArchive();
+    else if (page === 'notes') renderNotes();
+}
+
+function _updatePageTabs(page) {
+    for (const p in PAGE_TAB) {
+        const b = document.getElementById(PAGE_TAB[p]);
+        if (b) b.classList.toggle('active', p === page);
+    }
+}
+
+// Show the persisted page on load without the transition animation (and FIX the
+// old latent bug where a saved non-main page left the tab inert after reload).
+function _initPage() {
+    for (const p in PAGE_EL) {
+        const el = PAGE_EL[p];
+        if (el) el.style.display = (p === currentPage) ? 'block' : 'none';
+    }
+    _updatePageTabs(currentPage);
+    _renderPage(currentPage);
+}
 
 function switchPage(page) {
     // Reset select mode when leaving archive
@@ -1137,16 +1197,16 @@ function switchPage(page) {
     // IMP-8: block a second transition while one is already in flight
     if (_pageTransitioning) return;
 
-    const outEl = page === 'archive' ? mainPage : archivePage;
-    const inEl  = page === 'archive' ? archivePage : mainPage;
+    const outEl = PAGE_EL[currentPage];
+    const inEl  = PAGE_EL[page];
+    if (!outEl || !inEl) return;
 
     // Update nav tabs immediately — tab responds at the moment of click
     currentPage = page; saveUiState();
-    document.getElementById('nav-main').classList.toggle('active', page === 'main');
-    document.getElementById('nav-archive').classList.toggle('active', page === 'archive');
+    _updatePageTabs(page);
 
     // Pulse glow on the newly-active tab
-    const activeTab = document.getElementById(page === 'main' ? 'nav-main' : 'nav-archive');
+    const activeTab = document.getElementById(PAGE_TAB[page]);
     if (activeTab && !prefersReducedMotion()) {
         activeTab.classList.remove('tab-just-activated');
         void activeTab.offsetWidth; // reflow to restart animation
@@ -1158,7 +1218,7 @@ function switchPage(page) {
         // Instant cut — no animation
         outEl.style.display = 'none';
         inEl.style.display  = 'block';
-        if (page === 'archive') renderArchive();
+        _renderPage(page);
         return;
     }
 
@@ -1170,7 +1230,7 @@ function switchPage(page) {
         outEl.style.display = 'none';
 
         // Incoming page: descend through veil
-        if (page === 'archive') renderArchive();
+        _renderPage(page);
         inEl.style.display = 'block';
         inEl.classList.add('page-in');
         inEl.addEventListener('animationend', () => {
@@ -1190,11 +1250,351 @@ function switchPage(page) {
         if (outEl.classList.contains('page-out')) {
             outEl.classList.remove('page-out');
             outEl.style.display = 'none';
-            if (page === 'archive') renderArchive();
+            _renderPage(page);
             inEl.style.display = 'block';
             _pageTransitioning = false;
         }
     }, 600);
+}
+
+// ============================================================
+//  GRIMOIRE (NOTES) — п11 stage 0: standalone notes page.
+//  Layout "Codex" (master–detail): list of entries + one editor.
+//  Multi-note, explicit title, autosave (debounced), search.
+//  Notes are independent of tasks; ids are uuids (uid()).
+// ============================================================
+// Hand-drawn gothic glyphs used across the grimoire (no emoji / generic icons).
+const GIC = {
+    tomeOpen:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6 C9 4 5 4 3 5 V19 C5 18 9 18 12 20 C15 18 19 18 21 19 V5 C19 4 15 4 12 6 Z"/><line x1="12" y1="6" x2="12" y2="20" opacity="0.55"/></svg>`,
+    coffin:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 H15.5 L20 8 V17 Q12 22 4 17 V8 Z"/><line x1="9" y1="11" x2="15" y2="11" stroke-width="1.1" opacity="0.55"/></svg>`,
+    quill:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4 C13 5 8 9 5.5 15.5 L4 20 L8.5 18.5 C15 16 19 11 20 4 Z"/><path d="M9 15 L14 10" opacity="0.6"/></svg>`,
+    // Urn with rising soul-arrow — reuses the app's archive-restore motif ("вернуть из склепа").
+    restore:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20H16L17.5 22H6.5L8 20Z"/><path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/><line x1="10" y1="11" x2="14" y2="11" stroke-width="1.1" opacity="0.7"/><line x1="12" y1="2.5" x2="12" y2="7"/><path d="M9.5 5L12 2.5L14.5 5"/></svg>`,
+    // Ornate hourglass with sand funnels.
+    hourglass: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3 H17.5 M6.5 21 H17.5"/><path d="M8 3.5 V6.5 L12 11 L16 6.5 V3.5"/><path d="M8 20.5 V17.5 L12 13 L16 17.5 V20.5"/></svg>`,
+    // Gothic sword glyph (the app's .dl-month-chevron) — CSS rotates it to point left.
+    back:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,
+    // Symmetric divider ornament (diamond flanked by two beads, centred about x=20).
+    dividerFleur: `<svg viewBox="0 0 40 12" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.1"/><path d="M20 1.4 L24 6 L20 10.6 L16 6 Z" fill="currentColor" stroke="none"/><circle cx="34" cy="6" r="2.1"/></svg>`,
+};
+
+function grimDate(ms) {
+    if (!ms) return '';
+    const d = new Date(ms), now = new Date();
+    const months = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+    if (d.toDateString() === now.toDateString()) {
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `сегодня · ${hh}:${mm}`;
+    }
+    const sameYear = d.getFullYear() === now.getFullYear();
+    return `${d.getDate()} ${months[d.getMonth()]}${sameYear ? '' : ' ' + d.getFullYear()}`;
+}
+
+// Records for the current segment (active = Записи, archive = Склеп).
+function _grimList() {
+    return (grimMode === 'archive' ? state.notesArchive : state.notes) || [];
+}
+function _grimCurrentNote() {
+    return _grimList().find(n => n.id === currentNoteId) || null;
+}
+// Display HTML for a read-only body: linkify + (optional) search highlight.
+function _grimBodyDisplay(text) {
+    if (!text) return '';
+    if (notesSearchQuery) return highlightSearch(escHtml(text), notesSearchQuery);
+    return linkifyNote(text);
+}
+
+// Top-level: sync the toolbar (segment + new btn), then show either the big
+// empty state or the master–detail layout and (re)draw both panes.
+function renderNotes() {
+    const page = document.getElementById('notes-page');
+    if (!page) return;
+    const segA = document.getElementById('grim-seg-active');
+    const segR = document.getElementById('grim-seg-archive');
+    if (segA) segA.classList.toggle('active', grimMode === 'active');
+    if (segR) segR.classList.toggle('active', grimMode === 'archive');
+    const segRc = document.getElementById('grim-seg-count');
+    if (segRc) { const n = (state.notesArchive || []).length; segRc.textContent = n || ''; segRc.style.display = n ? '' : 'none'; }
+    const newBtn = document.getElementById('grim-new-btn');
+    if (newBtn) newBtn.style.display = grimMode === 'active' ? '' : 'none';
+
+    const layoutEl = document.getElementById('grim-layout');
+    const emptyEl  = document.getElementById('grim-empty');
+    if (!layoutEl || !emptyEl) return;
+    if (!_grimList().length) {
+        layoutEl.style.display = 'none';
+        emptyEl.style.display = 'flex';
+        emptyEl.innerHTML = _grimEmptyHTML();
+        return;
+    }
+    emptyEl.style.display = 'none';
+    layoutEl.style.display = '';
+    renderGrimList(!prefersReducedMotion());   // animate entrance on full render
+    renderGrimDetail();
+    layoutEl.classList.toggle('show-detail', !!currentNoteId);
+}
+
+function _grimEmptyHTML() {
+    if (grimMode === 'archive') {
+        return `<div class="grim-empty-ic">${GIC.coffin}</div>
+            <p>Склеп пуст</p>
+            <span class="grim-empty-sub">Здесь покоятся отправленные в архив записи</span>`;
+    }
+    return `<div class="grim-empty-ic">${GIC.tomeOpen}</div>
+        <p>Гримуар пуст</p>
+        <span class="grim-empty-sub">Ни одной записи ещё не начертано</span>
+        <button class="grim-new-btn grim-empty-btn" onclick="grimNew()">${GIC.quill}<span>Начертать первую</span></button>`;
+}
+
+function renderGrimList(animate) {
+    const listEl = document.getElementById('grim-list');
+    if (!listEl) return;
+    const keyOf = grimMode === 'archive'
+        ? (n => n.archivedAt || n.updatedAt || 0)
+        : (n => n.updatedAt || 0);
+    const all = _grimList().slice().sort((a, b) => keyOf(b) - keyOf(a));
+    const q = notesSearchQuery.toLowerCase();
+    const shown = q
+        ? all.filter(n => (n.title || '').toLowerCase().includes(q) || (n.body || '').toLowerCase().includes(q))
+        : all;
+    const label = grimMode === 'archive' ? 'Склеп' : 'Записи';
+    const head = `<div class="grim-list-head"><span>${q ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span></div>`;
+    const body = shown.length
+        ? shown.map((n, i) => _grimLeafHTML(n, q, i, animate)).join('')
+        : `<div class="grim-list-none">Ничего не найдено</div>`;
+    listEl.innerHTML = head + body;
+}
+
+function _grimLeafHTML(n, q, i, animate) {
+    const titleRaw = (n.title || '').trim();
+    const title = titleRaw || 'Без заглавия';
+    const snip = (n.body || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    const titleH = q ? highlightSearch(escHtml(title), notesSearchQuery) : escHtml(title);
+    const snipH  = q ? highlightSearch(escHtml(snip),  notesSearchQuery) : escHtml(snip);
+    const ts = grimMode === 'archive' ? (n.archivedAt || n.updatedAt) : n.updatedAt;
+    const cls = `grim-leaf${n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}`;
+    const style = animate ? ` style="--i:${Math.min(i, 12)}"` : '';
+    // Crypt entries restore/destroy from the read-only detail footer (clean index).
+    return `<button class="${cls}"${style} data-id="${n.id}" onclick="grimOpen('${n.id}')">
+        <span class="grim-leaf-main">
+            <span class="grim-leaf-t">${titleH}</span>
+            ${snip ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
+            <span class="grim-leaf-d">${grimDate(ts)}</span>
+        </span>
+    </button>`;
+}
+
+function renderGrimDetail() {
+    const detailEl = document.getElementById('grim-detail');
+    if (!detailEl) return;
+    const note = _grimCurrentNote();
+    if (!note) {
+        const hint = grimMode === 'archive' ? 'Выберите запись из склепа' : 'Выберите запись или начертайте новую';
+        detailEl.innerHTML = `<div class="grim-detail-empty">
+            <div class="grim-detail-empty-ic">${grimMode === 'archive' ? GIC.coffin : GIC.tomeOpen}</div>
+            <p>${hint}</p>
+        </div>`;
+        return;
+    }
+
+    const backBtn = `<button class="grim-back" onclick="grimBack()" title="К списку">${GIC.back}</button>`;
+
+    if (grimMode === 'archive') {
+        // Read-only crypt view: restore / destroy.
+        detailEl.innerHTML = `<div class="grim-page grim-page--ro">
+            ${backBtn}
+            <div class="grim-title-ro">${escHtml((note.title || '').trim() || 'Без заглавия')}</div>
+            <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
+            <div class="grim-body grim-body--ro">${_grimBodyDisplay(note.body || '')}</div>
+            <div class="grim-meta">
+                <span class="grim-date" title="В склепе с">${GIC.coffin}<span>${grimDate(note.archivedAt || note.updatedAt)}</span></span>
+                <span class="grim-acts">
+                    <button class="grim-act" onclick="grimRestoreNote('${note.id}')" title="Вернуть в гримуар">${GIC.restore}<span>вернуть</span></button>
+                    <button class="grim-act danger" onclick="grimDeleteForever('${note.id}')" title="Уничтожить навсегда">${IC.skull}<span>удалить</span></button>
+                </span>
+            </div>
+        </div>`;
+        return;
+    }
+
+    detailEl.innerHTML = `<div class="grim-page">
+        ${backBtn}
+        <input class="grim-title-in" id="grim-title-in" type="text" maxlength="120"
+               placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
+               oninput="grimTitleInput(this)" onblur="grimCommit()">
+        <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
+        <div class="grim-body" id="grim-body" contenteditable="true" spellcheck="false"
+             data-placeholder="Начертайте запись…"
+             oninput="grimBodyInput(this)" onblur="grimCommit()" onpaste="plainTextPaste(event)"></div>
+        <div class="grim-meta">
+            <span class="grim-date" title="Изменено">${GIC.hourglass}<span>${note.updatedAt ? grimDate(note.updatedAt) : 'новая запись'}</span></span>
+            <span class="grim-acts">
+                <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
+                <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
+            </span>
+        </div>
+    </div>`;
+    // Set field contents as properties (avoids attribute-escaping pitfalls).
+    const ti = document.getElementById('grim-title-in');
+    const bo = document.getElementById('grim-body');
+    if (ti) ti.value = note.title || '';
+    if (bo) bo.textContent = note.body || '';
+}
+
+// Switch between Записи and Склеп.
+function grimSetMode(mode) {
+    if (mode === grimMode) return;
+    clearTimeout(_grimSaveT); saveState();
+    grimMode = mode;
+    currentNoteId = null;
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box');
+    if (sb) sb.value = '';
+    const layoutEl = document.getElementById('grim-layout');
+    if (layoutEl) layoutEl.classList.remove('show-detail');
+    renderNotes();
+}
+
+// Open a record in the detail pane (persist pending edits of the previous one first).
+function grimOpen(id) {
+    if (id === currentNoteId) return;
+    clearTimeout(_grimSaveT); saveState();
+    currentNoteId = id;
+    renderGrimList(false);     // refresh active highlight, no entrance flicker
+    renderGrimDetail();
+    const layoutEl = document.getElementById('grim-layout');
+    if (layoutEl) layoutEl.classList.add('show-detail');
+    if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
+}
+
+// Create a fresh empty note and drop straight into editing its title.
+function grimNew() {
+    if (grimMode !== 'active') grimMode = 'active';
+    clearTimeout(_grimSaveT); saveState();
+    pushUndo();
+    const now = Date.now();
+    const note = { id: uid(), title: '', body: '', createdAt: now, updatedAt: now };
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(note);
+    currentNoteId = note.id;
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box');
+    if (sb) sb.value = '';
+    saveState();
+    renderNotes();
+    const layoutEl = document.getElementById('grim-layout');
+    if (layoutEl) layoutEl.classList.add('show-detail');
+    // Focus synchronously — the title input exists right after renderNotes(),
+    // so no rAF race that would swallow the first keystrokes.
+    const ti = document.getElementById('grim-title-in');
+    if (ti) ti.focus();
+}
+
+// Mobile: return from the detail pane to the list.
+function grimBack() {
+    clearTimeout(_grimSaveT); saveState();
+    currentNoteId = null;
+    const layoutEl = document.getElementById('grim-layout');
+    if (layoutEl) layoutEl.classList.remove('show-detail');
+    renderGrimList(false);
+    renderGrimDetail();
+}
+
+// Live title edit: update model synchronously, patch the list leaf, debounce save.
+function grimTitleInput(el) {
+    const note = _grimCurrentNote();
+    if (!note) return;
+    note.title = el.value;
+    note.updatedAt = Date.now();
+    const leaf = document.querySelector(`.grim-leaf[data-id="${note.id}"]`);
+    if (leaf) {
+        const t = leaf.querySelector('.grim-leaf-t');
+        if (t) t.textContent = el.value.trim() || 'Без заглавия';
+        leaf.classList.toggle('untitled', !el.value.trim());
+    }
+    clearTimeout(_grimSaveT);
+    _grimSaveT = setTimeout(saveState, 400);
+}
+
+// Live body edit: update model synchronously, debounce save.
+function grimBodyInput(el) {
+    const note = _grimCurrentNote();
+    if (!note) return;
+    // innerText (not textContent) so Enter-created block breaks read back as \n.
+    note.body = el.innerText;
+    note.updatedAt = Date.now();
+    clearTimeout(_grimSaveT);
+    _grimSaveT = setTimeout(saveState, 400);
+}
+
+// Blur (or pane switch) → flush save and re-sort/refresh the list (most-recent first).
+function grimCommit() {
+    clearTimeout(_grimSaveT);
+    saveState();
+    renderGrimList(false);
+}
+
+// Active note → permanent delete (undoable).
+function grimDelete(id) {
+    const idx = (state.notes || []).findIndex(n => n.id === id);
+    if (idx < 0) return;
+    clearTimeout(_grimSaveT);
+    pushUndo();
+    state.notes.splice(idx, 1);
+    if (currentNoteId === id) currentNoteId = null;
+    saveState();
+    renderNotes();
+    showToast('Запись удалена', { undo: true });
+}
+
+// Active note → Склеп (soft archive, undoable).
+function grimArchive(id) {
+    const idx = (state.notes || []).findIndex(n => n.id === id);
+    if (idx < 0) return;
+    clearTimeout(_grimSaveT);
+    pushUndo();
+    const [note] = state.notes.splice(idx, 1);
+    note.archivedAt = Date.now();
+    if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
+    state.notesArchive.unshift(note);
+    if (currentNoteId === id) currentNoteId = null;
+    saveState();
+    renderNotes();
+    showToast('Запись в склепе', { undo: true });
+}
+
+// Склеп → back to гримуар.
+function grimRestoreNote(id) {
+    const idx = (state.notesArchive || []).findIndex(n => n.id === id);
+    if (idx < 0) return;
+    pushUndo();
+    const [note] = state.notesArchive.splice(idx, 1);
+    delete note.archivedAt;
+    note.updatedAt = Date.now();
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(note);
+    if (currentNoteId === id) currentNoteId = null;
+    saveState();
+    renderNotes();
+    showToast('Запись возвращена', { undo: true });
+}
+
+// Склеп → permanent delete (undoable).
+function grimDeleteForever(id) {
+    const idx = (state.notesArchive || []).findIndex(n => n.id === id);
+    if (idx < 0) return;
+    pushUndo();
+    state.notesArchive.splice(idx, 1);
+    if (currentNoteId === id) currentNoteId = null;
+    saveState();
+    renderNotes();
+    showToast('Запись уничтожена', { undo: true });
+}
+
+function grimSearch(v) {
+    notesSearchQuery = (v || '').trim();
+    renderGrimList(false);
 }
 
 // ============================================================
@@ -1931,6 +2331,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             };
             migrateTasks(state.tasks);
             migrateTasks(state.archive || []);
+            normalizeState();
             // C3-2: do NOT wipe undoStack — pushUndo() above is the only safety net
             // that lets the user undo a destructive "Replace" import.
             saveState(); render(); updateArchiveBadge();
@@ -1971,6 +2372,16 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             if (allSubIds.length)  state.nextSubId = Math.max(state.nextSubId, ...allSubIds.map(id => id + 1));
             migrateTasks(state.tasks);
             migrateTasks(state.archive);
+            // п11: merge grimoire notes + склеп too (uuid ids don't collide; dedupe by id).
+            normalizeState();
+            if (Array.isArray(loaded.notes)) {
+                const seen = new Set(state.notes.map(n => n.id));
+                loaded.notes.forEach(n => { if (n && !seen.has(n.id)) state.notes.push(n); });
+            }
+            if (Array.isArray(loaded.notesArchive)) {
+                const seenA = new Set(state.notesArchive.map(n => n.id));
+                loaded.notesArchive.forEach(n => { if (n && !seenA.has(n.id)) state.notesArchive.push(n); });
+            }
             saveState(); render(); updateArchiveBadge();
             showToast(`Добавлено: ${newTasks.length} задач`, { undo: true });
         };
@@ -1991,6 +2402,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         };
         migrateTasks(state.tasks);
         migrateTasks(state.archive || []);
+        normalizeState();
         // C3-2: keep the pre-import snapshot so Replace stays undoable.
         saveState(); render(); updateArchiveBadge();
         showToast(`Импортировано: ${state.tasks.length} задач`, { undo: true });
@@ -3755,9 +4167,12 @@ function restoreBackup(ts) {
     state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...loaded };
     migrateTasks(state.tasks);
     migrateTasks(state.archive);
+    normalizeState();
     saveState();
     render();
     renderArchive();
+    if (currentNoteId && ![...(state.notes || []), ...(state.notesArchive || [])].some(n => n.id === currentNoteId)) currentNoteId = null;
+    renderNotes();
     updateArchiveBadge();
     updateTemplatesBtn();
     closeModalWithAnim('backup-modal');

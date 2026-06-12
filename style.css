@@ -5317,13 +5317,15 @@ kbd {
 
 /* Applied by JS during transition */
 #main-page.page-out,
-#archive-page.page-out {
+#archive-page.page-out,
+#notes-page.page-out {
     animation: pageVeilOut 0.20s var(--ease-sink) forwards;
     pointer-events: none;
 }
 
 #main-page.page-in,
-#archive-page.page-in {
+#archive-page.page-in,
+#notes-page.page-in {
     animation: pageVeilIn var(--dur-standard) var(--ease-gothic) forwards;
 }
 
@@ -5350,8 +5352,10 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
     #main-page.page-out,
     #archive-page.page-out,
+    #notes-page.page-out,
     #main-page.page-in,
-    #archive-page.page-in {
+    #archive-page.page-in,
+    #notes-page.page-in {
         animation: none !important;
     }
     .nav-tab.tab-just-activated { animation: none !important; }
@@ -5808,4 +5812,351 @@ kbd {
 
 /* ── Sort mode btn icons size ────────────────────────────────── */
 #btn-sort-mode svg { width: 15px; height: 15px; }
+
+/* ============================================================
+   ГРИМУАР (NOTES PAGE) — п11
+   «Иллюминированный кодекс»: сегмент Записи/Склеп, master–detail
+   (оглавление + страница-манускрипт), отдельный архив заметок.
+   Готик-палитра, рукотворные SVG, без emoji.
+   ============================================================ */
+
+/* ── top bar: segment (Записи/Склеп) + «Начертать» ── */
+.grim-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.grim-segment {
+    display: inline-flex;
+    gap: 3px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 4px;
+}
+.grim-seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: calc(var(--radius-md) - 4px);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.grim-seg svg { width: 14px; height: 14px; }
+.grim-seg:hover { color: var(--text-secondary); }
+.grim-seg.active {
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));
+    color: var(--accent-hover);
+    box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.30), 0 0 12px rgba(120, 40, 220, 0.15);
+    text-shadow: 0 0 10px rgba(160, 90, 255, 0.4);
+}
+.grim-seg-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 16px; height: 15px; padding: 0 4px;
+    font-family: var(--font-label); font-size: 9px; font-weight: 700; letter-spacing: 0;
+    color: var(--text-muted); background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border); border-radius: 99px;
+}
+
+.grim-new-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.28), rgba(80, 15, 180, 0.16));
+    color: var(--accent-hover);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    padding: 9px 16px;
+    font-family: var(--font-label);
+    font-size: 11.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.grim-new-btn:hover { border-color: var(--border-bright); box-shadow: 0 0 16px rgba(120, 40, 220, 0.28); color: var(--text-primary); }
+.grim-new-btn svg { width: 14px; height: 14px; }
+
+/* ── search ── */
+.grim-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    padding: 9px 14px;
+    margin-bottom: 20px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+.grim-search-wrap:focus-within {
+    border-color: var(--border-bright);
+    box-shadow: 0 0 14px rgba(120, 40, 220, 0.18);
+}
+.grim-search-wrap svg { width: 15px; height: 15px; color: var(--text-muted); flex-shrink: 0; }
+.grim-search-wrap input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: 15px;
+    /* NOT italic on the field — italic glyphs + tight padding clipped the caret and
+       the first character at the field start ("начало поиска съедает курсор"). */
+    font-style: normal;
+    caret-color: var(--accent-hover);
+}
+.grim-search-wrap input::placeholder { color: var(--text-muted); opacity: 0.85; font-style: italic; }
+
+/* ── master–detail layout (codex spread) ── */
+.grim-layout {
+    display: grid;
+    grid-template-columns: 244px minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+.grim-detail { position: relative; padding-left: 22px; border-left: 1px solid var(--border); min-height: 320px; }
+.grim-list { display: flex; flex-direction: column; gap: 7px; }
+.grim-list-head {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-label); font-size: 10.5px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--text-muted); padding: 0 2px 6px;
+}
+.grim-list-head::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(130,50,220,0.40), transparent);
+}
+.grim-list-none {
+    font-size: 14px; font-style: italic; color: var(--text-muted);
+    padding: 16px 4px; text-align: center; opacity: 0.85;
+}
+
+/* ── list entry ("leaf") ── */
+.grim-leaf {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    background: var(--bg-item);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 11px 10px 15px;
+    cursor: pointer;
+    overflow: hidden;
+    font-family: var(--font-main);
+    box-shadow: inset 0 0 0 1px transparent;
+    transition: background var(--transition), border-color var(--transition),
+                box-shadow var(--transition), transform var(--transition);
+}
+.grim-leaf::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, rgba(130,50,220,0.30), rgba(90,30,180,0.10));
+    transition: background var(--transition), box-shadow var(--transition);
+}
+.grim-leaf:hover { background: var(--bg-item-hover); border-color: var(--border-mid); transform: translateX(2px); }
+.grim-leaf:hover::before { background: linear-gradient(180deg, var(--border-bright), rgba(120,40,220,0.30)); box-shadow: 0 0 8px rgba(120,40,220,0.30); }
+.grim-leaf.active {
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.26), rgba(80, 15, 180, 0.13));
+    border-color: var(--border-mid);
+    box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.22), 0 0 18px rgba(110, 35, 215, 0.12);
+}
+.grim-leaf.active::before { background: linear-gradient(180deg, var(--accent), #7030d0); box-shadow: 0 0 12px var(--accent-glow); }
+.grim-leaf-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.grim-leaf-t {
+    font-size: 16px; font-weight: 600; color: var(--text-primary); line-height: 1.25;
+    word-break: break-word; overflow-wrap: anywhere;
+}
+.grim-leaf.untitled .grim-leaf-t { font-style: italic; color: var(--text-muted); font-weight: 400; }
+.grim-leaf-s {
+    font-size: 13px; font-style: italic; color: var(--text-muted);
+    margin-top: 3px; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    word-break: break-word;
+}
+.grim-leaf-d {
+    font-family: var(--font-label); font-size: 9.5px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text-muted); margin-top: 7px; opacity: 0.72;
+}
+.grim-leaf mark, .grim-page mark { background: rgba(160, 90, 255, 0.32); color: var(--text-primary); border-radius: 2px; padding: 0 1px; }
+
+/* staggered entrance for list entries */
+@keyframes grimLeafIn { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+.grim-leaf.gl-in { animation: grimLeafIn 0.4s var(--ease-emerge) both; animation-delay: calc(var(--i, 0) * 42ms); }
+
+/* ── detail placeholder ── */
+.grim-detail-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; padding: 70px 20px; text-align: center;
+    border: 1px dashed var(--border); border-radius: var(--radius-md);
+    color: var(--text-muted);
+}
+.grim-detail-empty-ic svg { width: 48px; height: 48px; color: var(--accent); opacity: 0.45; filter: drop-shadow(0 0 9px var(--accent-glow)); }
+.grim-detail-empty p { font-size: 15px; font-style: italic; }
+
+/* ── the manuscript page (illuminated) ── */
+.grim-page {
+    position: relative;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background-color: var(--bg-input);
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 32 32' fill='none' stroke='%23a060ff' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M4 28 C4 14 14 4 28 4' stroke-opacity='0.5'/%3E%3Cpath d='M4 28 C10 24 12 18 12 12 C18 12 24 8 26 4' stroke-opacity='0.3'/%3E%3Ccircle cx='28' cy='4' r='1.5' fill='%23a060ff' fill-opacity='0.55' stroke='none'/%3E%3Ccircle cx='4' cy='28' r='1.5' fill='%23a060ff' fill-opacity='0.55' stroke='none'/%3E%3C/svg%3E"),
+        linear-gradient(180deg, rgba(120, 86, 40, 0.10), rgba(70, 48, 22, 0.03));
+    background-repeat: no-repeat, no-repeat;
+    background-position: left 12px top 12px, center;
+    background-size: 30px 30px, auto;
+    box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.10), inset 0 0 50px rgba(60, 8, 140, 0.10);
+    animation: grimPageIn 0.4s var(--ease-emerge) both;
+}
+@keyframes grimPageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.grim-title-in, .grim-title-ro {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-title);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    line-height: 1.25;
+    padding: 16px 20px 8px 52px;
+    word-break: break-word;
+}
+.grim-title-in::placeholder { color: var(--text-muted); opacity: 0.6; font-weight: 400; }
+/* Flourish divider — two CSS lines flanking a perfectly-centred ornament
+   (flex:1 on both sides guarantees the diamond sits dead-centre at any width). */
+.grim-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 22px 8px 52px;
+}
+.grim-divider::before, .grim-divider::after { content: ''; flex: 1; height: 1px; }
+.grim-divider::before { background: linear-gradient(90deg, transparent, rgba(150, 70, 255, 0.45)); }
+.grim-divider::after  { background: linear-gradient(90deg, rgba(150, 70, 255, 0.45), transparent); }
+.grim-fleur { flex: 0 0 auto; display: inline-flex; color: var(--accent); filter: drop-shadow(0 0 5px var(--accent-glow)); }
+.grim-fleur svg { display: block; width: 40px; height: 12px; }
+.grim-body {
+    font-family: var(--font-main);
+    font-size: 15.5px;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.62;
+    padding: 4px 20px 18px 52px;
+    min-height: 250px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    outline: none;
+    cursor: text;
+    -webkit-user-select: text;
+    user-select: text;
+}
+.grim-body--ro { cursor: default; min-height: 120px; }
+.grim-body:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+    pointer-events: none;
+}
+.grim-body a, .grim-leaf a, .grim-body--ro a { color: var(--text-link); }
+
+.grim-meta {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    flex-wrap: wrap; row-gap: 8px;
+    /* content left aligns with the body indent (≈52px); was over-indented to 90px
+       which squeezed the date. */
+    padding: 10px 6px 12px 36px;
+    border-top: 1px solid var(--border);
+    margin: 8px 16px 0 16px;
+}
+/* Date = quiet metadata: borderless, flexible, truncates so the buttons stay one row. */
+.grim-date {
+    display: flex; align-items: center; gap: 6px;
+    flex: 1 1 0; min-width: 0;   /* basis 0 → never forces a wrap; shrinks via ellipsis */
+    font-family: var(--font-label); font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text-muted); opacity: 0.8;
+}
+.grim-date svg { width: 13px; height: 13px; flex-shrink: 0; }
+.grim-date span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Actions = real buttons: visible rest state (border + bg), icon + label. */
+.grim-acts { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.grim-act {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: var(--bg-item); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text-secondary); cursor: pointer; padding: 6px 12px;
+    font-family: var(--font-label); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
+    transition: all var(--transition);
+}
+.grim-act svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-muted); transition: color var(--transition); }
+.grim-act:hover { color: var(--text-primary); border-color: var(--border-bright); background: var(--accent-soft); box-shadow: 0 0 12px rgba(120, 40, 220, 0.18); }
+.grim-act:hover svg { color: var(--accent-hover); }
+.grim-act.danger:hover { color: var(--prio-high); border-color: var(--prio-high-border); background: var(--prio-high-bg); box-shadow: none; }
+.grim-act.danger:hover svg { color: var(--prio-high); }
+
+/* mobile "back to list" — hidden on desktop (both panes visible) */
+.grim-back {
+    display: none;
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 30px; height: 30px;
+    border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg-item); color: var(--text-secondary);
+    align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition);
+    z-index: 2;
+}
+.grim-back svg { width: 14px; height: 16px; transform: rotate(-90deg); }
+.grim-back:hover { border-color: var(--border-bright); color: var(--accent-hover); }
+
+/* ── empty grimoire / crypt ── */
+.grim-empty {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 64px 20px;
+}
+.grim-empty-ic svg { width: 60px; height: 60px; color: var(--accent); opacity: 0.5; filter: drop-shadow(0 0 12px var(--accent-glow)); }
+.grim-empty p { font-family: var(--font-title); font-size: 19px; letter-spacing: 1.5px; color: var(--text-secondary); margin-top: 4px; }
+.grim-empty-sub { font-size: 14px; font-style: italic; color: var(--text-muted); opacity: 0.85; }
+.grim-empty-btn { margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .grim-leaf.gl-in, .grim-page { animation: none; }
+}
+
+@media (max-width: 640px) {
+    .grim-bar { flex-wrap: wrap; }
+    .grim-layout { grid-template-columns: 1fr; gap: 0; }
+    .grim-detail { display: none; padding-left: 0; border-left: none; }
+    .grim-layout.show-detail .grim-list { display: none; }
+    .grim-layout.show-detail .grim-detail { display: block; }
+    .grim-back { display: flex; }
+    .grim-title-in, .grim-title-ro { padding-right: 48px; }
+    /* footer: stack date over the action buttons (no cramped single row) */
+    .grim-meta { padding-left: 18px; }
+    .grim-date { flex: 0 0 100%; }
+    .grim-acts { width: 100%; justify-content: flex-start; }
+}
 
