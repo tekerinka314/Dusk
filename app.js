@@ -886,6 +886,7 @@ function loadState() {
             migrateTasks(state.tasks);
             migrateTasks(state.archive);
             normalizeState();
+            saveState();   // persist note plain→HTML migration once
         } catch(e) { migrateFromOld(); }
     } else {
         migrateFromOld();
@@ -946,6 +947,7 @@ function uid() {
 function normalizeState() {
     if (!Array.isArray(state.notes)) state.notes = [];
     if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
+    migrateNotes();   // plain-text bodies → HTML once (idempotent via note.fmt)
 }
 
 function migrateFromOld() {
@@ -1298,13 +1300,6 @@ function _grimList() {
 function _grimCurrentNote() {
     return _grimList().find(n => n.id === currentNoteId) || null;
 }
-// Display HTML for a read-only body: linkify + (optional) search highlight.
-function _grimBodyDisplay(text) {
-    if (!text) return '';
-    if (notesSearchQuery) return highlightSearch(escHtml(text), notesSearchQuery);
-    return linkifyNote(text);
-}
-
 // Top-level: sync the toolbar (segment + new btn), then show either the big
 // empty state or the master–detail layout and (re)draw both panes.
 function renderNotes() {
@@ -1318,6 +1313,8 @@ function renderNotes() {
     if (segRc) { const n = (state.notesArchive || []).length; segRc.textContent = n || ''; segRc.style.display = n ? '' : 'none'; }
     const newBtn = document.getElementById('grim-new-btn');
     if (newBtn) newBtn.style.display = grimMode === 'active' ? '' : 'none';
+    const expAll = document.getElementById('grim-export-all');
+    if (expAll) expAll.style.display = (grimMode === 'active' && (state.notes || []).length) ? '' : 'none';
 
     const layoutEl = document.getElementById('grim-layout');
     const emptyEl  = document.getElementById('grim-empty');
@@ -1356,7 +1353,7 @@ function renderGrimList(animate) {
     const all = _grimList().slice().sort((a, b) => keyOf(b) - keyOf(a));
     const q = notesSearchQuery.toLowerCase();
     const shown = q
-        ? all.filter(n => (n.title || '').toLowerCase().includes(q) || (n.body || '').toLowerCase().includes(q))
+        ? all.filter(n => (n.title || '').toLowerCase().includes(q) || _grimPlain(n.body).toLowerCase().includes(q))
         : all;
     const label = grimMode === 'archive' ? 'Склеп' : 'Записи';
     const head = `<div class="grim-list-head"><span>${q ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span></div>`;
@@ -1369,7 +1366,7 @@ function renderGrimList(animate) {
 function _grimLeafHTML(n, q, i, animate) {
     const titleRaw = (n.title || '').trim();
     const title = titleRaw || 'Без заглавия';
-    const snip = (n.body || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    const snip = _grimPlain(n.body).slice(0, 120);
     const titleH = q ? highlightSearch(escHtml(title), notesSearchQuery) : escHtml(title);
     const snipH  = q ? highlightSearch(escHtml(snip),  notesSearchQuery) : escHtml(snip);
     const ts = grimMode === 'archive' ? (n.archivedAt || n.updatedAt) : n.updatedAt;
@@ -1406,7 +1403,7 @@ function renderGrimDetail() {
             ${backBtn}
             <div class="grim-title-ro">${escHtml((note.title || '').trim() || 'Без заглавия')}</div>
             <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
-            <div class="grim-body grim-body--ro">${_grimBodyDisplay(note.body || '')}</div>
+            <div class="grim-body grim-body--ro">${_grimSanitize(note.body || '')}</div>
             <div class="grim-meta">
                 <span class="grim-date" title="В склепе с">${GIC.coffin}<span>${grimDate(note.archivedAt || note.updatedAt)}</span></span>
                 <span class="grim-acts">
@@ -1424,9 +1421,11 @@ function renderGrimDetail() {
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
                oninput="grimTitleInput(this)" onblur="grimCommit()">
         <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
+        ${_grimToolbarHTML()}
         <div class="grim-body" id="grim-body" contenteditable="true" spellcheck="false"
              data-placeholder="Начертайте запись…"
-             oninput="grimBodyInput(this)" onblur="grimCommit()" onpaste="plainTextPaste(event)"></div>
+             oninput="grimBodyInput(this)" onblur="grimCommit()" onpaste="plainTextPaste(event)"
+             onclick="grimBodyClick(event)" onkeydown="grimBodyKey(event)"></div>
         <div class="grim-meta">
             <span class="grim-date" title="Изменено">${GIC.hourglass}<span>${note.updatedAt ? grimDate(note.updatedAt) : 'новая запись'}</span></span>
             <span class="grim-acts">
@@ -1439,7 +1438,7 @@ function renderGrimDetail() {
     const ti = document.getElementById('grim-title-in');
     const bo = document.getElementById('grim-body');
     if (ti) ti.value = note.title || '';
-    if (bo) bo.textContent = note.body || '';
+    if (bo) bo.innerHTML = note.body || '';   // body holds sanitized HTML
 }
 
 // Switch between Записи and Склеп.
@@ -1474,7 +1473,7 @@ function grimNew() {
     clearTimeout(_grimSaveT); saveState();
     pushUndo();
     const now = Date.now();
-    const note = { id: uid(), title: '', body: '', createdAt: now, updatedAt: now };
+    const note = { id: uid(), title: '', body: '', fmt: true, createdAt: now, updatedAt: now };
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
     currentNoteId = note.id;
@@ -1521,8 +1520,7 @@ function grimTitleInput(el) {
 function grimBodyInput(el) {
     const note = _grimCurrentNote();
     if (!note) return;
-    // innerText (not textContent) so Enter-created block breaks read back as \n.
-    note.body = el.innerText;
+    note.body = _grimSanitize(el.innerHTML);   // body holds sanitized HTML
     note.updatedAt = Date.now();
     clearTimeout(_grimSaveT);
     _grimSaveT = setTimeout(saveState, 400);
@@ -1596,6 +1594,280 @@ function grimSearch(v) {
     notesSearchQuery = (v || '').trim();
     renderGrimList(false);
 }
+
+// ── Этап 1: WYSIWYG форматирование тела (body хранит HTML) ──────────────
+
+// Plain text from an HTML body (for list snippets + search).
+function _grimPlain(html) {
+    const d = document.createElement('div');
+    d.innerHTML = html || '';
+    return (d.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
+// One-time migration: old notes stored plain text → wrap into HTML paragraphs.
+function _grimPlainToHtml(text) {
+    if (!text) return '';
+    return text.split(/\n{2,}/).map(par =>
+        '<p>' + escHtml(par).replace(/\n/g, '<br>') + '</p>').join('');
+}
+function migrateNotes() {
+    [...(state.notes || []), ...(state.notesArchive || [])].forEach(n => {
+        if (n && n.fmt !== true) { n.body = _grimPlainToHtml(n.body || ''); n.fmt = true; }
+    });
+}
+
+// Whitelist sanitizer — only the tags/attrs the editor produces survive.
+const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,HR:1,A:1,DIV:1,SPAN:1 };
+function _grimSanitize(html) {
+    const root = document.createElement('div');
+    root.innerHTML = html || '';
+    root.querySelectorAll('script,style,iframe,object,embed').forEach(e => e.remove());
+    const walk = node => {
+        [...node.childNodes].forEach(ch => {
+            if (ch.nodeType === 8) { ch.remove(); return; }      // comments
+            if (ch.nodeType !== 1) return;                       // text ok
+            if (!GRIM_TAGS[ch.tagName]) { ch.replaceWith(...ch.childNodes); return; } // unwrap unknown
+            [...ch.attributes].forEach(a => {
+                const n = a.name.toLowerCase();
+                if (ch.tagName === 'A' && n === 'href') {
+                    if (!/^(https?:|mailto:|#)/i.test(a.value)) ch.removeAttribute('href');
+                } else if (n === 'class' && (ch.tagName === 'UL' || ch.tagName === 'LI')) {
+                    const keep = a.value.split(/\s+/).filter(c => c === 'task' || c === 'done').join(' ');
+                    keep ? ch.setAttribute('class', keep) : ch.removeAttribute('class');
+                } else {
+                    ch.removeAttribute(a.name);
+                }
+            });
+            if (ch.tagName === 'A') { ch.setAttribute('target', '_blank'); ch.setAttribute('rel', 'noopener noreferrer'); }
+            walk(ch);
+        });
+    };
+    walk(root);
+    return root.innerHTML;
+}
+
+// After any edit/command: persist (debounced) + refresh toolbar active-state.
+function _grimAfterEdit(bo) {
+    const note = _grimCurrentNote();
+    if (note) {
+        note.body = _grimSanitize(bo.innerHTML);
+        note.updatedAt = Date.now();
+        clearTimeout(_grimSaveT);
+        _grimSaveT = setTimeout(saveState, 400);
+    }
+    _grimSyncToolbar();
+}
+
+// Toolbar commands. onmousedown preventDefault on the buttons keeps the caret,
+// so execCommand acts on the live selection.
+function grimFmt(cmd) {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    switch (cmd) {
+        case 'bold':   document.execCommand('bold'); break;
+        case 'italic': document.execCommand('italic'); break;
+        case 'ul':     document.execCommand('insertUnorderedList'); break;
+        case 'ol':     document.execCommand('insertOrderedList'); break;
+        case 'quote':  _grimToggleBlock('blockquote'); break;
+        case 'hr':     document.execCommand('insertHorizontalRule'); break;
+    }
+    _grimAfterEdit(bo);
+}
+function _grimToggleBlock(tag) {
+    const cur = (document.queryCommandValue('formatBlock') || '').toLowerCase();
+    document.execCommand('formatBlock', false, cur === tag ? 'p' : tag);
+}
+function grimHeading(n) {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    _grimToggleBlock('h' + n);
+    _grimAfterEdit(bo);
+}
+function grimChecklist() {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    // toggle a checklist: ensure a UL around the selection, flip its .task class.
+    let n = window.getSelection().anchorNode, ul = null;
+    while (n && n !== bo) { if (n.tagName === 'UL') { ul = n; break; } n = n.parentNode; }
+    if (ul) { ul.classList.toggle('task'); }
+    else { document.execCommand('insertUnorderedList');
+        n = window.getSelection().anchorNode;
+        while (n && n !== bo) { if (n.tagName === 'UL') { n.classList.add('task'); break; } n = n.parentNode; }
+    }
+    _grimAfterEdit(bo);
+}
+function grimInlineCode() {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    const sel = window.getSelection();
+    const text = sel ? sel.toString() : '';
+    if (!text) { showToast('Выделите текст для кода'); return; }
+    document.execCommand('insertHTML', false, '<code>' + escHtml(text) + '</code>');
+    _grimAfterEdit(bo);
+}
+function grimLink() {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    const sel = window.getSelection();
+    const has = sel && sel.toString();
+    const url = prompt('Ссылка (URL):', 'https://');
+    if (!url) return;
+    if (has) document.execCommand('createLink', false, url);
+    else document.execCommand('insertHTML', false, '<a href="' + escHtml(url) + '">' + escHtml(url) + '</a>');
+    _grimAfterEdit(bo);
+}
+// Click on a checklist box toggles done.
+function grimBodyClick(e) {
+    const li = e.target.closest && e.target.closest('.task li');
+    if (!li) return;
+    const r = li.getBoundingClientRect();
+    if (e.clientX - r.left <= 26) {
+        li.classList.toggle('done');
+        _grimAfterEdit(document.getElementById('grim-body'));
+    }
+}
+function grimBodyKey(e) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'b') { e.preventDefault(); grimFmt('bold'); }
+    else if (k === 'i') { e.preventDefault(); grimFmt('italic'); }
+    else if (k === 'k') { e.preventDefault(); grimLink(); }
+}
+function _grimSyncToolbar() {
+    const bar = document.getElementById('grim-fmt-bar');
+    if (!bar) return;
+    const set = (cmd, on) => { const b = bar.querySelector(`[data-cmd="${cmd}"]`); if (b) b.classList.toggle('on', on); };
+    try {
+        set('bold', document.queryCommandState('bold'));
+        set('italic', document.queryCommandState('italic'));
+        set('ul', document.queryCommandState('insertUnorderedList'));
+        set('ol', document.queryCommandState('insertOrderedList'));
+        const block = (document.queryCommandValue('formatBlock') || '').toLowerCase();
+        ['h1','h2','h3'].forEach(h => set(h, block === h));
+        set('quote', block === 'blockquote');
+    } catch (_) { /* queryCommand* can throw if not focused */ }
+}
+
+// Hand-drawn toolbar glyphs.
+const FIC = {
+    bold:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7z"/><path d="M7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg>`,
+    italic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="5" x2="17" y2="5"/><line x1="7" y1="19" x2="14" y2="19"/><line x1="14" y1="5" x2="10" y2="19"/></svg>`,
+    ul:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.6"/></svg>`,
+    ol:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 5l1.5-.5V9M4 9h3"/></svg>`,
+    task:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="6" height="6" rx="1.2"/><path d="M4.5 7.5l1 1 2-2.2"/><rect x="3" y="14" width="6" height="6" rx="1.2"/><path d="M12 7.5h9M12 17h9"/></svg>`,
+    quote:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7c-2 0-3.5 1.6-3.5 3.6S7 14 9 14c0 2-1.2 3-3 3.4M19 7c-2 0-3.5 1.6-3.5 3.6S17 14 19 14c0 2-1.2 3-3 3.4"/></svg>`,
+    code:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg>`,
+    hr:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="9" y2="12"/><path d="M12 9.5l2.2 2.5-2.2 2.5-2.2-2.5z" fill="currentColor" stroke="none"/><line x1="15" y1="12" x2="21" y2="12"/></svg>`,
+    link:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 6 .5l2.5-2.5a4 4 0 0 0-5.6-5.6L11 8"/><path d="M14 10a4 4 0 0 0-6-.5L5.5 12a4 4 0 0 0 5.6 5.6L13 16"/></svg>`,
+    md:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 11l4 3 4-3"/><path d="M5 19h14"/></svg>`,
+};
+function _grimToolbarHTML() {
+    const btn = (cmd, on, title, svg) =>
+        `<button class="fmt-btn" data-cmd="${cmd}" onmousedown="event.preventDefault()" onclick="${on}" title="${title}">${svg}</button>`;
+    return `<div class="fmt-bar" id="grim-fmt-bar"><div class="fmt-inner" role="toolbar" aria-label="Форматирование">
+        <span class="fmt-grp">
+            <button class="fmt-btn fmt-h" data-cmd="h1" onmousedown="event.preventDefault()" onclick="grimHeading(1)" title="Заголовок 1">H1</button>
+            <button class="fmt-btn fmt-h" data-cmd="h2" onmousedown="event.preventDefault()" onclick="grimHeading(2)" title="Заголовок 2">H2</button>
+            <button class="fmt-btn fmt-h" data-cmd="h3" onmousedown="event.preventDefault()" onclick="grimHeading(3)" title="Заголовок 3">H3</button>
+        </span>
+        <span class="fmt-sep"></span>
+        ${btn('bold', "grimFmt('bold')", 'Жирный (Ctrl+B)', FIC.bold)}
+        ${btn('italic', "grimFmt('italic')", 'Курсив (Ctrl+I)', FIC.italic)}
+        <span class="fmt-sep"></span>
+        ${btn('ul', "grimFmt('ul')", 'Маркированный список', FIC.ul)}
+        ${btn('ol', "grimFmt('ol')", 'Нумерованный список', FIC.ol)}
+        ${btn('task', "grimChecklist()", 'Чек-лист', FIC.task)}
+        <span class="fmt-sep"></span>
+        ${btn('quote', "grimFmt('quote')", 'Цитата', FIC.quote)}
+        ${btn('code', "grimInlineCode()", 'Код', FIC.code)}
+        ${btn('hr', "grimFmt('hr')", 'Разделитель', FIC.hr)}
+        ${btn('link', "grimLink()", 'Ссылка (Ctrl+K)', FIC.link)}
+        <span class="fmt-spring"></span>
+        <button class="fmt-btn export" onmousedown="event.preventDefault()" onclick="grimExportNote()" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
+    </div></div>`;
+}
+
+// ── Markdown export ─────────────────────────────────────────────────────
+function _grimDownload(name, text) {
+    const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Экспортировано: ' + name);
+}
+function _grimSlug(s) {
+    return ((s || '').trim() || 'без-заглавия').replace(/[\\/:*?"<>|]+/g, '').slice(0, 60);
+}
+function _grimInlineMd(node) {
+    let out = '';
+    node.childNodes.forEach(n => {
+        if (n.nodeType === 3) { out += n.textContent; return; }
+        if (n.nodeType !== 1) return;
+        const t = n.tagName;
+        if (t === 'STRONG' || t === 'B') out += '**' + _grimInlineMd(n) + '**';
+        else if (t === 'EM' || t === 'I') out += '*' + _grimInlineMd(n) + '*';
+        else if (t === 'CODE') out += '`' + n.textContent + '`';
+        else if (t === 'A') out += '[' + _grimInlineMd(n) + '](' + (n.getAttribute('href') || '') + ')';
+        else if (t === 'BR') out += '  \n';
+        else out += _grimInlineMd(n);
+    });
+    return out;
+}
+function _grimHtmlToMd(html) {
+    const root = document.createElement('div');
+    root.innerHTML = html || '';
+    let md = '';
+    root.childNodes.forEach(n => {
+        if (n.nodeType === 3) { const t = n.textContent.trim(); if (t) md += t + '\n\n'; return; }
+        if (n.nodeType !== 1) return;
+        const tag = n.tagName;
+        if (tag === 'H1') md += '# ' + _grimInlineMd(n) + '\n\n';
+        else if (tag === 'H2') md += '## ' + _grimInlineMd(n) + '\n\n';
+        else if (tag === 'H3') md += '### ' + _grimInlineMd(n) + '\n\n';
+        else if (tag === 'BLOCKQUOTE') md += '> ' + _grimInlineMd(n).replace(/\n/g, '\n> ') + '\n\n';
+        else if (tag === 'HR') md += '---\n\n';
+        else if (tag === 'UL') {
+            const task = n.classList.contains('task');
+            n.querySelectorAll(':scope > li').forEach(li => {
+                md += (task ? '- [' + (li.classList.contains('done') ? 'x' : ' ') + '] ' : '- ') + _grimInlineMd(li) + '\n';
+            });
+            md += '\n';
+        } else if (tag === 'OL') {
+            let i = 1;
+            n.querySelectorAll(':scope > li').forEach(li => { md += (i++) + '. ' + _grimInlineMd(li) + '\n'; });
+            md += '\n';
+        } else { // P, DIV, anything else block-ish
+            const line = _grimInlineMd(n).trim();
+            if (line) md += line + '\n\n';
+        }
+    });
+    return md.trim();
+}
+function _grimNoteToMd(note) {
+    return '# ' + ((note.title || '').trim() || 'Без заглавия') + '\n\n' + _grimHtmlToMd(note.body || '') + '\n';
+}
+function grimExportNote() {
+    const note = _grimCurrentNote();
+    if (!note) return;
+    _grimDownload(_grimSlug(note.title) + '.md', _grimNoteToMd(note));
+}
+function grimExportAll() {
+    const arr = (state.notes || []).slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    if (!arr.length) { showToast('Нет записей для экспорта'); return; }
+    _grimDownload('grimoire.md', arr.map(_grimNoteToMd).join('\n---\n\n'));
+}
+
+// Live toolbar active-state while editing the body.
+document.addEventListener('selectionchange', () => {
+    if (document.activeElement && document.activeElement.id === 'grim-body') _grimSyncToolbar();
+});
 
 // ============================================================
 //  RENDER

@@ -10,7 +10,7 @@
 //     show a non-intrusive "new version — reload" toast.
 // The CACHE name is still bumped per deploy only to garbage-collect old caches;
 // freshness no longer depends on remembering to bump it.
-const CACHE  = 'dusk-v3-swr-grimoire';
+const CACHE  = 'dusk-v4-grimoire-fmt';
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
 // CORE is cached atomically (addAll) — these MUST be present for a reliable offline
 // boot. The 2.3 MB background is the most likely fetch to stall/fail on a slow first
