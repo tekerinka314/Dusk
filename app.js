@@ -1313,6 +1313,7 @@ function _grimCurrentNote() {
 function renderNotes() {
     const page = document.getElementById('notes-page');
     if (!page) return;
+    _grimHideTableUI();   // drop any floating table picker/tools on (re)render
     const segA = document.getElementById('grim-seg-active');
     const segR = document.getElementById('grim-seg-archive');
     if (segA) segA.classList.toggle('active', grimMode === 'active');
@@ -1481,6 +1482,14 @@ function renderGrimDetail() {
     const bo = document.getElementById('grim-body');
     if (ti) { ti.value = note.title || ''; _grimGrowTitle(ti); }
     if (bo) bo.innerHTML = note.body || '';   // body holds sanitized HTML
+    _grimEditTbl = null;                       // fresh detail → no table in edit mode
+    _grimHoverTbl = null; _grimHoverSeal = null;
+    if (bo) {
+        _grimObserveBody(bo);                  // relayout on any body resize (font load, reflow, reveal)
+        requestAnimationFrame(_grimLayoutTableUI);
+        // webfonts change table metrics after first paint → relayout once they land
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(_grimScheduleTableUI);
+    }
 }
 
 // Auto-grow the title <textarea> to fit wrapped lines (no inner scrollbar).
@@ -1587,6 +1596,7 @@ function grimBodyInput(el) {
     note.updatedAt = Date.now();
     clearTimeout(_grimSaveT);
     _grimSaveT = setTimeout(saveState, 400);
+    _grimScheduleTableUI();   // keep table seal/frame/gutters glued as cells reflow
 }
 
 // Blur (or pane switch) → flush save and re-sort/refresh the list (most-recent first).
@@ -1594,6 +1604,11 @@ function grimCommit() {
     clearTimeout(_grimSaveT);
     saveState();
     renderGrimList(false);
+    // Body blur (e.g. switching windows) must NOT tear down the table overlay —
+    // only drop the transient floaters; the seal/edit state survives the round-trip.
+    _grimCloseTableMenu();
+    const pk = document.getElementById('grim-table-pop'); if (pk) pk.remove();
+    _grimScheduleTableUI();
 }
 
 // Active note → permanent delete (two-step confirm, undoable).
@@ -1823,7 +1838,8 @@ function migrateNotes() {
 }
 
 // Whitelist sanitizer — only the tags/attrs the editor produces survive.
-const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,HR:1,A:1,DIV:1,SPAN:1 };
+const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,HR:1,A:1,DIV:1,SPAN:1,
+                    TABLE:1,THEAD:1,TBODY:1,TR:1,TH:1,TD:1 };
 function _grimSanitize(html) {
     const root = document.createElement('div');
     root.innerHTML = html || '';
@@ -1862,6 +1878,7 @@ function _grimAfterEdit(bo) {
         _grimSaveT = setTimeout(saveState, 400);
     }
     _grimSyncToolbar();
+    _grimScheduleTableUI();   // keep table seals/gutters glued as content reflows
 }
 
 // Toolbar commands. onmousedown preventDefault on the buttons keeps the caret,
@@ -2195,6 +2212,8 @@ function grimBodyClick(e) {
 function grimBodyKey(e) {
     // First Backspace at the start of a list item drops the bullet (→ paragraph);
     // a second Backspace then merges into the previous line as usual.
+    if (e.key === 'Escape' && _grimDismissTableUI()) return;   // staged dismiss: picker → menu → edit-mode
+    if (e.key === 'Tab' && _grimTableTab(e)) return;     // walk table cells
     if (e.key === 'Backspace' && _grimBackspaceOutdent(e)) return;
     // Plain Enter inside a quote/inline-code exits to a normal paragraph
     // (Shift+Enter still inserts a soft line break inside the block).
@@ -2301,6 +2320,393 @@ function _grimSyncToolbar() {
     } catch (_) { /* queryCommand* can throw if not focused */ }
 }
 
+// ── Tables (этап 2) ──────────────────────────────────────────────────────
+// Insert via a hover size-grid (N×M); edit via a floating bar above the focused
+// cell (add/remove rows & columns); Tab walks cells. First row = header (<th>)
+// so markdown export yields a standard pipe table.
+const GRIM_TBL_MAX = 8;
+
+// Toggle the size-grid popover under the toolbar's table button.
+function grimTableMenu(e) {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    const existing = document.getElementById('grim-table-pop');
+    if (existing) { existing.remove(); return; }
+    const pop = document.createElement('div');
+    pop.id = 'grim-table-pop';
+    pop.className = 'grim-table-pop';
+    const grid = document.createElement('div');
+    grid.className = 'gtp-grid';
+    const lbl = document.createElement('div');
+    lbl.className = 'gtp-lbl';
+    lbl.textContent = 'размер';
+    for (let r = 1; r <= GRIM_TBL_MAX; r++) {
+        for (let c = 1; c <= GRIM_TBL_MAX; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'gtp-c';
+            cell.dataset.r = r; cell.dataset.c = c;
+            cell.addEventListener('mouseenter', () => {
+                lbl.textContent = c + ' × ' + r;
+                grid.querySelectorAll('.gtp-c').forEach(x =>
+                    x.classList.toggle('hot', +x.dataset.r <= r && +x.dataset.c <= c));
+            });
+            cell.addEventListener('mousedown', ev => { ev.preventDefault(); grimInsertTable(c, r); pop.remove(); });
+            grid.appendChild(cell);
+        }
+    }
+    pop.appendChild(grid);
+    pop.appendChild(lbl);
+    document.body.appendChild(pop);
+    const rect = e.currentTarget.getBoundingClientRect();
+    pop.style.top  = (rect.bottom + 6) + 'px';
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - pop.offsetWidth - 10)) + 'px';
+    setTimeout(() => {
+        const off = ev => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', off, true); } };
+        document.addEventListener('mousedown', off, true);
+    }, 0);
+}
+
+// Build and drop a cols×rows table at the caret (first row = header).
+function grimInsertTable(cols, rows) {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    cols = Math.max(1, Math.min(GRIM_TBL_MAX, cols | 0));
+    rows = Math.max(1, Math.min(GRIM_TBL_MAX, rows | 0));
+    const mkCell = tag => { const el = document.createElement(tag); el.appendChild(document.createElement('br')); return el; };
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const htr = document.createElement('tr');
+    for (let c = 0; c < cols; c++) htr.appendChild(mkCell('th'));
+    thead.appendChild(htr);
+    table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    const dataRows = Math.max(1, rows - 1);     // always at least one body row to type into
+    for (let r = 0; r < dataRows; r++) {
+        const tr = document.createElement('tr');
+        for (let c = 0; c < cols; c++) tr.appendChild(mkCell('td'));
+        tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    const block = _grimCurrentBlock(bo);
+    if (block && block.parentNode === bo && !block.textContent.trim()) block.replaceWith(table);
+    else if (block && block.parentNode === bo) block.parentNode.insertBefore(table, block.nextSibling);
+    else bo.appendChild(table);
+    if (!table.nextSibling || table.nextSibling.tagName === 'TABLE') {
+        const p = document.createElement('p'); p.appendChild(document.createElement('br'));
+        table.parentNode.insertBefore(p, table.nextSibling);
+    }
+    _grimCaretToStart(table.querySelector('th,td'));
+    _grimAfterEdit(bo);
+    requestAnimationFrame(_grimLayoutTableUI);   // draw the seal once geometry settles
+}
+
+// Resolve the cell / row / table around the caret (null when outside any table).
+function _grimCellCtx() {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    if (!bo || !sel || !sel.rangeCount) return null;
+    let n = sel.anchorNode;
+    while (n && n !== bo && !/^(TD|TH)$/.test(n.tagName || '')) n = n.parentNode;
+    if (!n || n === bo) return null;
+    let table = n;
+    while (table && table.tagName !== 'TABLE') table = table.parentNode;
+    if (!table || !bo.contains(table)) return null;
+    return { cell: n, row: n.parentNode, table };
+}
+
+// The structure-edit overlay lives INSIDE .grim-page (a positioned, non-editable
+// sibling of the body) → it scrolls glued to the table, occupies no flow space,
+// and never persists into note.body. Each table carries a wax-seal sigil at its
+// top-right corner; clicking it enters "edit structure" mode for THAT table —
+// gutter handles appear over every column (above the header) and beside every
+// DATA row (the header row has no gutter: it is mandatory for markdown and can't
+// be deleted). Clicking a gutter opens a small floating menu (add before / delete
+// / add after). The caret never triggers any of this, so clicking a cell to edit
+// its text stays quiet.
+let _grimEditTbl = null;    // table currently in structure-edit mode (or null)
+let _grimMenu = null;       // { el, gutter, kind } of the open floating menu (or null)
+let _grimTblRAF = 0;
+let _grimRO = null;         // ResizeObserver re-gluing the overlay when the body reflows
+let _grimHoverTbl = null;   // table the pointer is currently over (seal shows on hover)
+let _grimHoverSeal = null;  // table whose seal the pointer is over (keeps it visible)
+
+// Relayout whenever the editor body changes size — covers webfont swap, container
+// reveal, and content reflow, all of which move table geometry after first paint.
+// Also wire (once per body) the hover delegation that reveals each table's seal.
+function _grimObserveBody(bo) {
+    if (!bo) return;
+    if ('ResizeObserver' in window) {
+        if (!_grimRO) _grimRO = new ResizeObserver(() => _grimScheduleTableUI());
+        _grimRO.disconnect();
+        _grimRO.observe(bo);
+    }
+    if (!bo._grimHoverWired) {
+        const onHover = e => {
+            const t = (e.relatedTarget && e.relatedTarget.closest) ? e.relatedTarget.closest('table') : null;
+            const over = (e.target && e.target.closest) ? e.target.closest('table') : null;
+            const next = e.type === 'mouseout' ? t : (over || t);
+            if (next !== _grimHoverTbl) { _grimHoverTbl = next; _grimApplySealVis(); }
+        };
+        bo.addEventListener('mouseover', onHover);
+        bo.addEventListener('mouseout', onHover);
+        bo._grimHoverWired = true;
+    }
+}
+// Toggle each seal's visibility: shown while its table is hovered, its seal is
+// hovered, or it's the table in edit mode.
+function _grimApplySealVis() {
+    const ov = document.querySelector('#grim-detail .grim-tctl');
+    if (!ov) return;
+    ov.querySelectorAll('.gtc-seal').forEach(s => {
+        const t = s._gtcTable;
+        s.classList.toggle('gtc-show', !!t && (t === _grimEditTbl || t === _grimHoverTbl || t === _grimHoverSeal));
+    });
+}
+
+function _grimTctl() {
+    const page = document.querySelector('#grim-detail .grim-page');
+    if (!page) return null;
+    let ov = page.querySelector(':scope > .grim-tctl');
+    if (!ov) {
+        ov = document.createElement('div');
+        ov.className = 'grim-tctl';
+        ov.setAttribute('contenteditable', 'false');
+        page.appendChild(ov);
+    }
+    return ov;
+}
+// Coalesce frequent relayouts (typing, resize) into one per frame.
+function _grimScheduleTableUI() {
+    if (_grimTblRAF) return;
+    _grimTblRAF = requestAnimationFrame(() => { _grimTblRAF = 0; _grimLayoutTableUI(); });
+}
+// (Re)build the overlay from current geometry: a seal per table, plus gutters /
+// frame / edge rails for the table in edit mode. Offsets are measured within the
+// page's content box so they stay glued through scroll.
+function _grimLayoutTableUI() {
+    const bo = document.getElementById('grim-body');
+    const page = document.querySelector('#grim-detail .grim-page');
+    if (!bo || !page) return;
+    if (_grimEditTbl && !bo.contains(_grimEditTbl)) _grimEditTbl = null;
+    _grimCloseTableMenu();
+    const ov = _grimTctl();
+    if (!ov) return;
+    ov.innerHTML = '';
+    const tables = [...bo.querySelectorAll('table')];
+    if (!tables.length) { ov.classList.remove('on'); return; }
+    ov.classList.add('on');
+    const pr = page.getBoundingClientRect();
+    const ox = pr.left + page.clientLeft, oy = pr.top + page.clientTop;
+    const R = Math.round;
+    tables.forEach(table => {
+        const tr = table.getBoundingClientRect();
+        if (!tr.width || !tr.height) return;   // not laid out yet → skip; observer retries
+        const seal = document.createElement('button');
+        seal.type = 'button';
+        seal.className = 'gtc-seal' + (table === _grimEditTbl ? ' on' : '');
+        seal.title = 'Правка структуры таблицы';
+        seal.innerHTML = `<span class="gtc-ring"></span>${FIC.tblSigil}`;
+        seal.style.left = R(tr.right - ox) + 'px';
+        seal.style.top  = R(tr.top - oy) + 'px';
+        seal._gtcTable = table;
+        seal.addEventListener('mousedown', e => e.preventDefault());
+        seal.addEventListener('mouseenter', () => { _grimHoverSeal = table; _grimApplySealVis(); });
+        seal.addEventListener('mouseleave', () => { if (_grimHoverSeal === table) _grimHoverSeal = null; _grimApplySealVis(); });
+        seal.addEventListener('click', e => {
+            e.stopPropagation();
+            _grimEditTbl = (table === _grimEditTbl) ? null : table;
+            _grimLayoutTableUI();
+        });
+        ov.appendChild(seal);
+        if (table !== _grimEditTbl) return;
+        const frame = document.createElement('div');
+        frame.className = 'gtc-frame';
+        Object.assign(frame.style, { left: R(tr.left - ox) + 'px', top: R(tr.top - oy) + 'px', width: R(tr.width) + 'px', height: R(tr.height) + 'px' });
+        ov.appendChild(frame);
+        const head = (table.tHead && table.tHead.rows[0]) ? table.tHead.rows[0] : table.rows[0];
+        if (head) [...head.cells].forEach((cell, ci) => {
+            const cr = cell.getBoundingClientRect();
+            const g = document.createElement('div');
+            g.className = 'gtc-gut gtc-colgut';
+            Object.assign(g.style, { left: R(cr.left - ox) + 'px', top: R(tr.top - oy - 20) + 'px', width: R(cr.width) + 'px' });
+            g.innerHTML = `<span class="gtc-grip">${FIC.tblGrip}</span>`;
+            g.addEventListener('mousedown', e => e.preventDefault());
+            g.addEventListener('click', e => { e.stopPropagation(); _grimToggleTableMenu(g, 'col', ci, table); });
+            ov.appendChild(g);
+        });
+        const bodyRows = table.tBodies[0] ? [...table.tBodies[0].rows] : [...table.rows].slice(1);
+        bodyRows.forEach(rowEl => {
+            const rr = rowEl.getBoundingClientRect();
+            const g = document.createElement('div');
+            g.className = 'gtc-gut gtc-rowgut';
+            Object.assign(g.style, { left: R(tr.left - ox - 20) + 'px', top: R(rr.top - oy) + 'px', height: R(rr.height) + 'px' });
+            g.innerHTML = `<span class="gtc-grip">${FIC.tblGrip}</span>`;
+            g.addEventListener('mousedown', e => e.preventDefault());
+            g.addEventListener('click', e => { e.stopPropagation(); _grimToggleTableMenu(g, 'row', rowEl, table); });
+            ov.appendChild(g);
+        });
+        const edgeCol = document.createElement('button');
+        edgeCol.type = 'button'; edgeCol.className = 'gtc-edge gtc-edge-col'; edgeCol.title = 'Добавить колонку';
+        edgeCol.innerHTML = FIC.tblAdd;
+        Object.assign(edgeCol.style, { left: R(tr.right - ox + 8) + 'px', top: R(tr.top - oy + tr.height / 2) + 'px' });
+        edgeCol.addEventListener('mousedown', e => e.preventDefault());
+        edgeCol.addEventListener('click', e => { e.stopPropagation(); grimTableAppend('col', table); });
+        ov.appendChild(edgeCol);
+        const edgeRow = document.createElement('button');
+        edgeRow.type = 'button'; edgeRow.className = 'gtc-edge gtc-edge-row'; edgeRow.title = 'Добавить строку';
+        edgeRow.innerHTML = FIC.tblAdd;
+        Object.assign(edgeRow.style, { left: R(tr.left - ox + tr.width / 2) + 'px', top: R(tr.bottom - oy + 8) + 'px' });
+        edgeRow.addEventListener('mousedown', e => e.preventDefault());
+        edgeRow.addEventListener('click', e => { e.stopPropagation(); grimTableAppend('row', table); });
+        ov.appendChild(edgeRow);
+    });
+    _grimApplySealVis();   // hover-only: hide seals not hovered / not in edit mode
+}
+function _grimCloseTableMenu() {
+    if (!_grimMenu) return;
+    _grimMenu.el.remove();
+    if (_grimMenu.gutter) _grimMenu.gutter.classList.remove('gtc-active');
+    _grimMenu = null;
+}
+// Open (or, on the already-active gutter, close) the floating add/delete menu.
+function _grimToggleTableMenu(gutter, kind, ref, table) {
+    const wasActive = _grimMenu && _grimMenu.gutter === gutter;
+    _grimCloseTableMenu();
+    if (wasActive) return;
+    const ov = _grimTctl();
+    if (!ov) return;
+    const bo = document.getElementById('grim-body');
+    const menu = document.createElement('div');
+    menu.className = 'gtc-pop';
+    menu.setAttribute('contenteditable', 'false');
+    const mk = (cls, title, glyph, op) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'gtc-mbtn' + (cls ? ' ' + cls : ''); b.title = title; b.innerHTML = glyph;
+        b.addEventListener('mousedown', e => e.preventDefault());
+        b.addEventListener('click', e => {
+            e.stopPropagation();
+            op();
+            _grimCloseTableMenu();
+            if (bo) _grimAfterEdit(bo);
+            _grimLayoutTableUI();
+        });
+        return b;
+    };
+    if (kind === 'col') {
+        const ci = ref;
+        menu.appendChild(mk('', 'Колонка слева', FIC.tblAdd, () => _grimColInsert(table, ci, false)));
+        menu.appendChild(mk('del', 'Удалить колонку', FIC.tblDel, () => _grimColDelete(table, ci)));
+        menu.appendChild(mk('', 'Колонка справа', FIC.tblAdd, () => _grimColInsert(table, ci, true)));
+    } else {
+        const rowEl = ref;
+        menu.appendChild(mk('', 'Строка выше', FIC.tblAdd, () => _grimRowInsert(table, rowEl, false)));
+        menu.appendChild(mk('del', 'Удалить строку', FIC.tblDel, () => _grimRowDelete(table, rowEl)));
+        menu.appendChild(mk('', 'Строка ниже', FIC.tblAdd, () => _grimRowInsert(table, rowEl, true)));
+    }
+    ov.appendChild(menu);
+    gutter.classList.add('gtc-active');
+    _grimMenu = { el: menu, gutter, kind };
+    // position above the gutter, clamped to the page; flip below if there's no room
+    const page = document.querySelector('#grim-detail .grim-page');
+    const prr = page.getBoundingClientRect();
+    const ox = prr.left + page.clientLeft, oy = prr.top + page.clientTop;
+    const gr = gutter.getBoundingClientRect();
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    let left = (gr.left - ox) + gr.width / 2 - mw / 2;
+    let top = (gr.top - oy) - mh - 6;
+    left = Math.max(2, Math.min(left, page.clientWidth - mw - 2));
+    if (top < 0) top = (gr.bottom - oy) + 6;
+    Object.assign(menu.style, { left: left + 'px', top: top + 'px' });
+}
+// Staged Esc / dismissal: drop the size-grid picker, then the menu, then the mode.
+function _grimDismissTableUI() {
+    const pop = document.getElementById('grim-table-pop'); if (pop) { pop.remove(); return true; }
+    if (_grimMenu) { _grimCloseTableMenu(); return true; }
+    if (_grimEditTbl) { _grimEditTbl = null; _grimLayoutTableUI(); return true; }
+    return false;
+}
+// Full teardown — used when the detail pane re-renders.
+function _grimHideTableUI() {
+    const pop = document.getElementById('grim-table-pop'); if (pop) pop.remove();
+    _grimCloseTableMenu();
+    _grimEditTbl = null;
+    const ov = document.querySelector('#grim-detail .grim-tctl');
+    if (ov) { ov.innerHTML = ''; ov.classList.remove('on'); }
+}
+
+// Edge rails: append a column (right) or row (bottom) at the end of the table.
+function grimTableAppend(kind, table) {
+    const bo = document.getElementById('grim-body');
+    table = table || _grimEditTbl;
+    if (!bo || !table || !bo.contains(table)) return;
+    if (kind === 'col') {
+        [...table.rows].forEach(tr => {
+            const last = tr.cells[tr.cells.length - 1];
+            const nc = document.createElement(last && last.tagName === 'TH' ? 'th' : 'td');
+            nc.appendChild(document.createElement('br'));
+            tr.appendChild(nc);
+        });
+    } else {
+        const ncols = table.rows[0] ? table.rows[0].cells.length : 1;
+        const ntr = document.createElement('tr');
+        for (let i = 0; i < ncols; i++) { const td = document.createElement('td'); td.appendChild(document.createElement('br')); ntr.appendChild(td); }
+        let tb = table.tBodies[0];
+        if (!tb) { tb = document.createElement('tbody'); table.appendChild(tb); }
+        tb.appendChild(ntr);
+    }
+    _grimAfterEdit(bo);
+    _grimLayoutTableUI();
+}
+
+// Index-based structure ops, driven by the gutter menus (not the caret).
+function _grimColInsert(table, ci, after) {
+    [...table.rows].forEach(tr => {
+        const ref = tr.cells[ci];
+        const nc = document.createElement(ref && ref.tagName === 'TH' ? 'th' : 'td');
+        nc.appendChild(document.createElement('br'));
+        tr.insertBefore(nc, after ? (ref ? ref.nextSibling : null) : (ref || null));
+    });
+}
+function _grimColDelete(table, ci) {
+    if (table.rows[0] && table.rows[0].cells.length <= 1) { _grimRemoveTable(table); return; }
+    [...table.rows].forEach(tr => { if (tr.cells[ci]) tr.deleteCell(ci); });
+}
+function _grimRowInsert(table, rowEl, after) {
+    const ncols = rowEl.cells.length;
+    const tr = document.createElement('tr');
+    for (let i = 0; i < ncols; i++) { const td = document.createElement('td'); td.appendChild(document.createElement('br')); tr.appendChild(td); }
+    rowEl.parentNode.insertBefore(tr, after ? rowEl.nextSibling : rowEl);
+}
+function _grimRowDelete(table, rowEl) {
+    const n = table.tBodies[0] ? table.tBodies[0].rows.length : 0;
+    if (n <= 1) { _grimRemoveTable(table); return; }   // removing the last data row drops the whole table
+    rowEl.parentNode.removeChild(rowEl);
+}
+function _grimRemoveTable(table) {
+    if (table === _grimEditTbl) _grimEditTbl = null;
+    table.remove();
+}
+
+// Tab / Shift+Tab walks cells; Tab past the last cell appends a row.
+function _grimTableTab(e) {
+    const ctx = _grimCellCtx();
+    if (!ctx) return false;
+    e.preventDefault();
+    const cells = [...ctx.table.querySelectorAll('th,td')];
+    const i = cells.indexOf(ctx.cell);
+    if (e.shiftKey) {
+        if (i > 0) _grimCaretToStart(cells[i - 1]);
+    } else if (i < cells.length - 1) {
+        _grimCaretToStart(cells[i + 1]);
+    } else {
+        grimTableAppend('row', ctx.table);
+        const next = [...ctx.table.querySelectorAll('th,td')][i + 1];
+        if (next) _grimCaretToStart(next);
+    }
+    return true;
+}
+
 // Hand-drawn toolbar glyphs.
 const FIC = {
     bold:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7z"/><path d="M7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg>`,
@@ -2313,6 +2719,14 @@ const FIC = {
     hr:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="9" y2="12"/><path d="M12 9.5l2.2 2.5-2.2 2.5-2.2-2.5z" fill="currentColor" stroke="none"/><line x1="15" y1="12" x2="21" y2="12"/></svg>`,
     link:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 6 .5l2.5-2.5a4 4 0 0 0-5.6-5.6L11 8"/><path d="M14 10a4 4 0 0 0-6-.5L5.5 12a4 4 0 0 0 5.6 5.6L13 16"/></svg>`,
     md:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 11l4 3 4-3"/><path d="M5 19h14"/></svg>`,
+    table:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="3.5" y1="14.5" x2="20.5" y2="14.5"/><line x1="9.5" y1="4.5" x2="9.5" y2="19.5"/><line x1="15" y1="4.5" x2="15" y2="19.5"/></svg>`,
+    // Table structure glyphs (approved set): cross-potent + diamond = add; a
+    // sickle (contour blade + filled handle) = delete; a fleur-de-lis grip on the
+    // gutters; a rose-window rosette as the edit-structure sigil.
+    tblAdd:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v15M4.5 12h15"/><path d="M10.2 4.5h3.6M10.2 19.5h3.6M4.5 10.2v3.6M19.5 10.2v3.6"/><path d="M12 9.4l2.6 2.6-2.6 2.6-2.6-2.6z" fill="currentColor" stroke="none"/></svg>`,
+    tblDel:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 15.4C6.1 10.8 9.2 4.9 18 5.3c-4.7 1-6.9 4.2-6.7 8.1"/><path d="M9.6 14.5l2.3 2.3-3.5 3.5a1.6 1.6 0 0 1-2.3-2.3z" fill="currentColor" stroke="none"/></svg>`,
+    tblGrip:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6c1.7 0 2.2 2 .95 3.2 1.85-.2 3.35 1.25 2.6 3.1-.55 1.5-2.5 1.95-3.55.85M12 4.6c-1.7 0-2.2 2-.95 3.2-1.85-.2-3.35 1.25-2.6 3.1.55 1.5 2.5 1.95 3.55.85M12 7.4V19.4M9.3 19.4h5.4"/></svg>`,
+    tblSigil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 6.4a3.1 3.1 0 0 1 0 5.6 3.1 3.1 0 0 1 0-5.6z M12 12a3.1 3.1 0 0 1 0 5.6 3.1 3.1 0 0 1 0-5.6z M6.4 12a3.1 3.1 0 0 1 5.6 0 3.1 3.1 0 0 1-5.6 0z M12 12a3.1 3.1 0 0 1 5.6 0 3.1 3.1 0 0 1-5.6 0z"/></svg>`,
 };
 function _grimToolbarHTML() {
     const btn = (cmd, on, title, svg) =>
@@ -2335,6 +2749,8 @@ function _grimToolbarHTML() {
         ${btn('code', "grimInlineCode()", 'Код', FIC.code)}
         ${btn('hr', "grimFmt('hr')", 'Разделитель', FIC.hr)}
         ${btn('link', "grimLink()", 'Ссылка (Ctrl+K)', FIC.link)}
+        <span class="fmt-sep"></span>
+        ${btn('table', "grimTableMenu(event)", 'Таблица', FIC.table)}
         <span class="fmt-spring"></span>
         <button class="fmt-btn export" onmousedown="event.preventDefault()" onclick="grimExportNote()" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
     </div></div>`;
@@ -2381,6 +2797,7 @@ function _grimHtmlToMd(html) {
         else if (tag === 'H3') md += '### ' + _grimInlineMd(n) + '\n\n';
         else if (tag === 'BLOCKQUOTE') md += '> ' + _grimInlineMd(n).replace(/\n/g, '\n> ') + '\n\n';
         else if (tag === 'HR') md += '---\n\n';
+        else if (tag === 'TABLE') md += _grimTableToMd(n) + '\n';
         else if (tag === 'UL') {
             const task = n.classList.contains('task');
             n.querySelectorAll(':scope > li').forEach(li => {
@@ -2398,6 +2815,18 @@ function _grimHtmlToMd(html) {
     });
     return md.trim();
 }
+// <table> → standard markdown pipe table (first row = header + separator).
+function _grimTableToMd(table) {
+    const rows = [...table.rows].map(tr =>
+        [...tr.cells].map(c => _grimInlineMd(c).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ').trim()));
+    if (!rows.length) return '';
+    const cols = Math.max(...rows.map(r => r.length));
+    rows.forEach(r => { while (r.length < cols) r.push(''); });
+    const line = cells => '| ' + cells.join(' | ') + ' |';
+    let out = line(rows[0]) + '\n' + line(rows[0].map(() => '---')) + '\n';
+    rows.slice(1).forEach(r => out += line(r) + '\n');
+    return out;
+}
 function _grimNoteToMd(note) {
     return '# ' + ((note.title || '').trim() || 'Без заглавия') + '\n\n' + _grimHtmlToMd(note.body || '') + '\n';
 }
@@ -2412,10 +2841,27 @@ function grimExportAll() {
     _grimDownload('grimoire.md', arr.map(_grimNoteToMd).join('\n---\n\n'));
 }
 
-// Live toolbar active-state while editing the body.
+// Live toolbar active-state while editing the body. (The caret no longer drives
+// the table controls — those are an explicit per-table seal toggle instead.)
 document.addEventListener('selectionchange', () => {
     if (document.activeElement && document.activeElement.id === 'grim-body') _grimSyncToolbar();
 });
+// A stray click anywhere outside a seal/gutter/menu closes the open menu (those
+// targets call stopPropagation, so a click reaching here is "elsewhere").
+document.addEventListener('click', () => { if (_grimMenu) _grimCloseTableMenu(); });
+// Esc when the body isn't focused (e.g. focus drifted) still dismisses controls;
+// the in-body case is handled by grimBodyKey.
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && (_grimMenu || _grimEditTbl)
+        && !(document.activeElement && document.activeElement.id === 'grim-body')) _grimDismissTableUI();
+});
+// Reposition seals/gutters on resize (geometry shifts with column reflow).
+window.addEventListener('resize', () => { if (document.querySelector('#grim-detail .grim-tctl')) _grimScheduleTableUI(); });
+// Returning to the window/tab can leave the overlay stale (a blur fired on leave)
+// — rebuild it so the seal comes back.
+window.addEventListener('focus', () => { if (document.getElementById('grim-body')) _grimScheduleTableUI(); });
+window.addEventListener('pageshow', () => { if (document.getElementById('grim-body')) _grimScheduleTableUI(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('grim-body')) _grimScheduleTableUI(); });
 
 // ============================================================
 //  RENDER

@@ -6154,6 +6154,123 @@ kbd {
     font-family: var(--font-title); font-size: 16px; font-weight: 700; color: var(--grim-heading);
     letter-spacing: 0.5px; margin: 12px 0 4px; text-shadow: 0 0 10px var(--accent-glow);
 }
+/* ── Tables (этап 2): light ledger grid WITH vertical rules, accent-underlined
+   header. Lean lines so the table doesn't out-shout the prose. ─────────────── */
+.grim-body table, .grim-body--ro table {
+    border-collapse: collapse; width: 100%; margin: 14px 0;
+    font-family: var(--font-main); font-size: 1em; color: var(--text-secondary);
+}
+.grim-body th, .grim-body td, .grim-body--ro th, .grim-body--ro td {
+    border: 1px solid var(--border); padding: 7px 11px;
+    text-align: left; vertical-align: top; min-width: 44px;
+}
+/* body cells read as purple prose; the header outranks them by treatment
+   (label face, caps, tracking, glow, weight) — not merely by being brighter. */
+.grim-body tbody td, .grim-body--ro tbody td { color: var(--text-secondary); }
+.grim-body thead th, .grim-body--ro thead th {
+    font-family: var(--font-label); text-transform: uppercase; letter-spacing: 0.8px;
+    font-weight: 700; color: var(--grim-heading); font-size: 0.85em;
+    border-bottom: 2px solid var(--border-bright);
+    text-shadow: 0 0 9px var(--accent-glow), 0 0 2px rgba(170, 90, 255, 0.5);
+}
+.grim-body tbody tr:hover, .grim-body--ro tbody tr:hover { background: rgba(255, 255, 255, 0.022); }
+
+/* Size-grid popover for inserting a table. */
+.grim-table-pop {
+    position: fixed; z-index: 1200; background: var(--bg-input);
+    border: 1px solid var(--border-mid); border-radius: var(--radius-sm);
+    padding: 12px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+}
+.gtp-grid { display: grid; grid-template-columns: repeat(8, 19px); grid-auto-rows: 19px; gap: 4px; }
+.gtp-c {
+    border: 1px solid var(--border); border-radius: 2px; background: var(--bg-item); cursor: pointer;
+    transition: background 0.08s ease, border-color 0.08s ease, box-shadow 0.08s ease;
+}
+.gtp-c.hot { border-color: var(--border-bright); background: var(--accent-soft); box-shadow: 0 0 6px var(--accent-glow); }
+.gtp-lbl {
+    margin-top: 9px; text-align: center; font-family: var(--font-label); text-transform: uppercase;
+    letter-spacing: 1px; font-size: 12px; color: var(--accent-hover);
+}
+
+/* ── Table structure-edit overlay — explicit wax-seal toggle (M2) + click-to-open
+   floating menus on column/row gutters (the v3 synthesis). Lives in .grim-page so
+   it scrolls glued, takes no flow space, never persists into note.body. The caret
+   never triggers it: clicking a cell to edit its text stays quiet. ───────────── */
+.grim-tctl { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.grim-tctl:not(.on) { display: none; }
+.grim-tctl > * { pointer-events: auto; }
+
+/* wax-seal sigil at each table's top-right corner (idle: faint ring; on: bloom) */
+.gtc-seal {
+    position: absolute; width: 30px; height: 30px; padding: 0; transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; cursor: pointer; color: rgba(200, 150, 255, 0.72);
+    background: rgba(20, 8, 52, 0.22); border: 1px solid var(--border-mid);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    opacity: 0; pointer-events: none;   /* hidden until its table is hovered (or in edit mode) */
+    transition: opacity 0.18s ease, color 0.24s var(--ease-emerge), background 0.24s var(--ease-emerge), border-color 0.24s var(--ease-emerge), box-shadow 0.24s var(--ease-emerge), transform 0.24s var(--ease-emerge);
+}
+.gtc-seal.gtc-show { opacity: 1; pointer-events: auto; }
+.gtc-seal:hover { color: var(--accent-hover); border-color: var(--border-bright); box-shadow: 0 0 12px var(--accent-glow); transform: translate(-50%, -50%) scale(1.06); }
+.gtc-seal.on {
+    color: #fff; border-color: var(--border-bright);
+    background: radial-gradient(circle at 38% 34%, rgba(74, 30, 146, 0.98), rgba(24, 10, 60, 0.98));
+    box-shadow: 0 0 20px var(--accent-glow), inset 0 1px 4px rgba(210, 160, 255, 0.4);
+}
+.gtc-seal svg { width: 19px; height: 19px; display: block; }
+.gtc-ring { position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--border-bright); opacity: 0; transform: scale(0.8); transition: opacity 0.3s, transform 0.3s var(--ease-emerge); }
+.gtc-seal.on .gtc-ring { opacity: 0.45; transform: scale(1); }
+
+/* edit-mode frame around the active table */
+.gtc-frame {
+    position: absolute; border-radius: 5px; pointer-events: none;
+    box-shadow: 0 0 0 1px var(--border-bright), 0 0 22px rgba(120, 40, 220, 0.22);
+    background: rgba(120, 60, 220, 0.04); animation: gtcFade 0.25s var(--ease-emerge) both;
+}
+@keyframes gtcFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* gutter handles (only present in edit mode) */
+.gtc-gut {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--accent-hover); border-radius: 4px; border: 1px solid transparent;
+    transition: color 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+    animation: gtcFade 0.2s var(--ease-emerge) both;
+}
+.gtc-colgut { height: 18px; background: linear-gradient(180deg, rgba(126, 56, 220, 0.46), rgba(126, 56, 220, 0.10)); }
+.gtc-rowgut { width: 18px;  background: linear-gradient(90deg,  rgba(126, 56, 220, 0.46), rgba(126, 56, 220, 0.10)); }
+.gtc-gut:hover, .gtc-gut.gtc-active { color: #fff; border-color: var(--border-mid); }
+.gtc-colgut:hover, .gtc-colgut.gtc-active { background: linear-gradient(180deg, rgba(154, 84, 255, 0.60), rgba(154, 84, 255, 0.16)); }
+.gtc-rowgut:hover, .gtc-rowgut.gtc-active { background: linear-gradient(90deg,  rgba(154, 84, 255, 0.60), rgba(154, 84, 255, 0.16)); }
+.gtc-grip { display: flex; }
+.gtc-grip svg { width: 18px; height: 18px; display: block; }
+
+/* floating action menu opened by a gutter click */
+.gtc-pop {
+    position: absolute; display: flex; gap: 5px; padding: 5px; z-index: 6;
+    background: var(--bg-input); border: 1px solid var(--border-mid); border-radius: var(--radius-sm);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.62); animation: gtcPop 0.16s var(--ease-emerge) both;
+}
+@keyframes gtcPop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.gtc-mbtn, .gtc-edge {
+    width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center;
+    background: var(--bg-input); border: 1px solid var(--border-mid); border-radius: var(--radius-xs);
+    color: var(--accent-hover); cursor: pointer;
+    transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+}
+.gtc-mbtn svg, .gtc-edge svg { width: 18px; height: 18px; }
+.gtc-mbtn:hover, .gtc-edge:hover { background: var(--accent-soft); border-color: var(--border-bright); color: #fff; transform: translateY(-1px); }
+.gtc-mbtn.del { color: var(--text-secondary); }
+.gtc-mbtn.del:hover { background: var(--prio-high-bg); border-color: var(--prio-high-border); color: var(--prio-high); }
+
+/* edge rails: append a column (right) / row (bottom) */
+.gtc-edge { position: absolute; transform: translate(-50%, -50%); box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+    width: 27px; height: 27px; animation: gtcFade 0.2s var(--ease-emerge) both; }
+.gtc-edge:hover { transform: translate(-50%, -50%) translateY(-1px); }
+
+@media (prefers-reduced-motion: reduce) {
+    .gtc-seal, .gtc-gut, .gtc-frame, .gtc-pop, .gtc-edge { animation: none; transition: none; }
+}
+
 /* Emphasis stays inside the violet palette — never near-white (--text-primary). */
 .grim-body strong, .grim-body--ro strong, .grim-body b, .grim-body--ro b { color: var(--accent-hover); font-weight: 600; }
 .grim-body em, .grim-body--ro em, .grim-body i, .grim-body--ro i { font-style: italic; color: var(--accent-hover); }
