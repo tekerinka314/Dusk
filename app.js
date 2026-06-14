@@ -561,6 +561,7 @@ let currentPage      = 'main';
 let currentNoteId    = null;   // п11: open grimoire note id (uuid) or null
 let notesSearchQuery = '';     // п11: grimoire search filter
 let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
+let grimFocus        = false;  // п11: focus mode — list collapsed to a titles-only rail
 let _grimSaveT       = null;   // п11: debounced note-save timer
 let undoStack        = [];
 let redoStack        = [];   // P-A: populated by undo(), cleared by any new pushUndo()
@@ -1267,8 +1268,8 @@ function switchPage(page) {
 // ============================================================
 // Hand-drawn gothic glyphs used across the grimoire (no emoji / generic icons).
 const GIC = {
-    tomeOpen:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6 C9 4 5 4 3 5 V19 C5 18 9 18 12 20 C15 18 19 18 21 19 V5 C19 4 15 4 12 6 Z"/><line x1="12" y1="6" x2="12" y2="20" opacity="0.55"/></svg>`,
-    coffin:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 H15.5 L20 8 V17 Q12 22 4 17 V8 Z"/><line x1="9" y1="11" x2="15" y2="11" stroke-width="1.1" opacity="0.55"/></svg>`,
+    tomeOpen:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8 C9.5 6.3 6.2 6 3.5 7 V19.2 C6.2 18.2 9.5 18.4 12 20 C14.5 18.4 17.8 18.2 20.5 19.2 V7 C17.8 6 14.5 6.3 12 8 Z"/><path d="M12 8 V20" opacity="0.5"/><path d="M5.7 10.4 H9.2 M5.7 12.7 H9.2 M14.8 10.4 H18.3 M14.8 12.7 H18.3" stroke-width="1" opacity="0.4"/><path d="M12 2 L12.9 4.1 L15 5 L12.9 5.9 L12 8 L11.1 5.9 L9 5 L11.1 4.1 Z" fill="currentColor" stroke="none"/></svg>`,
+    coffin:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/><path d="M12 8.4 V14.6 M9.8 10.9 H14.2" stroke-width="1.3"/></svg>`,
     quill:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4 C13 5 8 9 5.5 15.5 L4 20 L8.5 18.5 C15 16 19 11 20 4 Z"/><path d="M9 15 L14 10" opacity="0.6"/></svg>`,
     // Urn with rising soul-arrow — reuses the app's archive-restore motif ("вернуть из склепа").
     restore:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20H16L17.5 22H6.5L8 20Z"/><path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/><line x1="10" y1="11" x2="14" y2="11" stroke-width="1.1" opacity="0.7"/><line x1="12" y1="2.5" x2="12" y2="7"/><path d="M9.5 5L12 2.5L14.5 5"/></svg>`,
@@ -1278,6 +1279,8 @@ const GIC = {
     back:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,
     // Symmetric divider ornament (diamond flanked by two beads, centred about x=20).
     dividerFleur: `<svg viewBox="0 0 40 12" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.1"/><path d="M20 1.4 L24 6 L20 10.6 L16 6 Z" fill="currentColor" stroke="none"/><circle cx="34" cy="6" r="2.1"/></svg>`,
+    // Focus toggle — list-rail glyph with an arrow (CSS flips it when focus is on).
+    focus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5V19.5"/><path d="M20 4.5V19.5" stroke-opacity="0.4"/><path d="M16 12H9"/><path d="M12 9l-3 3 3 3"/></svg>`,
 };
 
 function grimDate(ms) {
@@ -1330,6 +1333,20 @@ function renderNotes() {
     renderGrimList(!prefersReducedMotion());   // animate entrance on full render
     renderGrimDetail();
     layoutEl.classList.toggle('show-detail', !!currentNoteId);
+    layoutEl.classList.toggle('grim-focus', grimFocus && !!currentNoteId);
+}
+
+// Focus mode: collapse the list to a titles-only rail so the page gets near-full width.
+function grimToggleFocus() {
+    grimFocus = !grimFocus;
+    const layoutEl = document.getElementById('grim-layout');
+    if (layoutEl) layoutEl.classList.toggle('grim-focus', grimFocus && !!currentNoteId);
+    const btn = document.querySelector('.grim-focus-toggle');
+    if (btn) {
+        btn.classList.toggle('on', grimFocus);
+        btn.setAttribute('aria-pressed', String(grimFocus));
+        btn.title = grimFocus ? 'Показать список' : 'Скрыть список — фокус на записи';
+    }
 }
 
 function _grimEmptyHTML() {
@@ -1396,11 +1413,12 @@ function renderGrimDetail() {
     }
 
     const backBtn = `<button class="grim-back" onclick="grimBack()" title="К списку">${GIC.back}</button>`;
+    const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" onclick="grimToggleFocus()" aria-pressed="${grimFocus}" title="${grimFocus ? 'Показать список' : 'Скрыть список — фокус на записи'}">${GIC.focus}</button>`;
 
     if (grimMode === 'archive') {
         // Read-only crypt view: restore / destroy.
         detailEl.innerHTML = `<div class="grim-page grim-page--ro">
-            ${backBtn}
+            ${backBtn}${focusBtn}
             <div class="grim-title-ro">${escHtml((note.title || '').trim() || 'Без заглавия')}</div>
             <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
             <div class="grim-body grim-body--ro">${_grimSanitize(note.body || '')}</div>
@@ -1416,7 +1434,7 @@ function renderGrimDetail() {
     }
 
     detailEl.innerHTML = `<div class="grim-page">
-        ${backBtn}
+        ${backBtn}${focusBtn}
         <input class="grim-title-in" id="grim-title-in" type="text" maxlength="120"
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
                oninput="grimTitleInput(this)" onblur="grimCommit()">
@@ -1572,7 +1590,13 @@ function grimRestoreNote(id) {
     note.updatedAt = Date.now();
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
-    if (currentNoteId === id) currentNoteId = null;
+    currentNoteId = null;
+    grimMode = 'active';                 // auto-return to «Записи» after restoring
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box');
+    if (sb) sb.value = '';
+    const layoutEl = document.getElementById('grim-layout');
+    if (layoutEl) layoutEl.classList.remove('show-detail');
     saveState();
     renderNotes();
     showToast('Запись возвращена', { undo: true });
@@ -1601,7 +1625,7 @@ function grimSearch(v) {
 function _grimPlain(html) {
     const d = document.createElement('div');
     d.innerHTML = html || '';
-    return (d.textContent || '').replace(/\s+/g, ' ').trim();
+    return (d.textContent || '').split(String.fromCharCode(0x200B)).join('').replace(/\s+/g, ' ').trim();
 }
 
 // One-time migration: old notes stored plain text → wrap into HTML paragraphs.
@@ -1643,7 +1667,7 @@ function _grimSanitize(html) {
         });
     };
     walk(root);
-    return root.innerHTML;
+    return root.innerHTML;   // ZWSP caret-holders kept so empty <code> stays editable
 }
 
 // After any edit/command: persist (debounced) + refresh toolbar active-state.
@@ -1665,18 +1689,63 @@ function grimFmt(cmd) {
     if (!bo) return;
     bo.focus();
     switch (cmd) {
-        case 'bold':   document.execCommand('bold'); break;
-        case 'italic': document.execCommand('italic'); break;
-        case 'ul':     document.execCommand('insertUnorderedList'); break;
-        case 'ol':     document.execCommand('insertOrderedList'); break;
-        case 'quote':  _grimToggleBlock('blockquote'); break;
-        case 'hr':     document.execCommand('insertHorizontalRule'); break;
+        case 'bold':   _grimEmphasis('bold');   break;      // self-commits
+        case 'italic': _grimEmphasis('italic'); break;      // self-commits
+        case 'ul':     _grimSetListType('bullet'); break;   // self-commits
+        case 'ol':     _grimSetListType('number'); break;   // self-commits
+        case 'quote':  _grimQuote();    _grimAfterEdit(bo); break;
+        case 'hr':     _grimInsertHr(); break;              // self-commits
     }
+}
+// Nearest block-level "line" element around the caret.
+function _grimCurrentBlock(bo) {
+    const sel = window.getSelection();
+    let n = sel && sel.anchorNode;
+    while (n && n !== bo && !/^(LI|P|DIV|H1|H2|H3|BLOCKQUOTE)$/.test(n.tagName || '')) n = n.parentNode;
+    return (n && n !== bo) ? n : null;
+}
+// Bold/italic: toggle the selection, or — with just a caret — the whole current line.
+function _grimEmphasis(cmd) {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount && sel.isCollapsed) {
+        const block = _grimCurrentBlock(bo);
+        if (block && block.textContent.length) {
+            _grimPlaceMarker();
+            const r = document.createRange();
+            r.selectNodeContents(block);
+            sel.removeAllRanges();
+            sel.addRange(r);
+            document.execCommand(cmd);
+            _grimRestoreMarker(bo);
+            _grimAfterEdit(bo);
+            return;
+        }
+    }
+    document.execCommand(cmd);
     _grimAfterEdit(bo);
 }
 function _grimToggleBlock(tag) {
     const cur = (document.queryCommandValue('formatBlock') || '').toLowerCase();
     document.execCommand('formatBlock', false, cur === tag ? 'p' : tag);
+}
+// Quote toggle. When turning a quote ON inside a list, drop the list first —
+// (re-enabling a list inside the quote is then a deliberate, manual step).
+function _grimQuote() {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    const goingOn = (document.queryCommandValue('formatBlock') || '').toLowerCase() !== 'blockquote';
+    if (goingOn) {
+        let n = sel && sel.anchorNode;
+        while (n && n !== bo) {
+            if (n.tagName === 'UL') { document.execCommand('insertUnorderedList'); break; }
+            if (n.tagName === 'OL') { document.execCommand('insertOrderedList'); break; }
+            n = n.parentNode;
+        }
+    }
+    _grimToggleBlock('blockquote');
 }
 function grimHeading(n) {
     const bo = document.getElementById('grim-body');
@@ -1685,44 +1754,254 @@ function grimHeading(n) {
     _grimToggleBlock('h' + n);
     _grimAfterEdit(bo);
 }
-function grimChecklist() {
+function grimChecklist() { _grimSetListType('task'); }
+
+// ── List engine — per-line conversion, splitting where needed (Notion-style) ──
+// A line's list type, or null when it isn't a list item.
+function _grimLineType(li) {
+    if (!li || li.tagName !== 'LI' || !li.parentNode) return null;
+    const list = li.parentNode;
+    if (list.tagName === 'OL') return 'number';
+    if (list.tagName === 'UL') return list.classList.contains('task') ? 'task' : 'bullet';
+    return null;
+}
+// Block-level "lines" (li / p / div / h / blockquote) the selection touches.
+function _grimSelectedLines(bo) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return [];
+    const range = sel.getRangeAt(0);
+    let lines = [...bo.querySelectorAll('li,p,div,h1,h2,h3,blockquote')].filter(el => range.intersectsNode(el));
+    lines = lines.filter(el => !lines.some(o => o !== el && el.contains(o)));   // keep leaves
+    if (!lines.length) {
+        let n = range.startContainer;
+        while (n && n !== bo && !/^(LI|P|DIV|H1|H2|H3|BLOCKQUOTE)$/.test(n.tagName || '')) n = n.parentNode;
+        if (n && n !== bo) lines = [n];
+    }
+    return lines;
+}
+// Invisible caret marker so the cursor survives the DOM surgery.
+function _grimPlaceMarker() {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const m = document.createElement('span');
+    m.className = '__gcar';
+    sel.getRangeAt(0).insertNode(m);
+}
+function _grimRestoreMarker(bo) {
+    const m = bo.querySelector('.__gcar');
+    if (!m) return;
+    const r = document.createRange();
+    r.setStartAfter(m);
+    r.collapse(true);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+    m.remove();
+    bo.normalize();
+}
+// Two list elements that can be fused (same tag + same task-ness).
+function _grimSameListKind(a, b) {
+    if (!a || !b || a.tagName !== b.tagName) return false;
+    if (a.tagName !== 'UL' && a.tagName !== 'OL') return false;
+    return a.classList.contains('task') === b.classList.contains('task');
+}
+// Fuse consecutive same-kind list siblings (flat model → top level only).
+function _grimMergeAdjacentLists(root) {
+    let el = root.firstElementChild;
+    while (el) {
+        const next = el.nextElementSibling;
+        if (_grimSameListKind(el, next)) {
+            while (next.firstChild) el.appendChild(next.firstChild);
+            next.remove();
+            continue;   // keep folding into el
+        }
+        el = el.nextElementSibling;
+    }
+}
+// Convert ONE line to 'bullet'|'number'|'task'|'p', splitting its list if needed.
+function _grimConvertLine(line, toType) {
+    // Remember the pre-list block type so toggling a list off restores it (e.g. H3),
+    // and carry that memory across list-type changes.
+    const pre = line.tagName === 'LI' ? (line.dataset.pre || 'p') : line.tagName.toLowerCase();
+    let make = toType;
+    if (toType === 'p' && /^h[1-3]$/.test(pre)) make = pre;   // restore the heading
+    let newLine, wrapper;
+    if (make === 'bullet' || make === 'number' || make === 'task') {
+        newLine = document.createElement('li');
+        if (make === 'number') wrapper = document.createElement('ol');
+        else { wrapper = document.createElement('ul'); if (make === 'task') wrapper.className = 'task'; }
+        newLine.dataset.pre = pre;
+        wrapper.appendChild(newLine);
+    } else {
+        newLine = wrapper = document.createElement(make);   // 'p' | 'h1' | 'h2' | 'h3'
+    }
+    while (line.firstChild) newLine.appendChild(line.firstChild);
+    if (!newLine.firstChild) newLine.appendChild(document.createElement('br'));
+    if (line.tagName === 'LI') {
+        const oldList = line.parentNode, kids = [...oldList.children];
+        const after = kids.slice(kids.indexOf(line) + 1);
+        oldList.parentNode.insertBefore(wrapper, oldList.nextSibling);
+        if (after.length) {
+            const tail = oldList.cloneNode(false);   // preserves tag + task class
+            after.forEach(li2 => tail.appendChild(li2));
+            wrapper.parentNode.insertBefore(tail, wrapper.nextSibling);
+        }
+        line.remove();
+        if (!oldList.children.length) oldList.remove();
+    } else {
+        line.parentNode.insertBefore(wrapper, line);
+        line.remove();
+    }
+}
+// Apply a list type to the selected line(s); toggling the same type returns to paragraphs.
+function _grimSetListType(target) {
     const bo = document.getElementById('grim-body');
     if (!bo) return;
     bo.focus();
-    // toggle a checklist: ensure a UL around the selection, flip its .task class.
-    let n = window.getSelection().anchorNode, ul = null;
-    while (n && n !== bo) { if (n.tagName === 'UL') { ul = n; break; } n = n.parentNode; }
-    if (ul) { ul.classList.toggle('task'); }
-    else { document.execCommand('insertUnorderedList');
-        n = window.getSelection().anchorNode;
-        while (n && n !== bo) { if (n.tagName === 'UL') { n.classList.add('task'); break; } n = n.parentNode; }
+    let lines = _grimSelectedLines(bo);
+    if (!lines.length) {
+        // No block wrapper yet (fresh single-line note) — wrap bo's inline content.
+        const p = document.createElement('p');
+        while (bo.firstChild) p.appendChild(bo.firstChild);
+        if (!p.firstChild) p.appendChild(document.createElement('br'));
+        bo.appendChild(p);
+        lines = [p];
     }
+    const toType = lines.every(l => _grimLineType(l) === target) ? 'p' : target;
+    _grimPlaceMarker();
+    lines.forEach(line => _grimConvertLine(line, toType));
+    _grimMergeAdjacentLists(bo);
+    _grimRestoreMarker(bo);
     _grimAfterEdit(bo);
 }
+
+// Insert a separator and drop the caret onto a fresh line below it.
+function _grimInsertHr() {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    let block = sel.anchorNode;
+    if (block === bo) block = bo.childNodes[Math.max(0, sel.anchorOffset - 1)] || null;
+    else { while (block && block.parentNode && block.parentNode !== bo) block = block.parentNode;
+           if (block && block.parentNode !== bo) block = null; }
+    const hr = document.createElement('hr');
+    const p = document.createElement('p');
+    p.appendChild(document.createElement('br'));
+    if (block && block.parentNode === bo) {
+        bo.insertBefore(hr, block.nextSibling);
+        bo.insertBefore(p, hr.nextSibling);
+    } else {
+        bo.appendChild(hr);
+        bo.appendChild(p);
+    }
+    _grimCaretToStart(p);
+    _grimAfterEdit(bo);
+}
+
 function grimInlineCode() {
     const bo = document.getElementById('grim-body');
     if (!bo) return;
     bo.focus();
     const sel = window.getSelection();
     const text = sel ? sel.toString() : '';
-    if (!text) { showToast('Выделите текст для кода'); return; }
-    document.execCommand('insertHTML', false, '<code>' + escHtml(text) + '</code>');
+    if (text) {
+        document.execCommand('insertHTML', false, '<code>' + escHtml(text) + '</code>');
+    } else if (sel && sel.rangeCount) {
+        // No selection — drop an empty code span and put the caret inside it.
+        const code = document.createElement('code');
+        code.appendChild(document.createTextNode(String.fromCharCode(0x200B)));   // ZWSP holds the caret
+        sel.getRangeAt(0).insertNode(code);
+        const nr = document.createRange();
+        nr.setStart(code.firstChild, 1);
+        nr.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(nr);
+    }
     _grimAfterEdit(bo);
 }
+// Link is set via a gothic modal (no native prompt). Selection is captured
+// before the modal steals focus, then restored on confirm.
+let _grimLinkRange = null, _grimLinkAnchor = null;
 function grimLink() {
     const bo = document.getElementById('grim-body');
     if (!bo) return;
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) { bo.focus(); return; }
+    _grimLinkRange = sel.getRangeAt(0).cloneRange();
+    // Editing an existing link under the caret?
+    let n = sel.anchorNode; _grimLinkAnchor = null;
+    while (n && n !== bo) { if (n.tagName === 'A') { _grimLinkAnchor = n; break; } n = n.parentNode; }
+    const inp = document.getElementById('grim-link-input');
+    if (inp) inp.value = _grimLinkAnchor ? (_grimLinkAnchor.getAttribute('href') || '') : 'https://';
+    const nameInp = document.getElementById('grim-link-name');
+    if (nameInp) nameInp.value = _grimLinkAnchor ? (_grimLinkAnchor.textContent || '') : (sel.toString() || '');
+    const rm = document.getElementById('grim-link-remove');
+    if (rm) rm.style.display = _grimLinkAnchor ? '' : 'none';
+    openModalWithFocus('grim-link-modal');
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (inp) { inp.focus(); inp.select(); } }));
+}
+// Re-focus the body and restore the saved selection so execCommand acts on it.
+function _grimRestoreLinkSel() {
+    const bo = document.getElementById('grim-body');
+    if (!bo || !_grimLinkRange) return null;
     bo.focus();
     const sel = window.getSelection();
-    const has = sel && sel.toString();
-    const url = prompt('Ссылка (URL):', 'https://');
-    if (!url) return;
-    if (has) document.execCommand('createLink', false, url);
-    else document.execCommand('insertHTML', false, '<a href="' + escHtml(url) + '">' + escHtml(url) + '</a>');
+    sel.removeAllRanges();
+    sel.addRange(_grimLinkRange);
+    return bo;
+}
+function grimLinkConfirm() {
+    const inp = document.getElementById('grim-link-input');
+    const nameInp = document.getElementById('grim-link-name');
+    let url = ((inp && inp.value) || '').trim();
+    if (!url) { if (inp) { inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 400); } return; }
+    if (!/^(https?:|mailto:|#)/i.test(url)) url = 'https://' + url;   // forgive a missing scheme
+    const name = ((nameInp && nameInp.value) || '').trim();
+    const anchor = _grimLinkAnchor, range = _grimLinkRange;
+    const bo = _grimRestoreLinkSel();
+    closeModalWithAnim('grim-link-modal', () => {});
+    if (!bo) { _grimLinkRange = _grimLinkAnchor = null; return; }
+    if (anchor) {
+        anchor.setAttribute('href', url);
+        if (name) anchor.textContent = name;          // empty name → keep existing text
+    } else if (name) {
+        document.execCommand('insertHTML', false, '<a href="' + escHtml(url) + '">' + escHtml(name) + '</a>');
+    } else if (range && !range.collapsed) {
+        document.execCommand('createLink', false, url);   // keep the selected text as the label
+    } else {
+        document.execCommand('insertHTML', false, '<a href="' + escHtml(url) + '">' + escHtml(url) + '</a>');
+    }
+    _grimLinkRange = _grimLinkAnchor = null;
     _grimAfterEdit(bo);
+}
+function grimLinkRemove() {
+    const anchor = _grimLinkAnchor;
+    const bo = _grimRestoreLinkSel();
+    closeModalWithAnim('grim-link-modal', () => {});
+    if (bo && anchor) {
+        while (anchor.firstChild) anchor.parentNode.insertBefore(anchor.firstChild, anchor);
+        anchor.remove();
+        _grimAfterEdit(bo);
+    }
+    _grimLinkRange = _grimLinkAnchor = null;
+}
+function grimLinkClose(event) {
+    if (!event || event.target === document.getElementById('grim-link-modal')) {
+        closeModalWithAnim('grim-link-modal', () => {});
+        _grimLinkRange = _grimLinkAnchor = null;
+    }
 }
 // Click on a checklist box toggles done.
 function grimBodyClick(e) {
+    // Plain click follows a link like a real hyperlink; Ctrl/Cmd-click drops the
+    // caret inside it instead (so the link text stays editable).
+    const a = e.target.closest && e.target.closest('a');
+    if (a && !e.ctrlKey && !e.metaKey) {
+        const href = a.getAttribute('href');
+        if (href) { e.preventDefault(); window.open(href, '_blank', 'noopener'); return; }
+    }
     const li = e.target.closest && e.target.closest('.task li');
     if (!li) return;
     const r = li.getBoundingClientRect();
@@ -1732,11 +2011,87 @@ function grimBodyClick(e) {
     }
 }
 function grimBodyKey(e) {
+    // First Backspace at the start of a list item drops the bullet (→ paragraph);
+    // a second Backspace then merges into the previous line as usual.
+    if (e.key === 'Backspace' && _grimBackspaceOutdent(e)) return;
+    // Plain Enter inside a quote/inline-code exits to a normal paragraph
+    // (Shift+Enter still inserts a soft line break inside the block).
+    if (e.key === 'Enter' && !e.shiftKey && _grimExitOnEnter(e)) return;
     if (!(e.ctrlKey || e.metaKey)) return;
     const k = e.key.toLowerCase();
     if (k === 'b') { e.preventDefault(); grimFmt('bold'); }
     else if (k === 'i') { e.preventDefault(); grimFmt('italic'); }
     else if (k === 'k') { e.preventDefault(); grimLink(); }
+}
+// Collapse the selection to the start of an element's contents.
+function _grimCaretToStart(el) {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(true);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+// On Enter, break out of a blockquote (new paragraph after it) or step the
+// caret out of an inline <code> run so the next line isn't code-styled.
+function _grimExitOnEnter(e) {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    if (!bo || !sel || !sel.rangeCount) return false;
+    let n = sel.anchorNode, bq = null, code = null;
+    while (n && n !== bo) {
+        if (n.tagName === 'BLOCKQUOTE') { bq = n; break; }
+        if (n.tagName === 'CODE') { code = n; break; }
+        n = n.parentNode;
+    }
+    if (bq) {
+        e.preventDefault();
+        const p = document.createElement('p');
+        p.appendChild(document.createElement('br'));
+        bq.parentNode.insertBefore(p, bq.nextSibling);
+        _grimCaretToStart(p);
+        _grimAfterEdit(bo);
+        return true;
+    }
+    if (code) {
+        // Only intercept when the caret sits at the very end of the code run.
+        const atEnd = (sel.anchorNode.nodeType === 3
+                && sel.anchorOffset === sel.anchorNode.textContent.length
+                && sel.anchorNode.parentNode === code)
+            || (sel.anchorNode === code && sel.anchorOffset === code.childNodes.length);
+        if (atEnd) {
+            const range = document.createRange();
+            range.setStartAfter(code);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+        return false;   // let the browser create the new paragraph (now outside code)
+    }
+    return false;
+}
+// First Backspace at the very start of a list item outdents it to a paragraph
+// (keeps the text on its own line) instead of merging into the previous item.
+function _grimBackspaceOutdent(e) {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    if (!bo || !sel || !sel.rangeCount || !sel.isCollapsed) return false;
+    const range = sel.getRangeAt(0);
+    let li = sel.anchorNode;
+    while (li && li !== bo && li.tagName !== 'LI') li = li.parentNode;
+    if (!li || li.tagName !== 'LI') return false;
+    // only fire when the caret sits at the very start of the item
+    const probe = document.createRange();
+    probe.selectNodeContents(li);
+    probe.setEnd(range.startContainer, range.startOffset);
+    if (probe.toString().length) return false;
+    e.preventDefault();
+    _grimPlaceMarker();
+    _grimConvertLine(li, 'p');
+    _grimMergeAdjacentLists(bo);
+    _grimRestoreMarker(bo);
+    _grimAfterEdit(bo);
+    return true;
 }
 function _grimSyncToolbar() {
     const bar = document.getElementById('grim-fmt-bar');
@@ -1745,8 +2100,19 @@ function _grimSyncToolbar() {
     try {
         set('bold', document.queryCommandState('bold'));
         set('italic', document.queryCommandState('italic'));
-        set('ul', document.queryCommandState('insertUnorderedList'));
-        set('ol', document.queryCommandState('insertOrderedList'));
+        // List context by DOM walk — a checklist is a UL too, so queryCommandState
+        // can't tell ul/ul.task/ol apart; light the right button only.
+        const bo = document.getElementById('grim-body');
+        const sel = window.getSelection();
+        let ulTask = false, ulPlain = false, ol = false, n = sel && sel.anchorNode;
+        while (n && n !== bo) {
+            if (n.tagName === 'OL') { ol = true; break; }
+            if (n.tagName === 'UL') { n.classList.contains('task') ? ulTask = true : ulPlain = true; break; }
+            n = n.parentNode;
+        }
+        set('ul', ulPlain);
+        set('ol', ol);
+        set('task', ulTask);
         const block = (document.queryCommandValue('formatBlock') || '').toLowerCase();
         ['h1','h2','h3'].forEach(h => set(h, block === h));
         set('quote', block === 'blockquote');
@@ -1813,7 +2179,7 @@ function _grimInlineMd(node) {
         const t = n.tagName;
         if (t === 'STRONG' || t === 'B') out += '**' + _grimInlineMd(n) + '**';
         else if (t === 'EM' || t === 'I') out += '*' + _grimInlineMd(n) + '*';
-        else if (t === 'CODE') out += '`' + n.textContent + '`';
+        else if (t === 'CODE') out += '`' + n.textContent.split(String.fromCharCode(0x200B)).join('') + '`';
         else if (t === 'A') out += '[' + _grimInlineMd(n) + '](' + (n.getAttribute('href') || '') + ')';
         else if (t === 'BR') out += '  \n';
         else out += _grimInlineMd(n);
@@ -6725,6 +7091,17 @@ document.getElementById('rename-group-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') confirmRenameGroup();
     if (e.key === 'Escape') closeRenameGroupModal();
 });
+
+(() => {
+    const onKey = e => {
+        if (e.key === 'Enter') { e.preventDefault(); grimLinkConfirm(); }
+        if (e.key === 'Escape') grimLinkClose();
+    };
+    ['grim-link-input', 'grim-link-name'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('keydown', onKey);
+    });
+})();
 
 colorPicker.addEventListener('click', e => {
     const s = e.target.closest('.color-swatch');

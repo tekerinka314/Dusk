@@ -5928,7 +5928,33 @@ kbd {
     grid-template-columns: 244px minmax(0, 1fr);
     gap: 22px;
     align-items: start;
+    transition: grid-template-columns var(--dur-standard) var(--ease-gothic);
 }
+/* When a record is open, auto-narrow the list so the page gets room (desktop only). */
+@media (min-width: 641px) {
+    .grim-layout.show-detail { grid-template-columns: 198px minmax(0, 1fr); }
+    /* Focus mode — collapse the list to a titles-only rail, give the page near-full width. */
+    .grim-layout.grim-focus.show-detail { grid-template-columns: 138px minmax(0, 1fr); }
+    .grim-layout.grim-focus.show-detail .grim-leaf-s,
+    .grim-layout.grim-focus.show-detail .grim-leaf-d { display: none; }
+    .grim-layout.grim-focus.show-detail .grim-leaf { padding: 8px 9px 8px 11px; }
+    .grim-layout.grim-focus.show-detail .grim-leaf-t { font-size: 13px; }
+    .grim-layout.grim-focus.show-detail .grim-list-head { font-size: 9px; letter-spacing: 1px; }
+}
+/* Focus toggle — corner button on the page (desktop only; mobile uses the back button instead). */
+.grim-focus-toggle {
+    position: absolute; top: 12px; right: 12px; z-index: 2;
+    width: 30px; height: 30px; display: none;
+    align-items: center; justify-content: center;
+    border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg-item); color: var(--text-secondary);
+    cursor: pointer; transition: all var(--transition);
+}
+.grim-focus-toggle svg { width: 16px; height: 16px; transition: transform var(--dur-quick) var(--ease-gothic); }
+.grim-focus-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
+.grim-focus-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); }
+.grim-focus-toggle.on svg { transform: scaleX(-1); }
+@media (min-width: 641px) { .grim-focus-toggle { display: inline-flex; } }
 .grim-detail { position: relative; padding-left: 22px; border-left: 1px solid var(--border); min-height: 320px; }
 .grim-list { display: flex; flex-direction: column; gap: 7px; }
 .grim-list-head {
@@ -6040,7 +6066,7 @@ kbd {
     font-weight: 600;
     letter-spacing: 0.5px;
     line-height: 1.25;
-    padding: 16px 20px 8px 52px;
+    padding: 16px 48px 8px 52px;
     word-break: break-word;
 }
 .grim-title-in::placeholder { color: var(--text-muted); opacity: 0.6; font-weight: 400; }
@@ -6094,33 +6120,44 @@ kbd {
     letter-spacing: 0.5px; margin: 14px 0 6px; text-shadow: 0 0 10px var(--accent-glow);
 }
 .grim-body h3, .grim-body--ro h3 {
-    font-family: var(--font-title); font-size: 15px; font-weight: 600; color: var(--text-primary);
+    font-family: var(--font-title); font-size: 15px; font-weight: 600; color: var(--accent-hover);
     letter-spacing: 0.5px; margin: 12px 0 4px;
 }
-.grim-body strong, .grim-body--ro strong, .grim-body b, .grim-body--ro b { color: var(--text-primary); font-weight: 600; }
+/* Emphasis stays inside the violet palette — never near-white (--text-primary). */
+.grim-body strong, .grim-body--ro strong, .grim-body b, .grim-body--ro b { color: var(--accent-hover); font-weight: 600; }
 .grim-body em, .grim-body--ro em, .grim-body i, .grim-body--ro i { font-style: italic; color: var(--accent-hover); }
-.grim-body a, .grim-body--ro a { text-decoration: underline; text-decoration-color: rgba(160,90,255,0.4); transition: text-shadow var(--transition); }
-.grim-body a:hover, .grim-body--ro a:hover { text-shadow: 0 0 8px var(--accent-glow); }
-.grim-body ul, .grim-body ol, .grim-body--ro ul, .grim-body--ro ol { margin: 0 0 9px; padding-left: 26px; }
-.grim-body li, .grim-body--ro li { margin: 3px 0; }
-.grim-body ul, .grim-body--ro ul { list-style: none; }
-.grim-body ul li, .grim-body--ro ul li { position: relative; }
-.grim-body ul li::before, .grim-body--ro ul li::before {
-    content: ''; position: absolute; left: -18px; top: 0.65em; width: 5px; height: 5px;
+.grim-body a, .grim-body--ro a {
+    text-decoration: underline; text-decoration-color: rgba(160,90,255,0.4); cursor: pointer;
+    border-radius: 3px; padding: 0 1px; margin: 0 -1px;
+    transition: color var(--transition), text-shadow var(--transition),
+                background var(--transition), text-decoration-color var(--transition);
+}
+.grim-body a:hover, .grim-body--ro a:hover {
+    color: var(--accent-hover); text-decoration-color: var(--accent);
+    text-shadow: 0 0 8px var(--accent-glow); background: rgba(150, 70, 255, 0.14);
+}
+/* lists — one shared gutter so bullet / number / checkbox sit at the same x,
+   and markers ride the text's own line-height so they share its baseline */
+.grim-body ul, .grim-body ol, .grim-body--ro ul, .grim-body--ro ol { margin: 0 0 9px; padding-left: 0; list-style: none; }
+.grim-body li, .grim-body--ro li { position: relative; margin: 3px 0; padding-left: 26px; }
+/* bullet */
+.grim-body ul:not(.task) li::before, .grim-body--ro ul:not(.task) li::before {
+    content: ''; position: absolute; left: 6px; top: 0.72em; width: 5px; height: 5px;
     background: var(--accent); transform: rotate(45deg); box-shadow: 0 0 6px var(--accent-glow);
 }
-.grim-body ol, .grim-body--ro ol { list-style: none; counter-reset: gli; }
-.grim-body ol li, .grim-body--ro ol li { counter-increment: gli; position: relative; }
+/* number — same font/size/line-height as the text → baseline matches exactly */
+.grim-body ol, .grim-body--ro ol { counter-reset: gli; }
+.grim-body ol li, .grim-body--ro ol li { counter-increment: gli; }
 .grim-body ol li::before, .grim-body--ro ol li::before {
-    content: counter(gli) '.'; position: absolute; left: -24px;
-    color: var(--accent-hover); font-family: var(--font-label); font-size: 13px;
+    content: counter(gli) '.'; position: absolute; left: 3px; top: 0.06em;
+    line-height: inherit; font-size: inherit; font-family: var(--font-main);
+    color: var(--accent-hover);
 }
 /* checklist */
-.grim-body ul.task, .grim-body--ro ul.task { padding-left: 0; }
-.grim-body ul.task li, .grim-body--ro ul.task li { position: relative; padding-left: 27px; list-style: none; }
 .grim-body ul.task li::before, .grim-body--ro ul.task li::before {
-    content: ''; position: absolute; left: 0; top: 0.2em; width: 15px; height: 15px;
+    content: ''; position: absolute; left: 1px; top: 0.32em; width: 15px; height: 15px;
     background: none; transform: none; border: 1.5px solid var(--border-mid); border-radius: 3px; box-shadow: none;
+    cursor: pointer;
 }
 .grim-body ul.task li.done, .grim-body--ro ul.task li.done {
     color: var(--text-muted); text-decoration: line-through; text-decoration-color: rgba(140,90,200,0.5);
@@ -6129,10 +6166,9 @@ kbd {
     background: linear-gradient(135deg, #7030d0, #a060ff); border-color: var(--border-bright);
 }
 .grim-body ul.task li.done::after, .grim-body--ro ul.task li.done::after {
-    content: ''; position: absolute; left: 5px; top: calc(0.2em + 2px); width: 5px; height: 8px;
+    content: ''; position: absolute; left: 6px; top: calc(0.32em + 2px); width: 5px; height: 8px;
     border: solid var(--text-primary); border-width: 0 2px 2px 0; transform: rotate(45deg);
 }
-.grim-body ul.task li { cursor: pointer; }
 .grim-body blockquote, .grim-body--ro blockquote {
     position: relative; margin: 10px 0; padding: 6px 14px; border-left: 2px solid var(--accent);
     background: rgba(110, 30, 210, 0.08); color: var(--text-secondary); font-style: italic; border-radius: 0 4px 4px 0;
@@ -6142,8 +6178,12 @@ kbd {
     font-size: 34px; color: var(--accent); opacity: 0.18; pointer-events: none;
 }
 .grim-body code, .grim-body--ro code {
-    font-family: var(--font-mono); font-size: 13px; background: rgba(28, 8, 72, 0.7);
+    /* inline-block → one rectangular container with a fully closed border; long code
+       wraps INSIDE the box instead of fragmenting into open-edged inline pieces */
+    display: inline-block; max-width: 100%; vertical-align: bottom;
+    font-family: var(--font-mono); font-size: 13px; background: rgba(34, 12, 78, 0.82);
     border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--accent-hover);
+    overflow-wrap: anywhere; word-break: break-word;
 }
 .grim-body hr, .grim-body--ro hr {
     border: none; height: 14px; margin: 14px 0; background-repeat: no-repeat; background-position: center;
