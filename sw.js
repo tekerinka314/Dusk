@@ -8,9 +8,13 @@
 //   • revalidate from network in the background → cache always freshens
 //   • when a shell file actually changed, notify open clients so the app can
 //     show a non-intrusive "new version — reload" toast.
-// The CACHE name is still bumped per deploy only to garbage-collect old caches;
-// freshness no longer depends on remembering to bump it.
-const CACHE  = 'dusk-v10-grimoire-code-bg';
+// The CACHE name is now STABLE — no per-edit bump. Edits to app.js / style.css /
+// index.html propagate on their own: the SWR fetch handler re-fetches each shell
+// file on the next load, overwrites its cache entry, and fires the "new version"
+// toast when the bytes actually changed. sw.js itself only needs editing when the
+// caching strategy changes (which is what makes the browser reinstall the worker
+// and run the one-time activate cleanup that purges the old dusk-v* caches).
+const CACHE  = 'dusk-shell';
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
 // CORE is cached atomically (addAll) — these MUST be present for a reliable offline
 // boot. The 2.3 MB background is the most likely fetch to stall/fail on a slow first

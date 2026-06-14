@@ -683,6 +683,10 @@
                     </button>
                 </div>
                 <div class="grim-bar-acts">
+                    <button class="grim-ghost-btn" id="grim-select-btn" onclick="grimToggleSelectMode()" title="Выбрать несколько записей" style="display:none">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11C5 7.5 7.24 5 10 5C12.76 5 15 7.5 15 11V19"/><line x1="3" y1="19" x2="17" y2="19"/></svg>
+                        <span>Выбрать</span>
+                    </button>
                     <button class="grim-ghost-btn" id="grim-export-all" onclick="grimExportAll()" title="Экспорт всего гримуара в .md">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 11l4 3 4-3"/><path d="M5 19h14"/></svg>
                         <span>.md</span>
@@ -701,6 +705,25 @@
                 </svg>
                 <input type="text" id="notes-search-box" placeholder="Искать в гримуаре…"
                        autocomplete="off" spellcheck="false" oninput="grimSearch(this.value)">
+            </div>
+            <!-- п11/1b: bulk-select bar — mirrors the task select bar (centred square
+                 icon cluster). Archive/restore swap by segment; delete is two-step. -->
+            <div class="archive-select-bar main-select-bar grim-select-bar" id="grim-select-bar" style="display:none">
+                <span class="select-bar-count" id="grim-select-count">0 отмечено</span>
+                <span class="select-bar-actions">
+                    <span class="select-bar-group">
+                        <button class="sb-btn sb-archive" id="grim-bulk-archive" onclick="grimBulkArchive()" title="Отправить в склеп" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/><path d="M12 8.4 V14.6 M9.8 10.9 H14.2" stroke-width="1.3"/></svg>
+                        </button>
+                        <button class="sb-btn sb-archive" id="grim-bulk-restore" onclick="grimBulkRestore()" title="Вернуть в гримуар" disabled style="display:none">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V12C5 8 8 5 12 5C16 5 19 8 19 12V20"/><line x1="3" y1="20" x2="21" y2="20"/><path d="M12 4 L12 11" stroke-width="1.5"/><path d="M9 7 L12 4 L15 7" stroke-width="1.5"/></svg>
+                        </button>
+                        <button class="sb-btn sb-delete" id="grim-bulk-delete" onclick="grimBulkDelete()" title="Удалить навсегда" disabled>
+                            <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/><rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/><ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/><ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/><line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/></svg>
+                        </button>
+                    </span>
+                    <button class="btn-select-bar-cancel" onclick="grimToggleSelectMode()">Отмена</button>
+                </span>
             </div>
             <div class="grim-layout" id="grim-layout">
                 <div class="grim-list" id="grim-list"></div>

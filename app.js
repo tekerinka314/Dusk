@@ -563,6 +563,8 @@ let notesSearchQuery = '';     // п11: grimoire search filter
 let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
 let grimFocus        = false;  // п11: focus mode — list collapsed to a titles-only rail
 let _grimSaveT       = null;   // п11: debounced note-save timer
+let grimSelectMode   = false;  // п11/1b: multi-select notes in the current segment
+let grimSelectedIds  = new Set();// п11/1b: ids of notes ticked in select mode
 let undoStack        = [];
 let redoStack        = [];   // P-A: populated by undo(), cleared by any new pushUndo()
 let deadlineTimer    = null;
@@ -997,6 +999,7 @@ function loadUiState() {
     isScheduleMode = localStorage.getItem('scheduleMode') === '1';
     isGroupSplitMode = localStorage.getItem('groupSplitMode') === '1';
     isTodayMode = localStorage.getItem('todayMode') === '1';
+    grimFocus = localStorage.getItem('grimFocus') === '1';   // п11: focus mode persists across notes/segments/reload
     const smg = localStorage.getItem('scheduleModeGroups');
     if (smg) { try { JSON.parse(smg).forEach(id => scheduleModeGroups.add(id)); } catch(e){} }
     // Sort mode
@@ -1196,6 +1199,8 @@ function switchPage(page) {
         const btn = document.getElementById('btn-main-select');
         if (btn) btn.classList.remove('active');
     }
+    // п11/1b: reset grimoire select mode when leaving the notes page
+    if (page !== 'notes' && grimSelectMode) _grimExitSelect();
     if (page === currentPage) return;
     // IMP-8: block a second transition while one is already in flight
     if (_pageTransitioning) return;
@@ -1315,9 +1320,23 @@ function renderNotes() {
     const segRc = document.getElementById('grim-seg-count');
     if (segRc) { const n = (state.notesArchive || []).length; segRc.textContent = n || ''; segRc.style.display = n ? '' : 'none'; }
     const newBtn = document.getElementById('grim-new-btn');
-    if (newBtn) newBtn.style.display = grimMode === 'active' ? '' : 'none';
+    if (newBtn) newBtn.style.display = (grimMode === 'active' && !grimSelectMode) ? '' : 'none';
     const expAll = document.getElementById('grim-export-all');
-    if (expAll) expAll.style.display = (grimMode === 'active' && (state.notes || []).length) ? '' : 'none';
+    if (expAll) expAll.style.display = (grimMode === 'active' && !grimSelectMode && (state.notes || []).length) ? '' : 'none';
+    // п11/1b: select toggle (only when the current segment has records) + the bulk bar.
+    const hasList = !!_grimList().length;
+    const selBtn = document.getElementById('grim-select-btn');
+    if (selBtn) { selBtn.style.display = (hasList && !grimSelectMode) ? '' : 'none'; }
+    const selBar = document.getElementById('grim-select-bar');
+    if (selBar) selBar.style.display = grimSelectMode ? 'flex' : 'none';
+    if (grimSelectMode) {
+        // archive→склеп only in Записи; вернуть only in Склеп; delete in both.
+        const ba = document.getElementById('grim-bulk-archive');
+        const br = document.getElementById('grim-bulk-restore');
+        if (ba) ba.style.display = grimMode === 'active'  ? '' : 'none';
+        if (br) br.style.display = grimMode === 'archive' ? '' : 'none';
+        _updateGrimSelectBar();
+    }
 
     const layoutEl = document.getElementById('grim-layout');
     const emptyEl  = document.getElementById('grim-empty');
@@ -1339,6 +1358,7 @@ function renderNotes() {
 // Focus mode: collapse the list to a titles-only rail so the page gets near-full width.
 function grimToggleFocus() {
     grimFocus = !grimFocus;
+    localStorage.setItem('grimFocus', grimFocus ? '1' : '0');   // persist across notes/segments/reload
     const layoutEl = document.getElementById('grim-layout');
     if (layoutEl) layoutEl.classList.toggle('grim-focus', grimFocus && !!currentNoteId);
     const btn = document.querySelector('.grim-focus-toggle');
@@ -1387,11 +1407,15 @@ function _grimLeafHTML(n, q, i, animate) {
     const titleH = q ? highlightSearch(escHtml(title), notesSearchQuery) : escHtml(title);
     const snipH  = q ? highlightSearch(escHtml(snip),  notesSearchQuery) : escHtml(snip);
     const ts = grimMode === 'archive' ? (n.archivedAt || n.updatedAt) : n.updatedAt;
-    const cls = `grim-leaf${n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}`;
+    const sel   = grimSelectMode;
+    const isSel = sel && grimSelectedIds.has(n.id);
+    const cls = `grim-leaf${!sel && n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}${sel ? ' grim-leaf--select' : ''}${isSel ? ' selected' : ''}`;
     const style = animate ? ` style="--i:${Math.min(i, 12)}"` : '';
+    const onclick = sel ? `grimToggleSelectNote('${n.id}')` : `grimOpen('${n.id}')`;
+    const check = sel ? `<span class="grim-leaf-check">${isSel ? IC.selectChecked : IC.selectEmpty}</span>` : '';
     // Crypt entries restore/destroy from the read-only detail footer (clean index).
-    return `<button class="${cls}"${style} data-id="${n.id}" onclick="grimOpen('${n.id}')">
-        <span class="grim-leaf-main">
+    return `<button class="${cls}"${style} data-id="${n.id}" onclick="${onclick}">
+        ${check}<span class="grim-leaf-main">
             <span class="grim-leaf-t">${titleH}</span>
             ${snip ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
             <span class="grim-leaf-d">${grimDate(ts)}</span>
@@ -1435,9 +1459,9 @@ function renderGrimDetail() {
 
     detailEl.innerHTML = `<div class="grim-page">
         ${backBtn}${focusBtn}
-        <input class="grim-title-in" id="grim-title-in" type="text" maxlength="120"
+        <textarea class="grim-title-in" id="grim-title-in" maxlength="120" rows="1"
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
-               oninput="grimTitleInput(this)" onblur="grimCommit()">
+               oninput="grimTitleInput(this)" onblur="grimCommit()" onkeydown="grimTitleKey(event)"></textarea>
         <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
         ${_grimToolbarHTML()}
         <div class="grim-body" id="grim-body" contenteditable="true" spellcheck="false"
@@ -1455,14 +1479,22 @@ function renderGrimDetail() {
     // Set field contents as properties (avoids attribute-escaping pitfalls).
     const ti = document.getElementById('grim-title-in');
     const bo = document.getElementById('grim-body');
-    if (ti) ti.value = note.title || '';
+    if (ti) { ti.value = note.title || ''; _grimGrowTitle(ti); }
     if (bo) bo.innerHTML = note.body || '';   // body holds sanitized HTML
+}
+
+// Auto-grow the title <textarea> to fit wrapped lines (no inner scrollbar).
+function _grimGrowTitle(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
 }
 
 // Switch between Записи and Склеп.
 function grimSetMode(mode) {
     if (mode === grimMode) return;
     clearTimeout(_grimSaveT); saveState();
+    if (grimSelectMode) _grimExitSelect();   // 1b: leave select mode on segment switch
     grimMode = mode;
     currentNoteId = null;
     notesSearchQuery = '';
@@ -1481,7 +1513,10 @@ function grimOpen(id) {
     renderGrimList(false);     // refresh active highlight, no entrance flicker
     renderGrimDetail();
     const layoutEl = document.getElementById('grim-layout');
-    if (layoutEl) layoutEl.classList.add('show-detail');
+    if (layoutEl) {
+        layoutEl.classList.add('show-detail');
+        layoutEl.classList.toggle('grim-focus', grimFocus && !!currentNoteId);   // honour persisted focus on open
+    }
     if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
 }
 
@@ -1518,10 +1553,20 @@ function grimBack() {
     renderGrimDetail();
 }
 
+// Title is one logical line — Enter jumps to the body rather than adding a newline.
+function grimTitleKey(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const bo = document.getElementById('grim-body');
+        if (bo) bo.focus();
+    }
+}
+
 // Live title edit: update model synchronously, patch the list leaf, debounce save.
 function grimTitleInput(el) {
     const note = _grimCurrentNote();
     if (!note) return;
+    _grimGrowTitle(el);                         // wrap long titles, grow to fit
     note.title = el.value;
     note.updatedAt = Date.now();
     const leaf = document.querySelector(`.grim-leaf[data-id="${note.id}"]`);
@@ -1551,8 +1596,10 @@ function grimCommit() {
     renderGrimList(false);
 }
 
-// Active note → permanent delete (undoable).
+// Active note → permanent delete (two-step confirm, undoable).
 function grimDelete(id) {
+    const btn = document.querySelector('#grim-detail .grim-act.danger');
+    if (!_armDanger(btn, 'Нажмите ещё раз, чтобы удалить запись')) return;
     const idx = (state.notes || []).findIndex(n => n.id === id);
     if (idx < 0) return;
     clearTimeout(_grimSaveT);
@@ -1602,8 +1649,10 @@ function grimRestoreNote(id) {
     showToast('Запись возвращена', { undo: true });
 }
 
-// Склеп → permanent delete (undoable).
+// Склеп → permanent delete (two-step confirm, undoable).
 function grimDeleteForever(id) {
+    const btn = document.querySelector('#grim-detail .grim-act.danger');
+    if (!_armDanger(btn, 'Нажмите ещё раз — запись будет уничтожена')) return;
     const idx = (state.notesArchive || []).findIndex(n => n.id === id);
     if (idx < 0) return;
     pushUndo();
@@ -1617,6 +1666,139 @@ function grimDeleteForever(id) {
 function grimSearch(v) {
     notesSearchQuery = (v || '').trim();
     renderGrimList(false);
+}
+
+// ── Этап 1b: мультивыбор заметок (зеркало mainSelectMode задач) ─────────────
+// Works in both segments: bulk «в склеп»/«вернуть»/«удалить» mirror the single-note
+// actions (each undoable). Action set adapts to the segment in renderNotes.
+
+// Two-step danger confirm shared by single + bulk note deletes. First call arms the
+// button (red pulse + hint toast) and returns false; a second call within 3s disarms
+// and returns true (caller proceeds). Mirrors the task bulk-delete pattern.
+function _armDanger(btn, hint) {
+    if (!btn) return true;            // no button → don't block (defensive)
+    if (!btn._armed) {
+        btn._armed = true;
+        btn._prevTitle = btn.title;
+        btn.classList.add('confirm-armed');
+        btn.title = 'Нажмите ещё раз для подтверждения';
+        showToast(hint || 'Нажмите ещё раз, чтобы удалить');
+        btn._armTimer = setTimeout(() => {
+            btn._armed = false;
+            btn.classList.remove('confirm-armed');
+            btn.title = btn._prevTitle || '';
+        }, 3000);
+        return false;
+    }
+    clearTimeout(btn._armTimer);
+    btn._armed = false;
+    btn.classList.remove('confirm-armed');
+    btn.title = btn._prevTitle || '';
+    return true;
+}
+
+// Leave select mode and clear the tick set (used on toggle-off, after a bulk op,
+// on segment switch and on leaving the notes page).
+function _grimExitSelect() {
+    grimSelectMode = false;
+    grimSelectedIds.clear();
+    const delBtn = document.getElementById('grim-bulk-delete');
+    if (delBtn) { clearTimeout(delBtn._armTimer); delBtn._armed = false; delBtn.classList.remove('confirm-armed'); delBtn.title = 'Удалить навсегда'; }
+}
+
+function grimToggleSelectMode() {
+    if (grimSelectMode) {
+        _grimExitSelect();
+    } else {
+        grimSelectMode = true;
+        grimSelectedIds.clear();
+        currentNoteId = null;                       // pure list while selecting
+        const layoutEl = document.getElementById('grim-layout');
+        if (layoutEl) layoutEl.classList.remove('show-detail');
+    }
+    renderNotes();
+    _updateGrimSelectBar();
+}
+
+function grimToggleSelectNote(id) {
+    if (grimSelectedIds.has(id)) grimSelectedIds.delete(id);
+    else grimSelectedIds.add(id);
+    const leaf = document.querySelector(`.grim-leaf[data-id="${id}"]`);
+    if (leaf) {
+        const on = grimSelectedIds.has(id);
+        leaf.classList.toggle('selected', on);
+        const ch = leaf.querySelector('.grim-leaf-check');
+        if (ch) ch.innerHTML = on ? IC.selectChecked : IC.selectEmpty;
+    }
+    _updateGrimSelectBar();
+}
+
+function _updateGrimSelectBar() {
+    const count = grimSelectedIds.size;
+    const c = document.getElementById('grim-select-count');
+    if (c) c.textContent = `${count} отмечено`;
+    ['grim-bulk-archive', 'grim-bulk-restore', 'grim-bulk-delete'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.disabled = count === 0;
+    });
+}
+
+// Записи → Склеп for every ticked note (soft archive, undoable).
+function grimBulkArchive() {
+    if (!grimSelectedIds.size || grimMode !== 'active') return;
+    clearTimeout(_grimSaveT);
+    pushUndo();
+    const now = Date.now();
+    const moved = (state.notes || []).filter(n => grimSelectedIds.has(n.id));
+    moved.forEach(n => { n.archivedAt = now; });
+    state.notes = (state.notes || []).filter(n => !grimSelectedIds.has(n.id));
+    if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
+    state.notesArchive.unshift(...moved);
+    const count = moved.length;
+    currentNoteId = null;
+    _grimExitSelect();
+    saveState();
+    renderNotes();
+    showToast(`В склепе: ${count}`, { undo: true });
+}
+
+// Склеп → Записи for every ticked note (undoable); jumps back to «Записи».
+function grimBulkRestore() {
+    if (!grimSelectedIds.size || grimMode !== 'archive') return;
+    pushUndo();
+    const now = Date.now();
+    const moved = (state.notesArchive || []).filter(n => grimSelectedIds.has(n.id));
+    moved.forEach(n => { delete n.archivedAt; n.updatedAt = now; });
+    state.notesArchive = (state.notesArchive || []).filter(n => !grimSelectedIds.has(n.id));
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(...moved);
+    const count = moved.length;
+    currentNoteId = null;
+    _grimExitSelect();
+    grimMode = 'active';                             // mirror single restore
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box');
+    if (sb) sb.value = '';
+    saveState();
+    renderNotes();
+    showToast(`Возвращено: ${count}`, { undo: true });
+}
+
+// Permanent delete of every ticked note in the current segment (two-step, undoable).
+function grimBulkDelete() {
+    if (!grimSelectedIds.size) return;
+    const btn = document.getElementById('grim-bulk-delete');
+    if (!_armDanger(btn, `Нажмите ещё раз — записи будут уничтожены (${grimSelectedIds.size})`)) return;
+    clearTimeout(_grimSaveT);
+    pushUndo();
+    const key = grimMode === 'archive' ? 'notesArchive' : 'notes';
+    const count = (state[key] || []).filter(n => grimSelectedIds.has(n.id)).length;
+    state[key] = (state[key] || []).filter(n => !grimSelectedIds.has(n.id));
+    currentNoteId = null;
+    _grimExitSelect();
+    saveState();
+    renderNotes();
+    showToast(`Уничтожено: ${count}`, { undo: true });
 }
 
 // ── Этап 1: WYSIWYG форматирование тела (body хранит HTML) ──────────────
