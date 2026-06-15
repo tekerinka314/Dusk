@@ -561,7 +561,8 @@ let currentPage      = 'main';
 let currentNoteId    = null;   // п11: open grimoire note id (uuid) or null
 let notesSearchQuery = '';     // п11: grimoire search filter
 let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
-let grimFocus        = false;  // п11: focus mode — list collapsed to a titles-only rail
+let grimFocus        = 0;      // п11: focus level 0=both · 1=list rail · 2=list hidden (note full)
+let grimBarMode      = 'auto'; // п11: toolbar reveal — 'auto'(hover) | 'open'(pinned) | 'closed'(hidden)
 let _grimSaveT       = null;   // п11: debounced note-save timer
 let grimSelectMode   = false;  // п11/1b: multi-select notes in the current segment
 let grimSelectedIds  = new Set();// п11/1b: ids of notes ticked in select mode
@@ -999,7 +1000,8 @@ function loadUiState() {
     isScheduleMode = localStorage.getItem('scheduleMode') === '1';
     isGroupSplitMode = localStorage.getItem('groupSplitMode') === '1';
     isTodayMode = localStorage.getItem('todayMode') === '1';
-    grimFocus = localStorage.getItem('grimFocus') === '1';   // п11: focus mode persists across notes/segments/reload
+    grimFocus = Math.max(0, Math.min(2, parseInt(localStorage.getItem('grimFocus'), 10) || 0));   // п11: focus level persists across notes/segments/reload
+    { const bm = localStorage.getItem('grimBarMode'); grimBarMode = (bm === 'open' || bm === 'closed') ? bm : 'auto'; }   // п11: toolbar mode persists
     const smg = localStorage.getItem('scheduleModeGroups');
     if (smg) { try { JSON.parse(smg).forEach(id => scheduleModeGroups.add(id)); } catch(e){} }
     // Sort mode
@@ -1286,7 +1288,26 @@ const GIC = {
     dividerFleur: `<svg viewBox="0 0 40 12" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.1"/><path d="M20 1.4 L24 6 L20 10.6 L16 6 Z" fill="currentColor" stroke="none"/><circle cx="34" cy="6" r="2.1"/></svg>`,
     // Focus toggle — list-rail glyph with an arrow (CSS flips it when focus is on).
     focus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5V19.5"/><path d="M20 4.5V19.5" stroke-opacity="0.4"/><path d="M16 12H9"/><path d="M12 9l-3 3 3 3"/></svg>`,
+    // Focus CYCLE — layout shown as two gothic lancet panels (list | page); the list
+    // panel narrows then vanishes across the three levels. [0]=both · [1]=rail · [2]=note full.
+    focusLvl: [
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 19V10L6.25 6L9 10V19Z"/><path d="M11 19V10L15.75 6L20.5 10V19Z" stroke-opacity="0.4"/></svg>`,
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 19V11L4.75 8L6 11V19Z"/><path d="M8 19V10L14.25 6L20.5 10V19Z" stroke-opacity="0.4"/></svg>`,
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 19V9.5L12 4L20.5 9.5V19Z"/><path d="M9.4 13.1 12 15.7 14.6 13.1" stroke-opacity="0.45"/></svg>`,
+    ],
+    // Toolbar manual control — the scriptorium ribbon drawn in its own state:
+    // auto = dashed ghost (reveals on hover) · open = solid ribbon pinned by a tack ·
+    // closed = furled/rolled scroll (tucked away).
+    barLvl: {
+        auto:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5h14a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 5 8.5Z" stroke-dasharray="2.4 2.2"/><path d="M8 10.6v2.8M12 10.6v2.8M16 10.6v2.8" stroke-opacity="0.55"/></svg>`,
+        open:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5h14a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 5 8.5Z"/><path d="M8 10.6v2.8M12 10.6v2.8M16 10.6v2.8"/></svg>`,
+        closed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.3h11M6.5 14.7h11"/><path d="M6.5 9.3a2.7 2.7 0 1 0 0 5.4M17.5 9.3a2.7 2.7 0 1 1 0 5.4"/><path d="M9 12h6" stroke-opacity="0.5"/></svg>`,
+    },
 };
+// Focus-cycle labels (tooltip describes what a click DOES next).
+const GRIM_FOCUS_TITLE = ['Свернуть список в рейл', 'Скрыть список — заметка во весь экран', 'Показать список'];
+// Toolbar-mode labels.
+const GRIM_BAR_TITLE = { auto: 'Тулбар: по наведению — нажмите, чтобы закрепить', open: 'Тулбар закреплён — нажмите, чтобы скрыть', closed: 'Тулбар скрыт — нажмите для режима «по наведению»' };
 
 function grimDate(ms) {
     if (!ms) return '';
@@ -1353,21 +1374,55 @@ function renderNotes() {
     renderGrimList(!prefersReducedMotion());   // animate entrance on full render
     renderGrimDetail();
     layoutEl.classList.toggle('show-detail', !!currentNoteId);
-    layoutEl.classList.toggle('grim-focus', grimFocus && !!currentNoteId);
+    _grimApplyFocus(layoutEl);
 }
 
-// Focus mode: collapse the list to a titles-only rail so the page gets near-full width.
+// Map the current focus level onto the layout classes (only when a note is open).
+function _grimApplyFocus(layoutEl) {
+    if (!layoutEl) return;
+    const lvl = currentNoteId ? grimFocus : 0;
+    layoutEl.classList.toggle('grim-focus', lvl === 1);   // list → narrow rail
+    layoutEl.classList.toggle('grim-full',  lvl === 2);   // list hidden → note fills container
+}
+
+// Focus CYCLE: both → list rail → list hidden (note full container) → both.
 function grimToggleFocus() {
-    grimFocus = !grimFocus;
-    localStorage.setItem('grimFocus', grimFocus ? '1' : '0');   // persist across notes/segments/reload
-    const layoutEl = document.getElementById('grim-layout');
-    if (layoutEl) layoutEl.classList.toggle('grim-focus', grimFocus && !!currentNoteId);
+    grimFocus = (grimFocus + 1) % 3;
+    localStorage.setItem('grimFocus', String(grimFocus));   // persist across notes/segments/reload
+    _grimApplyFocus(document.getElementById('grim-layout'));
     const btn = document.querySelector('.grim-focus-toggle');
     if (btn) {
-        btn.classList.toggle('on', grimFocus);
-        btn.setAttribute('aria-pressed', String(grimFocus));
-        btn.title = grimFocus ? 'Показать список' : 'Скрыть список — фокус на записи';
+        btn.innerHTML = GIC.focusLvl[grimFocus];
+        btn.classList.toggle('on', grimFocus > 0);
+        btn.dataset.lvl = String(grimFocus);
+        btn.setAttribute('aria-label', GRIM_FOCUS_TITLE[grimFocus]);
+        btn.title = GRIM_FOCUS_TITLE[grimFocus];
     }
+    requestAnimationFrame(_grimReflowOverlay);   // layout width changed → re-glue table overlay
+}
+
+// Toolbar CYCLE: auto (reveal on hover) → open (pinned visible) → closed (hidden) → auto.
+function grimToggleBar() {
+    grimBarMode = grimBarMode === 'auto' ? 'open' : grimBarMode === 'open' ? 'closed' : 'auto';
+    localStorage.setItem('grimBarMode', grimBarMode);
+    _grimApplyBarMode();
+    const btn = document.querySelector('.grim-bar-toggle');
+    if (btn) {
+        btn.innerHTML = GIC.barLvl[grimBarMode];
+        btn.classList.toggle('on', grimBarMode === 'open');
+        btn.dataset.mode = grimBarMode;
+        btn.setAttribute('aria-label', GRIM_BAR_TITLE[grimBarMode]);
+        btn.title = GRIM_BAR_TITLE[grimBarMode];
+    }
+}
+
+// Reflect grimBarMode on the open page; the toolbar reveal is otherwise pure CSS.
+function _grimApplyBarMode() {
+    const page = document.querySelector('#grim-detail .grim-page');
+    if (!page) return;
+    page.classList.toggle('bar-open', grimBarMode === 'open');
+    page.classList.toggle('bar-closed', grimBarMode === 'closed');
+    requestAnimationFrame(_grimReflowOverlay);   // toolbar height changed → re-glue table overlay
 }
 
 function _grimEmptyHTML() {
@@ -1438,7 +1493,8 @@ function renderGrimDetail() {
     }
 
     const backBtn = `<button class="grim-back" onclick="grimBack()" title="К списку">${GIC.back}</button>`;
-    const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" onclick="grimToggleFocus()" aria-pressed="${grimFocus}" title="${grimFocus ? 'Показать список' : 'Скрыть список — фокус на записи'}">${GIC.focus}</button>`;
+    const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" data-lvl="${grimFocus}" onclick="grimToggleFocus()" aria-label="${GRIM_FOCUS_TITLE[grimFocus]}" title="${GRIM_FOCUS_TITLE[grimFocus]}">${GIC.focusLvl[grimFocus]}</button>`;
+    const barBtn = `<button class="grim-bar-toggle${grimBarMode === 'open' ? ' on' : ''}" data-mode="${grimBarMode}" onclick="grimToggleBar()" aria-label="${GRIM_BAR_TITLE[grimBarMode]}" title="${GRIM_BAR_TITLE[grimBarMode]}">${GIC.barLvl[grimBarMode]}</button>`;
 
     if (grimMode === 'archive') {
         // Read-only crypt view: restore / destroy.
@@ -1458,8 +1514,8 @@ function renderGrimDetail() {
         return;
     }
 
-    detailEl.innerHTML = `<div class="grim-page">
-        ${backBtn}${focusBtn}
+    detailEl.innerHTML = `<div class="grim-page${grimBarMode === 'open' ? ' bar-open' : grimBarMode === 'closed' ? ' bar-closed' : ''}">
+        ${backBtn}${barBtn}${focusBtn}
         <textarea class="grim-title-in" id="grim-title-in" maxlength="120" rows="1"
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
                oninput="grimTitleInput(this)" onblur="grimCommit()" onkeydown="grimTitleKey(event)"></textarea>
@@ -1480,12 +1536,22 @@ function renderGrimDetail() {
     // Set field contents as properties (avoids attribute-escaping pitfalls).
     const ti = document.getElementById('grim-title-in');
     const bo = document.getElementById('grim-body');
-    if (ti) { ti.value = note.title || ''; _grimGrowTitle(ti); }
+    if (ti) {
+        ti.value = note.title || ''; _grimGrowTitle(ti);
+        // Re-grow the title when its width changes (focus mode switches the list rail
+        // in/out, window resize) so wrapped 2+ line titles aren't clipped.
+        if ('ResizeObserver' in window) {
+            if (!_grimTitleRO) _grimTitleRO = new ResizeObserver(() => { const t = document.getElementById('grim-title-in'); if (t) _grimGrowTitle(t); });
+            _grimTitleRO.disconnect();
+            _grimTitleRO.observe(ti);
+        }
+    }
     if (bo) bo.innerHTML = note.body || '';   // body holds sanitized HTML
     _grimEditTbl = null;                       // fresh detail → no table in edit mode
     _grimHoverTbl = null; _grimHoverSeal = null;
     if (bo) {
         _grimObserveBody(bo);                  // relayout on any body resize (font load, reflow, reveal)
+        _grimWireBarFollow(detailEl.querySelector('.grim-page'));   // keep seals glued as the toolbar reveals/hides
         requestAnimationFrame(_grimLayoutTableUI);
         // webfonts change table metrics after first paint → relayout once they land
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(_grimScheduleTableUI);
@@ -1524,7 +1590,7 @@ function grimOpen(id) {
     const layoutEl = document.getElementById('grim-layout');
     if (layoutEl) {
         layoutEl.classList.add('show-detail');
-        layoutEl.classList.toggle('grim-focus', grimFocus && !!currentNoteId);   // honour persisted focus on open
+        _grimApplyFocus(layoutEl);   // honour persisted focus on open
     }
     if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
 }
@@ -1838,7 +1904,7 @@ function migrateNotes() {
 }
 
 // Whitelist sanitizer — only the tags/attrs the editor produces survive.
-const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,HR:1,A:1,DIV:1,SPAN:1,
+const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,S:1,STRIKE:1,DEL:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,HR:1,A:1,DIV:1,SPAN:1,
                     TABLE:1,THEAD:1,TBODY:1,TR:1,TH:1,TD:1 };
 function _grimSanitize(html) {
     const root = document.createElement('div');
@@ -1888,8 +1954,10 @@ function grimFmt(cmd) {
     if (!bo) return;
     bo.focus();
     switch (cmd) {
-        case 'bold':   _grimEmphasis('bold');   break;      // self-commits
-        case 'italic': _grimEmphasis('italic'); break;      // self-commits
+        case 'bold':      _grimEmphasis('bold');          break;   // self-commits
+        case 'italic':    _grimEmphasis('italic');        break;   // self-commits
+        case 'underline': _grimEmphasis('underline');     break;   // self-commits
+        case 'strike':    _grimEmphasis('strikeThrough'); break;   // self-commits
         case 'ul':     _grimSetListType('bullet'); break;   // self-commits
         case 'ol':     _grimSetListType('number'); break;   // self-commits
         case 'quote':  _grimQuote();    _grimAfterEdit(bo); break;
@@ -1908,6 +1976,7 @@ function _grimEmphasis(cmd) {
     const bo = document.getElementById('grim-body');
     if (!bo) return;
     bo.focus();
+    try { document.execCommand('styleWithCSS', false, false); } catch (_) {}   // emit tags (<u>/<strike>), not inline style → survives sanitizer
     const sel = window.getSelection();
     if (sel && sel.rangeCount && sel.isCollapsed) {
         const block = _grimCurrentBlock(bo);
@@ -2222,6 +2291,7 @@ function grimBodyKey(e) {
     const k = e.key.toLowerCase();
     if (k === 'b') { e.preventDefault(); grimFmt('bold'); }
     else if (k === 'i') { e.preventDefault(); grimFmt('italic'); }
+    else if (k === 'u') { e.preventDefault(); grimFmt('underline'); }
     else if (k === 'k') { e.preventDefault(); grimLink(); }
 }
 // Collapse the selection to the start of an element's contents.
@@ -2301,6 +2371,8 @@ function _grimSyncToolbar() {
     try {
         set('bold', document.queryCommandState('bold'));
         set('italic', document.queryCommandState('italic'));
+        set('underline', document.queryCommandState('underline'));
+        set('strike', document.queryCommandState('strikeThrough'));
         // List context by DOM walk — a checklist is a UL too, so queryCommandState
         // can't tell ul/ul.task/ol apart; light the right button only.
         const bo = document.getElementById('grim-body');
@@ -2428,6 +2500,7 @@ let _grimEditTbl = null;    // table currently in structure-edit mode (or null)
 let _grimMenu = null;       // { el, gutter, kind } of the open floating menu (or null)
 let _grimTblRAF = 0;
 let _grimRO = null;         // ResizeObserver re-gluing the overlay when the body reflows
+let _grimTitleRO = null;    // ResizeObserver re-growing the title <textarea> when its width changes
 let _grimHoverTbl = null;   // table the pointer is currently over (seal shows on hover)
 let _grimHoverSeal = null;  // table whose seal the pointer is over (keeps it visible)
 
@@ -2507,9 +2580,9 @@ function _grimLayoutTableUI() {
         seal.className = 'gtc-seal' + (table === _grimEditTbl ? ' on' : '');
         seal.title = 'Правка структуры таблицы';
         seal.innerHTML = `<span class="gtc-ring"></span>${FIC.tblSigil}`;
-        seal.style.left = R(tr.right - ox) + 'px';
-        seal.style.top  = R(tr.top - oy) + 'px';
         seal._gtcTable = table;
+        seal._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); seal.style.left = R(r.right - ox2) + 'px'; seal.style.top = R(r.top - oy2) + 'px'; };
+        seal._gtcReflow(ox, oy);
         seal.addEventListener('mousedown', e => e.preventDefault());
         seal.addEventListener('mouseenter', () => { _grimHoverSeal = table; _grimApplySealVis(); });
         seal.addEventListener('mouseleave', () => { if (_grimHoverSeal === table) _grimHoverSeal = null; _grimApplySealVis(); });
@@ -2522,14 +2595,15 @@ function _grimLayoutTableUI() {
         if (table !== _grimEditTbl) return;
         const frame = document.createElement('div');
         frame.className = 'gtc-frame';
-        Object.assign(frame.style, { left: R(tr.left - ox) + 'px', top: R(tr.top - oy) + 'px', width: R(tr.width) + 'px', height: R(tr.height) + 'px' });
+        frame._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(frame.style, { left: R(r.left - ox2) + 'px', top: R(r.top - oy2) + 'px', width: R(r.width) + 'px', height: R(r.height) + 'px' }); };
+        frame._gtcReflow(ox, oy);
         ov.appendChild(frame);
         const head = (table.tHead && table.tHead.rows[0]) ? table.tHead.rows[0] : table.rows[0];
         if (head) [...head.cells].forEach((cell, ci) => {
-            const cr = cell.getBoundingClientRect();
             const g = document.createElement('div');
             g.className = 'gtc-gut gtc-colgut';
-            Object.assign(g.style, { left: R(cr.left - ox) + 'px', top: R(tr.top - oy - 20) + 'px', width: R(cr.width) + 'px' });
+            g._gtcReflow = (ox2, oy2) => { const cr = cell.getBoundingClientRect(), r = table.getBoundingClientRect(); Object.assign(g.style, { left: R(cr.left - ox2) + 'px', top: R(r.top - oy2 - 20) + 'px', width: R(cr.width) + 'px' }); };
+            g._gtcReflow(ox, oy);
             g.innerHTML = `<span class="gtc-grip">${FIC.tblGrip}</span>`;
             g.addEventListener('mousedown', e => e.preventDefault());
             g.addEventListener('click', e => { e.stopPropagation(); _grimToggleTableMenu(g, 'col', ci, table); });
@@ -2537,10 +2611,10 @@ function _grimLayoutTableUI() {
         });
         const bodyRows = table.tBodies[0] ? [...table.tBodies[0].rows] : [...table.rows].slice(1);
         bodyRows.forEach(rowEl => {
-            const rr = rowEl.getBoundingClientRect();
             const g = document.createElement('div');
             g.className = 'gtc-gut gtc-rowgut';
-            Object.assign(g.style, { left: R(tr.left - ox - 20) + 'px', top: R(rr.top - oy) + 'px', height: R(rr.height) + 'px' });
+            g._gtcReflow = (ox2, oy2) => { const rr = rowEl.getBoundingClientRect(), r = table.getBoundingClientRect(); Object.assign(g.style, { left: R(r.left - ox2 - 20) + 'px', top: R(rr.top - oy2) + 'px', height: R(rr.height) + 'px' }); };
+            g._gtcReflow(ox, oy);
             g.innerHTML = `<span class="gtc-grip">${FIC.tblGrip}</span>`;
             g.addEventListener('mousedown', e => e.preventDefault());
             g.addEventListener('click', e => { e.stopPropagation(); _grimToggleTableMenu(g, 'row', rowEl, table); });
@@ -2549,19 +2623,42 @@ function _grimLayoutTableUI() {
         const edgeCol = document.createElement('button');
         edgeCol.type = 'button'; edgeCol.className = 'gtc-edge gtc-edge-col'; edgeCol.title = 'Добавить колонку';
         edgeCol.innerHTML = FIC.tblAdd;
-        Object.assign(edgeCol.style, { left: R(tr.right - ox + 8) + 'px', top: R(tr.top - oy + tr.height / 2) + 'px' });
+        edgeCol._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(edgeCol.style, { left: R(r.right - ox2 + 8) + 'px', top: R(r.top - oy2 + r.height / 2) + 'px' }); };
+        edgeCol._gtcReflow(ox, oy);
         edgeCol.addEventListener('mousedown', e => e.preventDefault());
         edgeCol.addEventListener('click', e => { e.stopPropagation(); grimTableAppend('col', table); });
         ov.appendChild(edgeCol);
         const edgeRow = document.createElement('button');
         edgeRow.type = 'button'; edgeRow.className = 'gtc-edge gtc-edge-row'; edgeRow.title = 'Добавить строку';
         edgeRow.innerHTML = FIC.tblAdd;
-        Object.assign(edgeRow.style, { left: R(tr.left - ox + tr.width / 2) + 'px', top: R(tr.bottom - oy + 8) + 'px' });
+        edgeRow._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(edgeRow.style, { left: R(r.left - ox2 + r.width / 2) + 'px', top: R(r.bottom - oy2 + 8) + 'px' }); };
+        edgeRow._gtcReflow(ox, oy);
         edgeRow.addEventListener('mousedown', e => e.preventDefault());
         edgeRow.addEventListener('click', e => { e.stopPropagation(); grimTableAppend('row', table); });
         ov.appendChild(edgeRow);
     });
     _grimApplySealVis();   // hover-only: hide seals not hovered / not in edit mode
+}
+// Re-glue the overlay to current table geometry WITHOUT rebuilding it (no flicker,
+// no fade-restart). Used while the toolbar reveal animation shifts the tables.
+function _grimReflowOverlay() {
+    const page = document.querySelector('#grim-detail .grim-page');
+    const ov = page && page.querySelector(':scope > .grim-tctl');
+    if (!page || !ov || !ov.classList.contains('on')) return;
+    const pr = page.getBoundingClientRect();
+    const ox = pr.left + page.clientLeft, oy = pr.top + page.clientTop;
+    [...ov.children].forEach(el => { if (el._gtcReflow) el._gtcReflow(ox, oy); });
+}
+// The toolbar reveal/hide (hover OR manual mode) shifts the tables down/up; follow
+// that transition frame-by-frame so each seal stays pinned to its table's corner.
+function _grimWireBarFollow(page) {
+    const bar = page && page.querySelector('.fmt-bar');
+    if (!bar || bar._grimFollowWired) return;
+    bar._grimFollowWired = true;
+    let frames = 0, raf = 0;
+    const loop = () => { _grimReflowOverlay(); if (--frames > 0) raf = requestAnimationFrame(loop); else raf = 0; };
+    bar.addEventListener('transitionrun', () => { frames = 32; if (!raf) raf = requestAnimationFrame(loop); });
+    bar.addEventListener('transitionend', () => { _grimReflowOverlay(); });
 }
 function _grimCloseTableMenu() {
     if (!_grimMenu) return;
@@ -2711,6 +2808,8 @@ function _grimTableTab(e) {
 const FIC = {
     bold:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7z"/><path d="M7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg>`,
     italic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="10" y1="5" x2="17" y2="5"/><line x1="7" y1="19" x2="14" y2="19"/><line x1="14" y1="5" x2="10" y2="19"/></svg>`,
+    underline: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5v6a5 5 0 0 0 10 0v-6"/><line x1="5.5" y1="20" x2="18.5" y2="20"/></svg>`,
+    strike: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4.5" y1="12" x2="19.5" y2="12"/><path d="M16.5 7.6C15.7 6 13.9 5 11.9 5 9.3 5 7.5 6.3 7.5 8.3c0 1.3.8 2.2 2.2 2.8"/><path d="M8 16.2c.7 1.6 2.4 2.6 4.4 2.6 2.5 0 4.2-1.3 4.2-3.2"/></svg>`,
     ul:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.6"/></svg>`,
     ol:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 5l1.5-.5V9M4 9h3"/></svg>`,
     task:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="6" height="6" rx="1.2"/><path d="M4.5 7.5l1 1 2-2.2"/><rect x="3" y="14" width="6" height="6" rx="1.2"/><path d="M12 7.5h9M12 17h9"/></svg>`,
@@ -2731,29 +2830,38 @@ const FIC = {
 function _grimToolbarHTML() {
     const btn = (cmd, on, title, svg) =>
         `<button class="fmt-btn" data-cmd="${cmd}" onmousedown="event.preventDefault()" onclick="${on}" title="${title}">${svg}</button>`;
-    return `<div class="fmt-bar" id="grim-fmt-bar"><div class="fmt-inner" role="toolbar" aria-label="Форматирование">
+    // .fmt-inner is a pure collapse wrapper (overflow-hidden, no box) so the toolbar
+    // truly folds to 0 when hidden — no residual padding/border leaking a gap under
+    // the divider. .fmt-cluster carries the chrome and centres its grouped rows when
+    // they wrap, so every wrapped row stays balanced and centred.
+    return `<div class="fmt-bar" id="grim-fmt-bar"><div class="fmt-inner"><div class="fmt-cluster" role="toolbar" aria-label="Форматирование">
         <span class="fmt-grp">
             <button class="fmt-btn fmt-h" data-cmd="h1" onmousedown="event.preventDefault()" onclick="grimHeading(1)" title="Заголовок 1">H1</button>
             <button class="fmt-btn fmt-h" data-cmd="h2" onmousedown="event.preventDefault()" onclick="grimHeading(2)" title="Заголовок 2">H2</button>
             <button class="fmt-btn fmt-h" data-cmd="h3" onmousedown="event.preventDefault()" onclick="grimHeading(3)" title="Заголовок 3">H3</button>
         </span>
-        <span class="fmt-sep"></span>
-        ${btn('bold', "grimFmt('bold')", 'Жирный (Ctrl+B)', FIC.bold)}
-        ${btn('italic', "grimFmt('italic')", 'Курсив (Ctrl+I)', FIC.italic)}
-        <span class="fmt-sep"></span>
-        ${btn('ul', "grimFmt('ul')", 'Маркированный список', FIC.ul)}
-        ${btn('ol', "grimFmt('ol')", 'Нумерованный список', FIC.ol)}
-        ${btn('task', "grimChecklist()", 'Чек-лист', FIC.task)}
-        <span class="fmt-sep"></span>
-        ${btn('quote', "grimFmt('quote')", 'Цитата', FIC.quote)}
-        ${btn('code', "grimInlineCode()", 'Код', FIC.code)}
-        ${btn('hr', "grimFmt('hr')", 'Разделитель', FIC.hr)}
-        ${btn('link', "grimLink()", 'Ссылка (Ctrl+K)', FIC.link)}
-        <span class="fmt-sep"></span>
-        ${btn('table', "grimTableMenu(event)", 'Таблица', FIC.table)}
-        <span class="fmt-spring"></span>
-        <button class="fmt-btn export" onmousedown="event.preventDefault()" onclick="grimExportNote()" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
-    </div></div>`;
+        <span class="fmt-grp">
+            ${btn('bold', "grimFmt('bold')", 'Жирный (Ctrl+B)', FIC.bold)}
+            ${btn('italic', "grimFmt('italic')", 'Курсив (Ctrl+I)', FIC.italic)}
+            ${btn('underline', "grimFmt('underline')", 'Подчёркнутый (Ctrl+U)', FIC.underline)}
+            ${btn('strike', "grimFmt('strike')", 'Зачёркнутый', FIC.strike)}
+        </span>
+        <span class="fmt-grp">
+            ${btn('ul', "grimFmt('ul')", 'Маркированный список', FIC.ul)}
+            ${btn('ol', "grimFmt('ol')", 'Нумерованный список', FIC.ol)}
+            ${btn('task', "grimChecklist()", 'Чек-лист', FIC.task)}
+        </span>
+        <span class="fmt-grp">
+            ${btn('quote', "grimFmt('quote')", 'Цитата', FIC.quote)}
+            ${btn('code', "grimInlineCode()", 'Код', FIC.code)}
+            ${btn('hr', "grimFmt('hr')", 'Разделитель', FIC.hr)}
+            ${btn('link', "grimLink()", 'Ссылка (Ctrl+K)', FIC.link)}
+        </span>
+        <span class="fmt-grp">${btn('table', "grimTableMenu(event)", 'Таблица', FIC.table)}</span>
+        <span class="fmt-grp">
+            <button class="fmt-btn export" onmousedown="event.preventDefault()" onclick="grimExportNote()" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
+        </span>
+    </div></div></div>`;
 }
 
 // ── Markdown export ─────────────────────────────────────────────────────
@@ -2777,6 +2885,8 @@ function _grimInlineMd(node) {
         const t = n.tagName;
         if (t === 'STRONG' || t === 'B') out += '**' + _grimInlineMd(n) + '**';
         else if (t === 'EM' || t === 'I') out += '*' + _grimInlineMd(n) + '*';
+        else if (t === 'U') out += '<u>' + _grimInlineMd(n) + '</u>';
+        else if (t === 'S' || t === 'STRIKE' || t === 'DEL') out += '~~' + _grimInlineMd(n) + '~~';
         else if (t === 'CODE') out += '`' + n.textContent.split(String.fromCharCode(0x200B)).join('') + '`';
         else if (t === 'A') out += '[' + _grimInlineMd(n) + '](' + (n.getAttribute('href') || '') + ')';
         else if (t === 'BR') out += '  \n';

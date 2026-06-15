@@ -5936,7 +5936,7 @@ kbd {
     grid-template-columns: 244px minmax(0, 1fr);
     gap: 22px;
     align-items: start;
-    transition: grid-template-columns var(--dur-standard) var(--ease-gothic);
+    transition: grid-template-columns var(--dur-standard) var(--ease-gothic), column-gap var(--dur-standard) var(--ease-gothic);
 }
 /* When a record is open, auto-narrow the list so the page gets room (desktop only). */
 @media (min-width: 641px) {
@@ -5948,21 +5948,38 @@ kbd {
     .grim-layout.grim-focus.show-detail .grim-leaf { padding: 8px 9px 8px 11px; }
     .grim-layout.grim-focus.show-detail .grim-leaf-t { font-size: 13px; }
     .grim-layout.grim-focus.show-detail .grim-list-head { font-size: 9px; letter-spacing: 1px; }
+    /* Full mode — list collapsed to zero width (kept as a grid item so the page
+       stays in track 2 instead of auto-placing into the empty track 1). */
+    .grim-layout.grim-full.show-detail { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
+    .grim-layout.grim-full.show-detail .grim-list { overflow: hidden; min-width: 0; opacity: 0; pointer-events: none; }
 }
 /* Focus toggle — corner button on the page (desktop only; mobile uses the back button instead). */
 .grim-focus-toggle {
-    position: absolute; top: 12px; right: 12px; z-index: 2;
+    position: absolute; top: 6px; right: 12px; z-index: 2;
     width: 30px; height: 30px; display: none;
     align-items: center; justify-content: center;
     border-radius: 50%; border: 1px solid var(--border);
     background: var(--bg-item); color: var(--text-secondary);
     cursor: pointer; transition: all var(--transition);
 }
-.grim-focus-toggle svg { width: 16px; height: 16px; transition: transform var(--dur-quick) var(--ease-gothic); }
+.grim-focus-toggle svg { width: 18px; height: 18px; transition: opacity var(--dur-quick) var(--ease-gothic); }
 .grim-focus-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
 .grim-focus-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); }
-.grim-focus-toggle.on svg { transform: scaleX(-1); }
 @media (min-width: 641px) { .grim-focus-toggle { display: inline-flex; } }
+
+/* Toolbar manual control — corner button beside the focus toggle (shown on every
+   viewport: touch has no hover, so the manual show/hide is essential there). */
+.grim-bar-toggle {
+    position: absolute; top: 42px; right: 12px; z-index: 2;
+    width: 30px; height: 30px; display: inline-flex;
+    align-items: center; justify-content: center;
+    border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg-item); color: var(--text-secondary);
+    cursor: pointer; transition: all var(--transition);
+}
+.grim-bar-toggle svg { width: 18px; height: 18px; }
+.grim-bar-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
+.grim-bar-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); box-shadow: 0 0 10px var(--accent-glow); }
 .grim-detail { position: relative; padding-left: 22px; border-left: 1px solid var(--border); min-height: 320px; }
 .grim-list { display: flex; flex-direction: column; gap: 7px; }
 .grim-list-head {
@@ -6091,7 +6108,8 @@ kbd {
        layouts need the transform to match. */
     text-transform: uppercase;
     text-shadow: 0 0 18px var(--accent-glow), 0 0 6px rgba(170, 90, 255, 0.5), 0 2px 3px rgba(0, 0, 0, 0.45);
-    padding: 16px 48px 10px 52px;
+    /* right pad clears the corner button column (buttons now stack vertically → ~42px) */
+    padding: 16px 42px 10px 52px;
     word-break: break-word;
     overflow-wrap: anywhere;
     /* title is now a <textarea> so long titles wrap (an <input> can't) — kill the
@@ -6217,7 +6235,9 @@ kbd {
     background: radial-gradient(circle at 38% 34%, rgba(74, 30, 146, 0.98), rgba(24, 10, 60, 0.98));
     box-shadow: 0 0 20px var(--accent-glow), inset 0 1px 4px rgba(210, 160, 255, 0.4);
 }
-.gtc-seal svg { width: 19px; height: 19px; display: block; }
+/* even (30−18)/2 = 6px margins → centred on whole pixels at any devicePixelRatio
+   (fractional Windows scaling biased the old 5.5px split left until :hover scale re-snapped it). */
+.gtc-seal svg { width: 18px; height: 18px; display: block; }
 .gtc-ring { position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--border-bright); opacity: 0; transform: scale(0.8); transition: opacity 0.3s, transform 0.3s var(--ease-emerge); }
 .gtc-seal.on .gtc-ring { opacity: 0.45; transform: scale(1); }
 
@@ -6343,14 +6363,21 @@ kbd {
     display: grid; grid-template-rows: 0fr; opacity: 0; margin: 0 18px 0 52px;
     transition: grid-template-rows 0.26s var(--ease-gothic), opacity 0.18s ease, margin-bottom 0.26s var(--ease-gothic);
 }
-.grim-page:hover > .fmt-bar, .grim-page:focus-within > .fmt-bar { grid-template-rows: 1fr; opacity: 1; margin-bottom: 8px; }
-.fmt-inner {
-    min-height: 0; overflow: hidden; display: flex; align-items: center; gap: 3px; flex-wrap: wrap;
+/* AUTO mode (default, no bar-* class): reveal on hover / while editing. */
+.grim-page:not(.bar-open):not(.bar-closed):hover > .fmt-bar,
+.grim-page:not(.bar-open):not(.bar-closed):focus-within > .fmt-bar,
+.grim-page.bar-open > .fmt-bar { grid-template-rows: 1fr; opacity: 1; margin-bottom: 8px; }
+/* CLOSED mode keeps the base hidden state even on hover/focus (no extra rule needed). */
+/* Pure collapse wrapper: no padding/border/bg so the bar folds to a true 0 height
+   when hidden (the chrome lives on .fmt-cluster, which the overflow clips away). */
+.fmt-inner { min-height: 0; overflow: hidden; }
+.fmt-cluster {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 9px;
     background: rgba(6, 2, 20, 0.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 6px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 8px;
     box-shadow: var(--shadow-sm);
 }
-.fmt-grp { display: inline-flex; gap: 2px; }
+.fmt-grp { display: inline-flex; align-items: center; gap: 2px; }
 .fmt-btn {
     min-width: 30px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center;
     background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--text-muted);
@@ -6363,8 +6390,6 @@ kbd {
     color: var(--accent-hover); background: linear-gradient(135deg, rgba(110,30,220,0.30), rgba(80,15,180,0.18));
     border-color: var(--border-mid); box-shadow: inset 0 0 0 1px rgba(150,70,255,0.25);
 }
-.fmt-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
-.fmt-spring { flex: 1; }
 .fmt-btn.export { padding: 0 10px; gap: 6px; color: var(--text-secondary); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
 .fmt-btn.export:hover { color: var(--accent-hover); }
 
@@ -6424,7 +6449,7 @@ kbd {
 .grim-back {
     display: none;
     position: absolute;
-    top: 12px; right: 12px;
+    top: 6px; right: 12px;
     width: 30px; height: 30px;
     border-radius: 50%; border: 1px solid var(--border);
     background: var(--bg-item); color: var(--text-secondary);
@@ -6458,7 +6483,7 @@ kbd {
     .grim-layout.show-detail .grim-list { display: none; }
     .grim-layout.show-detail .grim-detail { display: block; }
     .grim-back { display: flex; }
-    .grim-title-in, .grim-title-ro { padding-right: 48px; }
+    .grim-title-in, .grim-title-ro { padding-right: 42px; }
     /* footer: stack date over the action buttons (no cramped single row) */
     .grim-meta { padding-left: 18px; }
     .grim-date { flex: 0 0 100%; }
