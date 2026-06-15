@@ -10307,6 +10307,19 @@ function _matchKey(e, qwertyChar) {
 
 document.addEventListener('keydown', e => {
     // ── Global shortcuts (always active) ──────────────────────
+    // п11/undo-audit: the grimoire body/title are a rich-text editor whose own
+    // (native) undo stack tracks typing + execCommand formats at the right
+    // granularity. The app-level undo() snapshots WHOLE state, so hijacking
+    // Ctrl+Z while the caret is in the editor reverted structural snapshots
+    // (e.g. note creation) and DESTROYED the draft being typed (rule #1 breach).
+    // → let the browser own undo/redo inside the editor; app undo owns the rest.
+    {
+        const ae = document.activeElement;
+        if (ae && (ae.id === 'grim-body' || ae.id === 'grim-title-in') &&
+            (e.ctrlKey || e.metaKey) && (e.code === 'KeyZ' || e.code === 'KeyY')) {
+            return;   // native browser undo/redo for the grimoire rich editor
+        }
+    }
     // P-A: redo on Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y; undo on Ctrl/Cmd+Z.
     // (Shift+Z must be checked before plain Z.)
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyZ') { e.preventDefault(); redo(); return; }
