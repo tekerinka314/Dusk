@@ -1442,7 +1442,9 @@ function renderGrimList(animate) {
     if (!listEl) return;
     const keyOf = grimMode === 'archive'
         ? (n => n.archivedAt || n.updatedAt || 0)
-        : (n => n.updatedAt || 0);
+        // Active list: manual drag order (`ord`) wins; otherwise fall back to
+        // updatedAt so a freshly edited note (which drops its ord) bubbles up.
+        : (n => (n.ord != null ? n.ord : (n.updatedAt || 0)));
     const all = _grimList().slice().sort((a, b) => keyOf(b) - keyOf(a));
     const q = notesSearchQuery.toLowerCase();
     const shown = q
@@ -1454,6 +1456,50 @@ function renderGrimList(animate) {
         ? shown.map((n, i) => _grimLeafHTML(n, q, i, animate)).join('')
         : `<div class="grim-list-none">Ничего не найдено</div>`;
     listEl.innerHTML = head + body;
+    _grimInitListSortable();   // (re)wire manual drag-reorder for the active grimoire
+}
+
+// Manual reorder of grimoire entries (DnD). Active grimoire only — disabled in the
+// crypt, under search, and in multi-select. The list head stays a fixed anchor.
+let _grimListSortable = null;
+function _grimInitListSortable() {
+    if (_grimListSortable) { _grimListSortable.destroy(); _grimListSortable = null; }
+    const listEl = document.getElementById('grim-list');
+    if (!listEl) return;
+    if (grimMode !== 'active' || grimSelectMode || notesSearchQuery.trim()) return;
+    if (listEl.querySelectorAll('.grim-leaf').length < 2) return;
+    _grimListSortable = new Sortable(listEl, {
+        animation: 200,
+        delay: 120,
+        delayOnTouchOnly: false,
+        fallbackTolerance: 5,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        draggable: '.grim-leaf',
+        onStart() { document.body.classList.add('is-dragging'); },
+        onEnd() {
+            document.body.classList.remove('is-dragging');
+            _grimPersistOrder();
+        },
+    });
+}
+
+// Freeze the new DOM order into per-note `ord` values, in the same numeric space
+// as updatedAt (top = highest, spaced 1s) so a subsequently edited note — which
+// drops its ord and falls back to a fresh, larger updatedAt — sorts above these.
+function _grimPersistOrder() {
+    const listEl = document.getElementById('grim-list');
+    if (!listEl) return;
+    const ids = [...listEl.querySelectorAll('.grim-leaf')].map(b => b.dataset.id);
+    if (!ids.length) return;
+    pushUndo();
+    const base = Date.now();
+    ids.forEach((id, i) => {
+        const n = (state.notes || []).find(x => x.id === id);
+        if (n) n.ord = base - i * 1000;
+    });
+    saveState();
 }
 
 function _grimLeafHTML(n, q, i, animate) {
@@ -1644,6 +1690,7 @@ function grimTitleInput(el) {
     _grimGrowTitle(el);                         // wrap long titles, grow to fit
     note.title = el.value;
     note.updatedAt = Date.now();
+    delete note.ord;                            // edited → bubble back to top on next sort
     const leaf = document.querySelector(`.grim-leaf[data-id="${note.id}"]`);
     if (leaf) {
         const t = leaf.querySelector('.grim-leaf-t');
@@ -1660,6 +1707,7 @@ function grimBodyInput(el) {
     if (!note) return;
     note.body = _grimSanitize(el.innerHTML);   // body holds sanitized HTML
     note.updatedAt = Date.now();
+    delete note.ord;                            // edited → bubble back to top on next sort
     clearTimeout(_grimSaveT);
     _grimSaveT = setTimeout(saveState, 400);
     _grimScheduleTableUI();   // keep table seal/frame/gutters glued as cells reflow
