@@ -2198,21 +2198,12 @@ function _grimInsertHr() {
     bo.focus();
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) return;
-    let block = sel.anchorNode;
-    if (block === bo) block = bo.childNodes[Math.max(0, sel.anchorOffset - 1)] || null;
-    else { while (block && block.parentNode && block.parentNode !== bo) block = block.parentNode;
-           if (block && block.parentNode !== bo) block = null; }
-    const hr = document.createElement('hr');
-    const p = document.createElement('p');
-    p.appendChild(document.createElement('br'));
-    if (block && block.parentNode === bo) {
-        bo.insertBefore(hr, block.nextSibling);
-        bo.insertBefore(p, hr.nextSibling);
-    } else {
-        bo.appendChild(hr);
-        bo.appendChild(p);
-    }
-    _grimCaretToStart(p);
+    // undo-audit (Part 2, inserts-only): insert via execCommand('insertHTML') so the
+    // separator joins the browser's native undo stack (Ctrl+Z reverts it). The caret
+    // lands on the fresh paragraph after the rule (insertHTML leaves it there).
+    document.execCommand('insertHTML', false, '<hr><p data-gtnew="1"><br></p>');
+    const np = bo.querySelector('p[data-gtnew]');
+    if (np) { np.removeAttribute('data-gtnew'); _grimCaretToStart(np); }
     _grimAfterEdit(bo);
 }
 
@@ -2225,15 +2216,19 @@ function grimInlineCode() {
     if (text) {
         document.execCommand('insertHTML', false, '<code>' + escHtml(text) + '</code>');
     } else if (sel && sel.rangeCount) {
-        // No selection — drop an empty code span and put the caret inside it.
-        const code = document.createElement('code');
-        code.appendChild(document.createTextNode(String.fromCharCode(0x200B)));   // ZWSP holds the caret
-        sel.getRangeAt(0).insertNode(code);
-        const nr = document.createRange();
-        nr.setStart(code.firstChild, 1);
-        nr.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(nr);
+        // No selection — drop an empty code span (ZWSP holds the caret) via insertHTML
+        // so it is native-undoable, then place the caret inside the fresh span.
+        const zwsp = String.fromCharCode(0x200B);
+        document.execCommand('insertHTML', false, '<code data-gtnew="1">' + zwsp + '</code>');
+        const code = bo.querySelector('code[data-gtnew]');
+        if (code) {
+            code.removeAttribute('data-gtnew');
+            const nr = document.createRange();
+            nr.setStart(code.firstChild, 1);
+            nr.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(nr);
+        }
     }
     _grimAfterEdit(bo);
 }
@@ -2508,15 +2503,17 @@ function grimInsertTable(cols, rows) {
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
-    const block = _grimCurrentBlock(bo);
-    if (block && block.parentNode === bo && !block.textContent.trim()) block.replaceWith(table);
-    else if (block && block.parentNode === bo) block.parentNode.insertBefore(table, block.nextSibling);
-    else bo.appendChild(table);
-    if (!table.nextSibling || table.nextSibling.tagName === 'TABLE') {
-        const p = document.createElement('p'); p.appendChild(document.createElement('br'));
-        table.parentNode.insertBefore(p, table.nextSibling);
+    // undo-audit (Part 2, inserts-only): insert NEW content at the caret via
+    // execCommand('insertHTML') so the browser records it on its own undo stack
+    // → Ctrl+Z reverts the whole table (verified). The transient data-gtnew marker
+    // lets us re-find the freshly-parsed table to drop the caret into its first cell.
+    table.setAttribute('data-gtnew', '1');
+    document.execCommand('insertHTML', false, table.outerHTML + '<p><br></p>');
+    const fresh = bo.querySelector('table[data-gtnew]');
+    if (fresh) {
+        fresh.removeAttribute('data-gtnew');
+        _grimCaretToStart(fresh.querySelector('th,td'));
     }
-    _grimCaretToStart(table.querySelector('th,td'));
     _grimAfterEdit(bo);
     requestAnimationFrame(_grimLayoutTableUI);   // draw the seal once geometry settles
 }
