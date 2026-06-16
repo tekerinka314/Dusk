@@ -1563,7 +1563,7 @@ function _grimLeafHTML(n, q, i, animate) {
         ${check}<span class="grim-leaf-main">
             <span class="grim-leaf-t">${titleH}</span>
             ${snipH ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
-            <span class="grim-leaf-d">${grimDate(ts)}</span>
+            <span class="grim-leaf-d" title="${grimMode === 'archive' ? 'В склепе с' : 'Последняя правка'}">${grimMode === 'archive' ? GIC.coffin : GIC.quill}<span>${grimDate(ts)}</span></span>
         </span>${fold}
     </button>`;
 }
@@ -1615,8 +1615,12 @@ function renderGrimDetail() {
              oninput="grimBodyInput(this)" onblur="grimCommit(event)" onpaste="plainTextPaste(event)"
              onclick="grimBodyClick(event)" onkeydown="grimBodyKey(event)"></div>
         <div class="grim-meta">
-            <span class="grim-date" title="Изменено">${GIC.hourglass}<span>${note.updatedAt ? grimDate(note.updatedAt) : 'новая запись'}</span></span>
+            <div class="grim-stamps">
+                <span class="grim-stamp" title="Последняя правка">${GIC.quill}<span>правлено ${note.updatedAt ? grimDate(note.updatedAt) : '—'}</span></span>
+                ${note.createdAt ? `<span class="grim-stamp is-created" title="Когда начертана">${GIC.hourglass}<span>начертано ${grimDate(note.createdAt)}</span></span>` : ''}
+            </div>
             <span class="grim-acts">
+                <button class="grim-act" onclick="grimDuplicate('${note.id}')" title="Сделать копию записи">${IC.twinCoffin}<span>копия</span></button>
                 <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
                 <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
             </span>
@@ -1842,6 +1846,43 @@ function grimDelete(id) {
     saveState();
     renderNotes();
     showToast('Запись удалена', { undo: true });
+}
+
+// Active note → exact copy (new uuid), dropped at the top and opened for editing.
+// Mirrors duplicateTask: deep clone, fresh ids/timestamps, title gets a «(копия)» tag.
+function grimDuplicate(id) {
+    const note = (state.notes || []).find(n => n.id === id);
+    if (!note) return;
+    clearTimeout(_grimSaveT); saveState();
+    grimFindClose();
+    pushUndo();
+    const now = Date.now();
+    const baseTitle = (note.title || '').trim();
+    let title = baseTitle ? baseTitle + ' (копия)' : '';
+    if (title.length > 120) title = title.slice(0, 120);   // honour the title maxlength
+    const copy = {
+        ...JSON.parse(JSON.stringify(note)),   // deep clone body/fmt/colour/etc.
+        id:        uid(),
+        title,
+        createdAt: now,
+        updatedAt: now,
+    };
+    delete copy.ord;            // fall back to updatedAt so the copy sorts to the top
+    delete copy.archivedAt;     // a duplicate is never born in the crypt
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(copy);
+    currentNoteId = copy.id;
+    grimNoteCollapsed = false;
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box');
+    if (sb) sb.value = '';
+    saveState();
+    renderNotes();
+    const layoutEl = document.getElementById('grim-layout');
+    if (layoutEl) layoutEl.classList.add('show-detail');
+    const ti = document.getElementById('grim-title-in');
+    if (ti) ti.focus();
+    showToast('Запись скопирована', { undo: true });
 }
 
 // Active note → Склеп (soft archive, undoable).

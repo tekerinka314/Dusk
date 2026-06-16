@@ -6087,9 +6087,11 @@ kbd {
     word-break: break-word;
 }
 .grim-leaf-d {
+    display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
     font-family: var(--font-label); font-size: 9.5px; letter-spacing: 1px;
     text-transform: uppercase; color: var(--text-muted); margin-top: 7px; opacity: 0.72;
 }
+.grim-leaf-d svg { width: 11px; height: 11px; flex-shrink: 0; color: var(--accent-hover); opacity: 0.85; }
 /* Fold affordance on the open entry — a gothic tome that opens/closes. Two stacked
    glyphs crossfade by the collapse state. Desktop only (mobile uses the back button). */
 .grim-leaf-fold {
@@ -6502,14 +6504,29 @@ kbd {
 .grim-ghost-btn:hover { color: var(--accent-hover); border-color: var(--border-mid); background: var(--accent-soft); }
 
 .grim-meta {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    flex-wrap: wrap; row-gap: 8px;
-    /* content left aligns with the body indent (≈52px); was over-indented to 90px
-       which squeezed the date. */
-    padding: 10px 6px 12px 36px;
+    display: flex; flex-direction: column; align-items: center; gap: 11px;
+    /* equal left/right inset so the chip row and button row sit symmetrically. */
+    padding: 10px 16px 12px 16px;
     border-top: 1px solid var(--border);
     margin: 8px 16px 0 16px;
 }
+/* Timestamps as little wax-seal chips, stacked above the action row so they never
+   compete with the buttons for width (the old single-row date clipped to «СЕГОДН…»
+   once a third action button was added). «правлено» = last edit, «начертано» = born. */
+.grim-stamps { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Chips mirror the action buttons' geometry (same padding/radius/font/glyph size) so the
+   two footer rows read as one symmetric block — they're just non-interactive (no hover,
+   no cursor). Text matches the buttons' brightness; «начертано» stays the quieter sibling. */
+.grim-stamp {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-item); white-space: nowrap;
+    font-family: var(--font-label); font-size: 10.5px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text-secondary);
+}
+.grim-stamp svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--accent-hover); }
+.grim-stamp.is-created { color: var(--text-muted); }   /* birth date reads quieter than the live edit */
+.grim-stamp.is-created svg { color: var(--text-muted); opacity: 0.8; }
 /* Date = quiet metadata: borderless, flexible, truncates so the buttons stay one row. */
 .grim-date {
     display: flex; align-items: center; gap: 6px;
@@ -6582,8 +6599,8 @@ kbd {
     .grim-back { display: flex; }
     .grim-title-in, .grim-title-ro { padding-right: 42px; }
     /* footer: stack date over the action buttons (no cramped single row) */
-    .grim-meta { padding-left: 18px; }
     .grim-date { flex: 0 0 100%; }
-    .grim-acts { width: 100%; justify-content: flex-start; }
+    .grim-acts { width: 100%; justify-content: center; }
+    .grim-stamps { justify-content: center; }
 }
 
