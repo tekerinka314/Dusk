@@ -5932,26 +5932,40 @@ kbd {
 
 /* ── master–detail layout (codex spread) ── */
 .grim-layout {
-    display: grid;
-    grid-template-columns: 244px minmax(0, 1fr);
+    /* Flex (not grid) so the list's flex-basis can animate px↔% — grid tracks won't
+       interpolate px↔fr, which made the collapse snap. The detail is the flexible
+       filler; driving the list width smoothly resizes the page each frame. */
+    display: flex;
     gap: 22px;
-    align-items: start;
-    transition: grid-template-columns var(--dur-standard) var(--ease-gothic), column-gap var(--dur-standard) var(--ease-gothic);
+    align-items: flex-start;
+    transition: gap var(--dur-ritual) var(--ease-gothic);
 }
 /* When a record is open, auto-narrow the list so the page gets room (desktop only). */
 @media (min-width: 641px) {
-    .grim-layout.show-detail { grid-template-columns: 198px minmax(0, 1fr); }
+    /* When a record is open, auto-narrow the list so the page gets room. */
+    .grim-layout.show-detail .grim-list { flex-basis: 198px; }
     /* Focus mode — collapse the list to a titles-only rail, give the page near-full width. */
-    .grim-layout.grim-focus.show-detail { grid-template-columns: 138px minmax(0, 1fr); }
+    .grim-layout.grim-focus.show-detail .grim-list { flex-basis: 138px; }
     .grim-layout.grim-focus.show-detail .grim-leaf-s,
     .grim-layout.grim-focus.show-detail .grim-leaf-d { display: none; }
     .grim-layout.grim-focus.show-detail .grim-leaf { padding: 8px 9px 8px 11px; }
     .grim-layout.grim-focus.show-detail .grim-leaf-t { font-size: 13px; }
     .grim-layout.grim-focus.show-detail .grim-list-head { font-size: 9px; letter-spacing: 1px; }
-    /* Full mode — list collapsed to zero width (kept as a grid item so the page
-       stays in track 2 instead of auto-placing into the empty track 1). */
-    .grim-layout.grim-full.show-detail { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
-    .grim-layout.grim-full.show-detail .grim-list { overflow: hidden; min-width: 0; opacity: 0; pointer-events: none; }
+    /* Full mode — list shrinks to zero width, the page fills the container. */
+    .grim-layout.grim-full.show-detail { gap: 0; }
+    .grim-layout.grim-full.show-detail .grim-list { flex-basis: 0; overflow: hidden; min-width: 0; opacity: 0; pointer-events: none; }
+    /* Collapsed mode — the list grows to full width while the NOTE pane shrinks to zero
+       (selection kept). flex-basis animates px↔% so the widths interpolate smoothly;
+       the detail also fades + sinks so the reflow is masked. Re-click the open entry to toggle. */
+    .grim-layout.grim-note-collapsed.show-detail { gap: 0; }
+    .grim-layout.grim-note-collapsed.show-detail .grim-list { flex-basis: 100%; }
+    .grim-layout.grim-note-collapsed.show-detail .grim-detail {
+        overflow: hidden; min-width: 0; padding-left: 0; border-left: none;
+        opacity: 0; transform: translateX(16px) scale(0.985); pointer-events: none;
+        /* Collapse animates toward this state → fade that "sinks" away while the pane
+           narrows; opacity leads (shorter) so reflow is masked before the width finishes. */
+        transition: opacity var(--dur-standard) var(--ease-sink), transform var(--dur-ritual) var(--ease-sink);
+    }
 }
 /* Focus toggle — corner button on the page (desktop only; mobile uses the back button instead). */
 .grim-focus-toggle {
@@ -5980,8 +5994,18 @@ kbd {
 .grim-bar-toggle svg { width: 18px; height: 18px; }
 .grim-bar-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
 .grim-bar-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); box-shadow: 0 0 10px var(--accent-glow); }
-.grim-detail { position: relative; padding-left: 22px; border-left: 1px solid var(--border); min-height: 320px; }
-.grim-list { display: flex; flex-direction: column; gap: 7px; }
+.grim-detail {
+    position: relative; padding-left: 22px; border-left: 1px solid var(--border); min-height: 320px;
+    flex: 1 1 0; min-width: 0;   /* flexible filler — shrinks to 0 as the list grows to full */
+    /* Expand (collapse class removed) animates toward this state → unhurried "veil-lift". */
+    transform: translateX(0) scale(1);
+    transition: opacity var(--dur-ritual) var(--ease-emerge), transform var(--dur-ritual) var(--ease-emerge);
+}
+.grim-list {
+    display: flex; flex-direction: column; gap: 7px;
+    flex: 0 0 244px; min-width: 0;   /* flex item in the layout; width driven below */
+    transition: flex-basis var(--dur-ritual) var(--ease-gothic);
+}
 .grim-list-head {
     display: flex; align-items: center; gap: 10px;
     font-family: var(--font-label); font-size: 10.5px; letter-spacing: 1.5px;
@@ -6060,6 +6084,28 @@ kbd {
     font-family: var(--font-label); font-size: 9.5px; letter-spacing: 1px;
     text-transform: uppercase; color: var(--text-muted); margin-top: 7px; opacity: 0.72;
 }
+/* Fold affordance on the open entry — a gothic tome that opens/closes. Two stacked
+   glyphs crossfade by the collapse state. Desktop only (mobile uses the back button). */
+.grim-leaf-fold {
+    display: none; position: relative; align-self: center; flex-shrink: 0;
+    width: 16px; height: 16px; margin-left: 2px;
+}
+@media (min-width: 641px) { .grim-leaf.active .grim-leaf-fold { display: block; } }
+.grim-leaf-fold .gf-open,
+.grim-leaf-fold .gf-closed {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); opacity: 0.5;
+    transition: opacity var(--dur-standard) var(--ease-gothic), color var(--transition);
+}
+.grim-leaf-fold .gf-closed { opacity: 0; }
+.grim-leaf-fold svg { width: 14px; height: 14px; }
+/* collapsed → clasped tome shows, open tome hides */
+.grim-layout.grim-note-collapsed .grim-leaf.active .grim-leaf-fold .gf-open { opacity: 0; }
+.grim-layout.grim-note-collapsed .grim-leaf.active .grim-leaf-fold .gf-closed { opacity: 0.5; }
+/* hover brightens whichever glyph is currently shown */
+.grim-leaf.active:hover .grim-leaf-fold .gf-open,
+.grim-layout.grim-note-collapsed .grim-leaf.active:hover .grim-leaf-fold .gf-closed { opacity: 1; color: var(--accent-hover); }
+
 .grim-leaf mark, .grim-page mark { background: rgba(160, 90, 255, 0.32); color: var(--text-primary); border-radius: 2px; padding: 0 1px; }
 
 /* staggered entrance for list entries */
@@ -6089,9 +6135,17 @@ kbd {
     background-position: left 12px top 12px, center;
     background-size: 30px 30px, auto;
     box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.10), inset 0 0 50px rgba(60, 8, 140, 0.10);
-    animation: grimPageIn 0.4s var(--ease-emerge) both;
+    /* Incoming note materialises — used when switching records (renderGrimDetail rebuilds
+       the page). The outgoing page sinks first via .grim-page--leaving (see grimOpen). */
+    animation: grimPageIn var(--dur-ritual) var(--ease-emerge) both;
 }
-@keyframes grimPageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes grimPageIn { from { opacity: 0; transform: translateY(14px) scale(0.994); } to { opacity: 1; transform: none; } }
+/* Outgoing page on a note→note switch — sink up + fade before the new one is rendered. */
+.grim-page--leaving {
+    animation: none;
+    opacity: 0; transform: translateY(-9px) scale(0.994); pointer-events: none;
+    transition: opacity 0.15s var(--ease-sink), transform 0.15s var(--ease-sink);
+}
 
 .grim-title-in, .grim-title-ro {
     width: 100%;
@@ -6478,7 +6532,8 @@ kbd {
 
 @media (max-width: 640px) {
     .grim-bar { flex-wrap: wrap; }
-    .grim-layout { grid-template-columns: 1fr; gap: 0; }
+    .grim-layout { flex-direction: column; gap: 0; }
+    .grim-list, .grim-detail { flex: none; width: 100%; }
     .grim-detail { display: none; padding-left: 0; border-left: none; }
     .grim-layout.show-detail .grim-list { display: none; }
     .grim-layout.show-detail .grim-detail { display: block; }

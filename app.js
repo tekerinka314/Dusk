@@ -562,8 +562,10 @@ let currentNoteId    = null;   // п11: open grimoire note id (uuid) or null
 let notesSearchQuery = '';     // п11: grimoire search filter
 let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
 let grimFocus        = 0;      // п11: focus level 0=both · 1=list rail · 2=list hidden (note full)
+let grimNoteCollapsed = false; // п11: transient — open note's pane folded away, full-width list (click open entry to toggle)
 let grimBarMode      = 'auto'; // п11: toolbar reveal — 'auto'(hover) | 'open'(pinned) | 'closed'(hidden)
 let _grimSaveT       = null;   // п11: debounced note-save timer
+let _grimSwapT       = null;   // п11: note→note crossfade timer (fade old page out, then render new)
 let grimSelectMode   = false;  // п11/1b: multi-select notes in the current segment
 let grimSelectedIds  = new Set();// п11/1b: ids of notes ticked in select mode
 let undoStack        = [];
@@ -1284,6 +1286,11 @@ const GIC = {
     hourglass: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3 H17.5 M6.5 21 H17.5"/><path d="M8 3.5 V6.5 L12 11 L16 6.5 V3.5"/><path d="M8 20.5 V17.5 L12 13 L16 17.5 V20.5"/></svg>`,
     // Gothic sword glyph (the app's .dl-month-chevron) — CSS rotates it to point left.
     back:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,
+    // Fold affordance — a gothic grimoire that opens/closes. Expanded = open tome
+    // (pages + ribbon bookmark); collapsed = clasped tome (spine bands, cross-sigil,
+    // strap). CSS crossfades between the two by the .grim-note-collapsed state.
+    foldOpen:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C9.7 5 6.3 5 4.2 6.1v12.6C6.3 17.7 9.7 17.7 12 19.2 14.3 17.7 17.7 17.7 19.8 18.7V6.1C17.7 5 14.3 5 12 6.5Z"/><path d="M12 6.5V19.2"/><path d="M6.2 9.6h3.4M6.2 12.1h3.4M6.2 14.6h2.4" opacity=".5"/><path d="M14.4 9.6h3.4M14.4 12.1h3.4M15.4 14.6h2.4" opacity=".5"/><path d="M12 19.2v2.6l1-.95 1 .95v-2.6"/></svg>`,
+    foldClosed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3.7h9.9a1.4 1.4 0 0 1 1.4 1.4v13.8a1.4 1.4 0 0 1-1.4 1.4H6.6Z"/><path d="M9.3 3.7v16.6"/><path d="M6.6 7h2.7M6.6 17h2.7" opacity=".6"/><path d="M13.4 8v5.3M10.9 10.65h5"/><path d="M12.2 15.8h3.6" opacity=".5"/><path d="M17.9 9.9h1.3a.55.55 0 0 1 .55.55v2.6a.55.55 0 0 1-.55.55h-1.3"/></svg>`,
     // Symmetric divider ornament (diamond flanked by two beads, centred about x=20).
     dividerFleur: `<svg viewBox="0 0 40 12" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.1"/><path d="M20 1.4 L24 6 L20 10.6 L16 6 Z" fill="currentColor" stroke="none"/><circle cx="34" cy="6" r="2.1"/></svg>`,
     // Focus toggle — list-rail glyph with an arrow (CSS flips it when focus is on).
@@ -1380,9 +1387,37 @@ function renderNotes() {
 // Map the current focus level onto the layout classes (only when a note is open).
 function _grimApplyFocus(layoutEl) {
     if (!layoutEl) return;
-    const lvl = currentNoteId ? grimFocus : 0;
+    if (!currentNoteId) grimNoteCollapsed = false;        // no open note → collapse is meaningless
+    const collapsed = !!currentNoteId && grimNoteCollapsed;
+    // Collapse (note pane → 0, full-width list) overrides the focus levels; mirror of grim-full.
+    layoutEl.classList.toggle('grim-note-collapsed', collapsed);
+    const lvl = (currentNoteId && !collapsed) ? grimFocus : 0;
     layoutEl.classList.toggle('grim-focus', lvl === 1);   // list → narrow rail
     layoutEl.classList.toggle('grim-full',  lvl === 2);   // list hidden → note fills container
+}
+
+// Desktop: fold the open record's pane away to browse the full-width list (selection kept),
+// or expand it again. Triggered by clicking the entry that is already open (toggle).
+function grimToggleCollapse() {
+    if (!currentNoteId) return;
+    clearTimeout(_grimSaveT); saveState();   // flush pending edits before folding the editor away
+    grimNoteCollapsed = !grimNoteCollapsed;
+    const layoutEl = document.getElementById('grim-layout');
+    _grimApplyFocus(layoutEl);
+    if (!grimNoteCollapsed) {                // re-expanded → restore editing + re-glue table overlay
+        if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
+        requestAnimationFrame(_grimReflowOverlay);
+        // The pane widens over the column transition — re-glue the overlay once it settles.
+        if (layoutEl) {
+            const onEnd = (ev) => {
+                if (ev.target === layoutEl && ev.propertyName === 'grid-template-columns') {
+                    layoutEl.removeEventListener('transitionend', onEnd);
+                    _grimReflowOverlay();
+                }
+            };
+            layoutEl.addEventListener('transitionend', onEnd);
+        }
+    }
 }
 
 // Focus CYCLE: both → list rail → list hidden (note full container) → both.
@@ -1515,13 +1550,17 @@ function _grimLeafHTML(n, q, i, animate) {
     const style = animate ? ` style="--i:${Math.min(i, 12)}"` : '';
     const onclick = sel ? `grimToggleSelectNote('${n.id}')` : `grimOpen('${n.id}')`;
     const check = sel ? `<span class="grim-leaf-check">${isSel ? IC.selectChecked : IC.selectEmpty}</span>` : '';
+    // Open (non-select) entry gets a fold affordance — re-click toggles its pane (desktop).
+    const isOpen = !sel && n.id === currentNoteId;
+    const fold = isOpen ? `<span class="grim-leaf-fold" aria-hidden="true"><span class="gf-open">${GIC.foldOpen}</span><span class="gf-closed">${GIC.foldClosed}</span></span>` : '';
+    const titleAttr = isOpen ? ' title="Клик — свернуть/развернуть запись"' : '';
     // Crypt entries restore/destroy from the read-only detail footer (clean index).
-    return `<button class="${cls}"${style} data-id="${n.id}" onclick="${onclick}">
+    return `<button class="${cls}"${style} data-id="${n.id}" onclick="${onclick}"${titleAttr}>
         ${check}<span class="grim-leaf-main">
             <span class="grim-leaf-t">${titleH}</span>
             ${snip ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
             <span class="grim-leaf-d">${grimDate(ts)}</span>
-        </span>
+        </span>${fold}
     </button>`;
 }
 
@@ -1564,12 +1603,12 @@ function renderGrimDetail() {
         ${backBtn}${barBtn}${focusBtn}
         <textarea class="grim-title-in" id="grim-title-in" maxlength="120" rows="1"
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
-               oninput="grimTitleInput(this)" onblur="grimCommit()" onkeydown="grimTitleKey(event)"></textarea>
+               oninput="grimTitleInput(this)" onblur="grimCommit(event)" onkeydown="grimTitleKey(event)"></textarea>
         <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
         ${_grimToolbarHTML()}
         <div class="grim-body" id="grim-body" contenteditable="true" spellcheck="false"
              data-placeholder="Начертайте запись…"
-             oninput="grimBodyInput(this)" onblur="grimCommit()" onpaste="plainTextPaste(event)"
+             oninput="grimBodyInput(this)" onblur="grimCommit(event)" onpaste="plainTextPaste(event)"
              onclick="grimBodyClick(event)" onkeydown="grimBodyKey(event)"></div>
         <div class="grim-meta">
             <span class="grim-date" title="Изменено">${GIC.hourglass}<span>${note.updatedAt ? grimDate(note.updatedAt) : 'новая запись'}</span></span>
@@ -1628,17 +1667,35 @@ function grimSetMode(mode) {
 
 // Open a record in the detail pane (persist pending edits of the previous one first).
 function grimOpen(id) {
-    if (id === currentNoteId) return;
+    if (id === currentNoteId) { grimToggleCollapse(); return; }   // re-click the open entry → fold/unfold its pane
+    grimNoteCollapsed = false;                                    // opening a different record always expands
     clearTimeout(_grimSaveT); saveState();
+    clearTimeout(_grimSwapT);
+
+    // Render the new note's page + restore editing focus. Split out so a note→note
+    // switch can defer it behind a brief fade-out of the outgoing page.
+    const showNew = () => {
+        renderGrimDetail();                       // new .grim-page → grimPageIn plays it in
+        const layoutEl = document.getElementById('grim-layout');
+        if (layoutEl) {
+            layoutEl.classList.add('show-detail');
+            _grimApplyFocus(layoutEl);            // honour persisted focus on open
+        }
+        if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
+    };
+
+    const detailEl = document.getElementById('grim-detail');
+    const oldPage = detailEl && detailEl.querySelector('.grim-page');
     currentNoteId = id;
-    renderGrimList(false);     // refresh active highlight, no entrance flicker
-    renderGrimDetail();
-    const layoutEl = document.getElementById('grim-layout');
-    if (layoutEl) {
-        layoutEl.classList.add('show-detail');
-        _grimApplyFocus(layoutEl);   // honour persisted focus on open
+    renderGrimList(false);                        // instant active-highlight feedback
+
+    if (oldPage && !prefersReducedMotion()) {
+        // Crossfade: sink the outgoing page, then materialise the new one.
+        oldPage.classList.add('grim-page--leaving');
+        _grimSwapT = setTimeout(showNew, 150);
+    } else {
+        showNew();
     }
-    if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
 }
 
 // Create a fresh empty note and drop straight into editing its title.
@@ -1651,6 +1708,7 @@ function grimNew() {
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
     currentNoteId = note.id;
+    grimNoteCollapsed = false;
     notesSearchQuery = '';
     const sb = document.getElementById('notes-search-box');
     if (sb) sb.value = '';
@@ -1668,8 +1726,9 @@ function grimNew() {
 function grimBack() {
     clearTimeout(_grimSaveT); saveState();
     currentNoteId = null;
+    grimNoteCollapsed = false;
     const layoutEl = document.getElementById('grim-layout');
-    if (layoutEl) layoutEl.classList.remove('show-detail');
+    if (layoutEl) layoutEl.classList.remove('show-detail', 'grim-note-collapsed');
     renderGrimList(false);
     renderGrimDetail();
 }
@@ -1714,15 +1773,42 @@ function grimBodyInput(el) {
 }
 
 // Blur (or pane switch) → flush save and re-sort/refresh the list (most-recent first).
-function grimCommit() {
+function grimCommit(e) {
     clearTimeout(_grimSaveT);
     saveState();
-    renderGrimList(false);
+    // If this blur was caused by clicking ANY list entry, a full rebuild would replace
+    // that entry's node mid-press and swallow the click (breaks single-click open and the
+    // re-click-to-collapse toggle) — so refresh in place, keeping node identity. Opening a
+    // different note runs its own renderGrimList (which re-sorts the edited note to the
+    // top). Only a blur that leaves the list entirely (clicking away, switching windows)
+    // does the full render here, so an edited note still bubbles up immediately.
+    const rt = e && e.relatedTarget;
+    const toLeaf = rt && rt.classList && rt.classList.contains('grim-leaf');
+    if (toLeaf) _grimSyncActiveLeaf();
+    else renderGrimList(false);
     // Body blur (e.g. switching windows) must NOT tear down the table overlay —
     // only drop the transient floaters; the seal/edit state survives the round-trip.
     _grimCloseTableMenu();
     const pk = document.getElementById('grim-table-pop'); if (pk) pk.remove();
     _grimScheduleTableUI();
+}
+
+// Reflect the open note's edited title/snippet into its existing list entry without
+// rebuilding the list, preserving the leaf's node identity (see grimCommit).
+function _grimSyncActiveLeaf() {
+    const note = _grimCurrentNote();
+    if (!note) return;
+    const leaf = document.querySelector(`#grim-list .grim-leaf[data-id="${note.id}"]`);
+    if (!leaf) return;
+    const titleRaw = (note.title || '').trim();
+    leaf.classList.toggle('untitled', !titleRaw);
+    const tEl = leaf.querySelector('.grim-leaf-t');
+    if (tEl) tEl.textContent = titleRaw || 'Без заглавия';
+    const snip = _grimPlain(note.body).slice(0, 120);
+    const sEl = leaf.querySelector('.grim-leaf-s');
+    if (sEl && !snip) sEl.remove();
+    else if (sEl) sEl.textContent = snip;
+    // A snippet first appearing on an initially-empty note shows on the next full render.
 }
 
 // Active note → permanent delete (two-step confirm, undoable).
