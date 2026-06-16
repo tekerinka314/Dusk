@@ -1484,29 +1484,102 @@ function _grimEmptyHTML() {
         <button class="grim-new-btn grim-empty-btn" onclick="grimNew()">${GIC.quill}<span>Начертать первую</span></button>`;
 }
 
+// ── п.7: list sort order ──────────────────────────────────────────────────────────
+// 'manual' keeps the drag order (the default); the rest are computed orderings that
+// disable DnD. Persisted in state.notesSort.
+// «По правке» is a HYBRID: records sort by edit recency by default, but a manual DnD
+// drag pins a record's spot (sticky `ord`); editing it again clears `ord` so it re-floats
+// to the top. So drag-to-arrange and edit-bubbling coexist — no separate «Вручную» mode.
+// «По созданию» / «По заглавию» are strict computed orders (DnD disabled).
+const GRIM_SORTS = [
+    { k: 'edited',  label: 'По правке'    },
+    { k: 'created', label: 'По созданию'  },
+    { k: 'title',   label: 'По заглавию'  },
+];
+const GRIM_SORT_SWORD = `<svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/><path d="M11 17L10 20H14L13 17"/><circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/></svg>`;
+
+// The compact sort dropdown for the active list head (reuses .dl-month-* visuals).
+function _grimSortControl() {
+    const cur = state.notesSort || 'manual';
+    const curLabel = (GRIM_SORTS.find(s => s.k === cur) || GRIM_SORTS[0]).label;
+    const opts = GRIM_SORTS.map(s =>
+        `<div class="dl-month-option${s.k === cur ? ' active' : ''}" role="option" aria-selected="${s.k === cur}" data-k="${s.k}" onclick="grimSetSort('${s.k}')">${s.label}</div>`
+    ).join('');
+    return `<div class="grim-sort dl-month-picker" id="grim-sort-picker">
+        <button class="grim-sort-trigger" id="grim-sort-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"
+                title="Порядок записей" onclick="grimToggleSortMenu(event)" onkeydown="grimSortTriggerKey(event)">
+            <span class="grim-sort-cur">${curLabel}</span>${GRIM_SORT_SWORD}
+        </button>
+        <div class="grim-sort-list dl-month-list" id="grim-sort-list" role="listbox" aria-hidden="true">${opts}</div>
+    </div>`;
+}
+function grimToggleSortMenu(e) {
+    if (e) e.stopPropagation();
+    const p = document.getElementById('grim-sort-picker');
+    if (!p) return;
+    const open = !p.classList.contains('open');
+    p.classList.toggle('open', open);
+    const tr = document.getElementById('grim-sort-trigger');
+    if (tr) tr.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const lst = document.getElementById('grim-sort-list');
+    if (lst) lst.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) document.addEventListener('click', _grimSortOutside);
+    else document.removeEventListener('click', _grimSortOutside);
+}
+function _grimSortOutside(e) {
+    const p = document.getElementById('grim-sort-picker');
+    if (p && !p.contains(e.target)) grimCloseSortMenu();
+}
+function grimCloseSortMenu() {
+    const p = document.getElementById('grim-sort-picker');
+    if (p) p.classList.remove('open');
+    const tr = document.getElementById('grim-sort-trigger');
+    if (tr) tr.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', _grimSortOutside);
+}
+function grimSortTriggerKey(e) {
+    if (e.key === 'Escape') { grimCloseSortMenu(); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); grimToggleSortMenu(e); }
+}
+function grimSetSort(k) {
+    if (!GRIM_SORTS.some(s => s.k === k)) return;
+    state.notesSort = k;
+    grimCloseSortMenu();
+    saveState();
+    renderGrimList(false);   // re-sort + rebuild head (active option highlight)
+}
+
 function renderGrimList(animate) {
     const listEl = document.getElementById('grim-list');
     if (!listEl) return;
-    const keyOf = grimMode === 'archive'
-        ? (n => n.archivedAt || n.updatedAt || 0)
-        // Active list: manual drag order (`ord`) wins; otherwise fall back to
-        // updatedAt so a freshly edited note (which drops its ord) bubbles up.
-        : (n => (n.ord != null ? n.ord : (n.updatedAt || 0)));
-    // Active grimoire: pinned records float to the top as a block; within each block
-    // (pinned / rest) the usual ord→updatedAt order holds. Crypt ignores pin.
+    // п.7: chosen sort for the active grimoire (crypt is always archived-recent first).
+    if (state.notesSort === 'manual') state.notesSort = 'edited';   // legacy mode folded into the hybrid
+    const sort = grimMode === 'archive' ? 'archived' : (state.notesSort || 'edited');
+    const _UNTITLED_KEY = String.fromCharCode(0xffff);          // high code unit → untitled sinks last
+    const titleKey = n => ((n.title || '').trim() || _UNTITLED_KEY);
+    const cmp = {
+        archived: (a, b) => (b.archivedAt || b.updatedAt || 0) - (a.archivedAt || a.updatedAt || 0),
+        // hybrid: manual `ord` pins a spot, else fall back to updatedAt (edit recency).
+        edited:   (a, b) => ((b.ord != null ? b.ord : (b.updatedAt || 0)) - (a.ord != null ? a.ord : (a.updatedAt || 0))),
+        created:  (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+        title:    (a, b) => titleKey(a).localeCompare(titleKey(b), 'ru', { sensitivity: 'base' }),
+    }[sort] || (() => 0);
+    // Pinned records float to the top as a block (active only); within each block the
+    // chosen comparator orders them. Crypt ignores pin.
     const all = _grimList().slice().sort((a, b) => {
         if (grimMode !== 'archive') {
             const pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
             if (pa !== pb) return pb - pa;
         }
-        return keyOf(b) - keyOf(a);
+        return cmp(a, b);
     });
     const q = notesSearchQuery.toLowerCase();
     const shown = q
         ? all.filter(n => (n.title || '').toLowerCase().includes(q) || _grimPlain(n.body).toLowerCase().includes(q))
         : all;
     const label = grimMode === 'archive' ? 'Склеп' : 'Записи';
-    const head = `<div class="grim-list-head"><span>${q ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span></div>`;
+    const sortCtl = grimMode === 'active' ? _grimSortControl() : '';
+    const head = `<div class="grim-list-head"><span>${q ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span>${sortCtl}</div>`;
     const body = shown.length
         ? shown.map((n, i) => _grimLeafHTML(n, q, i, animate)).join('')
         : `<div class="grim-list-none">Ничего не найдено</div>`;
@@ -1515,13 +1588,16 @@ function renderGrimList(animate) {
 }
 
 // Manual reorder of grimoire entries (DnD). Active grimoire only — disabled in the
-// crypt, under search, and in multi-select. The list head stays a fixed anchor.
+// crypt, under search, in multi-select, and under the computed orders (created/title,
+// where `ord` is ignored). Enabled in the hybrid «По правке». List head is a fixed anchor.
 let _grimListSortable = null;
 function _grimInitListSortable() {
     if (_grimListSortable) { _grimListSortable.destroy(); _grimListSortable = null; }
     const listEl = document.getElementById('grim-list');
     if (!listEl) return;
     if (grimMode !== 'active' || grimSelectMode || notesSearchQuery.trim()) return;
+    const effSort = state.notesSort === 'manual' ? 'edited' : (state.notesSort || 'edited');
+    if (effSort !== 'edited') return;   // DnD only in the hybrid «По правке»; computed orders disable it
     if (listEl.querySelectorAll('.grim-leaf').length < 2) return;
     _grimListSortable = new Sortable(listEl, {
         animation: 200,
@@ -1687,6 +1763,7 @@ function grimSetMode(mode) {
     if (mode === grimMode) return;
     clearTimeout(_grimSaveT); saveState();
     grimFindClose();
+    grimCloseSortMenu();
     if (grimSelectMode) _grimExitSelect();   // 1b: leave select mode on segment switch
     grimMode = mode;
     currentNoteId = null;

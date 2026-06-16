@@ -5957,6 +5957,7 @@ kbd {
     .grim-layout.grim-focus.show-detail .grim-leaf { padding: 8px 9px 8px 11px; }
     .grim-layout.grim-focus.show-detail .grim-leaf-t { font-size: 13px; }
     .grim-layout.grim-focus.show-detail .grim-list-head { font-size: 9px; letter-spacing: 1px; }
+    .grim-layout.grim-focus.show-detail .grim-sort-trigger { font-size: 9px; padding: 2px 3px 2px 5px; }
     /* Full mode — list shrinks to zero width, the page fills the container. */
     .grim-layout.grim-full.show-detail { gap: 0; }
     .grim-layout.grim-full.show-detail .grim-list { flex-basis: 0; overflow: hidden; min-width: 0; opacity: 0; pointer-events: none; }
@@ -6013,14 +6014,36 @@ kbd {
     transition: flex-basis var(--dur-ritual) var(--ease-gothic);
 }
 .grim-list-head {
-    display: flex; align-items: center; gap: 10px;
+    position: relative;
+    display: flex; align-items: center; gap: 8px;
     font-family: var(--font-label); font-size: 10.5px; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--text-muted); padding: 0 2px 6px;
+    text-transform: uppercase; color: var(--text-muted); padding: 0 2px 8px;
 }
+/* Count label never wraps — it shares the row with the sort control. */
+.grim-list-head > span { white-space: nowrap; flex-shrink: 0; }
+/* Divider is a full-width underline (was a dim growing bar between the two that also
+   squeezed the count onto a second line). Always visible, steals no horizontal space. */
 .grim-list-head::after {
-    content: ''; flex: 1; height: 1px;
-    background: linear-gradient(90deg, rgba(130,50,220,0.40), transparent);
+    content: ''; position: absolute; left: 2px; right: 2px; bottom: 0; height: 1px;
+    background: linear-gradient(90deg,
+        rgba(150,70,240,0.60) 0%, rgba(146,66,236,0.34) 30%, rgba(140,60,230,0.18) 50%,
+        rgba(146,66,236,0.34) 70%, rgba(150,70,240,0.60) 100%);
 }
+/* п.7: compact sort dropdown, pushed to the head's right edge. */
+.grim-sort { flex-shrink: 0; margin-left: auto; }
+.grim-sort-trigger {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+    color: var(--text-muted); cursor: pointer; padding: 2px 5px 2px 7px;
+    font-family: var(--font-label); font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.grim-sort-trigger:hover { color: var(--accent-hover); border-color: var(--border); background: var(--accent-soft); }
+.dl-month-picker.open .grim-sort-trigger { color: var(--accent-hover); border-color: var(--border-mid); }
+.grim-sort-cur { white-space: nowrap; }
+/* Right-anchored, content-width popup (the shared rule stretches it full-width otherwise). */
+.grim-sort .dl-month-list { left: auto; right: 0; min-width: 150px; }
+.grim-sort .dl-month-option { font-size: 13px; padding: 8px 14px; }
 .grim-list-none {
     font-size: 14px; font-style: italic; color: var(--text-muted);
     padding: 16px 4px; text-align: center; opacity: 0.85;
