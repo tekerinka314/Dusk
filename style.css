@@ -6482,12 +6482,17 @@ kbd {
     font-size: 34px; color: var(--accent); opacity: 0.18; pointer-events: none;
 }
 .grim-body code, .grim-body--ro code {
-    /* inline-block → one rectangular container with a fully closed border; long code
-       wraps INSIDE the box instead of fragmenting into open-edged inline pieces */
+    /* inline-block → one rectangular container; long code wraps INSIDE instead of
+       fragmenting into open-edged inline pieces. Backticks flank it (markdown-authentic). */
     display: inline-block; max-width: 100%; vertical-align: bottom;
-    font-family: var(--font-mono); font-size: 13px; background: rgba(34, 12, 78, 0.82);
-    border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--accent-hover);
+    font-family: var(--font-mono); font-size: 13px;
+    background: rgba(120, 50, 210, 0.13); border-radius: 3px;
+    padding: 1px 5px; color: var(--accent-hover);
     overflow-wrap: anywhere; word-break: break-word;
+}
+.grim-body code::before, .grim-body code::after,
+.grim-body--ro code::before, .grim-body--ro code::after {
+    content: '\0060'; opacity: 0.5; color: var(--accent-hover); font-weight: 400;
 }
 /* п.8: multi-line code block — an engraved stone tablet: full thin frame + an inset
    second rule (the gap matches the slab fill, so it reads as a carved double border),
