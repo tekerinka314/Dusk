@@ -178,20 +178,19 @@ select:focus-visible { outline: none; box-shadow: none; }
 body {
     font-family: var(--font-main);
     background-color: var(--bg-page);
-    /* PERF-3: Changed from background-attachment:fixed to scroll.
-       fixed forces software repaints on every scroll frame in iOS Safari
-       (background compositing is disabled in that browser for fixed attachments).
-       At max-width:640px the parallax effect was imperceptible — scroll is correct. */
-    background-image: url('bg-gothic.jpg');
-    background-size: cover;
-    background-position: center 18%;
-    background-attachment: scroll;
     color: var(--text-primary);
     min-height: 100vh;
     font-size: 16px;
     line-height: 1.65;
 }
 
+/* Background image lives on this FIXED, viewport-sized layer (not on <body> with
+   attachment:scroll). On <body> the `cover` was computed against the full scroll
+   height, so the photo re-zoomed/cropped whenever content height changed (toggling
+   a note open/closed, short Tasks tab, etc.). A fixed inset:0 layer makes `cover`
+   resolve against the viewport — stable framing, no crop on content change. This
+   also dodges the iOS Safari repaint cost of background-attachment:fixed (PERF-3):
+   a fixed pseudo-element with a static background is composited, never re-rastered. */
 body::before {
     content: '';
     position: fixed;
@@ -205,7 +204,8 @@ body::before {
             rgba(2, 0, 10, 0.78) 100%),
         radial-gradient(ellipse 90% 70% at 50% -10%, rgba(80, 20, 170, 0.35) 0%, transparent 65%),
         radial-gradient(ellipse 50% 40% at 5% 80%, rgba(60, 15, 130, 0.2) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 35% at 95% 60%, rgba(50, 10, 110, 0.15) 0%, transparent 60%);
+        radial-gradient(ellipse 40% 35% at 95% 60%, rgba(50, 10, 110, 0.15) 0%, transparent 60%),
+        url('bg-gothic.jpg') center 18% / cover no-repeat;
 }
 
 body::after {
