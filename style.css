@@ -6489,32 +6489,18 @@ kbd {
     border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--accent-hover);
     overflow-wrap: anywhere; word-break: break-word;
 }
-/* п.8: multi-line code block — distinct from the quote's left rail. Four carved corner
-   brackets (engraved-marks motif) over a faint inset fill; no full frame, no rail.
-   Each corner = a short horizontal + vertical tick (8 gradient layers). Newlines kept,
-   long lines wrap (no horizontal scroll in the narrow note pane). */
+/* п.8: multi-line code block — an engraved stone tablet: full thin frame + an inset
+   second rule (the gap matches the slab fill, so it reads as a carved double border),
+   sharp corners. Distinct from the quote's single left rail. Newlines kept, long lines
+   wrap (no horizontal scroll in the narrow note pane). */
 .grim-body pre, .grim-body--ro pre {
-    --cc: rgba(180, 110, 255, 0.82);            /* carved-tick colour */
     font-family: var(--font-mono); font-size: 13px; line-height: 1.55;
     white-space: pre-wrap; word-break: break-word; tab-size: 2;
-    margin: 14px 0; padding: 14px 18px;
-    background-color: rgba(12, 5, 32, 0.55); color: var(--accent-hover);
-    background-repeat: no-repeat;
-    background-image:
-        linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)),   /* top-left  h,v */
-        linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)),   /* top-right h,v */
-        linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)),   /* bot-left  h,v */
-        linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc));   /* bot-right h,v */
-    background-size:
-        15px 1.5px, 1.5px 15px,
-        15px 1.5px, 1.5px 15px,
-        15px 1.5px, 1.5px 15px,
-        15px 1.5px, 1.5px 15px;
-    background-position:
-        left top, left top,
-        right top, right top,
-        left bottom, left bottom,
-        right bottom, right bottom;
+    margin: 14px 0; padding: 14px 17px;
+    background: #0b0420; color: var(--accent-hover);
+    border: 1px solid rgba(150, 80, 240, 0.45); border-radius: 2px;
+    box-shadow: inset 0 0 0 3px #0b0420, inset 0 0 0 4px rgba(120, 50, 210, 0.30),
+                0 0 14px rgba(80, 20, 180, 0.12);
 }
 .grim-body hr, .grim-body--ro hr {
     border: none; height: 14px; margin: 14px 0; background-repeat: no-repeat; background-position: center;
