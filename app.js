@@ -1633,6 +1633,40 @@ function _grimPersistOrder() {
     saveState();
 }
 
+// п.9 note colour (variant C — glow). Derive a contrast-safe "ink" version of any
+// note colour: lift lightness into a readable band so even a near-black RGB-picker
+// pick stays legible on the dark page. The raw colour drives only the soft halo;
+// this ink drives anything that must READ (title text, divider fleur, leaf bar).
+// Pure CSS color-mix can't guarantee a luminance floor — hence JS.
+function _grimInk(hex) {
+    const m = /^#?([0-9a-fA-F]{6})$/.exec(hex || '');
+    if (!m) return hex || '#B06CF5';
+    const r = parseInt(m[1].slice(0, 2), 16) / 255, g = parseInt(m[1].slice(2, 4), 16) / 255, b = parseInt(m[1].slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    let h = 0, s = 0, l = (max + min) / 2;
+    if (d) {
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        if (max === r) h = ((g - b) / d) % 6; else if (max === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+        h *= 60; if (h < 0) h += 360;
+    }
+    l = Math.min(0.82, Math.max(0.64, l));               // readable on near-black, never blinding
+    if (s > 0) s = Math.max(0.45, Math.min(s, 0.85));    // keep a clear tint (true greys stay grey)
+    const cc = (1 - Math.abs(2 * l - 1)) * s, x = cc * (1 - Math.abs(((h / 60) % 2) - 1)), mm = l - cc / 2;
+    let rr = 0, gg = 0, bb = 0;
+    if (h < 60)       { rr = cc; gg = x; }
+    else if (h < 120) { rr = x;  gg = cc; }
+    else if (h < 180) { gg = cc; bb = x; }
+    else if (h < 240) { gg = x;  bb = cc; }
+    else if (h < 300) { rr = cc; bb = x; }
+    else              { rr = cc; bb = x; }
+    const hx = v => Math.round((v + mm) * 255).toString(16).padStart(2, '0');
+    return '#' + hx(rr) + hx(gg) + hx(bb);
+}
+// Inline style fragment carrying both colour vars for a note element (leaf / page).
+function _grimColorVars(n) {
+    return n && n.color ? `--nc:${n.color};--nc-ink:${_grimInk(n.color)}` : '';
+}
+
 function _grimLeafHTML(n, q, i, animate) {
     const titleRaw = (n.title || '').trim();
     const title = titleRaw || 'Без заглавия';
@@ -1642,8 +1676,11 @@ function _grimLeafHTML(n, q, i, animate) {
     const sel   = grimSelectMode;
     const isSel = sel && grimSelectedIds.has(n.id);
     const isPinned = !!n.pinned && grimMode !== 'archive';   // pin is meaningless in the crypt
-    const cls = `grim-leaf${!sel && n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}${sel ? ' grim-leaf--select' : ''}${isSel ? ' selected' : ''}${isPinned ? ' pinned' : ''}`;
-    const style = animate ? ` style="--i:${Math.min(i, 12)}"` : '';
+    const cls = `grim-leaf${!sel && n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}${sel ? ' grim-leaf--select' : ''}${isSel ? ' selected' : ''}${isPinned ? ' pinned' : ''}${n.color ? ' has-color' : ''}`;
+    const styleVars = [];
+    if (animate) styleVars.push(`--i:${Math.min(i, 12)}`);
+    if (n.color) styleVars.push(_grimColorVars(n));   // п.9 colour glow
+    const style = styleVars.length ? ` style="${styleVars.join(';')}"` : '';
     const onclick = sel ? `grimToggleSelectNote('${n.id}')` : `grimOpen('${n.id}')`;
     const check = sel ? `<span class="grim-leaf-check">${isSel ? IC.selectChecked : IC.selectEmpty}</span>` : '';
     // Forged iron spike driven into the corner of a pinned record (same motif as tasks).
@@ -1678,10 +1715,14 @@ function renderGrimDetail() {
     const backBtn = `<button class="grim-back" onclick="grimBack()" title="К списку">${GIC.back}</button>`;
     const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" data-lvl="${grimFocus}" onclick="grimToggleFocus()" aria-label="${GRIM_FOCUS_TITLE[grimFocus]}" title="${GRIM_FOCUS_TITLE[grimFocus]}">${GIC.focusLvl[grimFocus]}</button>`;
     const barBtn = `<button class="grim-bar-toggle${grimBarMode === 'open' ? ' on' : ''}" data-mode="${grimBarMode}" onclick="grimToggleBar()" aria-label="${GRIM_BAR_TITLE[grimBarMode]}" title="${GRIM_BAR_TITLE[grimBarMode]}">${GIC.barLvl[grimBarMode]}</button>`;
+    // п.9 note colour: ink-tinted title/fleur + soft raw-colour glow.
+    const colorCls = note.color ? ' has-color' : '';
+    const colorVars = _grimColorVars(note);
+    const colorStyle = colorVars ? ` style="${colorVars}"` : '';
 
     if (grimMode === 'archive') {
         // Read-only crypt view: restore / destroy.
-        detailEl.innerHTML = `<div class="grim-page grim-page--ro">
+        detailEl.innerHTML = `<div class="grim-page grim-page--ro${colorCls}"${colorStyle}>
             ${backBtn}${focusBtn}
             <div class="grim-title-ro">${escHtml((note.title || '').trim() || 'Без заглавия')}</div>
             <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
@@ -1697,7 +1738,7 @@ function renderGrimDetail() {
         return;
     }
 
-    detailEl.innerHTML = `<div class="grim-page${grimBarMode === 'open' ? ' bar-open' : grimBarMode === 'closed' ? ' bar-closed' : ''}">
+    detailEl.innerHTML = `<div class="grim-page${grimBarMode === 'open' ? ' bar-open' : grimBarMode === 'closed' ? ' bar-closed' : ''}${colorCls}"${colorStyle}>
         ${backBtn}${barBtn}${focusBtn}
         <textarea class="grim-title-in" id="grim-title-in" maxlength="120" rows="1"
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
@@ -1715,6 +1756,7 @@ function renderGrimDetail() {
             </div>
             <span class="grim-acts">
                 <button class="grim-act is-pin${note.pinned ? ' active' : ''}" onclick="grimTogglePin('${note.id}')" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
+                <button class="grim-act is-color${note.color ? ' active' : ''}" onclick="openGrimColorModal('${note.id}')" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg><span>цвет</span></button>
                 <button class="grim-act" onclick="grimDuplicate('${note.id}')" title="Сделать копию записи">${IC.twinCoffin}<span>копия</span></button>
                 <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
                 <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
@@ -1815,7 +1857,7 @@ function grimNew() {
     grimFindClose();
     pushUndo();
     const now = Date.now();
-    const note = { id: uid(), title: '', body: '', fmt: true, createdAt: now, updatedAt: now };
+    const note = { id: uid(), title: '', body: '', fmt: true, color: null, createdAt: now, updatedAt: now };
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
     currentNoteId = note.id;
@@ -7710,6 +7752,22 @@ document.getElementById('modal-prio-selector').addEventListener('click', e => {
 });
 
 // ─── Task color modal ────────────────────────────────────────────────────────
+// п.9: a grimoire note reuses the very same colour modal (presets + RGB spectrum +
+// "без цвета"). This flag routes _commitColorChoice / close back to the note.
+let noteColorActive = false;
+let editingNoteColorId = null;
+function openGrimColorModal(id) {
+    const note = (state.notes || []).find(n => n.id === id);
+    if (!note) return;
+    noteColorActive = true; bulkColorActive = false; formColorActive = false; editingTaskId = null;
+    editingNoteColorId = id;
+    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
+        s.classList.toggle('active', s.dataset.color === (note.color || ''))
+    );
+    _grgbSyncFromColor(note.color, 'task');   // reuse the task-color-modal spectrum scope
+    openModalWithFocus('task-color-modal');
+}
+
 function openTaskColorModal(id) {
     editingTaskId = id;
     bulkColorActive = false;   // P-D: normal per-task open clears any stale bulk flag
@@ -7741,6 +7799,7 @@ function closeTaskColorModal(event) {
     if (!event || event.target === document.getElementById('task-color-modal')) {
         bulkColorActive = false;   // P-D: cancelling bulk must not leak into the next open
         formColorActive = false;
+        noteColorActive = false; editingNoteColorId = null;   // п.9: same for the note route
         closeModalWithAnim('task-color-modal', () => { editingTaskId = null; });
         if (!event) editingTaskId = null;
     }
@@ -7750,6 +7809,20 @@ function closeTaskColorModal(event) {
 // spectrum, or "без цвета". Branches on bulkColorActive so bulk and per-task reuse it.
 function _commitColorChoice(color) {
     const c = color || null; // '' / undefined → null = no colour
+    if (noteColorActive) {
+        noteColorActive = false;
+        const note = (state.notes || []).find(n => n.id === editingNoteColorId);
+        editingNoteColorId = null;
+        if (note) {
+            pushUndo();
+            note.color = c;   // colour is a label, like pin — does NOT bump updatedAt / re-sort
+            saveState();
+            renderNotes();
+        }
+        closeModalWithAnim('task-color-modal');
+        showToast(c ? 'Цвет записи установлен' : 'Цвет снят');
+        return;
+    }
     if (formColorActive) {
         formColorActive = false;
         _setFormColor(c);

@@ -6602,7 +6602,7 @@ kbd {
 .grim-date svg { width: 13px; height: 13px; flex-shrink: 0; }
 .grim-date span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Actions = real buttons: visible rest state (border + bg), icon + label. */
-.grim-acts { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.grim-acts { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
 .grim-act {
     display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
     background: var(--bg-item); border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -6625,6 +6625,48 @@ kbd {
     animation: dangerPulse 0.5s ease infinite alternate;
 }
 .grim-act.danger.confirm-armed svg { color: var(--prio-high); }
+
+/* ── п.9 note colour — variant C (glow) ──────────────────────────────────────
+   --nc = raw picked colour (soft halo only); --nc-ink = JS lightness-clamped,
+   contrast-safe version that drives anything that must READ on the dark page. */
+
+/* List leaf has overflow:hidden → the glow must be INSET (an outer shadow would be
+   clipped). Border tint + inset halo + ink-tinted bar + ink-tinted title. */
+.grim-leaf.has-color {
+    border-color: color-mix(in srgb, var(--nc-ink) 36%, var(--border));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nc-ink) 22%, transparent),
+                inset 0 0 12px color-mix(in srgb, var(--nc) 15%, transparent);
+}
+.grim-leaf.has-color::before {
+    background: linear-gradient(180deg, var(--nc-ink), color-mix(in srgb, var(--nc) 45%, transparent));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--nc) 50%, transparent);
+}
+/* Colour the WHOLE list entry — title, snippet body, date, glyphs — but keep the
+   ORIGINAL brightness hierarchy: tint each with the same ink at the relative
+   strength it had (title brightest → snippet → date dimmest; the date glyph stays
+   a touch brighter than its label, as --accent-hover was vs --text-muted). The
+   date element's own opacity:0.72 still applies, so it lands below the snippet. */
+.grim-leaf.has-color .grim-leaf-t { color: var(--nc-ink); text-shadow: 0 0 9px color-mix(in srgb, var(--nc) 32%, transparent); }
+.grim-leaf.has-color .grim-leaf-s { color: color-mix(in srgb, var(--nc-ink) 64%, transparent); }
+.grim-leaf.has-color .grim-leaf-d { color: color-mix(in srgb, var(--nc-ink) 70%, transparent); }
+.grim-leaf.has-color .grim-leaf-d svg { color: var(--nc-ink); }
+.grim-leaf.has-color .grim-snip-ic { color: var(--nc-ink); }   /* body structure glyphs, brighter than snippet text — as --accent-hover was */
+.grim-leaf.has-color .grim-leaf-fold svg { color: var(--nc-ink); }
+.grim-leaf.has-color:hover::before { background: linear-gradient(180deg, var(--nc-ink), color-mix(in srgb, var(--nc) 55%, transparent)); box-shadow: 0 0 10px color-mix(in srgb, var(--nc) 60%, transparent); }
+/* active wash still owns the bg; keep the colour bar + inset halo on top of it */
+.grim-leaf.has-color.active {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nc-ink) 28%, transparent),
+                inset 0 0 14px color-mix(in srgb, var(--nc) 14%, transparent);
+}
+
+/* Detail page stays ENTIRELY original (per request): title default heading colour,
+   divider/fleur original violet. The note's colour lives in the list + the «цвет»
+   button only — the open page is a neutral reading surface. */
+
+/* Colour act button: crystal fills with the note's ink when a colour is set. */
+.grim-act.is-color.active { color: var(--nc-ink); border-color: color-mix(in srgb, var(--nc-ink) 50%, var(--border)); }
+.grim-act.is-color.active svg { color: var(--nc-ink); }
+.grim-act.is-color.active svg path { fill: color-mix(in srgb, var(--nc) 40%, transparent); }
 
 /* mobile "back to list" — hidden on desktop (both panes visible) */
 .grim-back {
