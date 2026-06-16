@@ -2389,7 +2389,7 @@ function migrateNotes() {
 }
 
 // Whitelist sanitizer — only the tags/attrs the editor produces survive.
-const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,S:1,STRIKE:1,DEL:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,HR:1,A:1,DIV:1,SPAN:1,
+const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,S:1,STRIKE:1,DEL:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,PRE:1,HR:1,A:1,DIV:1,SPAN:1,
                     TABLE:1,THEAD:1,TBODY:1,TR:1,TH:1,TD:1 };
 function _grimSanitize(html) {
     const root = document.createElement('div');
@@ -2669,6 +2669,125 @@ function grimInlineCode() {
     }
     _grimAfterEdit(bo);
 }
+
+// ── п.8: multi-line code block (<pre>) ──────────────────────────────────────
+// Walk up to the enclosing <pre>, if the caret sits inside one.
+function _grimClosestPre(node, bo) {
+    let n = node;
+    while (n && n !== bo) { if (n.tagName === 'PRE') return n; n = n.parentNode; }
+    return null;
+}
+// Toolbar / ``` → drop a code block at the caret (selected text becomes its body,
+// newlines preserved). Inserted via insertHTML so it joins the native undo stack.
+function grimCodeBlock() {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    if (_grimClosestPre(sel.anchorNode, bo)) return;        // never nest blocks
+    const zwsp = String.fromCharCode(0x200B);
+    const text = sel.toString();
+    const inner = text ? escHtml(text) : zwsp;              // ZWSP holds the caret when empty
+    document.execCommand('insertHTML', false, '<pre data-gtnew="1">' + inner + '</pre><p data-gtnew2="1"><br></p>');
+    const pre = bo.querySelector('pre[data-gtnew]');
+    if (pre) {
+        pre.removeAttribute('data-gtnew');
+        const r = document.createRange();
+        if (pre.firstChild && pre.firstChild.nodeType === 3) r.setStart(pre.firstChild, pre.firstChild.textContent.length);
+        else { r.selectNodeContents(pre); r.collapse(false); }
+        r.collapse(true);
+        sel.removeAllRanges(); sel.addRange(r);
+    }
+    const np = bo.querySelector('p[data-gtnew2]');
+    if (np) np.removeAttribute('data-gtnew2');
+    _grimAfterEdit(bo);
+}
+// A line that is exactly ``` + Enter opens an empty code block (markdown trigger).
+function _grimCodeFenceEnter(e) {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    if (!bo || !sel || !sel.rangeCount || !sel.isCollapsed) return false;
+    // Climb to the top-level line under #grim-body (an element OR a bare text node —
+    // a fresh, never-wrapped body types text straight into #grim-body).
+    let blk = sel.anchorNode;
+    while (blk && blk.parentNode && blk.parentNode !== bo) blk = blk.parentNode;
+    if (!blk || blk.parentNode !== bo || _grimClosestPre(blk, bo)) return false;
+    if (blk.textContent.trim() !== '```') return false;
+    e.preventDefault();
+    const zwsp = String.fromCharCode(0x200B);
+    const pre = document.createElement('pre');
+    pre.textContent = zwsp;
+    const np = document.createElement('p');
+    np.appendChild(document.createElement('br'));
+    blk.parentNode.insertBefore(pre, blk);
+    blk.parentNode.insertBefore(np, pre.nextSibling);
+    blk.remove();
+    const r = document.createRange();
+    r.setStart(pre.firstChild, 1);
+    r.collapse(true);
+    sel.removeAllRanges(); sel.addRange(r);
+    _grimAfterEdit(bo);
+    return true;
+}
+// Enter inside a code block = newline; Enter on an empty trailing line exits the block
+// to the paragraph below it (Shift+Enter always inserts a newline, never exits).
+function _grimPreEnter(e) {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    if (!bo || !sel || !sel.rangeCount) return false;
+    const pre = _grimClosestPre(sel.anchorNode, bo);
+    if (!pre) return false;
+    e.preventDefault();
+    const zwsp = String.fromCharCode(0x200B);
+    const strip = s => s.split(zwsp).join('');
+    const cur = sel.getRangeAt(0);
+    const tailR = document.createRange();
+    tailR.selectNodeContents(pre);
+    tailR.setStart(cur.endContainer, cur.endOffset);
+    const atEnd = strip(tailR.toString()) === '';
+    const raw = strip(pre.textContent);
+    const endsNl = /\n$/.test(raw);
+    if (!e.shiftKey && atEnd && (raw === '' || endsNl)) {
+        if (endsNl) pre.textContent = strip(pre.textContent).replace(/\n$/, '');
+        let np = pre.nextElementSibling;
+        if (!np || np.tagName !== 'P') {
+            np = document.createElement('p');
+            np.appendChild(document.createElement('br'));
+            pre.parentNode.insertBefore(np, pre.nextSibling);
+        }
+        if (strip(pre.textContent) === '') pre.remove();
+        _grimCaretToStart(np);
+        _grimAfterEdit(bo);
+        return true;
+    }
+    // Insert a real newline char (execCommand('insertText','\n') is swallowed by Chrome
+    // inside contenteditable, so do it by hand). A trailing newline needs a follow-up
+    // ZWSP so the caret has somewhere to land on the fresh, otherwise-empty last line.
+    const r = cur;
+    r.deleteContents();
+    const atVeryEnd = strip(tailR.toString()) === '';
+    const tn = document.createTextNode(atVeryEnd ? '\n' + zwsp : '\n');
+    r.insertNode(tn);
+    const caret = document.createRange();
+    caret.setStart(tn, 1);                 // just after the '\n' (before the ZWSP if present)
+    caret.collapse(true);
+    sel.removeAllRanges(); sel.addRange(caret);
+    _grimAfterEdit(bo);
+    return true;
+}
+// Tab inside a code block inserts two spaces instead of leaving the editor.
+function _grimPreTab(e) {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    if (!bo || !sel || !sel.rangeCount) return false;
+    if (!_grimClosestPre(sel.anchorNode, bo)) return false;
+    e.preventDefault();
+    document.execCommand('insertText', false, '  ');
+    _grimAfterEdit(bo);
+    return true;
+}
+
 // Link is set via a gothic modal (no native prompt). Selection is captured
 // before the modal steals focus, then restored on confirm.
 let _grimLinkRange = null, _grimLinkAnchor = null;
@@ -2763,7 +2882,11 @@ function grimBodyKey(e) {
     // a second Backspace then merges into the previous line as usual.
     if (e.key === 'Escape' && _grimDismissTableUI()) return;   // staged dismiss: picker → menu → edit-mode
     if (e.key === 'Tab' && _grimTableTab(e)) return;     // walk table cells
+    if (e.key === 'Tab' && _grimPreTab(e)) return;       // п.8: Tab → 2 spaces inside a code block
     if (e.key === 'Backspace' && _grimBackspaceOutdent(e)) return;
+    // п.8: ``` + Enter opens a code block; Enter inside one = newline / exit on empty tail.
+    if (e.key === 'Enter' && !e.shiftKey && _grimCodeFenceEnter(e)) return;
+    if (e.key === 'Enter' && _grimPreEnter(e)) return;
     // Plain Enter inside a quote/inline-code exits to a normal paragraph
     // (Shift+Enter still inserts a soft line break inside the block).
     if (e.key === 'Enter' && !e.shiftKey && _grimExitOnEnter(e)) return;
@@ -2869,6 +2992,7 @@ function _grimSyncToolbar() {
         const block = (document.queryCommandValue('formatBlock') || '').toLowerCase();
         ['h1','h2','h3'].forEach(h => set(h, block === h));
         set('quote', block === 'blockquote');
+        set('codeblock', !!_grimClosestPre(sel && sel.anchorNode, bo));   // п.8
     } catch (_) { /* queryCommand* can throw if not focused */ }
 }
 
@@ -3297,6 +3421,8 @@ const FIC = {
     task:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="6" height="6" rx="1.2"/><path d="M4.5 7.5l1 1 2-2.2"/><rect x="3" y="14" width="6" height="6" rx="1.2"/><path d="M12 7.5h9M12 17h9"/></svg>`,
     quote:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7c-2 0-3.5 1.6-3.5 3.6S7 14 9 14c0 2-1.2 3-3 3.4M19 7c-2 0-3.5 1.6-3.5 3.6S17 14 19 14c0 2-1.2 3-3 3.4"/></svg>`,
     code:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4"/></svg>`,
+    // Multi-line code block — the inline </> motif framed in a panel (a code "tablet").
+    codeBlock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M10 10l-2.2 2 2.2 2M14 10l2.2 2-2.2 2"/></svg>`,
     hr:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="9" y2="12"/><path d="M12 9.5l2.2 2.5-2.2 2.5-2.2-2.5z" fill="currentColor" stroke="none"/><line x1="15" y1="12" x2="21" y2="12"/></svg>`,
     link:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 6 .5l2.5-2.5a4 4 0 0 0-5.6-5.6L11 8"/><path d="M14 10a4 4 0 0 0-6-.5L5.5 12a4 4 0 0 0 5.6 5.6L13 16"/></svg>`,
     md:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 11l4 3 4-3"/><path d="M5 19h14"/></svg>`,
@@ -3336,6 +3462,7 @@ function _grimToolbarHTML() {
         <span class="fmt-grp">
             ${btn('quote', "grimFmt('quote')", 'Цитата', FIC.quote)}
             ${btn('code', "grimInlineCode()", 'Код', FIC.code)}
+            ${btn('codeblock', "grimCodeBlock()", 'Блок кода (```)', FIC.codeBlock)}
             ${btn('hr', "grimFmt('hr')", 'Разделитель', FIC.hr)}
             ${btn('link', "grimLink()", 'Ссылка (Ctrl+K)', FIC.link)}
         </span>
@@ -3389,6 +3516,7 @@ function _grimHtmlToMd(html) {
         else if (tag === 'H3') md += '### ' + _grimInlineMd(n) + '\n\n';
         else if (tag === 'BLOCKQUOTE') md += '> ' + _grimInlineMd(n).replace(/\n/g, '\n> ') + '\n\n';
         else if (tag === 'HR') md += '---\n\n';
+        else if (tag === 'PRE') md += '```\n' + n.textContent.split(String.fromCharCode(0x200B)).join('').replace(/\n$/, '') + '\n```\n\n';
         else if (tag === 'TABLE') md += _grimTableToMd(n) + '\n';
         else if (tag === 'UL') {
             const task = n.classList.contains('task');
