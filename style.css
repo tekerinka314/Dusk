@@ -6517,6 +6517,15 @@ kbd {
 }
 .grim-ghost-btn svg { width: 14px; height: 14px; }
 .grim-ghost-btn:hover { color: var(--accent-hover); border-color: var(--border-mid); background: var(--accent-soft); }
+/* п.6: destructive ghost button («Опустошить склеп») — quiet warm rest state, red on
+   hover, and the same armed pulse as the per-note destroy button. */
+.grim-ghost-btn.grim-danger-btn { color: rgba(201, 138, 152, 0.85); border-color: rgba(200, 60, 80, 0.30); }
+.grim-ghost-btn.grim-danger-btn:hover { color: var(--prio-high); border-color: var(--prio-high-border); background: var(--prio-high-bg); }
+.grim-ghost-btn.grim-danger-btn.confirm-armed {
+    color: var(--prio-high); border-color: rgba(230, 60, 80, 0.8);
+    background: rgba(200, 30, 50, 0.22);
+    animation: dangerPulse 0.5s ease infinite alternate;
+}
 
 .grim-meta {
     display: flex; flex-direction: column; align-items: center; gap: 11px;

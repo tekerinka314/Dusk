@@ -1357,6 +1357,13 @@ function renderNotes() {
     if (newBtn) newBtn.style.display = (grimMode === 'active' && !grimSelectMode) ? '' : 'none';
     const expAll = document.getElementById('grim-export-all');
     if (expAll) expAll.style.display = (grimMode === 'active' && !grimSelectMode && (state.notes || []).length) ? '' : 'none';
+    // п.6: «Опустошить склеп» — only in the crypt, when it holds records, outside select mode.
+    const emptyBtn = document.getElementById('grim-empty-crypt');
+    if (emptyBtn) {
+        const show = grimMode === 'archive' && !grimSelectMode && (state.notesArchive || []).length;
+        emptyBtn.style.display = show ? '' : 'none';
+        if (!show) _disarmEmptyCrypt(emptyBtn);   // never leave it armed when it hides
+    }
     // п11/1b: select toggle (only when the current segment has records) + the bulk bar.
     const hasList = !!_grimList().length;
     const selBtn = document.getElementById('grim-select-btn');
@@ -1960,6 +1967,32 @@ function grimDeleteForever(id) {
     saveState();
     renderNotes();
     showToast('Запись уничтожена', { undo: true });
+}
+
+// Reset the armed state of the «Опустошить склеп» button (it lives in the static bar,
+// so a render that hides it must also clear any pending confirm).
+function _disarmEmptyCrypt(btn) {
+    btn = btn || document.getElementById('grim-empty-crypt');
+    if (!btn || !btn._armed) return;
+    clearTimeout(btn._armTimer);
+    btn._armed = false;
+    btn.classList.remove('confirm-armed');
+    btn.title = btn._prevTitle || 'Опустошить склеп — уничтожить все записи в нём';
+}
+
+// п.6: Склеп → wipe every archived record at once (two-step confirm, undoable).
+// Deleting a group warns its contents go too; emptying the crypt is the same contract.
+function grimEmptyCrypt(btn) {
+    const n = (state.notesArchive || []).length;
+    if (!n) return;
+    if (!_armDanger(btn, `Нажмите ещё раз — склеп опустеет (будет уничтожено записей: ${n})`)) return;
+    pushUndo();
+    // Open archived note (if any) loses its detail pane.
+    if (currentNoteId && (state.notesArchive || []).some(x => x.id === currentNoteId)) currentNoteId = null;
+    state.notesArchive = [];
+    saveState();
+    renderNotes();
+    showToast('Склеп опустошён', { undo: true });
 }
 
 function grimSearch(v) {
