@@ -568,6 +568,9 @@ let _grimSaveT       = null;   // п11: debounced note-save timer
 let _grimSwapT       = null;   // п11: note→note crossfade timer (fade old page out, then render new)
 let grimSelectMode   = false;  // п11/1b: multi-select notes in the current segment
 let grimSelectedIds  = new Set();// п11/1b: ids of notes ticked in select mode
+let _grimFindRanges  = [];     // п11/A: in-note find — match Ranges in the open body
+let _grimFindIdx     = 0;      // п11/A: current match index
+let _grimFindActive  = false;  // п11/A: find bar shown + highlights painted
 let undoStack        = [];
 let redoStack        = [];   // P-A: populated by undo(), cleared by any new pushUndo()
 let deadlineTimer    = null;
@@ -1205,6 +1208,8 @@ function switchPage(page) {
     }
     // п11/1b: reset grimoire select mode when leaving the notes page
     if (page !== 'notes' && grimSelectMode) _grimExitSelect();
+    // п11/A: dismiss the in-note find bar when leaving the notes page
+    if (page !== 'notes' && _grimFindActive) grimFindClose();
     if (page === currentPage) return;
     // IMP-8: block a second transition while one is already in flight
     if (_pageTransitioning) return;
@@ -1540,9 +1545,8 @@ function _grimPersistOrder() {
 function _grimLeafHTML(n, q, i, animate) {
     const titleRaw = (n.title || '').trim();
     const title = titleRaw || 'Без заглавия';
-    const snip = _grimPlain(n.body).slice(0, 120);
     const titleH = q ? highlightSearch(escHtml(title), notesSearchQuery) : escHtml(title);
-    const snipH  = q ? highlightSearch(escHtml(snip),  notesSearchQuery) : escHtml(snip);
+    const snipH  = _grimSnippetHTML(n.body, q);   // structure glyphs + windowed excerpt + highlight
     const ts = grimMode === 'archive' ? (n.archivedAt || n.updatedAt) : n.updatedAt;
     const sel   = grimSelectMode;
     const isSel = sel && grimSelectedIds.has(n.id);
@@ -1558,7 +1562,7 @@ function _grimLeafHTML(n, q, i, animate) {
     return `<button class="${cls}"${style} data-id="${n.id}" onclick="${onclick}"${titleAttr}>
         ${check}<span class="grim-leaf-main">
             <span class="grim-leaf-t">${titleH}</span>
-            ${snip ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
+            ${snipH ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
             <span class="grim-leaf-d">${grimDate(ts)}</span>
         </span>${fold}
     </button>`;
@@ -1640,6 +1644,11 @@ function renderGrimDetail() {
         requestAnimationFrame(_grimLayoutTableUI);
         // webfonts change table metrics after first paint → relayout once they land
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(_grimScheduleTableUI);
+        // A: if a record opens while searching, paint + jump to its in-body matches.
+        if (notesSearchQuery && grimMode === 'active') requestAnimationFrame(() => _grimFindRun(notesSearchQuery, true));
+        else grimFindClose();
+    } else {
+        grimFindClose();
     }
 }
 
@@ -1654,6 +1663,7 @@ function _grimGrowTitle(el) {
 function grimSetMode(mode) {
     if (mode === grimMode) return;
     clearTimeout(_grimSaveT); saveState();
+    grimFindClose();
     if (grimSelectMode) _grimExitSelect();   // 1b: leave select mode on segment switch
     grimMode = mode;
     currentNoteId = null;
@@ -1702,6 +1712,7 @@ function grimOpen(id) {
 function grimNew() {
     if (grimMode !== 'active') grimMode = 'active';
     clearTimeout(_grimSaveT); saveState();
+    grimFindClose();
     pushUndo();
     const now = Date.now();
     const note = { id: uid(), title: '', body: '', fmt: true, createdAt: now, updatedAt: now };
@@ -1725,6 +1736,7 @@ function grimNew() {
 // Mobile: return from the detail pane to the list.
 function grimBack() {
     clearTimeout(_grimSaveT); saveState();
+    grimFindClose();
     currentNoteId = null;
     grimNoteCollapsed = false;
     const layoutEl = document.getElementById('grim-layout');
@@ -1750,12 +1762,7 @@ function grimTitleInput(el) {
     note.title = el.value;
     note.updatedAt = Date.now();
     delete note.ord;                            // edited → bubble back to top on next sort
-    const leaf = document.querySelector(`.grim-leaf[data-id="${note.id}"]`);
-    if (leaf) {
-        const t = leaf.querySelector('.grim-leaf-t');
-        if (t) t.textContent = el.value.trim() || 'Без заглавия';
-        leaf.classList.toggle('untitled', !el.value.trim());
-    }
+    _grimSyncActiveLeaf();                       // patch leaf in place (highlight-aware)
     clearTimeout(_grimSaveT);
     _grimSaveT = setTimeout(saveState, 400);
 }
@@ -1767,6 +1774,8 @@ function grimBodyInput(el) {
     note.body = _grimSanitize(el.innerHTML);   // body holds sanitized HTML
     note.updatedAt = Date.now();
     delete note.ord;                            // edited → bubble back to top on next sort
+    _grimSyncActiveLeaf();    // live-refresh the list snippet (windowed excerpt + highlight)
+    if (_grimFindActive) _grimFindRun(notesSearchQuery, false);   // recompute stale match ranges (no jump)
     clearTimeout(_grimSaveT);
     _grimSaveT = setTimeout(saveState, 400);
     _grimScheduleTableUI();   // keep table seal/frame/gutters glued as cells reflow
@@ -1794,21 +1803,30 @@ function grimCommit(e) {
 }
 
 // Reflect the open note's edited title/snippet into its existing list entry without
-// rebuilding the list, preserving the leaf's node identity (see grimCommit).
+// rebuilding the list, preserving the leaf's node identity (see grimCommit). Mirrors
+// _grimLeafHTML exactly — windowed search excerpt + <mark> highlight — so an open
+// note's leaf stays in sync under search instead of reverting to plain first-120 text.
 function _grimSyncActiveLeaf() {
     const note = _grimCurrentNote();
     if (!note) return;
     const leaf = document.querySelector(`#grim-list .grim-leaf[data-id="${note.id}"]`);
     if (!leaf) return;
+    const q = notesSearchQuery.toLowerCase();
     const titleRaw = (note.title || '').trim();
+    const title = titleRaw || 'Без заглавия';
     leaf.classList.toggle('untitled', !titleRaw);
     const tEl = leaf.querySelector('.grim-leaf-t');
-    if (tEl) tEl.textContent = titleRaw || 'Без заглавия';
-    const snip = _grimPlain(note.body).slice(0, 120);
-    const sEl = leaf.querySelector('.grim-leaf-s');
-    if (sEl && !snip) sEl.remove();
-    else if (sEl) sEl.textContent = snip;
-    // A snippet first appearing on an initially-empty note shows on the next full render.
+    if (tEl) tEl.innerHTML = q ? highlightSearch(escHtml(title), notesSearchQuery) : escHtml(title);
+    const snipH = _grimSnippetHTML(note.body, q);
+    let sEl = leaf.querySelector('.grim-leaf-s');
+    if (!snipH) { if (sEl) sEl.remove(); return; }
+    if (!sEl) {                                    // re-create a snippet that was emptied then refilled
+        sEl = document.createElement('span');
+        sEl.className = 'grim-leaf-s';
+        const main = leaf.querySelector('.grim-leaf-main');
+        if (main) main.insertBefore(sEl, leaf.querySelector('.grim-leaf-d'));
+    }
+    sEl.innerHTML = snipH;
 }
 
 // Active note → permanent delete (two-step confirm, undoable).
@@ -1881,6 +1899,101 @@ function grimDeleteForever(id) {
 function grimSearch(v) {
     notesSearchQuery = (v || '').trim();
     renderGrimList(false);
+    // The search box doubles as the in-note find input: when a record is open, paint
+    // and jump to matches in its body too (но без насильного скролла на каждый символ).
+    if (currentNoteId && grimMode === 'active') _grimFindRun(notesSearchQuery, false);
+    else grimFindClose();
+}
+
+// ── п11/A: in-note find — CSS Custom Highlight API (range-based, never written to
+// note.body → no sanitizer/undo/save interaction). Drives off the same query as the
+// list search; a floating gothic bar gives the count + prev/next + close. ──────────
+function _grimFindSupported() {
+    return typeof CSS !== 'undefined' && CSS.highlights && typeof Highlight !== 'undefined';
+}
+// (Re)collect match ranges in the open body, repaint, show the bar, optionally jump to #1.
+function _grimFindRun(q, doScroll) {
+    _grimFindClearPaint();
+    _grimFindRanges = [];
+    _grimFindIdx = 0;
+    const bo = document.getElementById('grim-body');
+    q = (q || '').trim();
+    if (!bo || grimMode !== 'active' || !q) { _grimFindActive = false; _grimFindHideBar(); return; }
+    const ql = q.toLowerCase();
+    const walker = document.createTreeWalker(bo, NodeFilter.SHOW_TEXT, null);
+    let node;
+    while ((node = walker.nextNode())) {
+        const text = node.nodeValue; if (!text) continue;
+        const lower = text.toLowerCase();
+        let from = 0, at;
+        while ((at = lower.indexOf(ql, from)) !== -1) {
+            const r = document.createRange();
+            r.setStart(node, at); r.setEnd(node, at + ql.length);
+            _grimFindRanges.push(r);
+            from = at + ql.length;
+        }
+    }
+    if (!_grimFindRanges.length) { _grimFindActive = false; _grimFindHideBar(); return; }
+    _grimFindActive = true;
+    _grimFindPaint();
+    _grimFindShowBar();
+    _grimFindGoto(0, doScroll !== false);
+}
+function _grimFindPaint() {
+    if (!_grimFindSupported()) return;            // unsupported → ranges still drive scroll
+    CSS.highlights.set('grim-find', new Highlight(..._grimFindRanges));
+    const cur = _grimFindRanges[_grimFindIdx];
+    if (cur) CSS.highlights.set('grim-find-cur', new Highlight(cur));
+}
+function _grimFindClearPaint() {
+    if (typeof CSS !== 'undefined' && CSS.highlights) {
+        CSS.highlights.delete('grim-find'); CSS.highlights.delete('grim-find-cur');
+    }
+}
+function _grimFindGoto(idx, scroll) {
+    const n = _grimFindRanges.length; if (!n) return;
+    _grimFindIdx = ((idx % n) + n) % n;
+    if (_grimFindSupported()) {
+        const cur = _grimFindRanges[_grimFindIdx];
+        if (cur) CSS.highlights.set('grim-find-cur', new Highlight(cur));
+    }
+    if (scroll !== false) {
+        const r = _grimFindRanges[_grimFindIdx];
+        const el = r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentElement;
+        if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    }
+    _grimFindUpdateBar();
+}
+function grimFindNext() { _grimFindGoto(_grimFindIdx + 1, true); }
+function grimFindPrev() { _grimFindGoto(_grimFindIdx - 1, true); }
+function grimFindClose() {
+    _grimFindClearPaint();
+    _grimFindRanges = []; _grimFindActive = false;
+    _grimFindHideBar();
+}
+// Body-level singleton (fixed-positioned): a transformed .grim-page would break a
+// fixed child, so the bar lives on <body>.
+function _grimFindBar() {
+    let bar = document.getElementById('grim-find');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'grim-find'; bar.className = 'grim-find'; bar.setAttribute('role', 'toolbar');
+        bar.setAttribute('aria-label', 'Поиск по записи');
+        bar.innerHTML =
+            `<button class="gf-btn gf-prev" onclick="grimFindPrev()" title="Предыдущее (Shift+F3)" aria-label="Предыдущее совпадение">${IC.sword}</button>` +
+            `<button class="gf-btn gf-next" onclick="grimFindNext()" title="Следующее (F3)" aria-label="Следующее совпадение">${IC.sword}</button>` +
+            `<span class="gf-cnt" id="grim-find-cnt"></span>` +
+            `<span class="gf-sep"></span>` +
+            `<button class="gf-btn gf-close" onclick="grimFindClose()" title="Закрыть (Esc)" aria-label="Закрыть поиск">${IC.crossedSwords}</button>`;
+        document.body.appendChild(bar);
+    }
+    return bar;
+}
+function _grimFindShowBar() { _grimFindBar().classList.add('show'); _grimFindUpdateBar(); }
+function _grimFindHideBar() { const b = document.getElementById('grim-find'); if (b) b.classList.remove('show'); }
+function _grimFindUpdateBar() {
+    const c = document.getElementById('grim-find-cnt');
+    if (c) c.innerHTML = _grimFindRanges.length ? `<b>${_grimFindIdx + 1}</b> / ${_grimFindRanges.length}` : '0';
 }
 
 // ── Этап 1b: мультивыбор заметок (зеркало mainSelectMode задач) ─────────────
@@ -2023,6 +2136,68 @@ function _grimPlain(html) {
     const d = document.createElement('div');
     d.innerHTML = html || '';
     return (d.textContent || '').split(String.fromCharCode(0x200B)).join('').replace(/\s+/g, ' ').trim();
+}
+
+// Collapse whitespace + strip the zero-width caret-holder used inside empty inline code.
+function _grimCollapse(t) {
+    return (t || '').split(String.fromCharCode(0x200B)).join('').replace(/\s+/g, ' ').trim();
+}
+// Flatten a note body into a structure-aware string: text runs interleaved with a
+// sentinel char at each non-text block (table/quote/code/list/checklist), so the
+// snippet can show a gothic glyph in place of the block instead of one flat run.
+// Returns { flat, glyphs } where glyphs maps a flat-string index → block kind.
+const _GRIM_SENT = '';
+function _grimFlattenSnippet(html) {
+    const root = document.createElement('div');
+    root.innerHTML = html || '';
+    let flat = '';
+    const glyphs = new Map();
+    const needSep = () => flat.length && flat[flat.length - 1] !== ' ';
+    const pushText = t => { t = _grimCollapse(t); if (!t) return; if (needSep()) flat += ' '; flat += t; };
+    const pushGlyph = k => { if (needSep()) flat += ' '; glyphs.set(flat.length, k); flat += _GRIM_SENT; };
+    const blocks = [...root.children];
+    if (!blocks.length) { pushText(root.textContent || ''); return { flat, glyphs }; }
+    blocks.forEach(el => {
+        switch (el.tagName) {
+            case 'TABLE': pushGlyph('table'); break;
+            case 'PRE':   pushGlyph('code'); break;               // block code (stage 8)
+            case 'HR':    break;                                  // a rule carries no content
+            case 'BLOCKQUOTE': pushGlyph('quote'); pushText(el.textContent); break;
+            case 'UL': case 'OL': pushGlyph(el.classList.contains('task') ? 'task' : 'list'); pushText(el.textContent); break;
+            default: pushText(el.textContent);
+        }
+    });
+    return { flat, glyphs };
+}
+// One accent-tinted gothic glyph standing in for a structural block in the snippet (V3).
+function _grimSnipGlyph(kind) {
+    const g = { table: FIC.table, quote: FIC.quote, code: FIC.code, list: FIC.ul, task: FIC.task }[kind];
+    return g ? `<span class="grim-snip-ic" aria-hidden="true">${g}</span>` : '';
+}
+// Build the list-snippet HTML: structure glyphs in document order, a windowed excerpt
+// around the first search match (… ellipses) so the hit is always visible, and <mark>
+// on the matched term. Returns '' for an empty note. Rendered into the leaf only —
+// never into note.body, so no sanitizer/undo interaction. `q` is the lower-cased query.
+function _grimSnippetHTML(body, q) {
+    const { flat, glyphs } = _grimFlattenSnippet(body);
+    if (!flat) return '';
+    const WIN = 120;
+    let start = 0, end = Math.min(flat.length, WIN);
+    if (q) {
+        const idx = flat.toLowerCase().indexOf(q);
+        if (idx >= 0) { end = Math.min(flat.length, Math.max(0, idx - 36) + WIN); start = Math.max(0, end - WIN); }
+    }
+    let html = '', buf = '';
+    const flush = () => { if (buf) { html += q ? highlightSearch(escHtml(buf), notesSearchQuery) : escHtml(buf); buf = ''; } };
+    for (let i = start; i < end; i++) {
+        const k = glyphs.get(i);
+        if (k) { flush(); html += _grimSnipGlyph(k); }
+        else buf += flat[i];
+    }
+    flush();
+    if (start > 0) html = '…' + html;
+    if (end < flat.length) html += '…';
+    return html;
 }
 
 // One-time migration: old notes stored plain text → wrap into HTML paragraphs.
@@ -10403,6 +10578,21 @@ document.addEventListener('keydown', e => {
             return;   // native browser undo/redo for the grimoire rich editor
         }
     }
+    // п11/A: Ctrl/Cmd+F on the notes page focuses the search box — it doubles as the
+    // in-note find input (one query drives both the list filter and body highlight).
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyF' && currentPage === 'notes') {
+        e.preventDefault();
+        const sb = document.getElementById('notes-search-box');
+        if (sb) { sb.focus(); sb.select(); }
+        return;
+    }
+    // п11/A: F3 / Shift+F3 step through body matches from ANYWHERE — including while the
+    // caret is in the editor, where Enter must stay a line-break (so we can't hijack it).
+    if (_grimFindActive && e.key === 'F3') { e.preventDefault(); e.shiftKey ? grimFindPrev() : grimFindNext(); return; }
+    // Enter / Shift+Enter ALSO navigate when the focus is in the notes search box.
+    if (_grimFindActive && e.key === 'Enter' && document.activeElement && document.activeElement.id === 'notes-search-box') {
+        e.preventDefault(); e.shiftKey ? grimFindPrev() : grimFindNext(); return;
+    }
     // P-A: redo on Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y; undo on Ctrl/Cmd+Z.
     // (Shift+Z must be checked before plain Z.)
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyZ') { e.preventDefault(); redo(); return; }
@@ -10418,6 +10608,8 @@ document.addEventListener('keydown', e => {
             closeModalWithAnim(openModals[openModals.length - 1].id);
             return;
         }
+        // п11/A: Esc closes the in-note find bar before anything else page-level.
+        if (_grimFindActive) { grimFindClose(); return; }
         // No modal open → clear the keyboard-focus ring.
         _focusedTaskId = null;
         document.querySelectorAll('.task-item.kb-focused')

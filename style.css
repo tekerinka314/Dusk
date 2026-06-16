@@ -5927,6 +5927,12 @@ kbd {
        the first character at the field start ("начало поиска съедает курсор"). */
     font-style: normal;
     caret-color: var(--accent-hover);
+    /* A hair of left padding so the first glyph's left bearing + the Home caret +
+       a selection starting at char 0 aren't clipped by the input's content edge. */
+    padding-left: 3px;
+    /* The rounded pill is the WRAPPER's job; the input must stay square — otherwise
+       its own border-radius clips the selection box into a rounded left edge. */
+    border-radius: 0;
 }
 .grim-search-wrap input::placeholder { color: var(--text-muted); opacity: 0.85; font-style: italic; }
 
@@ -6107,6 +6113,42 @@ kbd {
 .grim-layout.grim-note-collapsed .grim-leaf.active:hover .grim-leaf-fold .gf-closed { opacity: 1; color: var(--accent-hover); }
 
 .grim-leaf mark, .grim-page mark { background: rgba(160, 90, 255, 0.32); color: var(--text-primary); border-radius: 2px; padding: 0 1px; }
+
+/* C: structure glyph standing in for a block (table/quote/code/list/checklist) inside
+   a list snippet — V3 treatment: accent-tinted, no box, baseline-aligned in the run. */
+.grim-snip-ic { display: inline-flex; width: 13px; height: 13px; vertical-align: -2px; margin: 0 3px; color: var(--accent-hover); opacity: 0.9; }
+.grim-snip-ic svg { width: 100%; height: 100%; }
+
+/* A: in-note find highlights — painted via the CSS Custom Highlight API, so they never
+   touch the editable DOM (nothing persisted to note.body). Current match glows brighter. */
+::highlight(grim-find)     { background-color: rgba(160, 90, 255, 0.30); color: var(--text-primary); }
+::highlight(grim-find-cur) { background-color: rgba(210, 120, 255, 0.58); color: #fff; }
+
+/* A: floating find bar — fixed at the viewport bottom-centre (body-level singleton so a
+   transformed .grim-page can't break its fixed positioning). Counter + prev/next + close. */
+.grim-find {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(8px);
+    display: inline-flex; align-items: center; gap: 2px; z-index: 60;
+    background: rgba(20, 14, 32, 0.94); border: 1px solid var(--border-mid); border-radius: 9px;
+    padding: 5px 7px; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5), 0 0 16px rgba(120, 40, 220, 0.16);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity var(--dur-quick) var(--ease-gothic), transform var(--dur-quick) var(--ease-gothic);
+}
+.grim-find.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.grim-find .gf-cnt { font-family: var(--font-label); font-size: 11px; letter-spacing: 1px; color: var(--text-secondary); padding: 0 8px; white-space: nowrap; }
+.grim-find .gf-cnt b { color: var(--accent-hover); font-weight: 700; }
+.grim-find .gf-btn {
+    width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid transparent; border-radius: 5px; color: var(--text-muted); cursor: pointer;
+    background: none; transition: all var(--transition);
+}
+.grim-find .gf-btn:hover { color: var(--accent-hover); border-color: var(--border-bright); background: var(--accent-soft); }
+.grim-find .gf-btn svg { width: 15px; height: 15px; }
+.grim-find .gf-next svg { transform: rotate(180deg); }   /* sword points down = next */
+.grim-find .gf-close svg { width: 14px; height: 14px; }
+.grim-find .gf-sep { width: 1px; height: 16px; background: var(--border-mid); margin: 0 3px; }
+@media (prefers-reduced-motion: reduce) { .grim-find { transition: opacity var(--dur-quick) linear; } }
 
 /* staggered entrance for list entries */
 @keyframes grimLeafIn { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
