@@ -1485,7 +1485,15 @@ function renderGrimList(animate) {
         // Active list: manual drag order (`ord`) wins; otherwise fall back to
         // updatedAt so a freshly edited note (which drops its ord) bubbles up.
         : (n => (n.ord != null ? n.ord : (n.updatedAt || 0)));
-    const all = _grimList().slice().sort((a, b) => keyOf(b) - keyOf(a));
+    // Active grimoire: pinned records float to the top as a block; within each block
+    // (pinned / rest) the usual ord→updatedAt order holds. Crypt ignores pin.
+    const all = _grimList().slice().sort((a, b) => {
+        if (grimMode !== 'archive') {
+            const pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
+            if (pa !== pb) return pb - pa;
+        }
+        return keyOf(b) - keyOf(a);
+    });
     const q = notesSearchQuery.toLowerCase();
     const shown = q
         ? all.filter(n => (n.title || '').toLowerCase().includes(q) || _grimPlain(n.body).toLowerCase().includes(q))
@@ -1550,17 +1558,20 @@ function _grimLeafHTML(n, q, i, animate) {
     const ts = grimMode === 'archive' ? (n.archivedAt || n.updatedAt) : n.updatedAt;
     const sel   = grimSelectMode;
     const isSel = sel && grimSelectedIds.has(n.id);
-    const cls = `grim-leaf${!sel && n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}${sel ? ' grim-leaf--select' : ''}${isSel ? ' selected' : ''}`;
+    const isPinned = !!n.pinned && grimMode !== 'archive';   // pin is meaningless in the crypt
+    const cls = `grim-leaf${!sel && n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}${sel ? ' grim-leaf--select' : ''}${isSel ? ' selected' : ''}${isPinned ? ' pinned' : ''}`;
     const style = animate ? ` style="--i:${Math.min(i, 12)}"` : '';
     const onclick = sel ? `grimToggleSelectNote('${n.id}')` : `grimOpen('${n.id}')`;
     const check = sel ? `<span class="grim-leaf-check">${isSel ? IC.selectChecked : IC.selectEmpty}</span>` : '';
+    // Forged iron spike driven into the corner of a pinned record (same motif as tasks).
+    const spike = isPinned && !sel ? `<span class="grim-leaf-spike" aria-hidden="true">${IC.pinSpike}</span>` : '';
     // Open (non-select) entry gets a fold affordance — re-click toggles its pane (desktop).
     const isOpen = !sel && n.id === currentNoteId;
     const fold = isOpen ? `<span class="grim-leaf-fold" aria-hidden="true"><span class="gf-open">${GIC.foldOpen}</span><span class="gf-closed">${GIC.foldClosed}</span></span>` : '';
     const titleAttr = isOpen ? ' title="Клик — свернуть/развернуть запись"' : '';
     // Crypt entries restore/destroy from the read-only detail footer (clean index).
     return `<button class="${cls}"${style} data-id="${n.id}" onclick="${onclick}"${titleAttr}>
-        ${check}<span class="grim-leaf-main">
+        ${spike}${check}<span class="grim-leaf-main">
             <span class="grim-leaf-t">${titleH}</span>
             ${snipH ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
             <span class="grim-leaf-d" title="${grimMode === 'archive' ? 'В склепе с' : 'Последняя правка'}">${grimMode === 'archive' ? GIC.coffin : GIC.quill}<span>${grimDate(ts)}</span></span>
@@ -1620,6 +1631,7 @@ function renderGrimDetail() {
                 ${note.createdAt ? `<span class="grim-stamp is-created" title="Когда начертана">${GIC.hourglass}<span>начертано ${grimDate(note.createdAt)}</span></span>` : ''}
             </div>
             <span class="grim-acts">
+                <button class="grim-act is-pin${note.pinned ? ' active' : ''}" onclick="grimTogglePin('${note.id}')" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
                 <button class="grim-act" onclick="grimDuplicate('${note.id}')" title="Сделать копию записи">${IC.twinCoffin}<span>копия</span></button>
                 <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
                 <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
@@ -1883,6 +1895,19 @@ function grimDuplicate(id) {
     const ti = document.getElementById('grim-title-in');
     if (ti) ti.focus();
     showToast('Запись скопирована', { undo: true });
+}
+
+// Toggle pin — pinned records float to the top of the active grimoire as a block.
+// Does NOT touch updatedAt (pinning isn't a content edit, so «правлено» stays honest).
+function grimTogglePin(id) {
+    const note = (state.notes || []).find(n => n.id === id);
+    if (!note) return;
+    pushUndo();
+    note.pinned = !note.pinned;
+    delete note.ord;            // re-enter the natural order within its (un)pinned block
+    saveState();
+    renderNotes();
+    showToast(note.pinned ? 'Запись закреплена' : 'Запись откреплена', { undo: true });
 }
 
 // Active note → Склеп (soft archive, undoable).

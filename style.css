@@ -6061,6 +6061,21 @@ kbd {
     box-shadow: inset 0 0 0 1px rgba(150, 70, 255, 0.22), 0 0 18px rgba(110, 35, 215, 0.12);
 }
 .grim-leaf.active::before { background: linear-gradient(180deg, var(--accent), #7030d0); box-shadow: 0 0 12px var(--accent-glow); }
+/* п.5 pin: a pinned record floats to the top of the grimoire wearing the same forged
+   spike + brightened bar + soft glow as a pinned task — one consistent "fixed" motif. */
+.grim-leaf.pinned {
+    background: linear-gradient(100deg, rgba(120, 40, 220, 0.10) 0%, transparent 34%), var(--bg-item);
+    box-shadow: -2px 0 12px rgba(140, 50, 255, 0.16);
+}
+.grim-leaf.pinned::before { background: linear-gradient(180deg, rgba(180, 100, 255, 0.85), #7030d0); box-shadow: 0 0 10px var(--accent-glow); }
+.grim-leaf.pinned.active { background: linear-gradient(135deg, rgba(110, 30, 220, 0.26), rgba(80, 15, 180, 0.13)); }   /* active wash wins, spike + bar persist */
+.grim-leaf-spike {
+    position: absolute; top: 1px; left: 1px; width: 17px; height: 17px;
+    color: var(--accent-hover); pointer-events: none; z-index: 4;
+    filter: drop-shadow(0 0 4px rgba(160, 96, 255, 0.55));
+    animation: pinSpikeIn 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.grim-leaf-spike svg { width: 100%; height: 100%; display: block; }
 .grim-leaf-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 /* 1b: select-mode checkbox + ticked-row highlight (mirrors the task select look). */
 .grim-leaf-check {
@@ -6548,6 +6563,9 @@ kbd {
 .grim-act svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-muted); transition: color var(--transition); }
 .grim-act:hover { color: var(--text-primary); border-color: var(--border-bright); background: var(--accent-soft); box-shadow: 0 0 12px rgba(120, 40, 220, 0.18); }
 .grim-act:hover svg { color: var(--accent-hover); }
+/* Pin toggle lit when the record is pinned (mirrors .btn-pin.active on tasks). */
+.grim-act.is-pin.active { color: rgba(205, 140, 255, 0.98); border-color: var(--border-bright); background: var(--accent-soft); box-shadow: 0 0 12px rgba(120, 40, 220, 0.18); }
+.grim-act.is-pin.active svg { color: var(--accent-hover); }
 .grim-act.danger:hover { color: var(--prio-high); border-color: var(--prio-high-border); background: var(--prio-high-bg); box-shadow: none; }
 .grim-act.danger:hover svg { color: var(--prio-high); }
 /* Armed (awaiting the confirming 2nd click): red wash + pulsing glow + red glyph. */
@@ -6585,7 +6603,7 @@ kbd {
 .grim-empty-btn { margin-top: 10px; }
 
 @media (prefers-reduced-motion: reduce) {
-    .grim-leaf.gl-in, .grim-page { animation: none; }
+    .grim-leaf.gl-in, .grim-page, .grim-leaf-spike { animation: none; }
     .fmt-bar { transition: opacity 0.12s linear; }
 }
 
