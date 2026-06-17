@@ -2134,7 +2134,6 @@ function renderGrimDetail() {
                 <button class="grim-act is-pin${note.pinned ? ' active' : ''}" onclick="grimTogglePin('${note.id}')" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
                 <button class="grim-act is-color${note.color ? ' active' : ''}" onclick="openGrimColorModal('${note.id}')" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg><span>цвет</span></button>
                 <button class="grim-act" onclick="grimSaveAsTpl('${note.id}')" title="Сохранить как шаблон">${GRIM_TPL_IC.save}<span>шаблон</span></button>
-                <button class="grim-act" onclick="grimDuplicate('${note.id}')" title="Сделать копию записи">${IC.twinCoffin}<span>копия</span></button>
                 <button class="grim-act" onclick="grimOpenHistory('${note.id}')" title="Летопись — история версий записи">${GIC.chronicle}<span>летопись</span></button>
                 <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
                 <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
@@ -2375,42 +2374,7 @@ function grimDelete(id) {
     showToast('Запись удалена', { undo: true });
 }
 
-// Active note → exact copy (new uuid), dropped at the top and opened for editing.
-// Mirrors duplicateTask: deep clone, fresh ids/timestamps, title gets a «(копия)» tag.
-function grimDuplicate(id) {
-    const note = (state.notes || []).find(n => n.id === id);
-    if (!note) return;
-    clearTimeout(_grimSaveT); saveState();
-    grimFindClose();
-    pushUndo();
-    const now = Date.now();
-    const baseTitle = (note.title || '').trim();
-    let title = baseTitle ? baseTitle + ' (копия)' : '';
-    if (title.length > 120) title = title.slice(0, 120);   // honour the title maxlength
-    const copy = {
-        ...JSON.parse(JSON.stringify(note)),   // deep clone body/fmt/colour/etc.
-        id:        uid(),
-        title,
-        createdAt: now,
-        updatedAt: now,
-    };
-    delete copy.ord;            // fall back to updatedAt so the copy sorts to the top
-    delete copy.archivedAt;     // a duplicate is never born in the crypt
-    if (!Array.isArray(state.notes)) state.notes = [];
-    state.notes.unshift(copy);
-    currentNoteId = copy.id;
-    grimNoteCollapsed = false;
-    notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box');
-    if (sb) sb.value = '';
-    saveState();
-    renderNotes();
-    const layoutEl = document.getElementById('grim-layout');
-    if (layoutEl) layoutEl.classList.add('show-detail');
-    const ti = document.getElementById('grim-title-in');
-    if (ti) ti.focus();
-    showToast('Запись скопирована', { undo: true });
-}
+// (Note duplication removed 2026-06-18 — see _attic/grim-note-duplicate.removed.js)
 
 // Toggle pin — pinned records float to the top of the active grimoire as a block.
 // Does NOT touch updatedAt (pinning isn't a content edit, so «правлено» stays honest).
