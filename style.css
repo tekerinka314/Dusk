@@ -5927,8 +5927,8 @@ kbd {
     transition: opacity 0.2s var(--ease-emerge), transform 0.22s var(--ease-emerge);
 }
 .grim-new-split.open .grim-tpl-pop { opacity: 1; transform: none; pointer-events: auto; }
-.grim-tpl-head { font-family: var(--font-label); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-muted); padding: 12px 15px 8px; border-bottom: 1px solid var(--border); }
-.grim-tpl-sect { font-family: var(--font-label); font-size: 9.5px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--accent); opacity: 0.7; padding: 10px 15px 4px; }
+.grim-tpl-head { font-family: var(--font-label); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-secondary); padding: 12px 15px 8px; border-bottom: 1px solid var(--border); }
+.grim-tpl-sect { font-family: var(--font-label); font-size: 9.5px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--accent-hover); opacity: 0.92; padding: 10px 15px 4px; }
 .grim-tpl-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; cursor: pointer; transition: background var(--transition); border-left: 2px solid transparent; }
 .grim-tpl-item:hover { background: var(--bg-item-hover); border-left-color: var(--accent); }
 .grim-tpl-ic { flex: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--accent-hover); background: var(--accent-soft); border: 1px solid var(--border); border-radius: var(--radius-sm); }
@@ -5942,6 +5942,18 @@ kbd {
 .grim-tpl-del:hover { color: var(--prio-high); opacity: 1; }
 .grim-tpl-del svg { width: 15px; height: 15px; }
 .grim-tpl-divline { height: 1px; background: var(--border); margin: 6px 0; opacity: 0.6; }
+
+/* п.13: «Перенос» (import/export) — reuses the .grim-tpl-pop popover visuals */
+.grim-io-split { position: relative; display: inline-flex; }
+.grim-io-btn svg { width: 17px; height: 17px; }
+.grim-io-sel { position: relative; display: inline-flex; align-items: center; }
+.grim-io-split.open .grim-tpl-pop,
+.grim-io-sel.open .grim-tpl-pop { opacity: 1; transform: none; pointer-events: auto; }
+.grim-io-sel-pop { right: 0; }
+/* select bar is position:static (.main-select-bar) + backdrop-filter → its stacking
+   context is covered by the later-painted .grim-layout, hiding the export popover.
+   Lift it above the list so the popover is solid and clickable. */
+.grim-select-bar { position: relative; z-index: 40; }
 
 /* ── search ── */
 .grim-search-wrap {

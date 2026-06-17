@@ -1360,11 +1360,13 @@ function renderNotes() {
         newSplit.style.display = showNew ? '' : 'none';
         if (!showNew) _grimCloseTplMenu();   // never leave the templates popover open when hidden
     }
-    const expAll = document.getElementById('grim-export-all');
-    if (expAll) expAll.style.display = (grimMode === 'active' && !grimSelectMode && (state.notes || []).length) ? '' : 'none';
-    // п.11: import — active mode, outside select; valid even with zero notes (it creates one).
-    const impBtn = document.getElementById('grim-import');
-    if (impBtn) impBtn.style.display = (grimMode === 'active' && !grimSelectMode) ? '' : 'none';
+    // п.13: «Перенос» (import+export) — active mode, outside select; valid even with zero notes.
+    const ioSplit = document.getElementById('grim-io-split');
+    if (ioSplit) {
+        const showIo = (grimMode === 'active' && !grimSelectMode);
+        ioSplit.style.display = showIo ? '' : 'none';
+        if (!showIo) _grimCloseIoMenu();
+    }
     // п.6: «Опустошить склеп» — only in the crypt, when it holds records, outside select mode.
     const emptyBtn = document.getElementById('grim-empty-crypt');
     if (emptyBtn) {
@@ -2292,10 +2294,11 @@ function _updateGrimSelectBar() {
     const count = grimSelectedIds.size;
     const c = document.getElementById('grim-select-count');
     if (c) c.textContent = `${count} отмечено`;
-    ['grim-bulk-archive', 'grim-bulk-restore', 'grim-bulk-delete'].forEach(id => {
+    ['grim-bulk-archive', 'grim-bulk-restore', 'grim-bulk-delete', 'grim-bulk-export'].forEach(id => {
         const b = document.getElementById(id);
         if (b) b.disabled = count === 0;
     });
+    if (count === 0) _grimCloseIoMenu();   // selection cleared → drop the export popover
 }
 
 // Записи → Склеп for every ticked note (soft archive, undoable).
@@ -3606,11 +3609,142 @@ function grimExportNote() {
     if (!note) return;
     _grimDownload(_grimSlug(note.title) + '.md', _grimNoteToMd(note));
 }
-function grimExportAll() {
-    const arr = (state.notes || []).slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-    if (!arr.length) { showToast('Нет записей для экспорта'); return; }
-    _grimDownload('grimoire.md', arr.map(_grimNoteToMd).join('\n---\n\n'));
+// ── п.13: unified import/export («Перенос») ─────────────────────────────────
+// Backup = one .md, each note a YAML-frontmatter block (round-trips, keeps colour).
+// Reading = ZIP (store), one .md per note (single note → bare .md). Detailed
+// gothic glyphs (coffer+scroll / sealed tome / bound scrolls) — never emoji.
+const GRIM_IO_IC = {
+    import:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 13.2h15.2v5.4a1.2 1.2 0 0 1-1.2 1.2H5.6a1.2 1.2 0 0 1-1.2-1.2Z"/><path d="M4.4 13.2Q4.4 10.6 7 10.6h10q2.6 0 2.6 2.6"/><path d="M8.4 10.8v9M15.6 10.8v9" opacity=".5"/><circle cx="8.4" cy="12.6" r=".55" fill="currentColor" stroke="none"/><circle cx="15.6" cy="12.6" r=".55" fill="currentColor" stroke="none"/><rect x="10.7" y="14.6" width="2.6" height="3" rx=".4"/><circle cx="12" cy="15.6" r=".5"/><path d="M5.7 19.8l-.7 1.4M18.3 19.8l.7 1.4" opacity=".7"/><path d="M9.7 2.3h4.6q1 0 1 1v4.3q0 1-1 1H9.7q-1 0-1-1V3.3q0-1 1-1Z"/><path d="M14.3 2.3q1 0 1 1 0 .9-1 .9h-1.5" opacity=".65"/><path d="M8.7 3.6h5.6" opacity=".5"/><path d="M10.2 5.2h3.1M10.2 6.6h2.1" opacity=".45"/></svg>`,
+    backup:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.4h10a1.6 1.6 0 0 1 1.6 1.6V19a1.6 1.6 0 0 1-1.6 1.6H6Q4 20.6 4 18.7V5.3Q4 3.4 6 3.4Z"/><path d="M6.6 3.4V20.6" opacity=".4"/><path d="M8 5.4 8.7 6.1 8 6.8 7.3 6.1Z" fill="currentColor" stroke="none" opacity=".7"/><path d="M15 5.4 15.7 6.1 15 6.8 14.3 6.1Z" fill="currentColor" stroke="none" opacity=".7"/><path d="M8 17.4 8.7 18.1 8 18.8 7.3 18.1Z" fill="currentColor" stroke="none" opacity=".7"/><path d="M15 17.4 15.7 18.1 15 18.8 14.3 18.1Z" fill="currentColor" stroke="none" opacity=".7"/><circle cx="11.8" cy="12" r="2.9"/><path d="M11.8 9.8 12.7 12 11.8 14.2 10.9 12Z" opacity=".65"/><path d="M17.6 10.2h1.4a.6.6 0 0 1 .6.6v2.4a.6.6 0 0 1-.6.6h-1.4"/></svg>`,
+    reading: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 4.2q1.3 0 1.3 1.4v11.2q0 1.4 1.3 1.4h-6.6q-1.3 0-1.3-1.4V5.6q0-1.4 1.3-1.4Z" opacity=".5"/><path d="M11.4 6.4q1.3 0 1.3 1.4v11.2q0 1.4 1.3 1.4H7.4q-1.3 0-1.3-1.4V7.8q0-1.4 1.3-1.4Z"/><path d="M6.1 7.5h6.6M6.1 19h6.6" opacity=".45"/><path d="M7.7 10.3h3.4M7.7 12.2h3.4M7.7 14.1h2.2" opacity=".45"/><path d="M4.4 13.4q7.5 2 15.2 0" opacity=".85"/><path d="M11.6 14.1q.5 1.5-.5 2.8m2-2.6q.6 1.4-.3 2.8" opacity=".6"/></svg>`,
+};
+function _grimDownloadBlob(name, blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+// notes for the export scope: 'all' = active grimoire; 'sel' = ticked (any segment).
+function _grimScopeNotes(scope) {
+    if (scope === 'sel') {
+        return [...(state.notes || []), ...(state.notesArchive || [])].filter(n => grimSelectedIds.has(n.id));
+    }
+    return (state.notes || []).slice().sort((a, b) => (b.ord ?? b.updatedAt ?? 0) - (a.ord ?? a.updatedAt ?? 0));
+}
+// One note as a frontmatter block (title + optional colour) followed by its md body.
+function _grimNoteToBackupMd(note) {
+    const t = String(note.title || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    let fm = '---\ntitle: "' + t + '"\n';
+    if (note.color) fm += 'color: ' + note.color + '\n';
+    fm += '---\n\n';
+    return fm + _grimHtmlToMd(note.body || '') + '\n';
+}
+function grimExportBackup(scope) {
+    const arr = _grimScopeNotes(scope);
+    _grimCloseIoMenu();
+    if (!arr.length) { showToast('Нет записей для экспорта'); return; }
+    _grimDownload((scope === 'sel' ? 'grimoire-selection' : 'grimoire-backup') + '.md',
+                  arr.map(_grimNoteToBackupMd).join('\n'));
+}
+function grimExportReading(scope) {
+    const arr = _grimScopeNotes(scope);
+    _grimCloseIoMenu();
+    if (!arr.length) { showToast('Нет записей для экспорта'); return; }
+    if (arr.length === 1) { _grimDownload((_grimSlug(arr[0].title) || 'без-заглавия') + '.md', _grimNoteToMd(arr[0])); return; }
+    const used = {};
+    const files = arr.map(n => {
+        const base = _grimSlug(n.title) || 'без-заглавия';
+        let name = base + '.md', k = 2;
+        while (used[name]) name = base + '-' + (k++) + '.md';
+        used[name] = 1;
+        return { name, text: _grimNoteToMd(n) };
+    });
+    _grimDownloadBlob('grimoire.zip', _grimZipStore(files));
+    showToast('Экспортировано: grimoire.zip (' + files.length + ')');
+}
+
+// Minimal store-method ZIP writer (no dependency). files = [{name, text}].
+const _GRIM_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
+function _grimCrc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = _GRIM_CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function _grimZipStore(files) {
+    const enc = new TextEncoder();
+    const u16 = v => [v & 0xFF, (v >> 8) & 0xFF];
+    const u32 = v => [v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF, (v >>> 24) & 0xFF];
+    const parts = [], central = []; let offset = 0;
+    files.forEach(f => {
+        const nameB = enc.encode(f.name), dataB = enc.encode(f.text), crc = _grimCrc32(dataB);
+        const lh = [].concat([0x50, 0x4b, 0x03, 0x04], u16(20), u16(0x0800), u16(0), u16(0), u16(0), u32(crc), u32(dataB.length), u32(dataB.length), u16(nameB.length), u16(0));
+        parts.push(new Uint8Array(lh), nameB, dataB);
+        central.push({ nameB, crc, size: dataB.length, offset });
+        offset += lh.length + nameB.length + dataB.length;
+    });
+    const cdStart = offset, cdParts = [];
+    central.forEach(c => {
+        const cd = [].concat([0x50, 0x4b, 0x01, 0x02], u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0), u32(c.crc), u32(c.size), u32(c.size), u16(c.nameB.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(c.offset));
+        cdParts.push(new Uint8Array(cd), c.nameB);
+        offset += cd.length + c.nameB.length;
+    });
+    const cdSize = offset - cdStart;
+    const eocd = new Uint8Array([].concat([0x50, 0x4b, 0x05, 0x06], u16(0), u16(0), u16(files.length), u16(files.length), u32(cdSize), u32(cdStart), u16(0)));
+    const all = [...parts, ...cdParts, eocd];
+    const out = new Uint8Array(all.reduce((s, p) => s + p.length, 0));
+    let p = 0; all.forEach(c => { out.set(c, p); p += c.length; });
+    return new Blob([out], { type: 'application/zip' });
+}
+
+// ── «Перенос» popover (main bar: import + export-all; select bar: export-sel) ──
+function _grimIoItem(icon, name, desc, onclick) {
+    return `<div class="grim-tpl-item" role="menuitem" onclick="${onclick}">
+        <span class="grim-tpl-ic">${icon}</span>
+        <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(name)}</span><span class="grim-tpl-desc">${escHtml(desc)}</span></span>
+    </div>`;
+}
+function _grimRenderIoMenu() {
+    const pop = document.getElementById('grim-io-pop'); if (!pop) return;
+    pop.innerHTML = '<div class="grim-tpl-head">Перенос записей</div>'
+        + '<div class="grim-tpl-sect">Импорт</div>'
+        + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md и .zip · можно несколько', 'grimImportFiles()')
+        + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Экспорт всего</div>'
+        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', "grimExportBackup('all')")
+        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', "grimExportReading('all')");
+}
+function _grimRenderIoSelMenu() {
+    const pop = document.getElementById('grim-io-sel-pop'); if (!pop) return;
+    pop.innerHTML = '<div class="grim-tpl-head">Экспорт выбранных</div>'
+        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', "grimExportBackup('sel')")
+        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу', "grimExportReading('sel')");
+}
+function _grimCloseIoMenu() {
+    ['grim-io-split', 'grim-io-sel'].forEach(id => { const w = document.getElementById(id); if (w) w.classList.remove('open'); });
+    const a = document.getElementById('grim-io'); if (a) a.setAttribute('aria-expanded', 'false');
+    const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'false');
+}
+function grimToggleIoMenu(event) {
+    if (event) event.stopPropagation();
+    const w = document.getElementById('grim-io-split'); if (!w) return;
+    const wasOpen = w.classList.contains('open');
+    _grimCloseIoMenu();
+    if (wasOpen) return;
+    _grimRenderIoMenu();
+    requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
+    const b = document.getElementById('grim-io'); if (b) b.setAttribute('aria-expanded', 'true');
+}
+function grimToggleIoSelMenu(event) {
+    if (event) event.stopPropagation();
+    const w = document.getElementById('grim-io-sel'); if (!w) return;
+    const wasOpen = w.classList.contains('open');
+    _grimCloseIoMenu();
+    if (wasOpen) return;
+    _grimRenderIoSelMenu();
+    requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
+    const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'true');
+}
+document.addEventListener('click', e => {
+    const a = document.getElementById('grim-io-split'), b = document.getElementById('grim-io-sel');
+    const open = (a && a.classList.contains('open')) || (b && b.classList.contains('open'));
+    if (open && !(a && a.contains(e.target)) && !(b && b.contains(e.target))) _grimCloseIoMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') _grimCloseIoMenu(); });
 
 // ── Markdown import (.md file → new note) ───────────────────────────────
 // Reverse of the export above: parse CommonMark-ish markdown into the same
@@ -3740,8 +3874,9 @@ function _grimMdToHtml(md) {
     }
     return html;
 }
-// Build a fresh note from markdown text (first top-level # → title, rest → body).
-function _grimCreateFromMd(text, filename) {
+// Plain markdown (no frontmatter) → {title, bodyMd, color}: first top-level # is
+// the title, rest is the body; no heading → filename becomes the title.
+function _grimSplitTitleBody(text, filename) {
     text = String(text || '').replace(/^﻿/, '');
     const lines = text.replace(/\r\n?/g, '\n').split('\n');
     let start = 0;
@@ -3751,36 +3886,150 @@ function _grimCreateFromMd(text, filename) {
     if (h1) { title = h1[1].trim(); bodyLines = lines.slice(start + 1); }
     else { bodyLines = lines; }
     if (!title) title = String(filename || '').replace(/\.(md|markdown|txt)$/i, '').trim();
-    const body = _grimSanitize(_grimMdToHtml(bodyLines.join('\n')));
+    return { title, bodyMd: bodyLines.join('\n'), color: null };
+}
+// Backup-format parser: split a file into notes by YAML-frontmatter blocks.
+// Returns [] for a plain (single-note) .md so the каller falls back to one note.
+function _grimUnquote(s) {
+    s = String(s || '').trim();
+    if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'")))
+        s = s.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    return s;
+}
+// A "---" line opens real frontmatter only if key:value lines follow until a
+// closing "---" — this tells a note boundary apart from a body <hr>.
+function _grimFmLooks(lines, idx) {
+    let k = idx + 1, sawKey = false;
+    while (k < lines.length && k < idx + 14) {
+        const t = lines[k].trim();
+        if (t === '---') return sawKey;
+        if (/^[A-Za-z][\w-]*:\s?/.test(lines[k])) sawKey = true;
+        else if (t !== '') return false;
+        k++;
+    }
+    return false;
+}
+function _grimParseBackup(text) {
+    const lines = String(text || '').replace(/^﻿/, '').replace(/\r\n?/g, '\n').split('\n');
+    const notes = []; let i = 0;
+    while (i < lines.length) {
+        if (lines[i].trim() === '---' && _grimFmLooks(lines, i)) {
+            const meta = {}; let j = i + 1;
+            while (j < lines.length && lines[j].trim() !== '---') {
+                const m = /^([A-Za-z][\w-]*):\s?(.*)$/.exec(lines[j]);
+                if (m) meta[m[1].toLowerCase()] = m[2];
+                j++;
+            }
+            j++;                                            // past the closing ---
+            const body = [];
+            while (j < lines.length) {
+                if (lines[j].trim() === '---' && _grimFmLooks(lines, j)) break;
+                body.push(lines[j]); j++;
+            }
+            const raw = (meta.color || '').trim();
+            const color = /^#?[0-9a-fA-F]{6}$/.test(raw) ? (raw.startsWith('#') ? raw : '#' + raw) : null;
+            notes.push({ title: _grimUnquote(meta.title), color, bodyMd: body.join('\n').trim() });
+            i = j; continue;
+        }
+        i++;
+    }
+    return notes;
+}
+// Push a note built from {title, body(html), color} without rendering.
+function _grimPushNote(seed) {
+    const now = Date.now();
+    const note = { id: uid(), title: seed.title || '', body: _grimSanitize(seed.body || ''), fmt: true, color: seed.color || null, createdAt: now, updatedAt: now };
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(note);
+    return note.id;
+}
+// Turn collected docs ([{text, name}]) into notes — backup files split into many,
+// plain files become one each. One undo step, one render, focus the last.
+function _grimImportDocs(docs) {
+    if (!docs.length) { showToast('Нет записей для импорта'); return; }
     if (grimMode !== 'active') grimMode = 'active';
     clearTimeout(_grimSaveT); saveState();
     grimFindClose();
     pushUndo();
-    const now = Date.now();
-    const note = { id: uid(), title: title, body: body, fmt: true, color: null, createdAt: now, updatedAt: now };
-    if (!Array.isArray(state.notes)) state.notes = [];
-    state.notes.unshift(note);
-    currentNoteId = note.id;
+    let added = 0, lastId = null;
+    docs.forEach(d => {
+        const parsed = _grimParseBackup(d.text);
+        if (parsed.length) {
+            parsed.forEach(n => { lastId = _grimPushNote({ title: n.title, body: _grimMdToHtml(n.bodyMd), color: n.color }); added++; });
+        } else {
+            const s = _grimSplitTitleBody(d.text, d.name);
+            lastId = _grimPushNote({ title: s.title, body: _grimMdToHtml(s.bodyMd), color: s.color }); added++;
+        }
+    });
+    if (!added) { showToast('Файлы пусты'); return; }
+    currentNoteId = lastId;
     grimNoteCollapsed = false;
     notesSearchQuery = '';
     const sb = document.getElementById('notes-search-box'); if (sb) sb.value = '';
     saveState();
     renderNotes();
     const layoutEl = document.getElementById('grim-layout'); if (layoutEl) layoutEl.classList.add('show-detail');
-    showToast('Импортировано из Markdown');
+    const ti = document.getElementById('grim-title-in'); if (ti) ti.focus();
+    showToast('Импортировано записей: ' + added);
 }
-function grimImportNote() {
+// Read a .md/.markdown/.txt entry from a ZIP (store or deflate via DecompressionStream).
+async function _grimInflate(bytes) {
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function _grimUnzip(buf) {
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    let eo = -1;
+    for (let i = buf.length - 22; i >= 0; i--) { if (dv.getUint32(i, true) === 0x06054b50) { eo = i; break; } }
+    if (eo < 0) return [];
+    const cdCount = dv.getUint16(eo + 10, true);
+    let p = dv.getUint32(eo + 16, true);
+    const dec = new TextDecoder(), out = [];
+    for (let i = 0; i < cdCount && p + 46 <= buf.length; i++) {
+        if (dv.getUint32(p, true) !== 0x02014b50) break;
+        const method = dv.getUint16(p + 10, true);
+        const compSize = dv.getUint32(p + 20, true);
+        const nameLen = dv.getUint16(p + 28, true);
+        const extraLen = dv.getUint16(p + 30, true);
+        const commentLen = dv.getUint16(p + 32, true);
+        const lho = dv.getUint32(p + 42, true);
+        const name = dec.decode(buf.subarray(p + 46, p + 46 + nameLen));
+        p += 46 + nameLen + extraLen + commentLen;
+        if (!/\.(md|markdown|txt)$/i.test(name)) continue;
+        if (dv.getUint32(lho, true) !== 0x04034b50) continue;
+        const dataStart = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true);
+        const comp = buf.subarray(dataStart, dataStart + compSize);
+        let text;
+        if (method === 0) text = dec.decode(comp);
+        else if (method === 8) { try { text = dec.decode(await _grimInflate(comp)); } catch (e) { continue; } }
+        else continue;
+        out.push({ text, name: name.split('/').pop() });
+    }
+    return out;
+}
+// Pick one or more .md/.zip files; collect docs (unzipping archives) and import.
+function grimImportFiles() {
+    _grimCloseIoMenu();
     const inp = document.createElement('input');
     inp.type = 'file';
-    inp.accept = '.md,.markdown,.txt,text/markdown,text/plain';
+    inp.multiple = true;
+    inp.accept = '.md,.markdown,.txt,.zip,text/markdown,text/plain,application/zip';
     inp.style.display = 'none';
-    inp.onchange = () => {
-        const f = inp.files && inp.files[0];
-        if (!f) { inp.remove(); return; }
-        const rd = new FileReader();
-        rd.onload = () => { try { _grimCreateFromMd(String(rd.result || ''), f.name); } catch (e) { showToast('Не удалось импортировать'); } inp.remove(); };
-        rd.onerror = () => { showToast('Ошибка чтения файла'); inp.remove(); };
-        rd.readAsText(f);
+    inp.onchange = async () => {
+        const files = [...(inp.files || [])]; inp.remove();
+        if (!files.length) return;
+        const docs = [];
+        for (const f of files) {
+            try {
+                if (/\.zip$/i.test(f.name)) {
+                    const entries = await _grimUnzip(new Uint8Array(await f.arrayBuffer()));
+                    entries.forEach(e => docs.push(e));
+                } else {
+                    docs.push({ text: await f.text(), name: f.name });
+                }
+            } catch (e) { /* skip unreadable file */ }
+        }
+        _grimImportDocs(docs);
     };
     document.body.appendChild(inp);
     inp.click();
