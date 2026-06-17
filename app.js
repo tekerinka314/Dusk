@@ -1357,6 +1357,9 @@ function renderNotes() {
     if (newBtn) newBtn.style.display = (grimMode === 'active' && !grimSelectMode) ? '' : 'none';
     const expAll = document.getElementById('grim-export-all');
     if (expAll) expAll.style.display = (grimMode === 'active' && !grimSelectMode && (state.notes || []).length) ? '' : 'none';
+    // п.11: import — active mode, outside select; valid even with zero notes (it creates one).
+    const impBtn = document.getElementById('grim-import');
+    if (impBtn) impBtn.style.display = (grimMode === 'active' && !grimSelectMode) ? '' : 'none';
     // п.6: «Опустошить склеп» — only in the crypt, when it holds records, outside select mode.
     const emptyBtn = document.getElementById('grim-empty-crypt');
     if (emptyBtn) {
@@ -3601,6 +3604,180 @@ function grimExportAll() {
     const arr = (state.notes || []).slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
     if (!arr.length) { showToast('Нет записей для экспорта'); return; }
     _grimDownload('grimoire.md', arr.map(_grimNoteToMd).join('\n---\n\n'));
+}
+
+// ── Markdown import (.md file → new note) ───────────────────────────────
+// Reverse of the export above: parse CommonMark-ish markdown into the same
+// whitelist HTML the editor produces, so a round-trip (export → import)
+// preserves structure. Inline parser mirrors _grimInlineMd.
+function _grimMdInline(text) {
+    // Protect inline code spans first so their contents are never re-parsed.
+    const codes = [];
+    let s = String(text).replace(/`([^`]+)`/g, (m, c) => { codes.push(c); return '' + (codes.length - 1) + ''; });
+    s = escHtml(s);
+    // export writes underline as literal <u>…</u> — bring those tags back.
+    s = s.replace(/&lt;u&gt;/gi, '<u>').replace(/&lt;\/u&gt;/gi, '</u>');
+    // links [text](url) — sanitizer later validates/cleans href.
+    s = s.replace(/\[([^\]]*)\]\(([^)\s]+)\)/g, (m, t, u) => '<a href="' + u + '">' + t + '</a>');
+    // bold, then strike, then italic (single-marker last so ** isn't eaten as *).
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    s = s.replace(/~~([^~]+)~~/g, '<s>$1</s>');
+    s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    s = s.replace(/(^|[^_\w])_([^_\n]+)_(?![\w_])/g, '$1<em>$2</em>');
+    s = s.replace(/(\d+)/g, (m, i) => '<code>' + escHtml(codes[+i]) + '</code>');
+    return s;
+}
+// One pipe-table block (rows = [header, body1, body2…]; separator already dropped).
+function _grimMdTable(rows) {
+    const cells = r => {
+        let s = r.trim().replace(/^\|/, '').replace(/\|$/, '');
+        const out = []; let cur = '';
+        for (let k = 0; k < s.length; k++) {
+            if (s[k] === '\\' && s[k + 1] === '|') { cur += '|'; k++; continue; }
+            if (s[k] === '|') { out.push(cur); cur = ''; continue; }
+            cur += s[k];
+        }
+        out.push(cur);
+        return out.map(c => c.trim());
+    };
+    const header = cells(rows[0]);
+    let h = '<table><thead><tr>' + header.map(c => '<th>' + _grimMdInline(c) + '</th>').join('') + '</tr></thead>';
+    if (rows.length > 1) {
+        h += '<tbody>';
+        for (let r = 1; r < rows.length; r++) {
+            const cs = cells(rows[r]);
+            while (cs.length < header.length) cs.push('');
+            h += '<tr>' + cs.slice(0, header.length).map(c => '<td>' + _grimMdInline(c) + '</td>').join('') + '</tr>';
+        }
+        h += '</tbody>';
+    }
+    return h + '</table>';
+}
+function _grimMdToHtml(md) {
+    const lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
+    const isHr = l => /^ {0,3}([-*_])( *\1){2,} *$/.test(l);
+    const isHead = l => /^ {0,3}#{1,6}\s/.test(l);
+    const isFence = l => /^ {0,3}(`{3,}|~{3,})/.test(l);
+    const isQuote = l => /^ {0,3}>/.test(l);
+    const isUl = l => /^ {0,3}[-*+]\s+/.test(l);
+    const isTask = l => /^ {0,3}[-*+]\s+\[[ xX]\]\s+/.test(l);
+    const isOl = l => /^ {0,3}\d+[.)]\s+/.test(l);
+    let html = '', i = 0;
+    while (i < lines.length) {
+        const line = lines[i];
+        if (/^\s*$/.test(line)) { i++; continue; }
+        // fenced code block — verbatim, no inline parse
+        const fence = /^ {0,3}(`{3,}|~{3,})/.exec(line);
+        if (fence) {
+            const mark = fence[1][0], len = fence[1].length;
+            const close = new RegExp('^ {0,3}' + mark + '{' + len + ',} *$');
+            i++; const buf = [];
+            while (i < lines.length && !close.test(lines[i])) { buf.push(lines[i]); i++; }
+            i++; // consume closing fence (if present)
+            html += '<pre>' + escHtml(buf.join('\n')) + '</pre>';
+            continue;
+        }
+        // ATX heading (clamp 4-6 → h3, the deepest the editor has)
+        const h = /^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
+        if (h) { const lvl = Math.min(3, h[1].length); html += '<h' + lvl + '>' + _grimMdInline(h[2]) + '</h' + lvl + '>'; i++; continue; }
+        if (isHr(line)) { html += '<hr>'; i++; continue; }
+        // pipe table — header line followed by a |---|---| separator
+        if (/\|/.test(line) && i + 1 < lines.length && /-/.test(lines[i + 1]) && /^ {0,3}\|?[\s:|-]*-[\s:|-]*$/.test(lines[i + 1])) {
+            const rows = [line]; i += 2; // header + skip separator
+            while (i < lines.length && /\|/.test(lines[i]) && !/^\s*$/.test(lines[i])) { rows.push(lines[i]); i++; }
+            html += _grimMdTable(rows);
+            continue;
+        }
+        if (isQuote(line)) {
+            const buf = [];
+            while (i < lines.length && isQuote(lines[i])) { buf.push(lines[i].replace(/^ {0,3}> ?/, '')); i++; }
+            html += '<blockquote>' + _grimMdInline(buf.join('\n')).replace(/[ \t]*\n/g, '<br>') + '</blockquote>';
+            continue;
+        }
+        if (isTask(line)) {
+            let lis = '';
+            while (i < lines.length && isTask(lines[i])) {
+                const m = /^ {0,3}[-*+]\s+\[([ xX])\]\s+(.*)$/.exec(lines[i]);
+                lis += '<li' + (/[xX]/.test(m[1]) ? ' class="done"' : '') + '>' + _grimMdInline(m[2]) + '</li>'; i++;
+            }
+            html += '<ul class="task">' + lis + '</ul>';
+            continue;
+        }
+        if (isUl(line)) {
+            let lis = '';
+            while (i < lines.length && isUl(lines[i]) && !isTask(lines[i])) {
+                lis += '<li>' + _grimMdInline(lines[i].replace(/^ {0,3}[-*+]\s+/, '')) + '</li>'; i++;
+            }
+            html += '<ul>' + lis + '</ul>';
+            continue;
+        }
+        if (isOl(line)) {
+            let lis = '';
+            while (i < lines.length && isOl(lines[i])) {
+                lis += '<li>' + _grimMdInline(lines[i].replace(/^ {0,3}\d+[.)]\s+/, '')) + '</li>'; i++;
+            }
+            html += '<ol>' + lis + '</ol>';
+            continue;
+        }
+        // paragraph — gather until blank line or the start of another block
+        const buf = [];
+        while (i < lines.length && !/^\s*$/.test(lines[i]) && !isHead(lines[i]) && !isFence(lines[i])
+               && !isQuote(lines[i]) && !isUl(lines[i]) && !isOl(lines[i]) && !isHr(lines[i])) {
+            buf.push(lines[i]); i++;
+        }
+        let para = '';
+        buf.forEach((l, k) => {
+            const hard = / {2,}$/.test(l);                 // markdown hard break
+            para += _grimMdInline(l.trim()) + (k < buf.length - 1 ? (hard ? '<br>' : ' ') : '');
+        });
+        html += '<p>' + para + '</p>';
+    }
+    return html;
+}
+// Build a fresh note from markdown text (first top-level # → title, rest → body).
+function _grimCreateFromMd(text, filename) {
+    text = String(text || '').replace(/^﻿/, '');
+    const lines = text.replace(/\r\n?/g, '\n').split('\n');
+    let start = 0;
+    while (start < lines.length && /^\s*$/.test(lines[start])) start++;
+    let title = '', bodyLines;
+    const h1 = /^ {0,3}#\s+(.*?)\s*#*\s*$/.exec(lines[start] || '');
+    if (h1) { title = h1[1].trim(); bodyLines = lines.slice(start + 1); }
+    else { bodyLines = lines; }
+    if (!title) title = String(filename || '').replace(/\.(md|markdown|txt)$/i, '').trim();
+    const body = _grimSanitize(_grimMdToHtml(bodyLines.join('\n')));
+    if (grimMode !== 'active') grimMode = 'active';
+    clearTimeout(_grimSaveT); saveState();
+    grimFindClose();
+    pushUndo();
+    const now = Date.now();
+    const note = { id: uid(), title: title, body: body, fmt: true, color: null, createdAt: now, updatedAt: now };
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(note);
+    currentNoteId = note.id;
+    grimNoteCollapsed = false;
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box'); if (sb) sb.value = '';
+    saveState();
+    renderNotes();
+    const layoutEl = document.getElementById('grim-layout'); if (layoutEl) layoutEl.classList.add('show-detail');
+    showToast('Импортировано из Markdown');
+}
+function grimImportNote() {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.md,.markdown,.txt,text/markdown,text/plain';
+    inp.style.display = 'none';
+    inp.onchange = () => {
+        const f = inp.files && inp.files[0];
+        if (!f) { inp.remove(); return; }
+        const rd = new FileReader();
+        rd.onload = () => { try { _grimCreateFromMd(String(rd.result || ''), f.name); } catch (e) { showToast('Не удалось импортировать'); } inp.remove(); };
+        rd.onerror = () => { showToast('Ошибка чтения файла'); inp.remove(); };
+        rd.readAsText(f);
+    };
+    document.body.appendChild(inp);
+    inp.click();
 }
 
 // Live toolbar active-state while editing the body. (The caret no longer drives
