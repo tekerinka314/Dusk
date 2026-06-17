@@ -1512,7 +1512,7 @@ function grimToggleToc() {
 // (Re)build the rail from the live headings and gate its visibility on ≥3 of them.
 function _grimRefreshToc() {
     const page = document.querySelector('#grim-detail .grim-page');
-    const bo = document.getElementById('grim-body');
+    const bo = document.querySelector('#grim-detail .grim-body');   // active OR read-only crypt body
     const panel = document.getElementById('grim-toc');
     if (!page || !bo || !panel) { _grimTocDetach(); return; }
     const heads = [...bo.querySelectorAll('h1, h2, h3')].filter(h => (h.textContent || '').trim());
@@ -1824,9 +1824,10 @@ function renderGrimDetail() {
     const colorStyle = colorVars ? ` style="${colorVars}"` : '';
 
     if (grimMode === 'archive') {
-        // Read-only crypt view: restore / destroy.
+        // Read-only crypt view: restore / destroy. TOC works here too (long crypt notes).
         detailEl.innerHTML = `<div class="grim-page grim-page--ro${colorCls}"${colorStyle}>
-            ${backBtn}${focusBtn}
+          <div class="grim-page-main">
+            ${backBtn}${focusBtn}${tocBtn}
             <div class="grim-title-ro">${escHtml((note.title || '').trim() || 'Без заглавия')}</div>
             <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
             <div class="grim-body grim-body--ro">${_grimSanitize(note.body || '')}</div>
@@ -1837,7 +1838,10 @@ function renderGrimDetail() {
                     <button class="grim-act danger" onclick="grimDeleteForever('${note.id}')" title="Уничтожить навсегда">${IC.skull}<span>удалить</span></button>
                 </span>
             </div>
+          </div>
+          <aside class="grim-toc" id="grim-toc" contenteditable="false" aria-label="Оглавление"></aside>
         </div>`;
+        requestAnimationFrame(_grimRefreshToc);   // build the TOC rail for the crypt note
         return;
     }
 

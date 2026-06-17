@@ -6074,6 +6074,8 @@ kbd {
 .grim-toc-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); box-shadow: 0 0 10px var(--accent-glow); }
 /* Button only appears on notes with enough structure (≥3 headings), desktop only. */
 @media (min-width: 641px) { .grim-page.toc-avail .grim-toc-toggle { display: inline-flex; } }
+/* Crypt (read-only) has no toolbar toggle in the stack — close the gap. */
+.grim-page--ro .grim-toc-toggle { top: 42px; }
 
 /* Content + rail sit side by side once the TOC opens. .grim-page-main always wraps the
    content (transparent when the rail is closed: .grim-page stays a plain block). */
