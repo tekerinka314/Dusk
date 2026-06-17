@@ -2461,6 +2461,9 @@ function _grimSanitize(html) {
                 } else if (n === 'class' && (ch.tagName === 'UL' || ch.tagName === 'LI')) {
                     const keep = a.value.split(/\s+/).filter(c => c === 'task' || c === 'done').join(' ');
                     keep ? ch.setAttribute('class', keep) : ch.removeAttribute('class');
+                } else if (n === 'class' && (ch.tagName === 'TH' || ch.tagName === 'TD')) {
+                    const keep = a.value.split(/\s+/).filter(c => c === 'align-c' || c === 'align-r').join(' ');
+                    keep ? ch.setAttribute('class', keep) : ch.removeAttribute('class');
                 } else {
                     ch.removeAttribute(a.name);
                 }
@@ -3355,6 +3358,32 @@ function _grimToggleTableMenu(gutter, kind, ref, table) {
         menu.appendChild(mk('', 'Колонка слева', FIC.tblAdd, () => _grimColInsert(table, ci, false)));
         menu.appendChild(mk('del', 'Удалить колонку', FIC.tblDel, () => _grimColDelete(table, ci)));
         menu.appendChild(mk('', 'Колонка справа', FIC.tblAdd, () => _grimColInsert(table, ci, true)));
+        // ── п.13: column alignment L/C/R (markdown-native, per column) ──
+        const div = document.createElement('span'); div.className = 'gtc-divline'; menu.appendChild(div);
+        const aBtns = {};
+        const setActive = a => Object.keys(aBtns).forEach(k => aBtns[k].classList.toggle('on', k === a));
+        const mkAlign = (a, title, glyph) => {
+            const b = document.createElement('button');
+            b.type = 'button'; b.className = 'gtc-mbtn gtc-align'; b.title = title + ' (Shift — всем колонкам)'; b.innerHTML = glyph;
+            b.addEventListener('mousedown', e => e.preventDefault());
+            b.addEventListener('click', e => {
+                e.stopPropagation();
+                if (e.shiftKey) {
+                    const n = table.rows[0] ? table.rows[0].cells.length : 0;
+                    for (let c = 0; c < n; c++) _grimColAlign(table, c, a);
+                } else {
+                    _grimColAlign(table, ci, a);
+                }
+                setActive(a);
+                if (bo) _grimAfterEdit(bo);
+                _grimLayoutTableUI();
+            });
+            aBtns[a] = b; return b;
+        };
+        menu.appendChild(mkAlign('l', 'По левому краю', FIC.alignL));
+        menu.appendChild(mkAlign('c', 'По центру', FIC.alignC));
+        menu.appendChild(mkAlign('r', 'По правому краю', FIC.alignR));
+        setActive(_grimColGetAlign(table, ci));
     } else {
         const rowEl = ref;
         menu.appendChild(mk('', 'Строка выше', FIC.tblAdd, () => _grimRowInsert(table, rowEl, false)));
@@ -3429,6 +3458,21 @@ function _grimColDelete(table, ci) {
     if (table.rows[0] && table.rows[0].cells.length <= 1) { _grimRemoveTable(table); return; }
     [...table.rows].forEach(tr => { if (tr.cells[ci]) tr.deleteCell(ci); });
 }
+// п.13: set/read per-column text alignment (left = no class, default).
+function _grimColAlign(table, ci, a) {
+    [...table.rows].forEach(tr => {
+        const c = tr.cells[ci]; if (!c) return;
+        c.classList.remove('align-c', 'align-r');
+        if (a === 'c') c.classList.add('align-c');
+        else if (a === 'r') c.classList.add('align-r');
+        if (!c.className) c.removeAttribute('class');
+    });
+}
+function _grimColGetAlign(table, ci) {
+    const c = table.rows[0] && table.rows[0].cells[ci];
+    if (!c) return 'l';
+    return c.classList.contains('align-c') ? 'c' : c.classList.contains('align-r') ? 'r' : 'l';
+}
 function _grimRowInsert(table, rowEl, after) {
     const ncols = rowEl.cells.length;
     const tr = document.createElement('tr');
@@ -3488,6 +3532,10 @@ const FIC = {
     tblDel:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 15.4C6.1 10.8 9.2 4.9 18 5.3c-4.7 1-6.9 4.2-6.7 8.1"/><path d="M9.6 14.5l2.3 2.3-3.5 3.5a1.6 1.6 0 0 1-2.3-2.3z" fill="currentColor" stroke="none"/></svg>`,
     tblGrip:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6c1.7 0 2.2 2 .95 3.2 1.85-.2 3.35 1.25 2.6 3.1-.55 1.5-2.5 1.95-3.55.85M12 4.6c-1.7 0-2.2 2-.95 3.2-1.85-.2-3.35 1.25-2.6 3.1.55 1.5 2.5 1.95 3.55.85M12 7.4V19.4M9.3 19.4h5.4"/></svg>`,
     tblSigil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 6.4a3.1 3.1 0 0 1 0 5.6 3.1 3.1 0 0 1 0-5.6z M12 12a3.1 3.1 0 0 1 0 5.6 3.1 3.1 0 0 1 0-5.6z M6.4 12a3.1 3.1 0 0 1 5.6 0 3.1 3.1 0 0 1-5.6 0z M12 12a3.1 3.1 0 0 1 5.6 0 3.1 3.1 0 0 1-5.6 0z"/></svg>`,
+    // align L/C/R — scribe lines anchored to an ornamented edge rule (banner, variant B)
+    alignL:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.6V19.4"/><path d="M4 4.6 2.8 5.8 4 7 5.2 5.8Z" fill="currentColor" stroke="none"/><path d="M4 19.4 2.8 18.2 4 17 5.2 18.2Z" fill="currentColor" stroke="none"/><path d="M6.5 8h12"/><path d="M6.5 12h8"/><path d="M6.5 16h13"/></svg>`,
+    alignC:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6V19.4"/><path d="M12 4.6 10.8 5.8 12 7 13.2 5.8Z" fill="currentColor" stroke="none"/><path d="M12 19.4 10.8 18.2 12 17 13.2 18.2Z" fill="currentColor" stroke="none"/><path d="M6 8h12"/><path d="M8 12h8"/><path d="M5 16h14"/></svg>`,
+    alignR:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4.6V19.4"/><path d="M20 4.6 18.8 5.8 20 7 21.2 5.8Z" fill="currentColor" stroke="none"/><path d="M20 19.4 18.8 18.2 20 17 21.2 18.2Z" fill="currentColor" stroke="none"/><path d="M5.5 8h12"/><path d="M9.5 12h8"/><path d="M4.5 16h13"/></svg>`,
 };
 function _grimToolbarHTML() {
     const btn = (cmd, on, title, svg) =>
@@ -3597,7 +3645,12 @@ function _grimTableToMd(table) {
     const cols = Math.max(...rows.map(r => r.length));
     rows.forEach(r => { while (r.length < cols) r.push(''); });
     const line = cells => '| ' + cells.join(' | ') + ' |';
-    let out = line(rows[0]) + '\n' + line(rows[0].map(() => '---')) + '\n';
+    const sep = [];
+    for (let c = 0; c < cols; c++) {
+        const a = _grimColGetAlign(table, c);
+        sep.push(a === 'c' ? ':-:' : a === 'r' ? '--:' : '---');
+    }
+    let out = line(rows[0]) + '\n' + line(sep) + '\n';
     rows.slice(1).forEach(r => out += line(r) + '\n');
     return out;
 }
@@ -3767,8 +3820,9 @@ function _grimMdInline(text) {
     s = s.replace(/(\d+)/g, (m, i) => '<code>' + escHtml(codes[+i]) + '</code>');
     return s;
 }
-// One pipe-table block (rows = [header, body1, body2…]; separator already dropped).
-function _grimMdTable(rows) {
+// One pipe-table block (rows = [header, body1, body2…]; separator passed separately
+// so per-column alignment (:--/:-:/--:) round-trips into align-c/align-r classes).
+function _grimMdTable(rows, sepLine) {
     const cells = r => {
         let s = r.trim().replace(/^\|/, '').replace(/\|$/, '');
         const out = []; let cur = '';
@@ -3780,14 +3834,19 @@ function _grimMdTable(rows) {
         out.push(cur);
         return out.map(c => c.trim());
     };
+    const aligns = (sepLine ? cells(sepLine) : []).map(c => {
+        const L = c.startsWith(':'), R = c.endsWith(':');
+        return L && R ? ' class="align-c"' : R ? ' class="align-r"' : '';
+    });
+    const cls = i => aligns[i] || '';
     const header = cells(rows[0]);
-    let h = '<table><thead><tr>' + header.map(c => '<th>' + _grimMdInline(c) + '</th>').join('') + '</tr></thead>';
+    let h = '<table><thead><tr>' + header.map((c, i) => '<th' + cls(i) + '>' + _grimMdInline(c) + '</th>').join('') + '</tr></thead>';
     if (rows.length > 1) {
         h += '<tbody>';
         for (let r = 1; r < rows.length; r++) {
             const cs = cells(rows[r]);
             while (cs.length < header.length) cs.push('');
-            h += '<tr>' + cs.slice(0, header.length).map(c => '<td>' + _grimMdInline(c) + '</td>').join('') + '</tr>';
+            h += '<tr>' + cs.slice(0, header.length).map((c, i) => '<td' + cls(i) + '>' + _grimMdInline(c) + '</td>').join('') + '</tr>';
         }
         h += '</tbody>';
     }
@@ -3823,9 +3882,10 @@ function _grimMdToHtml(md) {
         if (isHr(line)) { html += '<hr>'; i++; continue; }
         // pipe table — header line followed by a |---|---| separator
         if (/\|/.test(line) && i + 1 < lines.length && /-/.test(lines[i + 1]) && /^ {0,3}\|?[\s:|-]*-[\s:|-]*$/.test(lines[i + 1])) {
+            const sepLine = lines[i + 1];
             const rows = [line]; i += 2; // header + skip separator
             while (i < lines.length && /\|/.test(lines[i]) && !/^\s*$/.test(lines[i])) { rows.push(lines[i]); i++; }
-            html += _grimMdTable(rows);
+            html += _grimMdTable(rows, sepLine);
             continue;
         }
         if (isQuote(line)) {

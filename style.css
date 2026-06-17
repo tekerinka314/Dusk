@@ -6386,6 +6386,9 @@ kbd {
     text-shadow: 0 0 9px var(--accent-glow), 0 0 2px rgba(170, 90, 255, 0.5);
 }
 .grim-body tbody tr:hover, .grim-body--ro tbody tr:hover { background: rgba(255, 255, 255, 0.022); }
+/* п.13: per-column alignment (left = default). */
+.grim-body th.align-c, .grim-body td.align-c, .grim-body--ro th.align-c, .grim-body--ro td.align-c { text-align: center; }
+.grim-body th.align-r, .grim-body td.align-r, .grim-body--ro th.align-r, .grim-body--ro td.align-r { text-align: right; }
 
 /* Size-grid popover for inserting a table. */
 .grim-table-pop {
@@ -6450,8 +6453,8 @@ kbd {
     transition: color 0.14s ease, background 0.14s ease, border-color 0.14s ease;
     animation: gtcFade 0.2s var(--ease-emerge) both;
 }
-.gtc-colgut { height: 18px; background: linear-gradient(180deg, rgba(126, 56, 220, 0.46), rgba(126, 56, 220, 0.10)); }
-.gtc-rowgut { width: 18px;  background: linear-gradient(90deg,  rgba(126, 56, 220, 0.46), rgba(126, 56, 220, 0.10)); }
+.gtc-colgut { height: 18px; background: linear-gradient(180deg, rgba(126, 56, 220, 0.22), rgba(126, 56, 220, 0.05)); }
+.gtc-rowgut { width: 18px;  background: linear-gradient(90deg,  rgba(126, 56, 220, 0.22), rgba(126, 56, 220, 0.05)); }
 .gtc-gut:hover, .gtc-gut.gtc-active { color: #fff; border-color: var(--border-mid); }
 .gtc-colgut:hover, .gtc-colgut.gtc-active { background: linear-gradient(180deg, rgba(154, 84, 255, 0.60), rgba(154, 84, 255, 0.16)); }
 .gtc-rowgut:hover, .gtc-rowgut.gtc-active { background: linear-gradient(90deg,  rgba(154, 84, 255, 0.60), rgba(154, 84, 255, 0.16)); }
@@ -6475,6 +6478,10 @@ kbd {
 .gtc-mbtn:hover, .gtc-edge:hover { background: var(--accent-soft); border-color: var(--border-bright); color: #fff; transform: translateY(-1px); }
 .gtc-mbtn.del { color: var(--text-secondary); }
 .gtc-mbtn.del:hover { background: var(--prio-high-bg); border-color: var(--prio-high-border); color: var(--prio-high); }
+/* п.13: divider before the align cluster + active align state */
+.gtc-divline { align-self: stretch; width: 1px; margin: 2px 1px; background: linear-gradient(180deg, transparent, var(--border-bright), transparent); }
+.gtc-align { color: var(--text-secondary); }
+.gtc-align.on { color: var(--grim-heading); border-color: rgba(160, 96, 255, 0.55); background: var(--accent-soft); box-shadow: 0 0 10px -2px var(--accent); }
 
 /* edge rails: append a column (right) / row (bottom) */
 .gtc-edge { position: absolute; transform: translate(-50%, -50%); box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
