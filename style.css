@@ -6059,6 +6059,137 @@ kbd {
 .grim-bar-toggle svg { width: 18px; height: 18px; }
 .grim-bar-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
 .grim-bar-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); box-shadow: 0 0 10px var(--accent-glow); }
+
+/* ── п.14: Table of contents (TOC) — corner toggle + sticky right rail ── */
+.grim-toc-toggle {
+    position: absolute; top: 78px; right: 12px; z-index: 2;
+    width: 30px; height: 30px; display: none;
+    align-items: center; justify-content: center;
+    border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg-item); color: var(--text-secondary);
+    cursor: pointer; transition: all var(--transition);
+}
+.grim-toc-toggle svg { width: 18px; height: 18px; }
+.grim-toc-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
+.grim-toc-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); box-shadow: 0 0 10px var(--accent-glow); }
+/* Button only appears on notes with enough structure (≥3 headings), desktop only. */
+@media (min-width: 641px) { .grim-page.toc-avail .grim-toc-toggle { display: inline-flex; } }
+
+/* Content + rail sit side by side once the TOC opens. .grim-page-main always wraps the
+   content (transparent when the rail is closed: .grim-page stays a plain block). */
+.grim-page-main { position: relative; }
+.grim-page.toc-open { display: flex; align-items: flex-start; }
+.grim-page.toc-open .grim-page-main { flex: 1 1 0; min-width: 0; }
+
+/* The rail is position:sticky itself (NOT wrapped in an overflow ancestor — that would
+   capture the sticky and pin it to the page instead of the viewport). overflow lives on
+   the rail, so its own slide-clip doesn't break stickiness. */
+/* Outer = slide/clip layer only (sticky so the card follows the scroll); it carries
+   no frame of its own, so the card inside reads as one autonomous object. */
+.grim-toc {
+    position: sticky; top: 74px; align-self: flex-start;
+    flex: 0 0 0; width: 0; opacity: 0; overflow: hidden;
+    pointer-events: none;
+    transition: flex-basis var(--dur-ritual) var(--ease-gothic),
+                width var(--dur-ritual) var(--ease-gothic),
+                opacity var(--dur-standard) var(--ease-gothic);
+}
+.grim-page.toc-open .grim-toc { flex-basis: 222px; width: 222px; opacity: 1; pointer-events: auto; }
+/* The visible card — a self-framed codex index, detached from the note page and lifted
+   by a drop shadow. Capped height + internal scroll keep the frame closed on every edge
+   while reading (no open bottom/right when the page scrolls). */
+/* Frame only — same fill/brightness as the note page (var(--bg-input)). overflow:hidden
+   clips the inner scrollbar to the rounded corners (no square corner spill). */
+.grim-toc-inner {
+    width: 200px; box-sizing: border-box;
+    margin: 4px 8px 18px 14px;
+    overflow: hidden;
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+    box-shadow: 0 16px 34px -16px rgba(0, 0, 0, 0.9),
+                inset 0 1px 0 rgba(170, 90, 255, 0.12);
+}
+/* Scroll container lives inside the clipped frame; its scrollbar can't reach the corners. */
+.grim-toc-scroll {
+    max-height: calc(100vh - 116px);
+    overflow-y: auto; overscroll-behavior: contain;
+    padding: 0 0 12px;
+}
+.grim-toc-scroll::-webkit-scrollbar { width: 7px; }
+.grim-toc-scroll::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px; }
+.grim-toc-scroll::-webkit-scrollbar-track { background: transparent; }
+.grim-toc-scroll { scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent; }
+/* Header stays pinned at the card's top as the index scrolls under it. Same fill as the
+   note; an accent label + underline give it a crown without changing brightness. */
+.grim-toc-head {
+    position: sticky; top: 0; z-index: 1;
+    display: flex; align-items: center; gap: 7px;
+    font-family: var(--font-label); text-transform: uppercase;
+    letter-spacing: 1.6px; font-size: 10px; color: var(--accent-hover);
+    padding: 12px 10px 9px 16px; margin-bottom: 6px;
+    border-bottom: 1px solid var(--border-mid);
+    background: var(--bg-input);
+}
+.grim-toc-head > svg { width: 14px; height: 14px; color: var(--accent); opacity: 0.85; }
+/* In-panel collapse — reuses the app's "close panel" crossed-swords glyph (as in find). */
+.grim-toc-close {
+    margin-left: auto; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; padding: 0;
+    background: transparent; border: 1px solid transparent; border-radius: 6px;
+    color: var(--text-secondary); cursor: pointer;
+    transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+/* display:block kills the inline-svg baseline gap that was offsetting the glyph. */
+.grim-toc-close svg { display: block; width: 14px; height: 14px; }
+.grim-toc-close:hover { color: var(--accent-hover); background: var(--accent-soft); border-color: var(--border); }
+.grim-toc-nav { display: flex; flex-direction: column; }
+.grim-toc-item {
+    position: relative;
+    display: flex; align-items: flex-start; gap: 8px;
+    width: 100%; text-align: left;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--accent-hover); font-family: var(--font-main);
+    font-size: 12.5px; line-height: 1.3; padding: 5px 12px 5px 16px;
+    transition: color var(--transition), background var(--transition);
+}
+.grim-toc-item:hover { color: var(--grim-heading); background: var(--accent-soft); }
+.grim-toc-item.l2 { padding-left: 30px; font-size: 11.5px; color: var(--text-secondary); opacity: 0.96; }
+.grim-toc-item.l3 { padding-left: 44px; font-size: 11px; color: var(--text-secondary); opacity: 0.78; }
+.grim-toc-item .gtoc-gl {
+    flex: 0 0 9px; display: inline-flex; align-items: center; justify-content: center;
+    margin-top: 3px; color: var(--accent); opacity: 0.7;
+}
+.grim-toc-item .gtoc-gl svg { width: 9px; height: 9px; }
+.grim-toc-item:not(.l1) .gtoc-gl::before {
+    content: ''; width: 3px; height: 3px; border-radius: 50%; background: currentColor;
+}
+.grim-toc-item .gtoc-tx { word-break: break-word; overflow-wrap: anywhere; }
+.grim-toc-item.active { color: var(--grim-heading); }
+.grim-toc-item.active .gtoc-gl { opacity: 1; color: var(--accent-hover); }
+.grim-toc-item.active::before {
+    content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2.5px;
+    border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px var(--accent-glow);
+}
+/* Smooth-scroll target clears the top chrome; brief illumination on jump. */
+.grim-body h1, .grim-body h2, .grim-body h3 { scroll-margin-top: 84px; }
+.grim-body h1.grim-toc-flash, .grim-body h2.grim-toc-flash, .grim-body h3.grim-toc-flash {
+    animation: grimTocFlash 1.2s var(--ease-gothic);
+}
+@keyframes grimTocFlash {
+    0%   { background: rgba(160, 90, 255, 0.26); border-radius: 4px; }
+    100% { background: transparent; }
+}
+/* Mobile: no rail (too narrow) — page stays a plain block. */
+@media (max-width: 640px) {
+    .grim-page.toc-open { display: block; }
+    .grim-toc { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .grim-toc { transition: opacity var(--dur-quick) linear; }
+    .grim-body h1.grim-toc-flash, .grim-body h2.grim-toc-flash, .grim-body h3.grim-toc-flash { animation: none; }
+}
 .grim-detail {
     position: relative; padding-left: 22px; border-left: 1px solid var(--border); min-height: 320px;
     flex: 1 1 0; min-width: 0;   /* flexible filler — shrinks to 0 as the list grows to full */
@@ -6582,10 +6713,12 @@ kbd {
     display: grid; grid-template-rows: 0fr; opacity: 0; margin: 0 18px 0 52px;
     transition: grid-template-rows 0.26s var(--ease-gothic), opacity 0.18s ease, margin-bottom 0.26s var(--ease-gothic);
 }
-/* AUTO mode (default, no bar-* class): reveal on hover / while editing. */
-.grim-page:not(.bar-open):not(.bar-closed):hover > .fmt-bar,
-.grim-page:not(.bar-open):not(.bar-closed):focus-within > .fmt-bar,
-.grim-page.bar-open > .fmt-bar { grid-template-rows: 1fr; opacity: 1; margin-bottom: 8px; }
+/* AUTO mode (default, no bar-* class): reveal on hover / while editing.
+   Chain goes through .grim-page-main (п.14 wrapper) — the bar is its direct child.
+   Hover/focus is scoped to the content wrapper so hovering the TOC rail doesn't pop it. */
+.grim-page:not(.bar-open):not(.bar-closed) > .grim-page-main:hover > .fmt-bar,
+.grim-page:not(.bar-open):not(.bar-closed) > .grim-page-main:focus-within > .fmt-bar,
+.grim-page.bar-open > .grim-page-main > .fmt-bar { grid-template-rows: 1fr; opacity: 1; margin-bottom: 8px; }
 /* CLOSED mode keeps the base hidden state even on hover/focus (no extra rule needed). */
 /* Pure collapse wrapper: no padding/border/bg so the bar folds to a true 0 height
    when hidden (the chrome lives on .fmt-cluster, which the overflow clips away). */

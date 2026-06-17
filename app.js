@@ -564,6 +564,9 @@ let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (С
 let grimFocus        = 0;      // п11: focus level 0=both · 1=list rail · 2=list hidden (note full)
 let grimNoteCollapsed = false; // п11: transient — open note's pane folded away, full-width list (click open entry to toggle)
 let grimBarMode      = 'auto'; // п11: toolbar reveal — 'auto'(hover) | 'open'(pinned) | 'closed'(hidden)
+let grimTocOpen      = false;  // п.14: table-of-contents rail shown (only takes effect on notes with ≥3 headings)
+let _grimTocHeads    = null;   // п.14: live H1-3 elements backing the TOC items
+let _grimTocSpyRAF   = 0;      // п.14: rAF throttle for the scroll-spy
 let _grimSaveT       = null;   // п11: debounced note-save timer
 let _grimSwapT       = null;   // п11: note→note crossfade timer (fade old page out, then render new)
 let grimSelectMode   = false;  // п11/1b: multi-select notes in the current segment
@@ -1008,6 +1011,7 @@ function loadUiState() {
     isTodayMode = localStorage.getItem('todayMode') === '1';
     grimFocus = Math.max(0, Math.min(2, parseInt(localStorage.getItem('grimFocus'), 10) || 0));   // п11: focus level persists across notes/segments/reload
     { const bm = localStorage.getItem('grimBarMode'); grimBarMode = (bm === 'open' || bm === 'closed') ? bm : 'auto'; }   // п11: toolbar mode persists
+    grimTocOpen = localStorage.getItem('grimTocOpen') === '1';   // п.14: TOC rail preference persists
     const smg = localStorage.getItem('scheduleModeGroups');
     if (smg) { try { JSON.parse(smg).forEach(id => scheduleModeGroups.add(id)); } catch(e){} }
     // Sort mode
@@ -1297,6 +1301,15 @@ const GIC = {
     // strap). CSS crossfades between the two by the .grim-note-collapsed state.
     foldOpen:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C9.7 5 6.3 5 4.2 6.1v12.6C6.3 17.7 9.7 17.7 12 19.2 14.3 17.7 17.7 17.7 19.8 18.7V6.1C17.7 5 14.3 5 12 6.5Z"/><path d="M12 6.5V19.2"/><path d="M6.2 9.6h3.4M6.2 12.1h3.4M6.2 14.6h2.4" opacity=".5"/><path d="M14.4 9.6h3.4M14.4 12.1h3.4M15.4 14.6h2.4" opacity=".5"/><path d="M12 19.2v2.6l1-.95 1 .95v-2.6"/></svg>`,
     foldClosed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3.7h9.9a1.4 1.4 0 0 1 1.4 1.4v13.8a1.4 1.4 0 0 1-1.4 1.4H6.6Z"/><path d="M9.3 3.7v16.6"/><path d="M6.6 7h2.7M6.6 17h2.7" opacity=".6"/><path d="M13.4 8v5.3M10.9 10.65h5"/><path d="M12.2 15.8h3.6" opacity=".5"/><path d="M17.9 9.9h1.3a.55.55 0 0 1 .55.55v2.6a.55.55 0 0 1-.55.55h-1.3"/></svg>`,
+    // п.14 TOC toggle — marginal rubric: a scribe's brace clasping ruled lines, each
+    // led by an illuminated initial (dot). Reads as "the index of a long codex".
+    toc: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5C5 4.5 5 6 5 6v12s0 1.5 1.5 1.5"/><line x1="9" y1="7.5" x2="18" y2="7.5"/><line x1="9" y1="12" x2="18" y2="12"/><line x1="9" y1="16.5" x2="15" y2="16.5"/><circle cx="7.4" cy="7.5" r=".95" fill="currentColor" stroke="none"/><circle cx="7.4" cy="12" r=".95" fill="currentColor" stroke="none"/><circle cx="7.4" cy="16.5" r=".95" fill="currentColor" stroke="none"/></svg>`,
+    // Tiny lancet-arch bullet for H1 rows in the TOC panel.
+    tocArch: `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 7.5c0-3.4 8-3.4 8 0"/></svg>`,
+    // п.14 TOC collapse — dedicated glyph: a gothic blade (the app's sword motif) thrust
+    // RIGHTward into a lancet edge-pillar, flanked by two index lines → "tuck the index
+    // away into the margin". Intuitive collapse-to-the-side, strictly gothic + detailed.
+    tocClose: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.6 4.4V19.6"/><path d="M17.8 5.9C18.3 4 20.9 4 21.4 5.9"/><path d="M18 19.6H21.2" opacity="0.85"/><path d="M3.4 7H11.5" opacity="0.5"/><path d="M3.4 17H11.5" opacity="0.5"/><path d="M3.2 12H15"/><path d="M11.6 8.7L15.3 12L11.6 15.3"/><path d="M6 10.2V13.8"/><circle cx="3.3" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
     // Symmetric divider ornament (diamond flanked by two beads, centred about x=20).
     dividerFleur: `<svg viewBox="0 0 40 12" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.1"/><path d="M20 1.4 L24 6 L20 10.6 L16 6 Z" fill="currentColor" stroke="none"/><circle cx="34" cy="6" r="2.1"/></svg>`,
     // Focus toggle — list-rail glyph with an arrow (CSS flips it when focus is on).
@@ -1321,6 +1334,8 @@ const GIC = {
 const GRIM_FOCUS_TITLE = ['Свернуть список в рейл', 'Скрыть список — заметка во весь экран', 'Показать список'];
 // Toolbar-mode labels.
 const GRIM_BAR_TITLE = { auto: 'Тулбар: по наведению — нажмите, чтобы закрепить', open: 'Тулбар закреплён — нажмите, чтобы скрыть', closed: 'Тулбар скрыт — нажмите для режима «по наведению»' };
+// п.14 TOC button label.
+const GRIM_TOC_TITLE = 'Оглавление — разделы записи';
 
 function grimDate(ms) {
     if (!ms) return '';
@@ -1480,6 +1495,82 @@ function _grimApplyBarMode() {
     page.classList.toggle('bar-open', grimBarMode === 'open');
     page.classList.toggle('bar-closed', grimBarMode === 'closed');
     requestAnimationFrame(_grimReflowOverlay);   // toolbar height changed → re-glue table overlay
+}
+
+// ── п.14: Table of contents (TOC) rail ───────────────────────────────────────
+// A sticky right-hand index of the note's H1-3 headings, shown on long notes
+// (≥3 headings). Click jumps + flashes the heading; scroll-spy lights the
+// current section. The rail is a flex sibling of .grim-page-main; the table
+// overlay (.grim-tctl) is unaffected (it positions by absolute screen coords).
+function grimToggleToc() {
+    grimTocOpen = !grimTocOpen;
+    localStorage.setItem('grimTocOpen', grimTocOpen ? '1' : '0');
+    _grimRefreshToc();
+    _grimScheduleTableUI();    // body width changed → re-glue table seals/gutters
+}
+
+// (Re)build the rail from the live headings and gate its visibility on ≥3 of them.
+function _grimRefreshToc() {
+    const page = document.querySelector('#grim-detail .grim-page');
+    const bo = document.getElementById('grim-body');
+    const panel = document.getElementById('grim-toc');
+    if (!page || !bo || !panel) { _grimTocDetach(); return; }
+    const heads = [...bo.querySelectorAll('h1, h2, h3')].filter(h => (h.textContent || '').trim());
+    const avail = heads.length >= 3;
+    const open = avail && grimTocOpen;
+    page.classList.toggle('toc-avail', avail);
+    page.classList.toggle('toc-open', open);
+    const btn = page.querySelector('.grim-toc-toggle');
+    if (btn) btn.classList.toggle('on', open);
+    if (!open) { panel.innerHTML = ''; _grimTocDetach(); return; }
+    const lvl = h => (h.tagName === 'H1' ? 1 : h.tagName === 'H2' ? 2 : 3);
+    let nav = '';
+    heads.forEach((h, i) => {
+        const gl = lvl(h) === 1 ? GIC.tocArch : '';
+        nav += `<button type="button" class="grim-toc-item l${lvl(h)}" data-i="${i}"><span class="gtoc-gl">${gl}</span><span class="gtoc-tx">${escHtml((h.textContent || '').trim())}</span></button>`;
+    });
+    panel.innerHTML = `<div class="grim-toc-inner"><div class="grim-toc-scroll"><div class="grim-toc-head">${GIC.toc}<span>Оглавление</span><button type="button" class="grim-toc-close" onclick="grimToggleToc()" title="Свернуть оглавление" aria-label="Свернуть оглавление">${GIC.tocClose}</button></div><nav class="grim-toc-nav">${nav}</nav></div></div>`;
+    panel.querySelectorAll('.grim-toc-item').forEach(b => b.addEventListener('click', () => _grimTocGo(parseInt(b.dataset.i, 10))));
+    _grimTocHeads = heads;
+    window.removeEventListener('scroll', _grimTocSpyScroll, true);
+    window.addEventListener('scroll', _grimTocSpyScroll, true);
+    _grimTocSpy();
+}
+
+// Detach the scroll-spy (note closed / TOC hidden / page rebuilt).
+function _grimTocDetach() {
+    window.removeEventListener('scroll', _grimTocSpyScroll, true);
+    _grimTocHeads = null;
+    if (_grimTocSpyRAF) { cancelAnimationFrame(_grimTocSpyRAF); _grimTocSpyRAF = 0; }
+}
+
+function _grimTocSpyScroll() {
+    if (_grimTocSpyRAF) return;
+    _grimTocSpyRAF = requestAnimationFrame(() => { _grimTocSpyRAF = 0; _grimTocSpy(); });
+}
+
+// Light the TOC item whose heading is the last one to have crossed the top line.
+function _grimTocSpy() {
+    const panel = document.getElementById('grim-toc');
+    if (!panel || !_grimTocHeads || !_grimTocHeads.length) return;
+    const items = panel.querySelectorAll('.grim-toc-item');
+    if (!items.length) return;
+    const TOP = 104;   // a heading becomes "current" once it passes this viewport line
+    let active = 0;
+    _grimTocHeads.forEach((h, i) => { if (h.getBoundingClientRect().top - TOP <= 4) active = i; });
+    items.forEach((it, i) => it.classList.toggle('active', i === active));
+}
+
+// Click a TOC entry → smooth-scroll to the heading + brief illumination.
+function _grimTocGo(i) {
+    if (!_grimTocHeads || !_grimTocHeads[i]) return;
+    const h = _grimTocHeads[i];
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    h.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    h.classList.remove('grim-toc-flash'); void h.offsetWidth; h.classList.add('grim-toc-flash');
+    setTimeout(() => h.classList.remove('grim-toc-flash'), 1200);
+    const panel = document.getElementById('grim-toc');
+    if (panel) panel.querySelectorAll('.grim-toc-item').forEach((it, j) => it.classList.toggle('active', j === i));
 }
 
 function _grimEmptyHTML() {
@@ -1712,6 +1803,7 @@ function _grimLeafHTML(n, q, i, animate) {
 function renderGrimDetail() {
     const detailEl = document.getElementById('grim-detail');
     if (!detailEl) return;
+    _grimTocDetach();                       // п.14: drop the old scroll-spy before the page is rebuilt
     const note = _grimCurrentNote();
     if (!note) {
         const hint = grimMode === 'archive' ? 'Выберите запись из склепа' : 'Выберите запись или начертайте новую';
@@ -1724,6 +1816,7 @@ function renderGrimDetail() {
 
     const backBtn = `<button class="grim-back" onclick="grimBack()" title="К списку">${GIC.back}</button>`;
     const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" data-lvl="${grimFocus}" onclick="grimToggleFocus()" aria-label="${GRIM_FOCUS_TITLE[grimFocus]}" title="${GRIM_FOCUS_TITLE[grimFocus]}">${GIC.focusLvl[grimFocus]}</button>`;
+    const tocBtn = `<button class="grim-toc-toggle${grimTocOpen ? ' on' : ''}" onclick="grimToggleToc()" aria-label="${GRIM_TOC_TITLE}" title="${GRIM_TOC_TITLE}">${GIC.toc}</button>`;
     const barBtn = `<button class="grim-bar-toggle${grimBarMode === 'open' ? ' on' : ''}" data-mode="${grimBarMode}" onclick="grimToggleBar()" aria-label="${GRIM_BAR_TITLE[grimBarMode]}" title="${GRIM_BAR_TITLE[grimBarMode]}">${GIC.barLvl[grimBarMode]}</button>`;
     // п.9 note colour: ink-tinted title/fleur + soft raw-colour glow.
     const colorCls = note.color ? ' has-color' : '';
@@ -1748,8 +1841,12 @@ function renderGrimDetail() {
         return;
     }
 
+    // п.14: content lives in .grim-page-main so the TOC rail can sit beside it (a flex
+    // sibling) without disturbing the table overlay (.grim-tctl stays a child of .grim-page
+    // and is positioned by absolute screen coords, so the wrapper is transparent to it).
     detailEl.innerHTML = `<div class="grim-page${grimBarMode === 'open' ? ' bar-open' : grimBarMode === 'closed' ? ' bar-closed' : ''}${colorCls}"${colorStyle}>
-        ${backBtn}${barBtn}${focusBtn}
+      <div class="grim-page-main">
+        ${backBtn}${barBtn}${focusBtn}${tocBtn}
         <textarea class="grim-title-in" id="grim-title-in" maxlength="120" rows="1"
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
                oninput="grimTitleInput(this)" onblur="grimCommit(event)" onkeydown="grimTitleKey(event)"></textarea>
@@ -1773,6 +1870,8 @@ function renderGrimDetail() {
                 <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
             </span>
         </div>
+      </div><!-- /grim-page-main -->
+      <aside class="grim-toc" id="grim-toc" contenteditable="false" aria-label="Оглавление"></aside>
     </div>`;
     // Set field contents as properties (avoids attribute-escaping pitfalls).
     const ti = document.getElementById('grim-title-in');
@@ -1796,6 +1895,7 @@ function renderGrimDetail() {
         requestAnimationFrame(_grimLayoutTableUI);
         // webfonts change table metrics after first paint → relayout once they land
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(_grimScheduleTableUI);
+        _grimRefreshToc();                     // п.14: build the table-of-contents rail
         // A: if a record opens while searching, paint + jump to its in-body matches.
         if (notesSearchQuery && grimMode === 'active') requestAnimationFrame(() => _grimFindRun(notesSearchQuery, true));
         else grimFindClose();
@@ -2487,6 +2587,7 @@ function _grimAfterEdit(bo) {
     }
     _grimSyncToolbar();
     _grimScheduleTableUI();   // keep table seals/gutters glued as content reflows
+    _grimRefreshToc();        // п.14: headings may have changed → rebuild the TOC
 }
 
 // Toolbar commands. onmousedown preventDefault on the buttons keeps the caret,
