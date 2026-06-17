@@ -567,6 +567,15 @@ let grimBarMode      = 'auto'; // п11: toolbar reveal — 'auto'(hover) | 'open
 let grimTocOpen      = false;  // п.14: table-of-contents rail shown (only takes effect on notes with ≥3 headings)
 let _grimTocHeads    = null;   // п.14: live H1-3 elements backing the TOC items
 let _grimTocSpyRAF   = 0;      // п.14: rAF throttle for the scroll-spy
+let _grimVerT        = 0;      // п.15: debounced idle timer → auto version snapshot
+let _grimHistId      = null;   // п.15: note id whose Летопись modal is open (or null)
+let _grimHistSel     = null;   // п.15: index (into the rendered list) of the previewed version
+// п.15: version history lives in its OWN localStorage key, NOT inside `state`.
+// Keeping full HTML body copies out of `state` is critical for perf — `state` is
+// re-stringified (and ring-backed-up) on every keystroke-save, so bloating it with
+// history would make typing lag. Versions are saved only when they actually change.
+const K_NOTE_VERSIONS = 'dusk_note_versions_v1';
+let grimVersions     = {};     // { [noteId]: [{at, t, b, kind}] }
 let _grimSaveT       = null;   // п11: debounced note-save timer
 let _grimSwapT       = null;   // п11: note→note crossfade timer (fade old page out, then render new)
 let grimSelectMode   = false;  // п11/1b: multi-select notes in the current segment
@@ -744,6 +753,8 @@ function init() {
     if (!state.sortModeOverrides) state.sortModeOverrides = {};
     if (!state.templates) state.templates = [];              // Idea 6: task templates
     if (!state.nextTemplateId) state.nextTemplateId = 1;
+    loadGrimVersions();                                       // п.15: history store (own LS key)
+    _grimMigrateVersions();                                   // lift inline versions out of state + prune orphans
     loadUiState();
     applySoundPref();
     setupEventListeners();
@@ -1310,6 +1321,15 @@ const GIC = {
     // RIGHTward into a lancet edge-pillar, flanked by two index lines → "tuck the index
     // away into the margin". Intuitive collapse-to-the-side, strictly gothic + detailed.
     tocClose: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.6 4.4V19.6"/><path d="M17.8 5.9C18.3 4 20.9 4 21.4 5.9"/><path d="M18 19.6H21.2" opacity="0.85"/><path d="M3.4 7H11.5" opacity="0.5"/><path d="M3.4 17H11.5" opacity="0.5"/><path d="M3.2 12H15"/><path d="M11.6 8.7L15.3 12L11.6 15.3"/><path d="M6 10.2V13.8"/><circle cx="3.3" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
+    // п.15 «Летопись» (история версий) — winged hourglass / memento mori: an hourglass
+    // with serif frame bars, sand in both bulbs + falling stream, flanked by three
+    // tiers of feathered wings. Ornate, strictly gothic, distinct from the plain
+    // hourglass (= createdAt) and quill (= updatedAt) used in the meta line.
+    chronicle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 4.4H15.6"/><path d="M8.2 3.5V5.3M15.8 3.5V5.3" stroke-width="1.1" opacity=".6"/><path d="M8.4 19.6H15.6"/><path d="M8.2 18.7V20.5M15.8 18.7V20.5" stroke-width="1.1" opacity=".6"/><path d="M9.3 5V7.3L12 11L14.7 7.3V5"/><path d="M9.3 19V16.7L12 13L14.7 16.7V19"/><path d="M10.2 6.5H13.8" stroke-width="1.1" opacity=".7"/><path d="M12 11.2V13.1" stroke-width="1" opacity=".85"/><path d="M10.5 18.1C11.3 17 12.7 17 13.5 18.1" stroke-width="1.1" opacity=".7"/><path d="M8.5 8.1C6.1 7.3 4.1 7.9 2.9 9.4C4.5 9.1 5.6 9.4 6.6 10.2"/><path d="M8.3 10.5C6.2 10.1 4.5 10.7 3.4 11.9C4.8 11.6 5.9 11.9 6.9 12.5" opacity=".85"/><path d="M8.4 12.7C6.7 12.4 5.4 13 4.6 14C5.8 13.8 6.6 14 7.3 14.6" opacity=".62"/><path d="M15.5 8.1C17.9 7.3 19.9 7.9 21.1 9.4C19.5 9.1 18.4 9.4 17.4 10.2"/><path d="M15.7 10.5C17.8 10.1 19.5 10.7 20.6 11.9C19.2 11.6 18.1 11.9 17.1 12.5" opacity=".85"/><path d="M15.6 12.7C17.3 12.4 18.6 13 19.4 14C18.2 13.8 17.4 14 16.7 14.6" opacity=".62"/></svg>`,
+    // п.15 modal dismiss — two crossed gothic daggers (blades, cross-guards, round
+    // pommels) forming an X. Detailed + gothic; reads "close", distinct from the
+    // single dagger (= destructive delete) used elsewhere.
+    dismiss: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>`,
     // Symmetric divider ornament (diamond flanked by two beads, centred about x=20).
     dividerFleur: `<svg viewBox="0 0 40 12" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.1"/><path d="M20 1.4 L24 6 L20 10.6 L16 6 Z" fill="currentColor" stroke="none"/><circle cx="34" cy="6" r="2.1"/></svg>`,
     // Focus toggle — list-rail glyph with an arrow (CSS flips it when focus is on).
@@ -1357,6 +1377,251 @@ function _grimList() {
 function _grimCurrentNote() {
     return _grimList().find(n => n.id === currentNoteId) || null;
 }
+
+// ============================================================
+//  п.15 — ЛЕТОПИСЬ (version history)
+//  Per-note `versions: [{at, t, b, kind}]` — kind 'auto' (silent snapshots) or
+//  'backup' (the state saved automatically right BEFORE a restore, kept in a
+//  separate section so the user can always get back what they rolled away from).
+//  Auto-snapshots fire on a ~10s edit pause and when leaving the note; identical
+//  consecutive states are deduped. Old autos are thinned (last hour kept whole,
+//  then 1/hour for a day, then 1/day for a week) so the log stays small.
+// ============================================================
+const GRIM_VER_IDLE = 10000;   // ms of edit-silence before an auto snapshot
+const GRIM_VER_MAX  = 80;      // hard cap on kept auto snapshots (safety bound)
+const GRIM_VER_BACKUPS = 12;   // hard cap on kept pre-restore backups
+
+function loadGrimVersions() {
+    try { grimVersions = JSON.parse(localStorage.getItem(K_NOTE_VERSIONS)) || {}; }
+    catch (_) { grimVersions = {}; }
+    if (!grimVersions || typeof grimVersions !== 'object' || Array.isArray(grimVersions)) grimVersions = {};
+}
+// Persist the version store on its own — cheap (history only) and called ONLY when
+// a version actually changes, never on the per-keystroke save path.
+function saveGrimVersions() {
+    try { localStorage.setItem(K_NOTE_VERSIONS, JSON.stringify(grimVersions)); } catch (_) { /* quota */ }
+}
+function _grimVersionsOf(id) {
+    if (!Array.isArray(grimVersions[id])) grimVersions[id] = [];
+    return grimVersions[id];
+}
+// One-time lift: older builds (and seeded test data) stored versions inline on the
+// note (`note.versions`) — move them into the standalone store and strip the field
+// so `state` stops carrying history. Then drop history for notes that no longer
+// exist (orphans) so the store can't grow forever.
+function _grimMigrateVersions() {
+    let moved = false, pruned = false;
+    const lift = n => {
+        if (Array.isArray(n.versions) && n.versions.length && !grimVersions[n.id]) {
+            grimVersions[n.id] = n.versions.slice();
+            moved = true;
+        }
+        if (n && 'versions' in n) { delete n.versions; moved = true; }
+    };
+    (state.notes || []).forEach(lift);
+    (state.notesArchive || []).forEach(lift);
+    const live = new Set([...(state.notes || []), ...(state.notesArchive || [])].map(n => n.id));
+    for (const id in grimVersions) { if (!live.has(id)) { delete grimVersions[id]; pruned = true; } }
+    if (moved) saveState();
+    if (moved || pruned) saveGrimVersions();
+}
+
+// Take a snapshot of `note` if it differs from the latest stored version.
+// Returns true if a version was actually pushed (caller persists via saveGrimVersions).
+function _grimSnapshot(note, kind) {
+    if (!note) return false;
+    const t = note.title || '', b = note.body || '';
+    if (!t.trim() && !b.trim()) return false;            // nothing worth keeping yet
+    const arr = _grimVersionsOf(note.id);
+    if (kind !== 'backup') {
+        const last = arr[arr.length - 1];
+        if (last && last.t === t && last.b === b) return false;   // dedup identical autos
+    }
+    arr.push({ at: Date.now(), t, b, kind: kind === 'backup' ? 'backup' : 'auto' });
+    _grimThinVersions(note.id);
+    return true;
+}
+
+// Smart thinning: keep every auto < 1h old, 1 per hour up to a day, 1 per day up
+// to a week, drop older. Backups are never thinned (only capped). Newest auto is
+// always kept. Mutates grimVersions[id] in place.
+function _grimThinVersions(id) {
+    const vs = grimVersions[id] || [];
+    const now = Date.now(), H = 3600e3, D = 86400e3;
+    const autos = vs.filter(v => v.kind !== 'backup').sort((a, b) => a.at - b.at);
+    const backs = vs.filter(v => v.kind === 'backup').sort((a, b) => a.at - b.at);
+    const newest = autos[autos.length - 1];
+    const bucket = new Map();   // bucketKey → newest version in that bucket
+    const fresh = [];
+    autos.forEach(v => {
+        const age = now - v.at;
+        if (v === newest || age < H) { fresh.push(v); return; }   // always keep newest + last hour
+        if (age > 7 * D) return;                                   // older than a week → drop
+        bucket.set(age < D ? 'h' + Math.floor(v.at / H) : 'd' + Math.floor(v.at / D), v);
+    });
+    let keptAutos = [...bucket.values(), ...fresh].sort((a, b) => a.at - b.at);
+    if (keptAutos.length > GRIM_VER_MAX) keptAutos = keptAutos.slice(keptAutos.length - GRIM_VER_MAX);
+    const keptBacks = backs.length > GRIM_VER_BACKUPS ? backs.slice(backs.length - GRIM_VER_BACKUPS) : backs;
+    grimVersions[id] = [...keptAutos, ...keptBacks].sort((a, b) => a.at - b.at);
+}
+
+// Fired by the idle timer — snapshot the open note after an edit pause. Persists
+// ONLY the version store (a tiny, separate key) — never touches `state`/maybeBackup,
+// so this can't cause a typing freeze.
+function _grimVersionTick() {
+    _grimVerT = 0;
+    if (_grimSnapshot(_grimCurrentNote(), 'auto')) saveGrimVersions();
+}
+
+// Snapshot the open note now (called when leaving/closing it). Clears the pending
+// idle timer so we don't double-fire. Persists the version store if it changed.
+function _grimSnapshotCurrent() {
+    if (_grimVerT) { clearTimeout(_grimVerT); _grimVerT = 0; }
+    if (_grimSnapshot(_grimCurrentNote(), 'auto')) { saveGrimVersions(); return true; }
+    return false;
+}
+
+// (Re)arm the idle snapshot timer — called on every body/title edit.
+function _grimScheduleVersion() {
+    if (_grimVerT) clearTimeout(_grimVerT);
+    _grimVerT = setTimeout(_grimVersionTick, GRIM_VER_IDLE);
+}
+
+// --- Летопись modal -----------------------------------------------------------
+function _grimHistNote() { return (state.notes || []).find(n => n.id === _grimHistId) || null; }
+
+// Compact gothic timestamp for a version row ("сегодня · 14:32", "вчера · 09:10",
+// "3 июн · 22:05"). Distinct from grimDate (which omits the clock for past days).
+function _grimVerStamp(ms) {
+    const d = new Date(ms), now = new Date();
+    const hh = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    const y = new Date(now); y.setDate(now.getDate() - 1);
+    let day;
+    if (d.toDateString() === now.toDateString()) day = 'сегодня';
+    else if (d.toDateString() === y.toDateString()) day = 'вчера';
+    else day = `${d.getDate()} ${months[d.getMonth()]}${d.getFullYear() === now.getFullYear() ? '' : ' ' + d.getFullYear()}`;
+    return `${day} · ${hh}:${mm}`;
+}
+function _grimAgo(ms) {
+    const s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+    if (s < 60) return 'только что';
+    const m = Math.floor(s / 60); if (m < 60) return m + ' мин назад';
+    const h = Math.floor(m / 60); if (h < 24) return h + ' ч назад';
+    return Math.floor(h / 24) + ' дн назад';
+}
+
+// Open the version history. Snapshot the live note first so its current state is
+// always present as the newest entry, then build the overlay.
+function grimOpenHistory(id) {
+    const note = (state.notes || []).find(n => n.id === id);
+    if (!note) return;
+    if (_grimSnapshot(note, 'auto')) saveGrimVersions();
+    _grimHistId = id;
+    const vs = _grimVersionsOf(id);
+    _grimHistSel = vs.length ? vs[vs.length - 1].at : null;   // preview newest by default
+    let ov = document.getElementById('grim-hist-ov');
+    if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'grim-hist-ov';
+        ov.className = 'grim-hist-ov';
+        ov.addEventListener('click', e => { if (e.target === ov) grimCloseHistory(); });
+        document.body.appendChild(ov);
+    }
+    _grimRenderHistory();
+    requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('open')));
+}
+function grimCloseHistory() {
+    const ov = document.getElementById('grim-hist-ov');
+    _grimHistId = null; _grimHistSel = null;
+    if (!ov) return;
+    ov.classList.remove('open');
+    setTimeout(() => { const o = document.getElementById('grim-hist-ov'); if (o && !o.classList.contains('open')) o.remove(); }, 340);
+}
+function grimHistSelect(at) { _grimHistSel = at; _grimRenderHistory(); }
+
+function _grimRenderHistory() {
+    const ov = document.getElementById('grim-hist-ov');
+    if (!ov) return;
+    const note = _grimHistNote();
+    if (!note) { grimCloseHistory(); return; }
+    const vs = _grimVersionsOf(note.id).slice().sort((a, b) => b.at - a.at);   // newest first
+    const autos = vs.filter(v => v.kind !== 'backup');
+    const backs = vs.filter(v => v.kind === 'backup');
+    const newestAt = autos.length ? autos[0].at : null;
+    if ((_grimHistSel == null || !vs.some(v => v.at === _grimHistSel)) && vs.length) _grimHistSel = vs[0].at;
+    const sel = vs.find(v => v.at === _grimHistSel) || null;
+
+    const itemHTML = v => {
+        const isNow = v.kind !== 'backup' && v.at === newestAt;
+        const cls = 'grim-hist-item' + (v.at === _grimHistSel ? ' active' : '') + (v.kind === 'backup' ? ' backup' : '');
+        const tag = v.kind === 'backup' ? '<span class="grim-hist-tag back">бэкап</span>'
+            : isNow ? '<span class="grim-hist-tag now">сейчас</span>' : '';
+        const title = (v.t || '').trim() || 'Без заглавия';
+        const words = _grimPlain(v.b || '').trim().split(/\s+/).filter(Boolean).length;
+        return `<button type="button" class="${cls}" onclick="grimHistSelect(${v.at})">
+            <span class="grim-hist-when">${_grimVerStamp(v.at)}${tag}</span>
+            <span class="grim-hist-ttl">${escHtml(title)}</span>
+            <span class="grim-hist-sub">${_grimAgo(v.at)} · ${words} сл.</span>
+        </button>`;
+    };
+
+    let list = '';
+    if (backs.length) list += `<div class="grim-hist-sect back">Перед откатами</div>` + backs.map(itemHTML).join('');
+    list += `<div class="grim-hist-sect">Снимки${autos.length ? ' · ' + autos.length : ''}</div>`;
+    list += autos.length ? autos.map(itemHTML).join('') : `<div class="grim-hist-empty">Снимков пока нет</div>`;
+
+    let preview;
+    if (sel) {
+        const isNow = sel.kind !== 'backup' && sel.at === newestAt;
+        const title = (sel.t || '').trim() || 'Без заглавия';
+        const action = isNow
+            ? `<span class="grim-hist-cur">текущая версия</span>`
+            : `<button type="button" class="grim-hist-restore" onclick="grimHistRestore(${sel.at})">${GIC.restore}<span>Восстановить</span></button>`;
+        preview = `<div class="grim-hist-pv-head">
+            <span class="grim-hist-pv-when">${GIC.chronicle}<span>${_grimVerStamp(sel.at)}</span></span>
+            ${action}
+          </div>
+          <div class="grim-hist-pv-title${(sel.t || '').trim() ? '' : ' untitled'}">${escHtml(title)}</div>
+          <div class="grim-hist-pv-body grim-body" contenteditable="false">${(sel.b || '').trim() ? sel.b : '<p class="grim-hist-blank">— пустая запись —</p>'}</div>`;
+    } else {
+        preview = `<div class="grim-hist-empty big">Эта запись ещё без летописи.<br>Снимки появятся по мере правок.</div>`;
+    }
+
+    ov.innerHTML = `<div class="grim-hist-modal" role="dialog" aria-label="Летопись записи">
+      <div class="grim-hist-bar">
+        <span class="grim-hist-title">${GIC.chronicle}<span>Летопись</span></span>
+        <button type="button" class="grim-hist-x" onclick="grimCloseHistory()" title="Закрыть летопись" aria-label="Закрыть">${GIC.dismiss}</button>
+      </div>
+      <div class="grim-hist-cols">
+        <aside class="grim-hist-list">${list}</aside>
+        <section class="grim-hist-pv">${preview}</section>
+      </div>
+    </div>`;
+}
+
+// Roll the note back to a stored version. Before overwriting, save the current
+// state as a 'backup' version (kept in the separate «Перед откатами» section) AND
+// push a global undo step, so the rolled-away state is recoverable two ways.
+function grimHistRestore(at) {
+    const note = _grimHistNote();
+    if (!note) return;
+    const v = _grimVersionsOf(note.id).find(x => x.at === at);
+    if (!v) return;
+    pushUndo();                       // global Ctrl+Z / toast-undo (note body lives in state)
+    _grimSnapshot(note, 'backup');    // durable safety copy of what we roll away from
+    saveGrimVersions();
+    note.title = v.t;
+    note.body = v.b;
+    note.updatedAt = Date.now();
+    delete note.ord;                  // edited → bubble to top
+    saveState();
+    renderNotes();                    // rebuilds the open detail with the restored body
+    grimCloseHistory();
+    showToast('Версия восстановлена · прежняя сохранена в «Перед откатами»', { undo: true });
+}
+// Esc closes the Летопись modal (when no inner editing is in play).
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && _grimHistId) grimCloseHistory(); });
 // Top-level: sync the toolbar (segment + new btn), then show either the big
 // empty state or the master–detail layout and (re)draw both panes.
 function renderNotes() {
@@ -1870,6 +2135,7 @@ function renderGrimDetail() {
                 <button class="grim-act is-color${note.color ? ' active' : ''}" onclick="openGrimColorModal('${note.id}')" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg><span>цвет</span></button>
                 <button class="grim-act" onclick="grimSaveAsTpl('${note.id}')" title="Сохранить как шаблон">${GRIM_TPL_IC.save}<span>шаблон</span></button>
                 <button class="grim-act" onclick="grimDuplicate('${note.id}')" title="Сделать копию записи">${IC.twinCoffin}<span>копия</span></button>
+                <button class="grim-act" onclick="grimOpenHistory('${note.id}')" title="Летопись — история версий записи">${GIC.chronicle}<span>летопись</span></button>
                 <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
                 <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
             </span>
@@ -2022,6 +2288,7 @@ function grimTitleInput(el) {
     _grimSyncActiveLeaf();                       // patch leaf in place (highlight-aware)
     clearTimeout(_grimSaveT);
     _grimSaveT = setTimeout(saveState, 400);
+    _grimScheduleVersion();                      // п.15: arm idle auto-snapshot
 }
 
 // Live body edit: update model synchronously, debounce save.
@@ -2035,12 +2302,19 @@ function grimBodyInput(el) {
     if (_grimFindActive) _grimFindRun(notesSearchQuery, false);   // recompute stale match ranges (no jump)
     clearTimeout(_grimSaveT);
     _grimSaveT = setTimeout(saveState, 400);
+    _grimScheduleVersion();   // п.15: arm idle auto-snapshot
     _grimScheduleTableUI();   // keep table seal/frame/gutters glued as cells reflow
 }
 
 // Blur (or pane switch) → flush save and re-sort/refresh the list (most-recent first).
 function grimCommit(e) {
     clearTimeout(_grimSaveT);
+    // п.15: if focus left the editor entirely (switching notes, leaving the page,
+    // window blur) take a version snapshot. Transient blurs that stay inside the
+    // editor (clicking a toolbar button) keep focus in .grim-page-main → no snapshot.
+    const _rt = e && e.relatedTarget;
+    const _main = document.querySelector('#grim-detail .grim-page-main');
+    if (!_rt || !(_main && _main.contains(_rt))) _grimSnapshotCurrent();
     saveState();
     // If this blur was caused by clicking ANY list entry, a full rebuild would replace
     // that entry's node mid-press and swallow the click (breaks single-click open and the
