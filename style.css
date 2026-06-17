@@ -5897,6 +5897,52 @@ kbd {
 .grim-new-btn:hover { border-color: var(--border-bright); box-shadow: 0 0 16px rgba(120, 40, 220, 0.28); color: var(--text-primary); }
 .grim-new-btn svg { width: 14px; height: 14px; }
 
+/* п.12: split «Начертать» — primary btn + template trigger + popover */
+.grim-new-split { position: relative; display: inline-flex; align-items: stretch; flex-shrink: 0; }
+.grim-new-split .grim-new-btn { border-radius: var(--radius-md) 0 0 var(--radius-md); border-right: none; }
+.grim-tpl-trigger {
+    display: inline-flex; align-items: center; justify-content: center; width: 40px;
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.18), rgba(80, 15, 180, 0.10));
+    color: var(--accent); border: 1px solid var(--border-mid);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0; cursor: pointer;
+    transition: all var(--transition); position: relative;
+}
+.grim-tpl-trigger::before { content: ""; position: absolute; left: 0; top: 22%; bottom: 22%; width: 1px; background: var(--border); }
+/* animated two-state book: clasped tome (menu closed) ⇄ open tome (menu open),
+   crossfaded — same idiom as the note-fold toggle (.gf-open / .gf-closed). */
+.grim-tpl-trigger .gt-ic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: opacity var(--dur-standard) var(--ease-gothic); }
+.grim-tpl-trigger .gt-open { opacity: 0; }
+.grim-new-split.open .grim-tpl-trigger .gt-closed { opacity: 0; }
+.grim-new-split.open .grim-tpl-trigger .gt-open { opacity: 1; }
+.grim-tpl-trigger svg { width: 21px; height: 21px; }
+.grim-tpl-trigger:hover { color: var(--text-primary); border-color: var(--border-bright); box-shadow: 0 0 16px rgba(120, 40, 220, 0.28); }
+.grim-new-split.open .grim-tpl-trigger { color: var(--accent-hover); border-color: var(--border-bright); background: var(--accent-soft); }
+
+.grim-tpl-pop {
+    position: absolute; top: calc(100% + 8px); right: 0; width: 322px; z-index: 60;
+    background: var(--bg-modal); border: 1px solid var(--border-mid); border-radius: var(--radius-md);
+    box-shadow: 0 18px 48px rgba(2, 0, 12, 0.7), 0 0 0 1px rgba(120, 60, 220, 0.08);
+    overflow: hidden; transform-origin: top right;
+    opacity: 0; transform: translateY(-10px) scale(0.94); pointer-events: none;
+    transition: opacity 0.2s var(--ease-emerge), transform 0.22s var(--ease-emerge);
+}
+.grim-new-split.open .grim-tpl-pop { opacity: 1; transform: none; pointer-events: auto; }
+.grim-tpl-head { font-family: var(--font-label); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-muted); padding: 12px 15px 8px; border-bottom: 1px solid var(--border); }
+.grim-tpl-sect { font-family: var(--font-label); font-size: 9.5px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--accent); opacity: 0.7; padding: 10px 15px 4px; }
+.grim-tpl-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; cursor: pointer; transition: background var(--transition); border-left: 2px solid transparent; }
+.grim-tpl-item:hover { background: var(--bg-item-hover); border-left-color: var(--accent); }
+.grim-tpl-ic { flex: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--accent-hover); background: var(--accent-soft); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.grim-tpl-ic svg { width: 22px; height: 22px; }
+.grim-tpl-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.grim-tpl-name { font-family: var(--font-label); font-size: 12px; letter-spacing: 0.4px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grim-tpl-desc { font-size: 13.5px; color: var(--text-muted); font-style: italic; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grim-tpl-item.user .grim-tpl-ic { color: var(--text-secondary); }
+.grim-tpl-del { flex: none; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0; transition: all var(--transition); border-radius: var(--radius-xs); background: transparent; border: none; cursor: pointer; }
+.grim-tpl-item.user:hover .grim-tpl-del { opacity: 0.6; }
+.grim-tpl-del:hover { color: var(--prio-high); opacity: 1; }
+.grim-tpl-del svg { width: 15px; height: 15px; }
+.grim-tpl-divline { height: 1px; background: var(--border); margin: 6px 0; opacity: 0.6; }
+
 /* ── search ── */
 .grim-search-wrap {
     display: flex;

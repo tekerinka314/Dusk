@@ -956,6 +956,7 @@ function uid() {
 function normalizeState() {
     if (!Array.isArray(state.notes)) state.notes = [];
     if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
+    if (!Array.isArray(state.noteTemplates)) state.noteTemplates = [];   // п.12: note templates
     migrateNotes();   // plain-text bodies → HTML once (idempotent via note.fmt)
 }
 
@@ -1353,8 +1354,12 @@ function renderNotes() {
     if (segR) segR.classList.toggle('active', grimMode === 'archive');
     const segRc = document.getElementById('grim-seg-count');
     if (segRc) { const n = (state.notesArchive || []).length; segRc.textContent = n || ''; segRc.style.display = n ? '' : 'none'; }
-    const newBtn = document.getElementById('grim-new-btn');
-    if (newBtn) newBtn.style.display = (grimMode === 'active' && !grimSelectMode) ? '' : 'none';
+    const newSplit = document.getElementById('grim-new-split');
+    if (newSplit) {
+        const showNew = (grimMode === 'active' && !grimSelectMode);
+        newSplit.style.display = showNew ? '' : 'none';
+        if (!showNew) _grimCloseTplMenu();   // never leave the templates popover open when hidden
+    }
     const expAll = document.getElementById('grim-export-all');
     if (expAll) expAll.style.display = (grimMode === 'active' && !grimSelectMode && (state.notes || []).length) ? '' : 'none';
     // п.11: import — active mode, outside select; valid even with zero notes (it creates one).
@@ -1760,6 +1765,7 @@ function renderGrimDetail() {
             <span class="grim-acts">
                 <button class="grim-act is-pin${note.pinned ? ' active' : ''}" onclick="grimTogglePin('${note.id}')" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
                 <button class="grim-act is-color${note.color ? ' active' : ''}" onclick="openGrimColorModal('${note.id}')" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg><span>цвет</span></button>
+                <button class="grim-act" onclick="grimSaveAsTpl('${note.id}')" title="Сохранить как шаблон">${GRIM_TPL_IC.save}<span>шаблон</span></button>
                 <button class="grim-act" onclick="grimDuplicate('${note.id}')" title="Сделать копию записи">${IC.twinCoffin}<span>копия</span></button>
                 <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
                 <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
@@ -3779,6 +3785,168 @@ function grimImportNote() {
     document.body.appendChild(inp);
     inp.click();
 }
+
+// ── п.12: note templates (built-in gothic blueprints + user-saved) ──────────
+// Built-in icons + the «save as template» / user-template glyph (tome + ribbon +
+// star sigil). Hand-drawn gothic SVG, dark-violet idiom — never emoji.
+const GRIM_TPL_IC = {
+    diary:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16.6 2.6a7.6 7.6 0 1 0 4.8 12.9 6 6 0 0 1-4.8-12.9Z"/><path d="M6.2 5.1l.45 1.5 1.5.45-1.5.45L6.2 9l-.45-1.5L4.25 7.05l1.5-.45Z" fill="currentColor" stroke="none"/><path d="M4 19.6c2.4-1.5 4.8-1.5 7.2 0 2.4-1.5 4.8-1.5 7.2 0"/><path d="M5 22c2.1-1.2 4.1-1.2 6.2 0 2.1-1.2 4.1-1.2 6.2 0" opacity=".45"/></svg>`,
+    ritual: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.3"/><circle cx="12" cy="12" r="7.9" opacity=".4"/><path d="M12 4.5 16.4 18.1 4.9 9.7 19.1 9.7 7.6 18.1Z"/><path d="M12 1.4v1.5M12 22.6v-1.5M1.4 12h1.5M22.6 12h-1.5" opacity=".5" stroke-width="1"/></svg>`,
+    codex:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 Q6.2 3 12 2.6 Q17.8 3 18 9.5 V21 H6 Z"/><rect x="7.9" y="6" width="3.8" height="3.8" rx=".5"/><path d="M8.8 9.2 9.8 6.7 10.8 9.2 M9.15 8.3h1.3" stroke-width=".95"/><path d="M13.1 6.9h3M13.1 8.8h2.3" opacity=".7" stroke-width="1.05"/><path d="M8.2 12.7h7.6M8.2 14.9h7.6M8.2 17.1h5.2" opacity=".55"/></svg>`,
+    tablet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.4h12l1.6 2.2v15H4.4v-15Z"/><path d="M4.4 8.7h15.2M4.4 13.3h15.2M4.4 17.9h15.2M9.6 5.6v15M14.4 5.6v15"/><path d="M4.4 5.6h15.2" opacity=".55"/><path d="M3 3.4l1.4 2.2M21 3.4l-1.4 2.2" opacity=".5"/></svg>`,
+    save:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.4 H17 a1.3 1.3 0 0 1 1.3 1.3 V19 a1.3 1.3 0 0 1 -1.3 1.3 H7 Q5.4 20.3 5.4 18.7 V5 Q5.4 3.4 7 3.4 Z"/><path d="M7.4 3.4 V20.3" opacity=".4"/><path d="M13.4 3.4 V8 l1.3 -1.2 1.3 1.2 V3.4"/><path d="M11.6 11.5 13.36 16.93 8.75 13.57 14.45 13.57 9.84 16.93 Z" stroke-width="1" opacity=".85"/></svg>`,
+    // Delete a template — ornate gothic dagger plunged downward (pommel diamond,
+    // curled quillons, fullered blade to a point). Reads as "strike out / destroy".
+    del:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.2 13.5 3.7 12 5.2 10.5 3.7Z" fill="currentColor" stroke="none"/><path d="M12 5.2V7"/><path d="M8.3 8.6H15.7"/><path d="M8.3 8.6Q7 6.9 8.7 6.4M15.7 8.6Q17 6.9 15.3 6.4"/><path d="M10.4 8.6 12 21.4 13.6 8.6"/><path d="M12 10.4V18.4" opacity=".35"/></svg>`,
+};
+const _GRIM_MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+// Built-in blueprints — one per structural primitive of a note (prose / list /
+// hierarchy / table). build() returns {title, body, color}; body is raw HTML
+// (sanitised on spawn). Дневник stamps the current date as its title.
+const GRIM_BUILTIN_TPL = [
+    { key: 'diary',  name: 'Дневник',  desc: 'дата · проза · намерения', icon: GRIM_TPL_IC.diary,
+      build() { const d = new Date(); return {
+        title: `${d.getDate()} ${_GRIM_MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+        body: '<blockquote>«Что записано — то не потеряно во тьме.»</blockquote>'
+            + '<h2>Событие дня</h2><p><br></p>'
+            + '<h2>Мысли и чувства</h2><p><br></p>'
+            + '<h2>Намерения на завтра</h2><ul class="task"><li>Первое</li><li>Второе</li></ul>',
+        color: null }; } },
+    { key: 'ritual', name: 'Ритуал',   desc: 'цель · подготовка · шаги', icon: GRIM_TPL_IC.ritual,
+      build() { return {
+        title: 'Ритуал',
+        body: '<h2>Цель</h2><p><br></p>'
+            + '<h2>Подготовка</h2><ul><li>Что понадобится</li></ul>'
+            + '<h2>Шаги</h2><ol><li>Подготовка пространства</li><li>Основное действие</li><li>Завершение</li></ol>'
+            + '<blockquote>Предостережение: <em>не прерывай начатое.</em></blockquote>',
+        color: null }; } },
+    { key: 'codex',  name: 'Кодекс',   desc: 'полный труд: H1–H3 · список · таблица · код', icon: GRIM_TPL_IC.codex,
+      build() { return {
+        title: 'Заглавие труда',
+        body: '<p><strong>Краткое вступление</strong> — о чём этот кодекс.</p>'
+            + '<h2>Первый раздел</h2><p><br></p>'
+            + '<h3>Подраздел</h3><ul><li>Пункт</li><li>Пункт</li></ul>'
+            + '<hr>'
+            + '<h2>Сводная таблица</h2>'
+            + '<table><thead><tr><th>Понятие</th><th>Описание</th></tr></thead><tbody><tr><td></td><td></td></tr><tr><td></td><td></td></tr></tbody></table>'
+            + '<p>Термин в тексте: <code>код</code>.</p>',
+        color: null }; } },
+    { key: 'tablet', name: 'Скрижаль', desc: 'таблица: данные · сравнение · реестр', icon: GRIM_TPL_IC.tablet,
+      build() { return {
+        title: 'Скрижаль',
+        body: '<h2>Реестр</h2><p>Назначение таблицы.</p>'
+            + '<table><thead><tr><th>Столбец 1</th><th>Столбец 2</th><th>Столбец 3</th></tr></thead><tbody><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></tbody></table>',
+        color: null }; } },
+];
+
+// Spawn a new active note seeded from {title, body, color} (template or import).
+function _grimSpawnSeeded(seed) {
+    if (grimMode !== 'active') grimMode = 'active';
+    clearTimeout(_grimSaveT); saveState();
+    grimFindClose();
+    pushUndo();
+    const now = Date.now();
+    const note = { id: uid(), title: seed.title || '', body: _grimSanitize(seed.body || ''), fmt: true, color: seed.color || null, createdAt: now, updatedAt: now };
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(note);
+    currentNoteId = note.id;
+    grimNoteCollapsed = false;
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box'); if (sb) sb.value = '';
+    saveState();
+    renderNotes();
+    const layoutEl = document.getElementById('grim-layout'); if (layoutEl) layoutEl.classList.add('show-detail');
+    const ti = document.getElementById('grim-title-in'); if (ti) ti.focus();
+}
+
+// Save the open note as a reusable template (mirrors saveTaskAsTemplate).
+function grimSaveAsTpl(id) {
+    const note = (state.notes || []).find(n => n.id === id) || (state.notesArchive || []).find(n => n.id === id);
+    if (!note) return;
+    if (!Array.isArray(state.noteTemplates)) state.noteTemplates = [];
+    pushUndo();
+    state.noteTemplates.push({
+        id: uid(),
+        name: ((note.title || '').trim() || _grimPlain(note.body || '').trim() || 'Шаблон').slice(0, 60),
+        title: note.title || '',
+        body: note.body || '',
+        color: note.color || null,
+    });
+    saveState();
+    showToast('Сохранено как шаблон');
+}
+
+// Create a note from a built-in blueprint (by key) or a saved template (by id).
+function grimUseBuiltin(key) {
+    const t = GRIM_BUILTIN_TPL.find(b => b.key === key);
+    if (!t) return;
+    _grimCloseTplMenu();
+    _grimSpawnSeeded(t.build());
+    showToast('Запись из шаблона «' + t.name + '»');
+}
+function grimUseTpl(id) {
+    const t = (state.noteTemplates || []).find(x => x.id === id);
+    if (!t) return;
+    _grimCloseTplMenu();
+    _grimSpawnSeeded({ title: t.title, body: t.body, color: t.color });
+    showToast('Запись из шаблона');
+}
+function grimDeleteTpl(id, event) {
+    if (event) event.stopPropagation();
+    pushUndo();
+    state.noteTemplates = (state.noteTemplates || []).filter(x => x.id !== id);
+    saveState();
+    _grimRenderTplMenu();          // keep the open popover in sync
+    showToast('Шаблон удалён');
+}
+
+// ── popover open/close + render ──
+function grimToggleTplMenu(event) {
+    if (event) event.stopPropagation();
+    const split = document.getElementById('grim-new-split');
+    if (!split) return;
+    if (split.classList.contains('open')) { _grimCloseTplMenu(); return; }
+    _grimRenderTplMenu();
+    // Paint the closed base state first, THEN flip .open next frame so the
+    // opacity/transform transition actually runs (same-tick add skips it).
+    requestAnimationFrame(() => requestAnimationFrame(() => split.classList.add('open')));
+    const trig = document.getElementById('grim-tpl-trigger');
+    if (trig) trig.setAttribute('aria-expanded', 'true');
+}
+function _grimCloseTplMenu() {
+    const split = document.getElementById('grim-new-split');
+    if (split) split.classList.remove('open');
+    const trig = document.getElementById('grim-tpl-trigger');
+    if (trig) trig.setAttribute('aria-expanded', 'false');
+}
+function _grimRenderTplMenu() {
+    const pop = document.getElementById('grim-tpl-pop');
+    if (!pop) return;
+    let html = '<div class="grim-tpl-head">Начертать из шаблона</div>';
+    html += '<div class="grim-tpl-sect">Встроенные</div>';
+    html += GRIM_BUILTIN_TPL.map(t => `
+        <div class="grim-tpl-item" role="menuitem" onclick="grimUseBuiltin('${t.key}')">
+            <span class="grim-tpl-ic">${t.icon}</span>
+            <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(t.name)}</span><span class="grim-tpl-desc">${escHtml(t.desc)}</span></span>
+        </div>`).join('');
+    const mine = state.noteTemplates || [];
+    if (mine.length) {
+        html += '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Свои</div>';
+        html += mine.map(t => `
+            <div class="grim-tpl-item user" role="menuitem" onclick="grimUseTpl('${t.id}')">
+                <span class="grim-tpl-ic">${GRIM_TPL_IC.save}</span>
+                <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(t.name || 'Шаблон')}</span><span class="grim-tpl-desc">своя заготовка</span></span>
+                <button class="grim-tpl-del" onclick="grimDeleteTpl('${t.id}', event)" title="Удалить шаблон">${GRIM_TPL_IC.del}</button>
+            </div>`).join('');
+    }
+    pop.innerHTML = html;
+}
+// Click anywhere outside the open split closes the templates popover.
+document.addEventListener('click', e => {
+    const split = document.getElementById('grim-new-split');
+    if (split && split.classList.contains('open') && !split.contains(e.target)) _grimCloseTplMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') _grimCloseTplMenu(); });
 
 // Live toolbar active-state while editing the body. (The caret no longer drives
 // the table controls — those are an explicit per-table seal toggle instead.)
