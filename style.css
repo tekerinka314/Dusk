@@ -4925,6 +4925,94 @@ textarea:focus-visible {
     background: rgba(100, 35, 200, 0.15);
 }
 
+/* ── п.17 Звук пера toggle — stacked above the shortcuts button ──────────────── */
+.btn-pen-sound {
+    position: fixed;
+    bottom: 114px; /* 22 + 2×(40+6) */
+    right: 22px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-app);
+    border: 1px solid var(--border-mid);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    z-index: 50;
+    padding: 0;
+    backdrop-filter: blur(10px);
+}
+.btn-pen-sound:hover { color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.55); box-shadow: var(--shadow-glow); }
+.btn-pen-sound svg { width: 23px; height: 23px; overflow: visible; }
+.btn-pen-sound.on { color: var(--accent-hover); border-color: rgba(140, 60, 255, 0.55); }
+
+/* ── Volume bar «Сосуд»: the button BODY itself morphs upward into a vessel.
+   Revealed only when sound is ON; drag the channel to set master volume. ───── */
+.btn-pen-sound {
+    /* 20px radius (= half of the 40px circle, so identical at rest) keeps STRAIGHT
+       sides when the body grows tall → a stadium capsule, not a bulging ellipse. */
+    border-radius: 20px;
+    transition: height var(--dur-ritual, 520ms) var(--ease-gothic, cubic-bezier(.16,1,.3,1)),
+                border-color var(--transition), box-shadow var(--transition), color var(--transition);
+    overflow: visible;          /* keep the OFF quill-lift visible (it draws outside) */
+}
+.btn-pen-sound.on:hover, .btn-pen-sound.on.pen-live { height: 152px; border-color: var(--border-bright); }
+.btn-pen-sound .pen-ico-slot, .btn-pen-sound .pen-pct {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 40px;
+    display: flex; align-items: center; justify-content: center; pointer-events: none;
+}
+/* base counter: while dragging, the quill crossfades to the volume % (B) */
+.btn-pen-sound .pen-ico-slot { transition: opacity 0.2s var(--ease-gothic, cubic-bezier(.16,1,.3,1)); }
+.btn-pen-sound .pen-pct {
+    /* centre in the base gap between the channel bottom (42px) and the container
+       bottom (0) → 42px slot centres the digits at 21px, matching the icon. */
+    height: 42px;
+    opacity: 0; color: #ecd9ff;
+    font-family: var(--font-label); font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    /* lining-nums = uniform-height digits (Cormorant defaults to old-style figures) */
+    font-variant-numeric: lining-nums tabular-nums;
+    text-shadow: 0 0 9px var(--accent-glow), 0 0 2px rgba(200, 150, 255, 0.55);
+    transition: opacity 0.2s var(--ease-gothic, cubic-bezier(.16,1,.3,1));
+}
+.btn-pen-sound.pen-live .pen-ico-slot { opacity: 0; }
+.btn-pen-sound.pen-live .pen-pct { opacity: 1; }
+.btn-pen-sound .pen-chan {
+    position: absolute; left: 50%; top: 14px; bottom: 42px; width: 12px;
+    transform: translateX(-50%); border-radius: 6px;
+    background: rgba(4, 1, 14, 0.5);
+    box-shadow: inset 0 0 0 1px rgba(150, 90, 255, 0.5), inset 0 1px 4px rgba(0, 0, 0, 0.5);
+    overflow: hidden; opacity: 0; pointer-events: none; cursor: grab;
+    transition: opacity 0.3s 0.08s var(--ease-gothic, cubic-bezier(.16,1,.3,1));
+}
+.btn-pen-sound.on:hover .pen-chan, .btn-pen-sound.on.pen-live .pen-chan { opacity: 1; pointer-events: auto; }
+.btn-pen-sound.pen-live .pen-chan { cursor: grabbing; }
+.btn-pen-sound .pen-fill {
+    position: absolute; left: 0; right: 0; bottom: 0; height: var(--pv, 100%); border-radius: 6px;
+    background: linear-gradient(180deg, var(--accent-hover), var(--accent) 60%, #5e22b8);
+    transition: height 0.12s linear;
+}
+/* meniscus — a clean bright white dot on the liquid surface (no dark rim / halo) */
+.btn-pen-sound .pen-fill::before {
+    content: ''; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+    width: 7px; height: 3px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.35) 60%, transparent);
+}
+
+/* the quill group lifts off the page when sound is OFF (no strikethrough) */
+.btn-pen-sound .pen-q {
+    transition: transform var(--dur-ritual, 520ms) var(--ease-gothic, cubic-bezier(.16,1,.3,1));
+    transform-box: view-box;
+    transform-origin: 380px 160px;
+}
+.btn-pen-sound.off .pen-q { transform: translate(28px, -100px) rotate(-7deg); }
+@media (prefers-reduced-motion: reduce) {
+    .btn-pen-sound, .btn-pen-sound .pen-q, .btn-pen-sound .pen-chan, .btn-pen-sound .pen-fill { transition: none; }
+}
+
 /* ===== SHORTCUTS HINT ===== */
 .shortcuts-hint {
     position: fixed;
