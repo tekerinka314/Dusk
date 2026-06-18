@@ -2806,6 +2806,11 @@ function _grimSanitize(html) {
                 } else if (n === 'class' && (ch.tagName === 'TH' || ch.tagName === 'TD')) {
                     const keep = a.value.split(/\s+/).filter(c => c === 'align-c' || c === 'align-r').join(' ');
                     keep ? ch.setAttribute('class', keep) : ch.removeAttribute('class');
+                } else if (n === 'class' && ch.tagName === 'DIV') {
+                    // п.16 callouts — only the blessed callout classes survive on a <div>.
+                    const ok = { 'grim-co': 1, 'grim-co-info': 1, 'grim-co-warn': 1, 'grim-co-secret': 1, 'grim-co-body': 1 };
+                    const keep = a.value.split(/\s+/).filter(c => ok[c]).join(' ');
+                    keep ? ch.setAttribute('class', keep) : ch.removeAttribute('class');
                 } else {
                     ch.removeAttribute(a.name);
                 }
@@ -3283,6 +3288,7 @@ function grimBodyKey(e) {
     if (e.key === 'Escape' && _grimDismissTableUI()) return;   // staged dismiss: picker → menu → edit-mode
     if (e.key === 'Tab' && _grimTableTab(e)) return;     // walk table cells
     if (e.key === 'Tab' && _grimPreTab(e)) return;       // п.8: Tab → 2 spaces inside a code block
+    if (e.key === 'Backspace' && _grimBackspaceCallout(e)) return;   // п.16: empty callout → delete whole врезка
     if (e.key === 'Backspace' && _grimBackspaceOutdent(e)) return;
     // п.8: ``` + Enter opens a code block; Enter inside one = newline / exit on empty tail.
     if (e.key === 'Enter' && !e.shiftKey && _grimCodeFenceEnter(e)) return;
@@ -3312,6 +3318,25 @@ function _grimExitOnEnter(e) {
     const bo = document.getElementById('grim-body');
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount) return false;
+    // п.16: Enter on an empty line inside a callout breaks out below it (no way to
+    // get stuck typing forever in the врезка). Mirrors the blockquote escape.
+    let co = sel.anchorNode;
+    while (co && co !== bo && !(co.nodeType === 1 && co.classList && co.classList.contains('grim-co'))) co = co.parentNode;
+    if (co && co !== bo) {
+        let blk = sel.anchorNode;
+        while (blk && blk !== co && !/^(P|LI|H1|H2|H3)$/.test(blk.tagName || '')) blk = blk.parentNode;
+        if (blk && blk !== co && _grimCollapse(blk.textContent) === '') {
+            e.preventDefault();
+            const p = document.createElement('p');
+            p.appendChild(document.createElement('br'));
+            co.parentNode.insertBefore(p, co.nextSibling);
+            const bodyEl = co.querySelector('.grim-co-body') || co;
+            if (blk.parentNode && bodyEl.children.length > 1) blk.remove();   // drop the empty trailing line, keep callout
+            _grimCaretToStart(p);
+            _grimAfterEdit(bo);
+            return true;
+        }
+    }
     let n = sel.anchorNode, bq = null, code = null;
     while (n && n !== bo) {
         if (n.tagName === 'BLOCKQUOTE') { bq = n; break; }
@@ -3343,6 +3368,34 @@ function _grimExitOnEnter(e) {
         return false;   // let the browser create the new paragraph (now outside code)
     }
     return false;
+}
+// п.16: Backspace anywhere inside an EMPTY callout deletes the whole врезка at once
+// (instead of nibbling preceding blank lines and only then eating the callout).
+function _grimBackspaceCallout(e) {
+    const bo = document.getElementById('grim-body');
+    const sel = window.getSelection();
+    if (!bo || !sel || !sel.rangeCount || !sel.isCollapsed) return false;
+    let co = sel.anchorNode;
+    while (co && co !== bo && !(co.nodeType === 1 && co.classList && co.classList.contains('grim-co'))) co = co.parentNode;
+    if (!co || co === bo) return false;
+    if (_grimCollapse(co.textContent) !== '') return false;   // only when the callout is empty
+    e.preventDefault();
+    const prev = co.previousElementSibling, next = co.nextElementSibling;
+    co.remove();
+    if (prev) {
+        const r = document.createRange();
+        r.selectNodeContents(prev); r.collapse(false);        // caret → end of previous block
+        sel.removeAllRanges(); sel.addRange(r);
+    } else if (next) {
+        _grimCaretToStart(next);
+    } else {
+        const p = document.createElement('p');
+        p.appendChild(document.createElement('br'));
+        bo.appendChild(p);
+        _grimCaretToStart(p);
+    }
+    _grimAfterEdit(bo);
+    return true;
 }
 // First Backspace at the very start of a list item outdents it to a paragraph
 // (keeps the text on its own line) instead of merging into the previous item.
@@ -3477,6 +3530,84 @@ function grimInsertTable(cols, rows) {
     }
     _grimAfterEdit(bo);
     requestAnimationFrame(_grimLayoutTableUI);   // draw the seal once geometry settles
+}
+
+// ── п.16: callouts (врезки) ─────────────────────────────────────────────────
+// A callout is a plain <div class="grim-co grim-co-TYPE"><div class="grim-co-body">…</div></div>.
+// No icon node is stored — the gothic glyph is painted by CSS (::before mask), so the
+// saved body stays tiny and the sanitizer only has to bless the class. Three types:
+// info (заметка/важное, фиолет), warn (опасность, красный), secret (тайна, приглушённый).
+const GRIM_CO = {
+    info:   { cls: 'grim-co-info',   name: 'Скрижаль',
+              ic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2" opacity=".55"/><circle cx="12" cy="12" r="6.6"/><path d="M12 4.6V8M12 16V19.4M4.6 12H8M16 12H19.4" opacity=".7"/><path d="M12 7.2 13.4 10.6 16.8 12 13.4 13.4 12 16.8 10.6 13.4 7.2 12 10.6 10.6Z" fill="currentColor" fill-opacity=".22"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>` },
+    warn:   { cls: 'grim-co-warn',   name: 'Угроза',
+              ic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11.4C5 6.9 8.1 3.7 12 3.7C15.9 3.7 19 6.9 19 11.4C19 13.6 18.1 15.1 17 16.1V18.4C17 19.2 16.4 19.6 15.7 19.6H8.3C7.6 19.6 7 19.2 7 18.4V16.1C5.9 15.1 5 13.6 5 11.4Z"/><circle cx="9" cy="11.4" r="1.9" fill="currentColor" fill-opacity=".25"/><circle cx="15" cy="11.4" r="1.9" fill="currentColor" fill-opacity=".25"/><path d="M12 13.4 11 15.6H13Z" fill="currentColor" stroke="none"/><path d="M9.2 19.6V17.6M12 19.6V17.4M14.8 19.6V17.6" opacity=".75"/></svg>` },
+    secret: { cls: 'grim-co-secret', name: 'Шёпот',
+              ic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 12C5 8.4 8.3 6.6 12 6.6C15.7 6.6 19 8.4 21.4 12C19 15.6 15.7 17.4 12 17.4C8.3 17.4 5 15.6 2.6 12Z"/><circle cx="12" cy="12" r="3.3"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
+};
+
+// Walk up from a node to the enclosing callout, if any (so we never nest one).
+function _grimClosestCallout(node, bo) {
+    let n = node;
+    while (n && n !== bo) {
+        if (n.nodeType === 1 && n.classList && n.classList.contains('grim-co')) return n;
+        n = n.parentNode;
+    }
+    return null;
+}
+
+// Toolbar → small type-picker popover under the callout button.
+function grimCalloutMenu(e) {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    const existing = document.getElementById('grim-co-pop');
+    if (existing) { existing.remove(); return; }
+    const pop = document.createElement('div');
+    pop.id = 'grim-co-pop';
+    pop.className = 'grim-co-pop';
+    ['info', 'warn', 'secret'].forEach(k => {
+        const it = GRIM_CO[k];
+        const row = document.createElement('button');
+        row.className = 'grim-co-pop-it ' + it.cls;
+        row.innerHTML = `<span class="grim-co-pop-ic">${it.ic}</span><span>${it.name}</span>`;
+        row.addEventListener('mousedown', ev => { ev.preventDefault(); grimCallout(k); pop.remove(); });
+        pop.appendChild(row);
+    });
+    document.body.appendChild(pop);
+    const rect = e.currentTarget.getBoundingClientRect();
+    pop.style.top  = (rect.bottom + 6) + 'px';
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - pop.offsetWidth - 10)) + 'px';
+    setTimeout(() => {
+        const off = ev => { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', off, true); } };
+        document.addEventListener('mousedown', off, true);
+    }, 0);
+}
+
+// Drop a callout of `type` at the caret (selected text becomes its body). Inserted
+// via execCommand('insertHTML') so it joins the native undo stack (Ctrl+Z reverts it).
+function grimCallout(type) {
+    const bo = document.getElementById('grim-body');
+    if (!bo) return;
+    bo.focus();
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    if (_grimClosestCallout(sel.anchorNode, bo)) return;       // never nest callouts
+    const it = GRIM_CO[type] || GRIM_CO.info;
+    const text = sel.toString();
+    const inner = text ? escHtml(text) : '<br>';
+    const html = '<div class="grim-co ' + it.cls + '" data-gtnew="1"><div class="grim-co-body"><p>' + inner + '</p></div></div><p data-gtnew2="1"><br></p>';
+    document.execCommand('insertHTML', false, html);
+    const co = bo.querySelector('.grim-co[data-gtnew]');
+    if (co) {
+        co.removeAttribute('data-gtnew');
+        // insertHTML splits the caret's block — if that block was empty, it leaves a
+        // blank line above the callout. Drop it so the врезка sits on the caret's line.
+        const prev = co.previousElementSibling;
+        if (prev && /^(P|DIV)$/.test(prev.tagName) && _grimCollapse(prev.textContent) === '' && !prev.querySelector('img,hr,table')) prev.remove();
+        const p = co.querySelector('.grim-co-body p, .grim-co-body');
+        if (p) _grimCaretToStart(p);
+    }
+    _grimAfterEdit(bo);
 }
 
 // Resolve the cell / row / table around the caret (null when outside any table).
@@ -3867,6 +3998,9 @@ const FIC = {
     hr:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="9" y2="12"/><path d="M12 9.5l2.2 2.5-2.2 2.5-2.2-2.5z" fill="currentColor" stroke="none"/><line x1="15" y1="12" x2="21" y2="12"/></svg>`,
     link:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 6 .5l2.5-2.5a4 4 0 0 0-5.6-5.6L11 8"/><path d="M14 10a4 4 0 0 0-6-.5L5.5 12a4 4 0 0 0 5.6 5.6L13 16"/></svg>`,
     md:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 11l4 3 4-3"/><path d="M5 19h14"/></svg>`,
+    // Callout (врезка) — a framed plaque with a heavy accent rail + a sigil-star,
+    // standing for a marked block of lore.
+    callout: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M7 5v14" stroke-width="2.6"/><path d="M11 9.1 12 7.2 13 9.1 15.1 9.4 13.6 10.9 13.9 13 12 12 10.1 13 10.4 10.9 8.9 9.4Z" fill="currentColor" stroke="none" opacity=".85"/><path d="M10.6 15.4h6" opacity=".65"/></svg>`,
     table:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="3.5" y1="14.5" x2="20.5" y2="14.5"/><line x1="9.5" y1="4.5" x2="9.5" y2="19.5"/><line x1="15" y1="4.5" x2="15" y2="19.5"/></svg>`,
     // Table structure glyphs (approved set): cross-potent + diamond = add; a
     // sickle (contour blade + filled handle) = delete; a fleur-de-lis grip on the
@@ -3912,6 +4046,7 @@ function _grimToolbarHTML() {
             ${btn('link', "grimLink()", 'Ссылка (Ctrl+K)', FIC.link)}
         </span>
         <span class="fmt-grp">${btn('table', "grimTableMenu(event)", 'Таблица', FIC.table)}</span>
+        <span class="fmt-grp">${btn('callout', "grimCalloutMenu(event)", 'Врезка (каллаут)', FIC.callout)}</span>
         <span class="fmt-grp">
             <button class="fmt-btn export" onmousedown="event.preventDefault()" onclick="grimExportNote()" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
         </span>
@@ -3963,6 +4098,13 @@ function _grimHtmlToMd(html) {
         else if (tag === 'HR') md += '---\n\n';
         else if (tag === 'PRE') md += '```\n' + n.textContent.split(String.fromCharCode(0x200B)).join('').replace(/\n$/, '') + '\n```\n\n';
         else if (tag === 'TABLE') md += _grimTableToMd(n) + '\n';
+        else if (tag === 'DIV' && n.classList.contains('grim-co')) {
+            const kind = n.classList.contains('grim-co-warn') ? 'danger'
+                       : n.classList.contains('grim-co-secret') ? 'secret' : 'note';
+            const bodyEl = n.querySelector('.grim-co-body') || n;
+            const inner = _grimHtmlToMd(bodyEl.innerHTML).split('\n').map(l => '> ' + l).join('\n');
+            md += '> [!' + kind + ']\n' + inner + '\n\n';
+        }
         else if (tag === 'UL') {
             const task = n.classList.contains('task');
             n.querySelectorAll(':scope > li').forEach(li => {
