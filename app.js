@@ -791,6 +791,13 @@ function init() {
     // Note: setupSortables() is called inside render() via rAF — no separate call needed here.
     startDeadlineTimer();
     _initPage();
+    // NA-8: fold the grimoire toolbar popovers into the shared outside-click registry
+    // (was three bespoke document-click handlers). Static elements → references stable.
+    // IO has two mutually-exclusive menus → per-container closers so one can't close
+    // the other. The close fns are idempotent (no-op when the popover is already shut).
+    registerGothicPicker(document.getElementById('grim-new-split'), _grimCloseTplMenu);
+    registerGothicPicker(document.getElementById('grim-io-split'),  _grimCloseIoSplit);
+    registerGothicPicker(document.getElementById('grim-io-sel'),    _grimCloseIoSel);
     // P1: archive-all icon — clone the LIVE SVG node from nav-archive tab directly.
     const navArchiveSvg = document.querySelector('#nav-archive svg');
     const btnArchiveAll = document.getElementById('btn-archive-all');
@@ -1567,13 +1574,37 @@ function grimOpenHistory(id) {
         ov.addEventListener('click', e => { if (e.target === ov) grimCloseHistory(); });
         document.body.appendChild(ov);
     }
+    // NA-8: a11y parity with the standard modal controller (U-1/U-2) — remember the
+    // trigger to restore focus on close, move focus inside, and trap Tab within the
+    // dialog. The listener lives on `ov` (not its innerHTML), so it survives the
+    // per-selection _grimRenderHistory() rebuilds.
+    ov._returnFocus = document.activeElement;
+    if (!ov._trap) {
+        ov._trap = (e) => {
+            if (e.key !== 'Tab') return;
+            const els = Array.from(ov.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
+            if (!els.length) return;
+            const first = els[0], last = els[els.length - 1];
+            if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+            else            { if (document.activeElement === last)  { e.preventDefault(); first.focus(); } }
+        };
+        ov.addEventListener('keydown', ov._trap);
+    }
     _grimRenderHistory();
-    requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('open')));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        ov.classList.add('open');
+        const focusable = Array.from(ov.querySelectorAll(FOCUSABLE));
+        if (focusable.length) focusable[0].focus();
+    }));
 }
 function grimCloseHistory() {
     const ov = document.getElementById('grim-hist-ov');
     _grimHistId = null; _grimHistSel = null;
     if (!ov) return;
+    if (ov._trap) { ov.removeEventListener('keydown', ov._trap); ov._trap = null; }
+    // Return focus to the control that opened the Летопись (NA-8).
+    const rf = ov._returnFocus; ov._returnFocus = null;
+    if (rf && typeof rf.focus === 'function') rf.focus();
     ov.classList.remove('open');
     setTimeout(() => { const o = document.getElementById('grim-hist-ov'); if (o && !o.classList.contains('open')) o.remove(); }, 340);
 }
@@ -1627,7 +1658,7 @@ function _grimRenderHistory() {
         preview = `<div class="grim-hist-empty big">Эта запись ещё без летописи.<br>Снимки появятся по мере правок.</div>`;
     }
 
-    ov.innerHTML = `<div class="grim-hist-modal" role="dialog" aria-label="Летопись записи">
+    ov.innerHTML = `<div class="grim-hist-modal" role="dialog" aria-modal="true" aria-label="Летопись записи">
       <div class="grim-hist-bar">
         <span class="grim-hist-title">${GIC.chronicle}<span>Летопись</span></span>
         <button type="button" class="grim-hist-x" onclick="grimCloseHistory()" title="Закрыть летопись" aria-label="Закрыть">${GIC.dismiss}</button>
@@ -4333,6 +4364,18 @@ function _grimCloseIoMenu() {
     const a = document.getElementById('grim-io'); if (a) a.setAttribute('aria-expanded', 'false');
     const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'false');
 }
+// NA-8: per-container closers for the shared _gothicPickers registry. The registry
+// fires once per registered picker, so a single shared close would mis-close the
+// other IO menu when clicking inside this one. These close only their own popover;
+// _grimCloseIoMenu stays for the explicit "close everything" call sites.
+function _grimCloseIoSplit() {
+    const w = document.getElementById('grim-io-split'); if (w) w.classList.remove('open');
+    const a = document.getElementById('grim-io'); if (a) a.setAttribute('aria-expanded', 'false');
+}
+function _grimCloseIoSel() {
+    const w = document.getElementById('grim-io-sel'); if (w) w.classList.remove('open');
+    const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'false');
+}
 function grimToggleIoMenu(event) {
     if (event) event.stopPropagation();
     const w = document.getElementById('grim-io-split'); if (!w) return;
@@ -4353,11 +4396,8 @@ function grimToggleIoSelMenu(event) {
     requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
     const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'true');
 }
-document.addEventListener('click', e => {
-    const a = document.getElementById('grim-io-split'), b = document.getElementById('grim-io-sel');
-    const open = (a && a.classList.contains('open')) || (b && b.classList.contains('open'));
-    if (open && !(a && a.contains(e.target)) && !(b && b.contains(e.target))) _grimCloseIoMenu();
-});
+// NA-8: outside-click now runs through the shared _gothicPickers registry
+// (registered in init() once the static toolbar exists). Esc stays bespoke.
 document.addEventListener('keydown', e => { if (e.key === 'Escape') _grimCloseIoMenu(); });
 
 // ── Markdown import (.md file → new note) ───────────────────────────────
@@ -4813,11 +4853,8 @@ function _grimRenderTplMenu() {
     }
     pop.innerHTML = html;
 }
-// Click anywhere outside the open split closes the templates popover.
-document.addEventListener('click', e => {
-    const split = document.getElementById('grim-new-split');
-    if (split && split.classList.contains('open') && !split.contains(e.target)) _grimCloseTplMenu();
-});
+// NA-8: outside-click now runs through the shared _gothicPickers registry
+// (registered in init() once the static toolbar exists). Esc stays bespoke.
 document.addEventListener('keydown', e => { if (e.key === 'Escape') _grimCloseTplMenu(); });
 
 // Live toolbar active-state while editing the body. (The caret no longer drives
