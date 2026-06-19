@@ -762,7 +762,7 @@
 <!-- ===== MODALS ===== -->
 
 <!-- Group Modal -->
-<div class="modal-overlay" id="group-modal" style="display:none" onclick="closeGroupModal(event)"
+<div class="modal-overlay" id="group-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="group-modal-title">
     <div class="modal">
         <h3 class="modal-title" id="group-modal-title">Новая группа</h3>
@@ -808,7 +808,7 @@
 </div>
 
 <!-- Group Rename Modal -->
-<div class="modal-overlay" id="rename-group-modal" style="display:none" onclick="closeRenameGroupModal(event)"
+<div class="modal-overlay" id="rename-group-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="rename-group-modal-title">
     <div class="modal modal-small">
         <h3 class="modal-title" id="rename-group-modal-title">Переименовать группу</h3>
@@ -823,7 +823,7 @@
 </div>
 
 <!-- Grimoire Link Modal (п11 этап1) -->
-<div class="modal-overlay" id="grim-link-modal" style="display:none" onclick="grimLinkClose(event)"
+<div class="modal-overlay" id="grim-link-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="grim-link-modal-title">
     <div class="modal modal-small">
         <h3 class="modal-title" id="grim-link-modal-title">Вплести ссылку</h3>
@@ -842,7 +842,7 @@
 </div>
 
 <!-- Deadline Modal -->
-<div class="modal-overlay" id="deadline-modal" style="display:none" onclick="closeDeadlineModal(event)"
+<div class="modal-overlay" id="deadline-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="deadline-modal-title">
     <div class="modal modal-deadline">
         <h3 class="modal-title" id="deadline-modal-title">Установить дедлайн</h3>
@@ -1014,7 +1014,7 @@
 </div>
 
 <!-- Priority Modal -->
-<div class="modal-overlay" id="prio-modal" style="display:none" onclick="closePrioModal(event)"
+<div class="modal-overlay" id="prio-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="prio-modal-title">
     <div class="modal modal-small">
         <h3 class="modal-title" id="prio-modal-title">Изменить приоритет</h3>
@@ -1031,7 +1031,7 @@
 </div>
 
 <!-- Task Color Modal -->
-<div class="modal-overlay" id="task-color-modal" style="display:none" onclick="closeTaskColorModal(event)"
+<div class="modal-overlay" id="task-color-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="task-color-modal-title">
     <div class="modal modal-small modal-color">
         <h3 class="modal-title" id="task-color-modal-title">Цветовая метка</h3>
@@ -1076,7 +1076,7 @@
 </div>
 
 <!-- Repeat Modal -->
-<div class="modal-overlay" id="repeat-modal" style="display:none" onclick="closeRepeatModal(event)"
+<div class="modal-overlay" id="repeat-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="repeat-modal-title">
     <div class="modal modal-small">
         <h3 class="modal-title" id="repeat-modal-title">Повтор задачи</h3>
@@ -1220,7 +1220,7 @@
 </div>
 
 <!-- Note Modal -->
-<div class="modal-overlay" id="note-modal" style="display:none" onclick="closeNoteModal(event)"
+<div class="modal-overlay" id="note-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
     <div class="modal modal-note">
         <h3 class="modal-title" id="note-modal-title">Добавить заметку</h3>
@@ -1324,7 +1324,7 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="app.js"></script>
 <!-- Color Filter Modal -->
-<div class="modal-overlay" id="color-filter-modal" style="display:none" onclick="closeColorFilterModal(event)"
+<div class="modal-overlay" id="color-filter-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="color-filter-title">
     <div class="modal modal-color-filter">
         <h3 class="modal-title" id="color-filter-title">
@@ -1341,7 +1341,7 @@ if ('serviceWorker' in navigator) {
 </div>
 
 <!-- Templates Modal (Idea 6) -->
-<div class="modal-overlay" id="templates-modal" style="display:none" onclick="closeTemplatesModal(event)"
+<div class="modal-overlay" id="templates-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="templates-modal-title">
     <div class="modal modal-templates">
         <h3 class="modal-title" id="templates-modal-title">Шаблоны задач</h3>
@@ -1352,7 +1352,7 @@ if ('serviceWorker' in navigator) {
     </div>
 </div>
 
-<div class="modal-overlay" id="backup-modal" style="display:none" onclick="closeBackupModal(event)"
+<div class="modal-overlay" id="backup-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="backup-modal-title">
     <div class="modal modal-backups">
         <h3 class="modal-title" id="backup-modal-title">Точки восстановления</h3>
@@ -1364,7 +1364,7 @@ if ('serviceWorker' in navigator) {
     </div>
 </div>
 
-<div class="modal-overlay" id="bulk-group-modal" style="display:none" onclick="closeBulkGroupModal(event)"
+<div class="modal-overlay" id="bulk-group-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="bulk-group-modal-title">
     <div class="modal modal-bulk-group">
         <h3 class="modal-title" id="bulk-group-modal-title">Переместить в группу</h3>
@@ -1375,9 +1375,10 @@ if ('serviceWorker' in navigator) {
     </div>
 </div>
 
-<div id="import-choice-overlay" style="display:none" class="modal-overlay">
+<div id="import-choice-overlay" style="display:none" class="modal-overlay"
+     role="dialog" aria-modal="true" aria-labelledby="import-choice-title">
     <div class="modal import-choice-modal">
-        <h3 class="modal-title">Импорт данных</h3>
+        <h3 class="modal-title" id="import-choice-title">Импорт данных</h3>
         <p class="import-choice-desc">Добавить задачи к существующим или полностью заменить?</p>
         <div class="modal-actions import-choice-actions">
             <button class="btn-modal-cancel" id="import-cancel-btn">Отмена</button>

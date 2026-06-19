@@ -5586,17 +5586,26 @@ kbd {
 
 /* ── Import choice modal ─────────────────────────────────────── */
 .import-choice-modal {
-    max-width: 340px;
+    max-width: 380px;
 }
 .import-choice-desc {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--text-muted);
     margin: 8px 0 18px;
     line-height: 1.5;
 }
+/* Three choices (Отмена · Добавить · Заменить) must stay on ONE row — the inherited
+   flex-wrap was dropping «Заменить» to a second line at the old width. */
 .import-choice-actions {
     justify-content: flex-end;
     gap: 8px;
+    flex-wrap: nowrap;
+}
+.import-choice-actions .btn-modal-cancel,
+.import-choice-actions .btn-modal-confirm,
+.import-choice-actions .btn-modal-danger {
+    padding: 7px 13px;
+    white-space: nowrap;
 }
 
 /* ── Idea 6: templates ───────────────────────────────────────── */

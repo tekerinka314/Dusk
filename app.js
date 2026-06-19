@@ -5379,26 +5379,22 @@ function setColorFilter(color) {
     saveUiState();
     _syncColorFilterUI();
     render();
-    if (clearing) {
-        const modal = document.getElementById('color-filter-modal');
-        if (modal) modal.style.display = 'none';
-        showToast('Фильтр по цвету очищен');
-    } else {
-        _populateColorFilterModal();
-    }
+    // Picking OR clearing now both auto-close the modal (was: pick kept it open + repopulated).
+    closeColorFilterModal();
+    if (clearing) showToast('Фильтр по цвету очищен');
 }
 
 function openColorFilterModal() {
     const modal = document.getElementById('color-filter-modal');
     if (!modal) return;
     _populateColorFilterModal();
-    modal.style.display = 'flex';
+    openModalWithFocus('color-filter-modal');   // U-1/S1-3: focus-trap + return + exit-anim
 }
 
 function closeColorFilterModal(event) {
-    const modal = document.getElementById('color-filter-modal');
-    if (!modal) return;
-    if (!event || event.target === modal) modal.style.display = 'none';
+    if (!event || event.target === document.getElementById('color-filter-modal')) {
+        closeModalWithAnim('color-filter-modal');
+    }
 }
 
 function _populateColorFilterModal() {
@@ -5492,11 +5488,10 @@ function importData(event) {
 function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
     const overlay = document.getElementById('import-choice-overlay');
     if (overlay) {
-        overlay.style.display = 'flex';
         const replaceBtn = document.getElementById('import-replace-btn');
         const mergeBtn   = document.getElementById('import-merge-btn');
         const cancelBtn  = document.getElementById('import-cancel-btn');
-        const close = () => { overlay.style.display = 'none'; };
+        const close = () => closeModalWithAnim('import-choice-overlay');   // U-1: exit-anim + trap removal
 
         replaceBtn.onclick = () => {
             close();
@@ -5568,7 +5563,9 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         };
 
         cancelBtn.onclick = close;
-        overlay.onclick = (ev) => { if (ev.target === overlay) close(); };
+        // U-1: NO backdrop-close for this destructive choice (per user) — a stray click
+        // outside must not dismiss it. Esc + the three buttons remain the only exits.
+        openModalWithFocus('import-choice-overlay');
     } else {
         // Fallback if modal not in HTML — just replace
         pushUndo();
@@ -9475,6 +9472,46 @@ function closeModalWithAnim(overlayId, onAfterClose) {
 }
 
 // ============================================================
+//  U-1: UNIFIED MODAL BACKDROP + Esc
+//  One delegated backdrop handler replaces 12 inline onclick="closeXModal(event)".
+//  Each modal's own close fn carries its cleanup (bulk flags, editingTaskId, picker
+//  close) — the registry maps overlay id → that fn; calling it with NO arg hits the
+//  `!event` branch so the cleanup always runs. The same registry drives the Esc
+//  handler, so Esc no longer skips cleanup the way a bare closeModalWithAnim did.
+//  import-choice-overlay is intentionally ABSENT: its destructive choice must not be
+//  dismissed by a stray backdrop click (Esc + its buttons still close it).
+// ============================================================
+const MODAL_CLOSERS = {
+    'group-modal':         closeGroupModal,
+    'rename-group-modal':  closeRenameGroupModal,
+    'grim-link-modal':     grimLinkClose,
+    'deadline-modal':      closeDeadlineModal,
+    'prio-modal':          closePrioModal,
+    'task-color-modal':    closeTaskColorModal,
+    'repeat-modal':        closeRepeatModal,
+    'note-modal':          closeNoteModal,
+    'color-filter-modal':  closeColorFilterModal,
+    'templates-modal':     closeTemplatesModal,
+    'backup-modal':        closeBackupModal,
+    'bulk-group-modal':    closeBulkGroupModal,
+};
+
+// Close a modal overlay by id, routing through its cleanup-aware close fn when one
+// exists (else a plain animated close). Used by both backdrop clicks and Esc.
+function dismissModalById(id) {
+    const fn = MODAL_CLOSERS[id];
+    if (fn) fn(); else closeModalWithAnim(id);
+}
+
+// Single delegated backdrop listener: a click landing on the overlay itself (never
+// on the inner .modal) closes it — for every registered modal at once.
+document.addEventListener('click', e => {
+    const ov = e.target.classList && e.target.classList.contains('modal-overlay') ? e.target : null;
+    if (!ov || ov.style.display === 'none' || ov.classList.contains('closing')) return;
+    if (MODAL_CLOSERS[ov.id]) dismissModalById(ov.id);   // import-choice absent → no backdrop close
+});
+
+// ============================================================
 //  GROUPS
 // ============================================================
 function showAddGroupModal() {
@@ -12288,7 +12325,9 @@ document.addEventListener('keydown', e => {
         const openModals = [...document.querySelectorAll('.modal-overlay')]
             .filter(m => m.style.display !== 'none' && !m.classList.contains('closing'));
         if (openModals.length) {
-            closeModalWithAnim(openModals[openModals.length - 1].id);
+            // U-1: route through the cleanup-aware closer (import-choice falls back to a
+            // plain animated close — Esc may still cancel it; only backdrop is blocked).
+            dismissModalById(openModals[openModals.length - 1].id);
             return;
         }
         // п11/A: Esc closes the in-note find bar before anything else page-level.
