@@ -12,12 +12,12 @@
    Визуальные изменения пользователь смотрит сам в браузере — описывать, что проверить.
 4. **НЕ начинать без отдельного явного «го»:** Фаза E = Idea 8 (uuid/updatedAt/tombstones), Sync
    (Google Drive appDataFolder), Capacitor/Tauri. CLAUDE.md это жёстко запрещает.
-5. **Прогресс фикс-стадии:** ✅ Фаза A, Фаза B SW, P-A, S1-1, S1-2, S1-5, P-G, **P-C, P-B, P-D, S1-7, G4-5**
-   (+ S1-4, S1-8, G4-7 проверены — уже сделаны/не баги). **ОСТАЁТСЯ только рискованный рефактор-кластер**
-   (нужен отдельный «го» и желательно свежий контекст): **U-1** (единый modal-controller — трогает ВСЕ модалки)
-   → **U-2** (фабрика готик-дропдаунов — трогает все пикеры) → **U-3** (единый collapse=6a — 4 тонкие анимации)
-   → **S1-6** (унификация таймингов — субъективно) → **P-E** (дедлайн подпунктов, средний риск) →
-   **P-F** (напоминания — на этап синка). S1-3 поглотится U-1. **G4-1 WebP — ОТМЕНЁН пользователем (2026-06-14), не делать.**
+5. **Прогресс фикс-стадии:** ✅ Фаза A, Фаза B SW, P-A, S1-1, S1-2, S1-5, P-G, P-C, P-B, P-D, S1-7, G4-5,
+   **U-1 (+S1-3), U-3 (+S1-6), U-2 (+G4-6), P-E (живые+форм подпункты)** (+ S1-4, S1-8, G4-7 проверены —
+   уже сделаны/не баги). **ВЕСЬ КРАСНЫЙ КЛАСТЕР АУДИТА + P-E ЗАКРЫТ (2026-06-19).** ОСТАЁТСЯ только:
+   **S1-9** (архитектурная заметка `overflow:hidden`), **S1-10** (полная фабрика пикеров — частично: outside-click
+   сведён в G4-6, дедуп init отложен к 7c/Svelte), **G4-3** (перф Sortable — к 7c/Svelte), **P-F** (напоминания —
+   на этап синка). **G4-1 WebP — ОТМЕНЁН пользователем (2026-06-14), не делать.**
 6. **⚠️ Номера строк** в старых описаниях ниже могли сдвинуться после правок — перед фиксом **re-grep**
    по имени функции/селектору, не доверять старым `app.js:NNNN`.
 
@@ -54,6 +54,12 @@
 - `(P-B)` Блок 4: P-B — вид «Сегодня» (`isTodayMode`, `isDueTodayOrOverdue`, тогл-арка в тулбаре). Предикат покрыт Node-тестом по всем режимам дедлайна.
 - `(P-D)` Блок 5: P-D — массовые группа/цвет/дедлайн в select-bar (переиспуск color/deadline модалок через bulk-флаги + мини-модалка групп).
 - `(polish)` Блок 6: S1-7 (month-picker open-up), G4-5 (удалён мёртвый showShortcutsHint + Streak-комментарий); S1-8 проверен — уже реализован (skip).
+- `5ccb309` **U-1** (+S1-3): единый modal-controller — `MODAL_CLOSERS`+`dismissModalById`+один backdrop-делегат вместо 12 inline onclick; Esc через реестр; color-filter/import-choice на общие хелперы. + 2 UX-нюанса (цвет-фильтр авто-закрытие; кнопки импорта в один ряд).
+- `65b23aa` **U-3/S1-6**: единый темп collapse (`--dur-collapse: 280ms`/`--ease-gothic` на 11 блоках).
+- `14940e9` **U-2/G4-6**: один делегат outside-click пикеров (`_gothicPickers`+`registerGothicPicker`).
+- `2271dc9` Повтор-модалка: «Нет» широкий off-switch + 2×2 кадансы (убрана асимметрия); пикер дня repeat-anchor отзеркален (фиолет/белый).
+- `4a6ace7` **P-E (живые подпункты)**: дедлайн через общую модалку (editingSubId), все 6 режимов, weektime→авто-повтор, иконка-статус+hover-pill, promote/demote перенос, живой тик, dormant.
+- `f69f20d` **P-E (форм-подпункты)** + клик по pill→модалка + ФИКС задач: крестик-clear дедлайн-пилла теперь краснеет на hover (специфичность (0,5,0) после per-variant правил).
 - `f4064c1` **UI-полировка (3 раунда фидбэка пользователя, вне реестра аудита):**
   - **Тулбар:** фон → `var(--bg-input)` (тёмный в тон приложению, не светлое стекло); подписи кластеров ярче (`--text-secondary`, opacity 0.85).
   - **Select-bar полностью переделан под язык тулбара:** компактные квадратные иконо-кнопки `.sb-btn` (32px) в 3 кластерах (приоритет │ группа·цвет·дедлайн │ архив·удаление) с готик-разделителями, **одна центрированная строка** (`.main-select-bar{justify-content:center}`), счётчик-«титул» слева, «Отмена» справа. Прежняя проблема: `space-between` давал мёртвую пустоту по центру, текст-пилюли переносились в 2 рваных строки.
@@ -71,13 +77,15 @@
 undo/redo (в т.ч. возврат архива); раскрытие/сворачивание при reduced-motion; уход высокой строки
 (подпункты/заметка) в архив/удаление без рывка; `%15` в quick-add.
 
-### ОСТАЁТСЯ (следующий автономный заход — крупное/визуальное, лучше на свежем контексте)
-- Визуальные фичи: **P-B** «Сегодня», **P-C** бэкап+модалка восстановления, **P-D** массовые группа/цвет/дедлайн.
-- Аним-рефакторы: **U-1** modal-controller (закроет S1-3), **U-2** фабрика дропдаунов (S1-10, G4-6), **U-3** единый collapse=6a (поглотит S1-2/S1-5/S1-6).
-- Полировка: **S1-6** (унификация таймингов — субъективно, под визуальный контроль), **S1-7** (month-picker open-up), **S1-8** (фокус активного инпута deadline-модалки).
-- ~~Ассет: G4-1 WebP~~ — **ОТМЕНЁН пользователем (2026-06-14). Не делать.**
-- Чистка: **G4-5** (мёртвый код — `showShortcutsHint` no-op, Streak-заглушка).
-- Запрещено без отдельного «го»: Фаза E (Idea 8 uuid, sync, Capacitor/Tauri).
+### ОСТАЁТСЯ (после закрытия красного кластера + P-E, 2026-06-19)
+- **S1-9** — архитектурная заметка (`.task-item{overflow:hidden}` — потолок для inline-dropdown). Не баг, заметка на будущее.
+- **S1-10** (частично) — полная фабрика готик-пикеров (дедуп init-кода). Outside-click уже сведён (G4-6). Остаток отложен к **7c/Svelte** (высокий риск, видимой пользы 0).
+- **G4-3** — перф: `render()` пересоздаёт все Sortable. Смягчено `renderListOnly`+ленивые sub. Потолок масштаба → **7c/Svelte**.
+- **P-F** — напоминания заранее (за 1ч/день). Требует SW-таймера/Notification → **на этап синка** (общий канал).
+- **7c (+7a)** — модульный split + data-action делегирование. НЕ опциональное, но и НЕ блокер синка → отложено максимально далеко, к **Svelte-миграции**.
+- **Опциональный бэклог** (только по явному «go»): Idea 5 календарь, Idea 2 стрик, + бэклог Гримуара. См. memory `optional-features-backlog`.
+- ~~G4-1 WebP~~ — **ОТМЕНЁН пользователем (2026-06-14). Не делать.**
+- **Запрещено без отдельного «го»:** Фаза E = Idea 8 (uuid/updatedAt/tombstones) → Sync (Google Drive appDataFolder) → Capacitor/Tauri.
 
 ---
 
@@ -88,16 +96,16 @@ undo/redo (в т.ч. возврат архива); раскрытие/свора
 - [x] **S1-2. ИСПРАВЛЕНО (908482d): `@media reduce` гасит max-height-collapse.** ~~не покрывает~~ `style.css:649,1345,1837,2162,2483,3017,3031,3089`. Добавить общий `@media (prefers-reduced-motion:reduce){ transition:none }` для collapse-блоков. Связано с S1-5 (нужен fallback). Риск: низкий.
 
 ### 🟠 Важно
-- [ ] **S1-3. color-filter + import-choice модалки мимо `openModalWithFocus`/`closeModalWithAnim`.** `app.js:1594-1605` (color-filter), `app.js:1698` (import-choice). Нет фокус-трапа, возврата фокуса, exit-анимации. Перевести на общие хелперы. Риск: низкий.
+- [x] **S1-3. ИСПРАВЛЕНО (5ccb309, в составе U-1).** color-filter + import-choice переведены на `openModalWithFocus`/`closeModalWithAnim` (фокус-трап, возврат фокуса, exit-аним, aria). import-choice backdrop-close убран по выбору пользователя (Esc+кнопки остаются).
 - [x] **S1-4. Esc закрывал не все модалки.** ИСПРАВЛЕНО: вместо захардкоженного списка — закрытие верхней видимой `.modal-overlay` через `closeModalWithAnim`. Бонус: color-filter/import-choice теперь получают и exit-анимацию (частично закрывает S1-3). Будущие модалки работают автоматически.
 - [x] **S1-5. ИСПРАВЛЕНО (908482d): `onMaxHeightEnd()` (transitionend + fallback-таймер + cancel) в 3 collapse-функциях.** ~~без fallback~~ `toggleExpand` (open, `app.js:6688`), `toggleGroupCollapse` (`5096`), `toggleSubtasksSection` (`3523`). Если переход не происходит — секция застрянет. Вынести `onTransitionEndOnce(el,prop,cb,fallbackMs)` и переиспользовать. Риск: низкий.
-- [ ] **S1-6. Пять разных длительностей/easing у однотипных collapse.** extra-fields 0.42s, group-body 0.28s, sub-section 0.32s, sub-note 0.22s, schedule 0.28s. Свести на 2-3 motion-токена; идеально вместе с 6a. Риск: средний (тонко настроенные анимации).
+- [x] **S1-6. ИСПРАВЛЕНО (65b23aa, в составе U-3).** Новый токен `--dur-collapse: 280ms`; 11 collapse-блоков (extra-fields, group-body, archive-month, sub-section, sub-note, task-note, split active/done/pinned, sub-split active/done) сведены на `var(--dur-collapse) var(--ease-gothic)`. Объём = ТОЛЬКО тайминги (по выбору пользователя; перевод на grid-rows НЕ делался — риск DnD-ghost/клип пикеров формы). Чистый CSS, JS не тронут.
 
 ### 🟡 Желательно
 - [x] **S1-7. ИСПРАВЛЕНО.** Month-picker получил `open-up`: `openPicker` считает `spaceBelow<224 && rect.top>224` → класс `open-up`, `closePicker` его снимает; CSS `.dl-month-picker.open-up .dl-month-list` (bottom + bottom origin) зеркалит `.dl-weekday-picker`.
 - [skip] **S1-8. НЕ БАГ (проверено).** Фокус активного инпута УЖЕ реализован: `openDeadlineModal` после `openModalWithFocus` зовёт `_focusDeadlineModeInput(mode)` через двойной rAF (перебивает фокус первой кнопки). Функция фокусит нужный инпут для каждого режима.
 - [ ] **S1-9. `.task-item{overflow:hidden}` (`style.css:1627`)** — потолок для будущих inline-dropdown/тултипов на строке. Архитектурная заметка.
-- [ ] **S1-10. Дубль трёх+ готик-пикеров** (`initMonthPicker`/`initWeekdayPicker`/`initFormWeekdayPicker` + пикер repeat-модалки) ~95% идентичны → фабрика. (см. также Стадию 4)
+- [~] **S1-10. ЧАСТИЧНО.** Outside-click сведён в один делегат (G4-6, коммит 14940e9). Полная фабрика `createGothicSelect` для дедупа init-кода (`initMonthPicker`/`initWeekdayPicker`/`initFormWeekdayPicker` + пикер repeat-модалки) НЕ сделана — отложена (высокий риск, как 7c; по выбору пользователя). Делать вместе с 7c/Svelte.
 
 ---
 
@@ -120,14 +128,14 @@ undo/redo (в т.ч. возврат архива); раскрытие/свора
 - [x] **P-B. ИСПРАВЛЕНО.** Вид «Сегодня»: тогл `#btn-today` (готик-арка с отмеченным днём) → `isTodayMode` (persist `todayMode`). Новый предикат `isDueTodayOrOverdue(dl)` (today/overdue по календарным дням; month/year — только если over; time всегда «сегодня») фильтрует в `filterAndSort`/`filterAndSortDeadline`/`updateVisibility`/`updateGroupCounts`; `scheduleActive` → true (дедлайн-сортировка); пустые группы скрываются, бейдж считает today-объём. Без новой страницы. Покрытие режимов проверено Node-тестом.
 - [x] **P-C. ИСПРАВЛЕНО.** Кольцевой бэкап: `maybeBackup()` в `saveState` (троттл 10 мин, кольцо 10 снимков, дедуп идентичных, quota-safe сброс старых) в ключе `dusk_backups_v1`; модалка `#backup-modal` («Точки восстановления», кнопка-часы в тулбаре) со списком снимков (возраст/штамп/счётчики); `restoreBackup` зовёт `pushUndo()` → откат самого восстановления возможен. Мост к синку, сделан ПЕРЕД Idea 8.
 - [x] **P-D. ИСПРАВЛЕНО.** Массовые группа/цвет/дедлайн в `main-select-bar`. `bulkSetGroup`/`bulkSetColor`/`bulkSetDeadline` (паттерн `bulkSetPriority`: pushUndo→forEach→saveState→toggleMainSelectMode→toast). Группа — новая мини-модалка `#bulk-group-modal` (пилюли групп + «Без группы»). Цвет — переиспользует `task-color-modal` через флаг `bulkColorActive` (цвет гасит приоритет — взаимоисключение). Дедлайн — переиспускает `deadline-modal` через `openDeadlineModal(null,true)`+`bulkDeadlineActive`, перехват в `applyDeadline`; `wasBulk` глушит `updateRepeatAvailability` (не трогаем форму). Флаги сбрасываются при открытии (через параметр/reset-on-open) → Esc-закрытие не протекает; невалидный дедлайн оставляет модалку открытой без применения.
-- [ ] **P-E. Дедлайн у подпунктов.** Симметрия (у саба уже есть приоритет/заметка/повтор). Аккуратно с 2-кол. грид + DnD. Риск: средний.
+- [x] **P-E. ИСПРАВЛЕНО (4a6ace7 живые + f69f20d форм).** Полный паритет: дедлайн у подпунктов (живых и форм-) через ту же deadline-модалку — все 6 режимов (time/weektime/monthday/month/year/date) переиспользованы через `editingSubId` (живые) и 4-й параметр `formSubIdx`+`_formSubDeadlineIdx` (форм-), по образцу повтора подпункта. weektime зеркалит V-7 (авто sub.repeat=weekly+anchorDay). Дисплей: всегда-видимая иконка-статус `IC.window` (цвет+пульс) в строке = клик-правка; muted set-кнопка в `.sub-actions` когда дедлайна нет; кликабельный мини-pill отсчёта раскрывается по hover под строкой (grid-rows как заметка); inline-clear. updateDeadlineBadges 2-й проход (живой тик), «спящий» статус у выполненных. promote/demote переносят дедлайн; clear+pushUndo. DnD-filter дополнен `.sub-deadline-badge/.sub-deadline-wrapper`. Палитра=`--deadline-*`/`pulseCritical`. Тесты Playwright (`_pe.js`+`_pef.js`): 6 режимов, weektime-авто, clear, promote, pill-клик→модалка, dormant, создание-переносит, нет-регресса-задачи — PAGEERRORS none. Риск был средний → закрыт.
 - [ ] **P-F. Напоминания заранее** (за 1ч/день). Требует SW-таймера/Notification → объединить с этапом синка. Риск: средний.
 - [x] **P-G. ИСПРАВЛЕНО (908482d).** `_parseQuickDate` уже знал завтра/пн/HH:MM/+Nd/ДД.ММ; добавлено голое число `%15`→ближайшая дата.
 
 ### Системные унификации (множители скорости; закрывают находки Стадии 1)
-- [ ] **U-1. Единый modal-controller** (фокус-трап + Esc + exit-аним + backdrop). Поглощает S1-3, S1-4.
-- [ ] **U-2. Фабрика готик-дропдаунов** `createGothicSelect(...)`. Поглощает S1-10.
-- [ ] **U-3. Единая collapse-система** `grid-template-rows:0fr↔1fr` (= отложенный 6a). Поглощает S1-1, S1-2, S1-5, S1-6.
+- [x] **U-1. ИСПРАВЛЕНО (5ccb309).** Реестр `MODAL_CLOSERS` (12 модалок) + `dismissModalById` + ОДИН делегированный backdrop-слушатель вместо 12 inline `onclick`; Esc через реестр; изгои color-filter/import-choice переведены на общие хелперы (= закрыт S1-3). NB: 10 footer-кнопок «Отмена/Закрыть» в index.html ещё на inline onclick — это часть 7c (отложено к Svelte).
+- [x] **U-2. ИСПРАВЛЕНО (14940e9) — объём = G4-6.** 4 постоянных per-picker `document`-click слушателя сведены в ОДИН делегат: реестр `_gothicPickers` + `registerGothicPicker`. Полная фабрика `createGothicSelect` (дедуп init-кода = S1-10) НЕ делалась (по выбору пользователя — высокий риск, видимой пользы 0, как 7c). **S1-10 остаётся открытым.**
+- [x] **U-3. ИСПРАВЛЕНО (65b23aa) — объём = тайминги (S1-6).** Единый `--dur-collapse`/`--ease-gothic` на 11 collapse-блоках. Перевод на `grid-template-rows:0fr↔1fr` НЕ делался (риск DnD-ghost/клип пикеров формы при overflow:hidden); баги S1-1/S1-2/S1-5 уже закрыты поточечно ранее, оставался только тюнинг таймингов = S1-6.
 
 ---
 
@@ -156,7 +164,7 @@ undo/redo (в т.ч. возврат архива); раскрытие/свора
 - [ ] **G4-3. Полный `render()` пересоздаёт все Sortable.** `setupSortables` `app.js:6222`. Смягчено `renderListOnly`+ленивые sub. Потолок масштаба → 7c/Svelte. Перф-замечание.
 - [x] **G4-4. `escHtml` не экранировал `'`** (`app.js:7148`). ИСПРАВЛЕНО: добавлен `.replace(/'/g,'&#39;')` — defense-in-depth.
 - [x] **G4-5. ИСПРАВЛЕНО.** Удалён мёртвый `showShortcutsHint()` no-op (вызовов нет нигде) и осиротевший CSS-комментарий `/* Streak counter */`. Скрытые `<select>` (group-select/dl-weekday/dl-month) ОСТАВЛЕНЫ намеренно — они источники value для готик-пикеров (не мёртвый код).
-- [ ] **G4-6. 4+ постоянных `document`-click слушателя** (outside-click пикеров). Не течёт, но фабрика дропдаунов U-2 сведёт к одному делегированному.
+- [x] **G4-6. ИСПРАВЛЕНО (14940e9, в составе U-2).** 4 per-picker `document`-click слушателя сведены в один делегат (`_gothicPickers` + `registerGothicPicker`). Пикер дня недели repeat-модалки (pointerdown/classList) оставлен со своим.
 - [skip] **G4-7. НЕ БАГ (проверено 908482d).** `attachPlainPasteHandlers` делает `removeEventListener` перед `addEventListener` — дублей нет.
 
 > ✅ Крепко (не трогать): SW-стратегия SWR + тост обновления; teardown Sortable (`cancelAnimationFrame`-guard, destroy перед recreate); XSS (текст экранируется до вставки, теги ограничены `\w`/кириллицей).
