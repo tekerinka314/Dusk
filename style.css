@@ -2460,9 +2460,13 @@ body::after {
     .group-body,
     .subtask-section,
     .sub-note-wrapper,
-    .sub-note-inner {
+    .sub-note-inner,
+    .sub-deadline-wrapper,
+    .sub-deadline-inner {
         transition: none !important;
     }
+    /* P-E: no pulsing critical glyph under reduced motion */
+    .sub-deadline-badge.sub-dl-critical { animation: none !important; }
 }
 
 /* ── Item 1: subtask progress bar ── */
@@ -2903,6 +2907,99 @@ textarea:focus-visible {
 .btn-sub-action.sub-repeat-btn:hover svg { opacity: 1; }
 .btn-sub-action.sub-repeat-btn.active { color: var(--accent-hover); }
 .btn-sub-action.sub-repeat-btn.active svg { opacity: 1; }
+
+/* ── P-E: subtask deadline ──────────────────────────────────────────────────
+   "Set" button lives in .sub-actions when no deadline (muted, like the repeat
+   button). When a deadline IS set, the button is replaced by an always-visible
+   status glyph in the row (colour/pulse = status, tooltip = full date) plus a
+   countdown pill that reveals on hover below the row — the same grid-rows reveal
+   family as the subtask note, so the two read as one visual language. */
+.btn-sub-action.sub-deadline-btn svg { opacity: 0.45; }
+.btn-sub-action.sub-deadline-btn:hover svg { opacity: 1; }
+
+/* Always-visible status glyph (IC.window) in the main row */
+.sub-deadline-badge {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    transition: color var(--transition), background var(--transition);
+}
+.sub-deadline-badge svg { width: 12px; height: 12px; pointer-events: none; }
+.sub-deadline-badge:hover { background: var(--bg-tag); color: var(--text-secondary); }
+/* status colours mirror the task .deadline-tag palette */
+.sub-deadline-badge.sub-dl-warn     { color: var(--deadline-warn); }
+.sub-deadline-badge.sub-dl-urgent   { color: var(--deadline-urgent); }
+.sub-deadline-badge.sub-dl-over     { color: var(--deadline-over); }
+.sub-deadline-badge.sub-dl-critical {
+    color: var(--deadline-critical);
+    border-radius: 50%;
+    animation: pulseCritical 1.6s ease infinite;
+}
+
+/* Hover-reveal countdown pill — grid-rows 0fr↔1fr, identical model to .sub-note-wrapper */
+.sub-deadline-wrapper {
+    width: 100%;
+    display: grid;
+    grid-template-rows: 0fr;
+    flex-shrink: 0;
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic);
+}
+.subtask-item:hover .sub-deadline-wrapper { grid-template-rows: 1fr; }
+.sub-deadline-inner {
+    min-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding-left: 30px;            /* align under text, clear of the check column */
+    transition: opacity 0.18s ease;
+}
+.subtask-item:hover .sub-deadline-inner { opacity: 1; }
+.sub-dl-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 3px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-family: var(--font-label);
+    background: var(--bg-tag);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    cursor: pointer;
+}
+.sub-dl-pill:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(130, 50, 230, 0.4); }
+.sub-dl-countdown { font-size: 10.5px; font-weight: 700; }
+.sub-dl-date      { font-size: 9.5px; opacity: 0.80; }
+.sub-dl-sep       { opacity: 0.35; font-size: 9px; align-self: center; }
+/* pill status colours mirror the task .deadline-tag palette */
+.sub-deadline-wrapper.sub-dl-warn     .sub-dl-pill { background: var(--deadline-warn-bg);     color: var(--deadline-warn);     border-color: rgba(120, 120, 220, 0.35); }
+.sub-deadline-wrapper.sub-dl-urgent   .sub-dl-pill { background: var(--deadline-urgent-bg);   color: var(--deadline-urgent);   border-color: rgba(210, 120, 20, 0.4); }
+.sub-deadline-wrapper.sub-dl-critical .sub-dl-pill { background: var(--deadline-critical-bg); color: var(--deadline-critical); border-color: rgba(220, 30, 70, 0.45); }
+.sub-deadline-wrapper.sub-dl-over     .sub-dl-pill { background: var(--deadline-over-bg);     color: var(--deadline-over);     border-color: rgba(170, 15, 30, 0.5); font-weight: 700; }
+/* inline clear — shares the pill ink, brightens to danger on hover (tag-clear idiom) */
+.sub-dl-clear {
+    border: none;
+    background: transparent;
+    color: inherit;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 0 0 0 3px;
+    margin-left: 1px;
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    transition: opacity var(--transition), color var(--transition);
+}
+.sub-dl-clear svg { width: 9px; height: 9px; pointer-events: none; }
+.sub-dl-clear:hover { opacity: 1; color: var(--deadline-over); }
 
 /* Subtask cycle-checked — mirrors main .task-item.cycle-checked exactly:
    dashed left border, no overall opacity reduction, no strikethrough,
@@ -5149,6 +5246,9 @@ kbd {
     .task-actions,
     .sub-actions,
     .btn-sub-notes-always { opacity: 1; }
+    /* P-E: no hover on touch — keep the deadline pill open so the countdown is visible */
+    .sub-deadline-wrapper { grid-template-rows: 1fr; }
+    .sub-deadline-inner   { opacity: 1; }
     .btn-task-action  { width: 30px; height: 30px; }
     .btn-task-action svg { width: 14px; height: 14px; }
     .btn-sub-action   { width: 26px; height: 26px; }

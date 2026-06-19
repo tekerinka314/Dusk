@@ -6499,6 +6499,38 @@ function buildSubtaskItemHTML(taskId, s) {
     // Note wrapper: .has-note marks an existing note (hover/always-open reveal it);
     // .note-open is the live "expanded" state driven by the unified note system.
     const noteWrapClass = s.note ? 'has-note' : '';
+    // P-E: subtask deadline. Reuses the task deadline helpers (all take a dl object).
+    // When set: an always-visible status icon sits in the row (click = edit, colour/pulse =
+    // status, tooltip = full date) and a countdown pill reveals on hover below the row
+    // (same grid-rows reveal family as the note). When unset: a muted "set" button lives
+    // in .sub-actions (hover-revealed like the repeat/priority controls).
+    const subDl       = s.deadline || null;
+    // Completed subtasks show a dormant (neutral) badge — no alarming colour/pulse,
+    // matching how tasks suppress deadline status once checked/cycle-checked.
+    const subDlDormant = isChecked || isCycleChecked;
+    const subDlStatus = (subDl && !subDlDormant) ? deadlineStatus(subDl) : null;
+    const subDlAbs    = subDl ? formatDeadlineAbsolute(subDl, true) : '';
+    const subDlCd     = subDl ? formatDeadlineCountdown(subDl) : '';
+    const subDlStatusCls = subDlStatus ? ` sub-dl-${subDlStatus}` : '';
+    const subDlBadge = subDl
+        ? `<button type="button" class="sub-deadline-badge${subDlStatusCls}" onclick="openSubDeadlineModal(${taskId},${s.id})" title="${escHtml(subDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>`
+        : '';
+    const subDlSetBtn = subDl
+        ? ''
+        : `<button type="button" class="btn-sub-action sub-deadline-btn" onclick="openSubDeadlineModal(${taskId},${s.id})" title="Назначить дедлайн">${IC.window}</button>`;
+    const subDlWrap = subDl
+        ? `<div class="sub-deadline-wrapper${subDlStatusCls}" id="subdl-${taskId}-${s.id}">
+            <div class="sub-deadline-inner">
+                <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить дедлайн"
+                      onclick="openSubDeadlineModal(${taskId},${s.id})"
+                      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSubDeadlineModal(${taskId},${s.id});}">
+                    ${subDlCd ? `<span class="sub-dl-countdown">${subDlCd}</span><span class="sub-dl-sep">·</span>` : ''}
+                    <span class="sub-dl-date">${escHtml(subDlAbs)}</span>
+                    <button type="button" class="sub-dl-clear" onclick="event.stopPropagation();clearSubDeadline(${taskId},${s.id})" title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
+                </span>
+            </div>
+        </div>`
+        : '';
     return `<li class="subtask-item${isChecked ? ' checked' : ''}${isCycleChecked ? ' cycle-checked' : ''}"
                data-tid="${taskId}" data-sid="${s.id}" data-sprio="${s.priority || 'none'}">
         <div class="sub-main-row">
@@ -6510,14 +6542,17 @@ function buildSubtaskItemHTML(taskId, s) {
                     aria-label="${escHtml(subCheckLabel)}"
                     >${subCheckIcon}</button>
             <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startSubEdit(event,${taskId},${s.id})">${subDisplayText}</span>
+            ${subDlBadge}
             <div class="sub-actions">
                 <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleSubPriority(${taskId},${s.id})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
                 ${subRepeatBtn}
+                ${subDlSetBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" onpointerdown="event.preventDefault()" onclick="toggleSubNote(${taskId},${s.id})" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
                 <button type="button" class="btn-sub-action" onclick="promoteSubtask(${taskId},${s.id})" title="Сделать самостоятельной задачей">${IC.promote}</button>
                 <button type="button" class="btn-sub-action danger" onclick="deleteSubtask(${taskId},${s.id})" title="Удалить подпункт">${IC.skull}</button>
             </div>
         </div>
+        ${subDlWrap}
         <div class="sub-note-wrapper ${noteWrapClass}" id="subnote-${taskId}-${s.id}">
             <div class="sub-note-inner">
                 <div class="sub-note-text" id="subnote-text-${taskId}-${s.id}"
@@ -6695,7 +6730,7 @@ function initFormSubSortable() {
         delayOnTouchOnly: false,
         fallbackTolerance: 5,
         // Keep clicks on actions / inline edit fields from starting a drag.
-        filter: '.sub-actions, .btn-sub-action, .sub-note-wrapper, [contenteditable="true"]',
+        filter: '.sub-actions, .btn-sub-action, .sub-note-wrapper, .sub-deadline-badge, .sub-deadline-wrapper, [contenteditable="true"]',
         preventOnFilter: false,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
@@ -8019,7 +8054,8 @@ function promoteSubtask(taskId, subId) {
         id: newId, text: sub.text, checked: !!sub.checked,
         priority: sub.priority || 'none', color: null,
         groupId: task.groupId,                 // inherit the parent's group
-        deadline: null, note: sub.note || '', noteOpen: false,
+        deadline: sub.deadline ? JSON.parse(JSON.stringify(sub.deadline)) : null,  // P-E: carry the subtask's deadline up
+        note: sub.note || '', noteOpen: false,
         order: state.tasks.length,
         repeat: sub.repeat || 'none',
         repeatAnchorTime:     sub.repeatAnchorTime     || null,
@@ -8055,6 +8091,7 @@ function demoteTask(id, targetId) {
     target.subtasks.push({
         id: state.nextSubId++, text: task.text, checked: !!task.checked,
         priority: task.priority || 'none', note: task.note || '', order: base,
+        deadline: task.deadline ? JSON.parse(JSON.stringify(task.deadline)) : null,  // P-E: carry the task's deadline down
         repeat: task.repeat || 'none',
         repeatAnchorTime:     task.repeatAnchorTime     || null,
         repeatAnchorDay:      task.repeatAnchorDay      || null,
@@ -8119,6 +8156,25 @@ function openSubRepeatModal(taskId, subId) {
     );
     _populateRepeatAnchor(cur, sub.repeatAnchorTime || '', parseInt(sub.repeatAnchorDay) || 0, parseInt(sub.repeatAnchorMonthday) || 0);
     openModalWithFocus('repeat-modal');
+}
+
+// P-E: open the shared deadline modal targeting a subtask (mirrors openSubRepeatModal).
+// editingTaskId + editingSubId are set inside openDeadlineModal via its subId param.
+function openSubDeadlineModal(taskId, subId) {
+    openDeadlineModal(taskId, false, subId);
+}
+
+// P-E: clear a subtask's deadline (mirrors clearTaskDeadline, + pushUndo so Ctrl+Z restores it).
+function clearSubDeadline(taskId, subId) {
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const sub = task.subtasks.find(s => s.id === subId);
+    if (!sub || !sub.deadline) return;
+    pushUndo();
+    sub.deadline = null;
+    saveState();
+    renderSubList(taskId);
+    showToast('Дедлайн снят');
 }
 
 // P8: delete subtask note — thin wrapper over the unified _noteDeleteClick.
@@ -8508,7 +8564,7 @@ function initSubSortable(taskId) {
         delay: 120,
         delayOnTouchOnly: false,
         fallbackTolerance: 5,
-        filter: '.sub-check, .sub-prio-btn, .sub-actions, .btn-sub-action, [contenteditable="true"], .sub-note-wrapper',
+        filter: '.sub-check, .sub-prio-btn, .sub-actions, .btn-sub-action, [contenteditable="true"], .sub-note-wrapper, .sub-deadline-badge, .sub-deadline-wrapper',
         preventOnFilter: false,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
@@ -9745,13 +9801,17 @@ groupNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirm
 // ============================================================
 //  DEADLINE MODAL
 // ============================================================
-function openDeadlineModal(taskId, bulk = false) {
+function openDeadlineModal(taskId, bulk = false, subId = null) {
     editingTaskId = taskId;
+    editingSubId  = subId;       // P-E: null for task/form/bulk; set when editing a subtask deadline
     bulkDeadlineActive = bulk;   // P-D: when true, confirm applies to the whole selection
     const existing = bulk ? null
-        : (taskId !== null
-            ? (state.tasks.find(t => t.id === taskId) || {}).deadline
-            : formDeadline);
+        : (subId !== null
+            ? (((state.tasks.find(t => t.id === taskId) || {}).subtasks || [])
+                  .find(s => s.id === subId) || {}).deadline
+            : (taskId !== null
+                ? (state.tasks.find(t => t.id === taskId) || {}).deadline
+                : formDeadline));
 
     // If task has no existing deadline, restore last-used mode (default: 'time')
     const savedMode = localStorage.getItem(K_DL_MODE) || 'time';
@@ -9814,11 +9874,15 @@ function openDeadlineModal(taskId, bulk = false) {
     // so incompatible repeat options are blocked. Previously only ran for form (editingTaskId===null).
     // Sync repeat availability with the active deadline mode for both task editing
     // and form creation (taskId===null with an existing formDeadline already set).
-    if (taskId !== null) {
-        const taskForRepeat = state.tasks.find(t => t.id === taskId);
-        if (taskForRepeat) updateRepeatAvailability(taskForRepeat.deadline?.mode || null);
-    } else {
-        updateRepeatAvailability(existing?.mode || null);
+    // P-E: skip repeat-availability gating for the subtask path — it targets the
+    // form/task repeat selector, not the subtask (sub repeat is set via its own modal).
+    if (subId === null) {
+        if (taskId !== null) {
+            const taskForRepeat = state.tasks.find(t => t.id === taskId);
+            if (taskForRepeat) updateRepeatAvailability(taskForRepeat.deadline?.mode || null);
+        } else {
+            updateRepeatAvailability(existing?.mode || null);
+        }
     }
 
     openModalWithFocus('deadline-modal');
@@ -9837,6 +9901,7 @@ function closeDeadlineModal(event) {
         if (mw) { mw.hidden = true; mw.textContent = ''; }
         if (mn) { mn.hidden = true; mn.textContent = ''; }
         bulkDeadlineActive = false;   // P-D: cancelling bulk must not leak into the next open
+        editingSubId = null;          // P-E: cancelling a subtask-deadline edit must not leak
         closeModalWithAnim('deadline-modal');
     }
 }
@@ -9977,6 +10042,28 @@ function confirmDeadline() {
         localStorage.setItem(K_DL_MODE, mode);
         // I-9: save before applyDeadline() resets editingTaskId to null
         const targetId = editingTaskId;
+        // P-E: subtask deadline target — mirror the V-7 weektime→auto-weekly coupling
+        // onto the subtask (subtasks support repeat). Must run BEFORE the task branch
+        // because editingTaskId (the parent id) is also set for a subtask edit.
+        if (editingSubId !== null) {
+            const stask = state.tasks.find(x => x.id === editingTaskId);
+            const ssub  = stask && stask.subtasks.find(s => s.id === editingSubId);
+            if (ssub) {
+                pushUndo();
+                ssub.deadline = dl;
+                if (!ssub.repeat || ssub.repeat === 'none') {
+                    ssub.repeat = 'weekly';
+                    ssub.repeatAnchorDay = parseInt(wd) || null;
+                }
+                saveState();
+                renderSubList(editingTaskId);
+                showToast('Дедлайн установлен');
+            }
+            editingTaskId = null;
+            editingSubId  = null;
+            closeModalWithAnim('deadline-modal');
+            return;
+        }
         if (targetId !== null) {
             // V-7: set deadline AND auto-enable weekly repeat (anchored to the chosen
             // weekday) in ONE mutation + single render, so the repeat badge shows
@@ -10139,6 +10226,20 @@ function confirmDeadline() {
 }
 
 function applyDeadline(dl) {
+    if (editingSubId !== null) {              // P-E: subtask deadline target (all modes except weektime, which returns earlier)
+        const task = state.tasks.find(t => t.id === editingTaskId);
+        const sub  = task && task.subtasks.find(s => s.id === editingSubId);
+        if (sub) {
+            pushUndo();
+            sub.deadline = dl;
+            saveState();
+            renderSubList(editingTaskId);
+            showToast(dl ? 'Дедлайн установлен' : 'Дедлайн удалён');
+        }
+        editingTaskId = null;
+        editingSubId  = null;
+        return;
+    }
     if (bulkDeadlineActive) {                 // P-D: deadline modal opened for the selection
         bulkDeadlineActive = false;
         editingTaskId = null;
@@ -10687,33 +10788,64 @@ function _syncCriticalPulse() {
 }
 
 function updateDeadlineBadges() {
-    // Fast-exit: no tasks with deadlines at all
     const tasksWithDl = state.tasks.filter(t => t.deadline);
-    if (!tasksWithDl.length) return;
+    if (tasksWithDl.length) {
+        // Build id → task map once (O(n)) instead of find() per DOM node (O(n²))
+        const taskMap = new Map(tasksWithDl.map(t => [t.id, t]));
 
-    // Build id → task map once (O(n)) instead of find() per DOM node (O(n²))
-    const taskMap = new Map(tasksWithDl.map(t => [t.id, t]));
+        document.querySelectorAll('.task-item[data-id]').forEach(li => {
+            const id   = parseInt(li.dataset.id);
+            const task = taskMap.get(id);
+            if (!task) return;
+            const badge = li.querySelector('.deadline-tag');
+            if (!badge) return;
+            const status = deadlineStatus(task.deadline);
+            badge.className = 'meta-tag deadline-tag';
+            if (status === 'over')          badge.classList.add('over');
+            else if (status === 'critical') badge.classList.add('critical');
+            else if (status === 'urgent')   badge.classList.add('urgent');
+            else if (status === 'warn')     badge.classList.add('warn');
+            const cdEl = badge.querySelector('.dl-countdown');
+            const sep  = badge.querySelector('.dl-sep');
+            const cd   = formatDeadlineCountdown(task.deadline);
+            if (cdEl) {
+                if (cd) { cdEl.textContent = cd; cdEl.style.display = ''; if (sep) sep.style.display = ''; }
+                else    { cdEl.style.display = 'none'; if (sep) sep.style.display = 'none'; }
+            }
+        });
+    }
 
-    document.querySelectorAll('.task-item[data-id]').forEach(li => {
-        const id   = parseInt(li.dataset.id);
-        const task = taskMap.get(id);
-        if (!task) return;
-        const badge = li.querySelector('.deadline-tag');
-        if (!badge) return;
-        const status = deadlineStatus(task.deadline);
-        badge.className = 'meta-tag deadline-tag';
-        if (status === 'over')          badge.classList.add('over');
-        else if (status === 'critical') badge.classList.add('critical');
-        else if (status === 'urgent')   badge.classList.add('urgent');
-        else if (status === 'warn')     badge.classList.add('warn');
-        const cdEl = badge.querySelector('.dl-countdown');
-        const sep  = badge.querySelector('.dl-sep');
-        const cd   = formatDeadlineCountdown(task.deadline);
-        if (cdEl) {
-            if (cd) { cdEl.textContent = cd; cdEl.style.display = ''; if (sep) sep.style.display = ''; }
-            else    { cdEl.style.display = 'none'; if (sep) sep.style.display = 'none'; }
+    // P-E: subtask deadline badges + hover pills — live-tick the same way.
+    document.querySelectorAll('.subtask-item[data-sid]').forEach(li => {
+        const badge = li.querySelector('.sub-deadline-badge');
+        if (!badge) return;                      // no deadline on this subtask
+        const tid  = parseInt(li.dataset.tid);
+        const sid  = parseInt(li.dataset.sid);
+        const task = state.tasks.find(t => t.id === tid);
+        const sub  = task && task.subtasks.find(s => s.id === sid);
+        if (!sub || !sub.deadline) return;
+        // Completed subtasks → dormant (neutral) badge, matching buildSubtaskItemHTML.
+        const dormant = sub.checked || (sub.cycleChecked && sub.repeat && sub.repeat !== 'none');
+        const status   = dormant ? null : deadlineStatus(sub.deadline);
+        const statusCls = status ? ` sub-dl-${status}` : '';
+        badge.className = 'sub-deadline-badge' + statusCls;
+        badge.title     = formatDeadlineAbsolute(sub.deadline, true);
+        const wrap = li.querySelector('.sub-deadline-wrapper');
+        if (wrap) {
+            // preserve the id so hover-reveal CSS + DnD keep targeting it
+            wrap.className = 'sub-deadline-wrapper' + statusCls;
         }
+        const cdEl  = li.querySelector('.sub-dl-countdown');
+        const sepEl = li.querySelector('.sub-dl-sep');
+        const cd    = formatDeadlineCountdown(sub.deadline);
+        if (cdEl) {
+            if (cd) { cdEl.textContent = cd; cdEl.style.display = ''; if (sepEl) sepEl.style.display = ''; }
+            else    { cdEl.style.display = 'none'; if (sepEl) sepEl.style.display = 'none'; }
+        }
+        const absEl = li.querySelector('.sub-dl-date');
+        if (absEl) absEl.textContent = formatDeadlineAbsolute(sub.deadline, true);
     });
+
     _syncCriticalPulse(); // 6e: re-align any newly-critical badges to the shared phase
 }
 
