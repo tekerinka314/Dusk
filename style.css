@@ -112,6 +112,7 @@
     --dur-micro:     80ms;
     --dur-quick:     220ms;
     --dur-standard:  340ms;
+    --dur-collapse:  280ms;   /* S1-6/U-3: one tempo for every collapse/expand section */
     --dur-ritual:    520ms;
     --dur-ambient:   6000ms;
 }
@@ -714,7 +715,7 @@ body::after {
     overflow: hidden;
     max-height: 0;
     opacity: 0;
-    transition: max-height 0.42s var(--ease-gothic), opacity 0.30s ease;
+    transition: max-height var(--dur-collapse) var(--ease-gothic), opacity var(--dur-collapse) var(--ease-gothic);
 }
 /* .open class still applied by JS, but max-height value is set inline by JS */
 .extra-fields.open { opacity: 1; }
@@ -1465,7 +1466,7 @@ body::after {
     max-height: 0;
     opacity: 0;
     pointer-events: none;
-    transition: max-height 0.28s var(--ease-gothic), opacity 0.22s var(--ease-gothic);
+    transition: max-height var(--dur-collapse) var(--ease-gothic), opacity var(--dur-collapse) var(--ease-gothic);
 }
 .group-body.expanded {
     opacity: 1;
@@ -2105,7 +2106,7 @@ body::after {
     overflow: hidden;
     max-height: 9999px;
     opacity: 1;
-    transition: max-height 0.28s var(--ease-gothic), opacity 0.22s var(--ease-gothic);
+    transition: max-height var(--dur-collapse) var(--ease-gothic), opacity var(--dur-collapse) var(--ease-gothic);
     padding: 0;
     margin: 0;
 }
@@ -2430,7 +2431,7 @@ body::after {
     overflow: hidden;
     max-height: 0;
     opacity: 0;
-    transition: max-height 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+    transition: max-height var(--dur-collapse) var(--ease-gothic), opacity var(--dur-collapse) var(--ease-gothic);
     margin-top: 0;
     /* Subtasks fill the task-content column. The task-actions now live INSIDE
        .task-content (in .task-head), so .task-content already spans the full
@@ -2764,7 +2765,7 @@ body::after {
     grid-template-rows: 0fr;
     position: relative;
     flex-shrink: 0;
-    transition: grid-template-rows 0.24s ease;
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic);
 }
 .sub-note-wrapper.note-open,
 .subtask-section.notes-always-open .sub-note-wrapper.has-note {
@@ -3371,8 +3372,8 @@ textarea:focus-visible {
     margin-right: 0;
     padding-left: 0;
     padding-right: 0;
-    transition: grid-template-rows 0.28s var(--ease-gothic),
-                margin-top 0.28s var(--ease-gothic);
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic),
+                margin-top var(--dur-collapse) var(--ease-gothic);
 }
 .task-note-wrapper.visible {
     grid-template-rows: 1fr;
@@ -4759,8 +4760,8 @@ textarea:focus-visible {
 .split-active-wrap {
     display: grid;
     grid-template-rows: 1fr;
-    transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity             0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic),
+                opacity             var(--dur-collapse) var(--ease-gothic);
     opacity: 1;
 }
 .split-active-wrap.collapsed {
@@ -4794,8 +4795,8 @@ textarea:focus-visible {
 .split-done-wrap {
     display: grid;
     grid-template-rows: 1fr;
-    transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity             0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic),
+                opacity             var(--dur-collapse) var(--ease-gothic);
     opacity: 1;
 }
 .split-done-wrap.collapsed {
@@ -4837,8 +4838,8 @@ textarea:focus-visible {
 .split-pinned-wrap {
     display: grid;
     grid-template-rows: 1fr;
-    transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity             0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic),
+                opacity             var(--dur-collapse) var(--ease-gothic);
     opacity: 1;
 }
 .split-pinned-wrap.collapsed { grid-template-rows: 0fr; opacity: 0; }
@@ -5773,8 +5774,8 @@ kbd {
 .sub-split-done-wrap {
     display: grid;
     grid-template-rows: 1fr;
-    transition: grid-template-rows 0.26s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity             0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic),
+                opacity             var(--dur-collapse) var(--ease-gothic);
     opacity: 1;
     list-style: none;
     padding: 0; margin: 0;
