@@ -4412,6 +4412,14 @@ textarea:focus-visible {
     border-color: rgba(140, 60, 255, 0.45);
 }
 
+/* Repeat-modal weekday picker — mirror the trigger ink: violet by default,
+   white on hover (matches the .grp-picker convention; opposite of the deadline
+   pickers' white-default). Scoped to the repeat anchor picker only. */
+#repeat-wd-picker .dl-month-trigger { color: var(--accent-hover); }
+#repeat-wd-picker .dl-month-trigger .dl-month-chevron { opacity: 0.8; }
+#repeat-wd-picker .dl-month-trigger:hover { color: var(--text-primary); }
+#repeat-wd-picker .dl-month-trigger:hover .dl-month-chevron { opacity: 1; }
+
 /* ======================================================= */
 
 /* ===== CUSTOM NUMBER STEPPER (monthday) ===== */
@@ -4517,6 +4525,14 @@ textarea:focus-visible {
     color: var(--accent-hover);
     border-color: rgba(140, 60, 255, 0.45);
     box-shadow: 0 0 10px rgba(130, 50, 230, 0.15);
+}
+/* "Нет" (off) spans the full row as a distinct off-switch bar above the 2×2
+   cadence grid — icon and label sit side by side instead of stacked. */
+.repeat-modal-btn[data-repeat="none"] {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    gap: 9px;
+    padding: 10px 8px;
 }
 
 /* ── Repeat anchor section ── */
