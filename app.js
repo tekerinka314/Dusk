@@ -2037,7 +2037,7 @@ function _grimInk(hex) {
     else if (h < 120) { rr = x;  gg = cc; }
     else if (h < 180) { gg = cc; bb = x; }
     else if (h < 240) { gg = x;  bb = cc; }
-    else if (h < 300) { rr = cc; bb = x; }
+    else if (h < 300) { rr = x;  bb = cc; }
     else              { rr = cc; bb = x; }
     const hx = v => Math.round((v + mm) * 255).toString(16).padStart(2, '0');
     return '#' + hx(rr) + hx(gg) + hx(bb);
