@@ -5853,6 +5853,24 @@ function selectGroupChip(gid) {
 
 // P8: open/close + outside-click wiring for the group dropdown. Mirrors
 // initFormWeekdayPicker (incl. the .extra-fields overflow unclip + open-upward).
+// ============================================================
+//  G4-6: UNIFIED GOTHIC-PICKER OUTSIDE-CLICK
+//  Each gothic dropdown used to register its OWN permanent document click
+//  listener. They're consolidated here into ONE delegated listener over a
+//  registry. closePicker() is a no-op when the picker is already closed, so
+//  the delegate calls it unconditionally. (The repeat-modal weekday picker
+//  uses a different pointerdown/classList pattern and keeps its own handler.)
+// ============================================================
+const _gothicPickers = [];
+function registerGothicPicker(picker, closeFn) {
+    if (picker && typeof closeFn === 'function') _gothicPickers.push({ picker, close: closeFn });
+}
+document.addEventListener('click', e => {
+    for (const { picker, close } of _gothicPickers) {
+        if (!picker.contains(e.target)) close();
+    }
+}, { passive: true });
+
 function initGroupPicker() {
     const picker  = document.getElementById('grp-picker');
     const trigger = document.getElementById('grp-trigger');
@@ -5888,7 +5906,7 @@ function initGroupPicker() {
         if (e.key === 'Escape') { closePicker(); return; }
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isOpen ? closePicker() : openPicker(); }
     });
-    document.addEventListener('click', e => { if (!picker.contains(e.target)) closePicker(); }, { passive: true });
+    registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
 }
 
 // ---- Archive ----
@@ -12961,10 +12979,7 @@ function initMonthPicker() {
         }
     });
 
-    // Close on outside click (including modal overlay clicks)
-    document.addEventListener('click', e => {
-        if (isOpen && !picker.contains(e.target)) closePicker();
-    });
+    registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
 
     // Expose sync helpers for openDeadlineModal / clearDeadlineModal
     window._monthPickerSet   = setMonth;
@@ -13061,10 +13076,7 @@ function initWeekdayPicker() {
         }
     });
 
-    // Close on outside click
-    document.addEventListener('click', e => {
-        if (isOpen && !picker.contains(e.target)) closePicker();
-    });
+    registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
 
     // Expose sync helpers for openDeadlineModal / clearDeadlineModal
     window._weekdayPickerSet   = setDay;
@@ -13150,9 +13162,7 @@ function initFormWeekdayPicker() {
         if (e.key === 'Escape') { closePicker(); return; }
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isOpen ? closePicker() : openPicker(); return; }
     });
-    document.addEventListener('click', e => {
-        if (!picker.contains(e.target)) closePicker();
-    }, { passive: true });
+    registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
 }
 
 
