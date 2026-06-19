@@ -6647,17 +6647,45 @@ function renderFormSubtasks() {
             ? `Повтор: ${repeatLabel(s.repeat)}${anchorLabel ? ` · ${anchorLabel}` : ''} — нажмите чтобы изменить`
             : 'Назначить повтор';
         const noteWrapClass = s.note ? 'has-note' : '';
+        // P-E: form-subtask deadline (mirrors buildSubtaskItemHTML; index-based, no checked state)
+        const fDl       = s.deadline || null;
+        const fDlStatus = fDl ? deadlineStatus(fDl) : null;
+        const fDlAbs    = fDl ? formatDeadlineAbsolute(fDl, true) : '';
+        const fDlCd     = fDl ? formatDeadlineCountdown(fDl) : '';
+        const fDlCls    = fDlStatus ? ` sub-dl-${fDlStatus}` : '';
+        const fDlBadge = fDl
+            ? `<button type="button" class="sub-deadline-badge${fDlCls}" onclick="openFormSubDeadline(${i})" title="${escHtml(fDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>`
+            : '';
+        const fDlSetBtn = fDl
+            ? ''
+            : `<button type="button" class="btn-sub-action sub-deadline-btn" onclick="openFormSubDeadline(${i})" title="Назначить дедлайн">${IC.window}</button>`;
+        const fDlWrap = fDl
+            ? `<div class="sub-deadline-wrapper${fDlCls}">
+            <div class="sub-deadline-inner">
+                <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить дедлайн"
+                      onclick="openFormSubDeadline(${i})"
+                      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFormSubDeadline(${i});}">
+                    ${fDlCd ? `<span class="sub-dl-countdown">${fDlCd}</span><span class="sub-dl-sep">·</span>` : ''}
+                    <span class="sub-dl-date">${escHtml(fDlAbs)}</span>
+                    <button type="button" class="sub-dl-clear" onclick="event.stopPropagation();clearFormSubDeadline(${i})" title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
+                </span>
+            </div>
+        </div>`
+            : '';
         return `<li class="subtask-item" data-form-sub-idx="${i}" data-sprio="${s.priority || 'none'}">
         <div class="sub-main-row">
             <div class="sub-drag-handle" aria-hidden="true">${IC.drag}</div>
             <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startFormSubEdit(event,${i})">${escHtml(s.text)}</span>
+            ${fDlBadge}
             <div class="sub-actions">
                 <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleFormSubPriority(${i})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
                 <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" onclick="openFormSubRepeat(${i})" title="${repeatTitle}">${IC.ouroboros}</button>
+                ${fDlSetBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" onpointerdown="event.preventDefault()" onclick="toggleFormSubNote(${i})" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
                 <button type="button" class="btn-sub-action danger" onclick="removeFormSubtask(${i})" title="Удалить подпункт">${IC.skull}</button>
             </div>
         </div>
+        ${fDlWrap}
         <div class="sub-note-wrapper ${noteWrapClass}" id="form-subnote-${i}">
             <div class="sub-note-inner">
                 <div class="sub-note-text" id="form-subnote-text-${i}"
@@ -6776,6 +6804,21 @@ function openFormSubRepeat(idx) {
     openModalWithFocus('repeat-modal');
 }
 
+// P-E: deadline for a FORM subtask (added before the task exists). Mirrors
+// openFormSubRepeat — index-based, intercepted in confirmDeadline/applyDeadline via
+// the _formSubDeadlineIdx flag (set inside openDeadlineModal's 4th param).
+let _formSubDeadlineIdx = null;
+function openFormSubDeadline(idx) {
+    if (!formSubtasks[idx]) return;
+    openDeadlineModal(null, false, null, idx);
+}
+function clearFormSubDeadline(idx) {
+    const s = formSubtasks[idx];
+    if (!s || !s.deadline) return;
+    s.deadline = null;
+    renderFormSubtasks();
+}
+
 // UX-4: snapshot of the form state captured just before addTask() commits,
 // so Ctrl+Z can restore the text the user just submitted.
 let _undoFormSnapshot = null;
@@ -6824,6 +6867,7 @@ function addTask() {
         priority: s.priority || 'none',
         note: s.note || '',
         order: i,
+        deadline: s.deadline ? JSON.parse(JSON.stringify(s.deadline)) : null,  // P-E: carry form-subtask deadline into the created task
         repeat: s.repeat || 'none',
         repeatAnchorTime: s.repeatAnchorTime || null,
         repeatAnchorDay: s.repeatAnchorDay || null,
@@ -9801,17 +9845,20 @@ groupNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirm
 // ============================================================
 //  DEADLINE MODAL
 // ============================================================
-function openDeadlineModal(taskId, bulk = false, subId = null) {
+function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null) {
     editingTaskId = taskId;
     editingSubId  = subId;       // P-E: null for task/form/bulk; set when editing a subtask deadline
+    _formSubDeadlineIdx = formSubIdx;  // P-E: set only for a form-subtask deadline; reset on every other open
     bulkDeadlineActive = bulk;   // P-D: when true, confirm applies to the whole selection
     const existing = bulk ? null
-        : (subId !== null
-            ? (((state.tasks.find(t => t.id === taskId) || {}).subtasks || [])
-                  .find(s => s.id === subId) || {}).deadline
-            : (taskId !== null
-                ? (state.tasks.find(t => t.id === taskId) || {}).deadline
-                : formDeadline));
+        : (formSubIdx !== null
+            ? (formSubtasks[formSubIdx] || {}).deadline
+            : (subId !== null
+                ? (((state.tasks.find(t => t.id === taskId) || {}).subtasks || [])
+                      .find(s => s.id === subId) || {}).deadline
+                : (taskId !== null
+                    ? (state.tasks.find(t => t.id === taskId) || {}).deadline
+                    : formDeadline)));
 
     // If task has no existing deadline, restore last-used mode (default: 'time')
     const savedMode = localStorage.getItem(K_DL_MODE) || 'time';
@@ -9874,9 +9921,9 @@ function openDeadlineModal(taskId, bulk = false, subId = null) {
     // so incompatible repeat options are blocked. Previously only ran for form (editingTaskId===null).
     // Sync repeat availability with the active deadline mode for both task editing
     // and form creation (taskId===null with an existing formDeadline already set).
-    // P-E: skip repeat-availability gating for the subtask path — it targets the
-    // form/task repeat selector, not the subtask (sub repeat is set via its own modal).
-    if (subId === null) {
+    // P-E: skip repeat-availability gating for the subtask + form-subtask paths — it
+    // targets the form/task repeat selector, not the (form-)subtask's own repeat.
+    if (subId === null && formSubIdx === null) {
         if (taskId !== null) {
             const taskForRepeat = state.tasks.find(t => t.id === taskId);
             if (taskForRepeat) updateRepeatAvailability(taskForRepeat.deadline?.mode || null);
@@ -9902,6 +9949,7 @@ function closeDeadlineModal(event) {
         if (mn) { mn.hidden = true; mn.textContent = ''; }
         bulkDeadlineActive = false;   // P-D: cancelling bulk must not leak into the next open
         editingSubId = null;          // P-E: cancelling a subtask-deadline edit must not leak
+        _formSubDeadlineIdx = null;   // P-E: same for a form-subtask-deadline edit
         closeModalWithAnim('deadline-modal');
     }
 }
@@ -10042,6 +10090,24 @@ function confirmDeadline() {
         localStorage.setItem(K_DL_MODE, mode);
         // I-9: save before applyDeadline() resets editingTaskId to null
         const targetId = editingTaskId;
+        // P-E: form-subtask deadline target (task not yet created) — intercept first,
+        // mirror the weektime→auto-weekly coupling onto the form subtask.
+        if (_formSubDeadlineIdx !== null) {
+            const fs = formSubtasks[_formSubDeadlineIdx];
+            if (fs) {
+                fs.deadline = dl;
+                if (!fs.repeat || fs.repeat === 'none') {
+                    fs.repeat = 'weekly';
+                    fs.repeatAnchorDay = parseInt(wd) || null;
+                }
+                renderFormSubtasks();
+            }
+            _formSubDeadlineIdx = null;
+            editingTaskId = null;
+            editingSubId  = null;
+            closeModalWithAnim('deadline-modal');
+            return;
+        }
         // P-E: subtask deadline target — mirror the V-7 weektime→auto-weekly coupling
         // onto the subtask (subtasks support repeat). Must run BEFORE the task branch
         // because editingTaskId (the parent id) is also set for a subtask edit.
@@ -10226,6 +10292,14 @@ function confirmDeadline() {
 }
 
 function applyDeadline(dl) {
+    if (_formSubDeadlineIdx !== null) {       // P-E: form-subtask deadline (task not yet created; all modes except weektime)
+        const s = formSubtasks[_formSubDeadlineIdx];
+        if (s) { s.deadline = dl; renderFormSubtasks(); }
+        _formSubDeadlineIdx = null;
+        editingTaskId = null;
+        editingSubId  = null;
+        return;
+    }
     if (editingSubId !== null) {              // P-E: subtask deadline target (all modes except weektime, which returns earlier)
         const task = state.tasks.find(t => t.id === editingTaskId);
         const sub  = task && task.subtasks.find(s => s.id === editingSubId);

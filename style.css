@@ -3389,6 +3389,12 @@ textarea:focus-visible {
 .meta-tag-wrap:has(> .deadline-tag.critical) .btn-tag-clear { color: var(--deadline-critical); }
 .meta-tag-wrap:has(> .deadline-tag.over)     { background: var(--deadline-over-bg);     border-color: rgba(170, 15, 30, 0.5); }
 .meta-tag-wrap:has(> .deadline-tag.over) .btn-tag-clear     { color: var(--deadline-over); }
+/* Brighten the ✕ to danger on hover for EVERY deadline variant. Must come after
+   the per-variant base-colour rules AND outrank them: specificity (0,5,0) here vs
+   (0,4,0) above, so it wins on hover regardless of status (warn/urgent/etc kept the
+   ✕ tinted on hover before this). Mirrors the subtask pill clear hover. */
+.meta-tag-wrap:has(> .deadline-tag):hover .btn-tag-clear:hover,
+.meta-tag-wrap:has(> .deadline-tag):focus-within .btn-tag-clear:focus-visible { color: #e06070; }
 
 /* Persistent "done until …" label for cycle-completed recurring tasks.
    Violet-purple tint — matches the project's gothic palette exactly.
