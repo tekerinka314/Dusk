@@ -2719,9 +2719,9 @@ function grimBulkDelete() {
 
 // Plain text from an HTML body (for list snippets + search).
 function _grimPlain(html) {
-    const d = document.createElement('div');
-    d.innerHTML = html || '';
-    return (d.textContent || '').split(String.fromCharCode(0x200B)).join('').replace(/\s+/g, ' ').trim();
+    const t = document.createElement('template');   // NA-2: inert parse (no <img> fetch / handler fire)
+    t.innerHTML = html || '';
+    return (t.content.textContent || '').split(String.fromCharCode(0x200B)).join('').replace(/\s+/g, ' ').trim();
 }
 
 // Collapse whitespace + strip the zero-width caret-holder used inside empty inline code.
@@ -2734,8 +2734,9 @@ function _grimCollapse(t) {
 // Returns { flat, glyphs } where glyphs maps a flat-string index → block kind.
 const _GRIM_SENT = '';
 function _grimFlattenSnippet(html) {
-    const root = document.createElement('div');
-    root.innerHTML = html || '';
+    const tpl = document.createElement('template');   // NA-2: inert parse (no <img> fetch / handler fire)
+    tpl.innerHTML = html || '';
+    const root = tpl.content;
     let flat = '';
     const glyphs = new Map();
     const needSep = () => flat.length && flat[flat.length - 1] !== ' ';
@@ -2794,7 +2795,14 @@ function _grimPlainToHtml(text) {
 }
 function migrateNotes() {
     [...(state.notes || []), ...(state.notesArchive || [])].forEach(n => {
-        if (n && n.fmt !== true) { n.body = _grimPlainToHtml(n.body || ''); n.fmt = true; }
+        if (!n) return;
+        if (n.fmt !== true) { n.body = _grimPlainToHtml(n.body || ''); n.fmt = true; }
+        // NA-2: pass every body through the whitelist sanitizer at the data boundary.
+        // In-app records are already sanitized (so this is idempotent), but import-JSON,
+        // hand-edited localStorage and a future cloud-sync file are external input —
+        // their raw <img onerror>/<script> reaches snippet generation and the crypt
+        // view otherwise. One pass here = the single trusted gate.
+        n.body = _grimSanitize(n.body || '');
     });
 }
 
@@ -2802,8 +2810,14 @@ function migrateNotes() {
 const GRIM_TAGS = { H1:1,H2:1,H3:1,P:1,BR:1,STRONG:1,B:1,EM:1,I:1,U:1,S:1,STRIKE:1,DEL:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,CODE:1,PRE:1,HR:1,A:1,DIV:1,SPAN:1,
                     TABLE:1,THEAD:1,TBODY:1,TR:1,TH:1,TD:1 };
 function _grimSanitize(html) {
-    const root = document.createElement('div');
-    root.innerHTML = html || '';
+    // NA-2: parse into an INERT <template>, never a live <div>. A live element's
+    // innerHTML dispatches resource loads (<img src>) and arms inline handlers the
+    // instant it parses — so even though we strip the node afterwards, a queued
+    // onerror still fires. <template>.content is an inert document fragment: no
+    // fetches, handlers never run. This is the only sink fed genuinely raw input.
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html || '';
+    const root = tpl.content;
     root.querySelectorAll('script,style,iframe,object,embed').forEach(e => e.remove());
     const walk = node => {
         [...node.childNodes].forEach(ch => {
@@ -2834,7 +2848,9 @@ function _grimSanitize(html) {
         });
     };
     walk(root);
-    return root.innerHTML;   // ZWSP caret-holders kept so empty <code> stays editable
+    const out = document.createElement('div');
+    out.appendChild(root);   // sanitized inert nodes (no <img>/handlers left) → live div to serialize
+    return out.innerHTML;     // ZWSP caret-holders kept so empty <code> stays editable
 }
 
 // After any edit/command: persist (debounced) + refresh toolbar active-state.
@@ -5549,7 +5565,8 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             migrateTasks(state.tasks);
             migrateTasks(state.archive);
             // п11: merge grimoire notes + склеп too (uuid ids don't collide; dedupe by id).
-            normalizeState();
+            if (!Array.isArray(state.notes)) state.notes = [];
+            if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
             if (Array.isArray(loaded.notes)) {
                 const seen = new Set(state.notes.map(n => n.id));
                 loaded.notes.forEach(n => { if (n && !seen.has(n.id)) state.notes.push(n); });
@@ -5558,6 +5575,9 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
                 const seenA = new Set(state.notesArchive.map(n => n.id));
                 loaded.notesArchive.forEach(n => { if (n && !seenA.has(n.id)) state.notesArchive.push(n); });
             }
+            // NA-2: normalize AFTER merging notes so migrateNotes() sanitizes the
+            // imported bodies too (external JSON = untrusted input).
+            normalizeState();
             saveState(); render(); updateArchiveBadge();
             showToast(`Добавлено: ${newTasks.length} задач`, { undo: true });
         };
