@@ -1439,6 +1439,24 @@ function _grimMigrateVersions() {
     if (moved) saveState();
     if (moved || pruned) saveGrimVersions();
 }
+// NA-3: restore the «Летопись» version store from an imported backup (top-level
+// `_grimVersions`). 'replace' wipes local history and takes the file's wholesale;
+// 'merge' keeps local and only adds history for note ids we don't already track.
+// Then _grimMigrateVersions() lifts any inline note.versions (older files) and
+// prunes orphans whose note didn't come across.
+function _grimRestoreVersions(loaded, mode) {
+    if (mode === 'replace') grimVersions = {};
+    delete state._grimVersions;   // never let the backup key linger inside state
+    const src = loaded && loaded._grimVersions;
+    if (src && typeof src === 'object' && !Array.isArray(src)) {
+        for (const id in src) {
+            if (!Array.isArray(src[id])) continue;
+            if (mode === 'replace' || !grimVersions[id]) grimVersions[id] = src[id].slice();
+        }
+    }
+    _grimMigrateVersions();
+    saveGrimVersions();
+}
 
 // Take a snapshot of `note` if it differs from the latest stored version.
 // Returns true if a version was actually pushed (caller persists via saveGrimVersions).
@@ -5524,6 +5542,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             migrateTasks(state.tasks);
             migrateTasks(state.archive || []);
             normalizeState();
+            _grimRestoreVersions(loaded, 'replace');   // NA-3: bring «Летопись» across
             // C3-2: do NOT wipe undoStack — pushUndo() above is the only safety net
             // that lets the user undo a destructive "Replace" import.
             saveState(); render(); updateArchiveBadge();
@@ -5578,6 +5597,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             // NA-2: normalize AFTER merging notes so migrateNotes() sanitizes the
             // imported bodies too (external JSON = untrusted input).
             normalizeState();
+            _grimRestoreVersions(loaded, 'merge');   // NA-3: add history for the new notes only
             saveState(); render(); updateArchiveBadge();
             showToast(`Добавлено: ${newTasks.length} задач`, { undo: true });
         };
@@ -5601,6 +5621,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         migrateTasks(state.tasks);
         migrateTasks(state.archive || []);
         normalizeState();
+        _grimRestoreVersions(loaded, 'replace');   // NA-3: bring «Летопись» across
         // C3-2: keep the pre-import snapshot so Replace stays undoable.
         saveState(); render(); updateArchiveBadge();
         showToast(`Импортировано: ${state.tasks.length} задач`, { undo: true });
@@ -12312,7 +12333,11 @@ function _qaKeydown(e) {
 /** Export full state as a timestamped JSON file. */
 function exportData() {
     const filename = `dusk-backup-${new Date().toISOString().slice(0,10)}.json`;
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    // NA-3: the «Летопись» version store lives in its own LS key (outside state),
+    // so a plain JSON.stringify(state) silently dropped all note history on a
+    // device move. Carry it as a top-level key in the backup (rule #1: never lose data).
+    const payload = { ...state, _grimVersions: grimVersions };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = filename;
