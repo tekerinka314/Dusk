@@ -623,6 +623,10 @@ const _notifiedDeadlines = new Set(); // Set<taskId>
 // Populated by addTask/duplicateTask/restoreTask/restoreSelected/restoreAll.
 // Cleared at the end of createTaskEl after being consumed.
 const _newTaskIds = new Set();
+// NA-5: grimoire analogue — only genuinely new/restored notes replay the entrance
+// stagger; pin/colour/archive/delete must not re-animate the whole list. Consumed
+// in _grimLeafHTML, seeded at the note-entry points + once at init (first view).
+const _newNoteIds = new Set();
 let renamingGroupId  = null;
 let dlCurrentMode    = 'time'; // default — updated from localStorage on init
 
@@ -780,6 +784,9 @@ function init() {
     // IMP-1: seed _newTaskIds with all loaded tasks so the first render
     // shows the entrance animation exactly as before — stagger included.
     state.tasks.forEach(t => _newTaskIds.add(t.id));
+    // NA-5: same for notes — the first time the grimoire list paints (page open
+    // or starting on it) every leaf staggers in; thereafter only new/restored ones.
+    [...(state.notes || []), ...(state.notesArchive || [])].forEach(n => _newNoteIds.add(n.id));
     render();
     // Note: setupSortables() is called inside render() via rAF — no separate call needed here.
     startDeadlineTimer();
@@ -2085,9 +2092,16 @@ function _grimLeafHTML(n, q, i, animate) {
     const sel   = grimSelectMode;
     const isSel = sel && grimSelectedIds.has(n.id);
     const isPinned = !!n.pinned && grimMode !== 'archive';   // pin is meaningless in the crypt
-    const cls = `grim-leaf${!sel && n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${animate ? ' gl-in' : ''}${sel ? ' grim-leaf--select' : ''}${isSel ? ' selected' : ''}${isPinned ? ' pinned' : ''}${n.color ? ' has-color' : ''}`;
+    // NA-5: gate the entrance on per-note novelty, not on every render. Consume the
+    // id regardless of the motion flag so a reduced-motion render can't leave it
+    // lingering to animate later; `anim` then also honours the explicit animate=false
+    // re-sort paths (pin/sort-change) which must never replay the stagger.
+    const isNew = _newNoteIds.has(n.id);
+    if (isNew) _newNoteIds.delete(n.id);
+    const anim = animate && isNew;
+    const cls = `grim-leaf${!sel && n.id === currentNoteId ? ' active' : ''}${titleRaw ? '' : ' untitled'}${anim ? ' gl-in' : ''}${sel ? ' grim-leaf--select' : ''}${isSel ? ' selected' : ''}${isPinned ? ' pinned' : ''}${n.color ? ' has-color' : ''}`;
     const styleVars = [];
-    if (animate) styleVars.push(`--i:${Math.min(i, 12)}`);
+    if (anim) styleVars.push(`--i:${Math.min(i, 12)}`);
     if (n.color) styleVars.push(_grimColorVars(n));   // п.9 colour glow
     const style = styleVars.length ? ` style="${styleVars.join(';')}"` : '';
     const onclick = sel ? `grimToggleSelectNote('${n.id}')` : `grimOpen('${n.id}')`;
@@ -2283,6 +2297,7 @@ function grimNew() {
     const note = { id: uid(), title: '', body: '', fmt: true, color: null, createdAt: now, updatedAt: now };
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
+    _newNoteIds.add(note.id);   // NA-5: animate the new leaf only
     currentNoteId = note.id;
     grimNoteCollapsed = false;
     notesSearchQuery = '';
@@ -2458,6 +2473,7 @@ function grimRestoreNote(id) {
     note.updatedAt = Date.now();
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
+    _newNoteIds.add(note.id);   // NA-5: animate the restored leaf only
     currentNoteId = null;
     grimMode = 'active';                 // auto-return to «Записи» after restoring
     notesSearchQuery = '';
@@ -2715,6 +2731,7 @@ function grimBulkRestore() {
     state.notesArchive = (state.notesArchive || []).filter(n => !grimSelectedIds.has(n.id));
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(...moved);
+    moved.forEach(n => _newNoteIds.add(n.id));   // NA-5: animate the restored leaves only
     const count = moved.length;
     currentNoteId = null;
     _grimExitSelect();
@@ -4545,6 +4562,7 @@ function _grimPushNote(seed) {
     const note = { id: uid(), title: seed.title || '', body: _grimSanitize(seed.body || ''), fmt: true, color: seed.color || null, createdAt: now, updatedAt: now };
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
+    _newNoteIds.add(note.id);   // NA-5: animate the new leaf only
     return note.id;
 }
 // Turn collected docs ([{text, name}]) into notes — backup files split into many,
@@ -4702,6 +4720,7 @@ function _grimSpawnSeeded(seed) {
     const note = { id: uid(), title: seed.title || '', body: _grimSanitize(seed.body || ''), fmt: true, color: seed.color || null, createdAt: now, updatedAt: now };
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
+    _newNoteIds.add(note.id);   // NA-5: animate the new leaf only
     currentNoteId = note.id;
     grimNoteCollapsed = false;
     notesSearchQuery = '';
