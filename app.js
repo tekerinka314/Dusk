@@ -5624,6 +5624,15 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
                 const seenA = new Set(state.notesArchive.map(n => n.id));
                 loaded.notesArchive.forEach(n => { if (n && !seenA.has(n.id)) state.notesArchive.push(n); });
             }
+            // NA-6: merge also carries note templates (dedupe by uuid) + the chosen
+            // note sort when the local grimoire has none yet — both were silently
+            // dropped before (only «Заменить» pulled them via ...loaded).
+            if (Array.isArray(loaded.noteTemplates)) {
+                if (!Array.isArray(state.noteTemplates)) state.noteTemplates = [];
+                const seenT = new Set(state.noteTemplates.map(t => t.id));
+                loaded.noteTemplates.forEach(t => { if (t && !seenT.has(t.id)) state.noteTemplates.push(t); });
+            }
+            if (!state.notesSort && loaded.notesSort) state.notesSort = loaded.notesSort;
             // NA-2: normalize AFTER merging notes so migrateNotes() sanitizes the
             // imported bodies too (external JSON = untrusted input).
             normalizeState();
