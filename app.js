@@ -1741,15 +1741,26 @@ function grimToggleCollapse() {
     if (!grimNoteCollapsed) {                // re-expanded → restore editing + re-glue table overlay
         if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
         requestAnimationFrame(_grimReflowOverlay);
-        // The pane widens over the column transition — re-glue the overlay once it settles.
+        // The pane widens as the list grows back — re-glue the overlay once it settles.
         if (layoutEl) {
+            // NA-4: the layout is FLEX, not grid. The width settles via the list's
+            // flex-basis (bubbles up here) and the layout's own gap — grid-template-columns
+            // never transitions, so the old filter never matched: the post-settle reflow
+            // never ran AND the listener leaked one per re-expand. finish() de-dupes the
+            // several transitionend events; a fallback timer (just past --dur-ritual)
+            // guarantees the listener is always removed even if no transition fires.
+            let done = false;
+            const finish = () => {
+                if (done) return; done = true;
+                clearTimeout(fb);
+                layoutEl.removeEventListener('transitionend', onEnd);
+                _grimReflowOverlay();
+            };
             const onEnd = (ev) => {
-                if (ev.target === layoutEl && ev.propertyName === 'grid-template-columns') {
-                    layoutEl.removeEventListener('transitionend', onEnd);
-                    _grimReflowOverlay();
-                }
+                if (ev.propertyName === 'flex-basis' || ev.propertyName === 'gap') finish();
             };
             layoutEl.addEventListener('transitionend', onEnd);
+            const fb = setTimeout(finish, 700);
         }
     }
 }
