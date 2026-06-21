@@ -1772,11 +1772,13 @@ body::after {
     80%  { transform: scale(0.96) rotate(345deg); }
     100% { transform: scale(1)    rotate(360deg); }
 }
-.task-check.cycle-spinning {
+.task-check.cycle-spinning,
+.sub-check.cycle-spinning {
     animation: cycleSpin var(--dur-ritual) var(--ease-spring) forwards;
 }
 @media (prefers-reduced-motion: reduce) {
-    .task-check.cycle-spinning { animation: none; }
+    .task-check.cycle-spinning,
+    .sub-check.cycle-spinning { animation: none; }
 }
 
 /* Drop-zone portal glow: group-body glows while a task is dragged over it */
@@ -1851,6 +1853,76 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
     .task-item.entering { animation: none; }
     .task-item.task-leaving { animation: none; }
+}
+/* "Settle into the new slot" after a check/uncheck move (added by JS to the
+   rebuilt row / subtask). No `to`/`both` keyframe → the item lands on its natural
+   opacity (1 active, 0.65 checked) with no flash; `!important` beats taskCheckIn so
+   a checked row fades in cleanly instead of popping in then dimming. */
+@keyframes itemSettleIn {
+    0%   { opacity: 0; transform: translateY(-12px) scale(0.94); }
+    55%  { opacity: 1; }
+    100% { transform: translateY(0) scale(1); }
+}
+.task-item.settling-in    { animation: itemSettleIn 0.38s var(--ease-gothic); }
+.subtask-item.settling-in { animation: itemSettleIn 0.32s var(--ease-gothic); }
+@media (prefers-reduced-motion: reduce) {
+    .task-item.settling-in, .subtask-item.settling-in { animation: none; }
+}
+/* Recurring cycle-complete card pulse — glow + slight rotate/scale that resonates
+   with the coffin's 360° spin (added by _cycleSettle). Lands on the cycle-checked
+   natural opacity (0.65) — no `to` opacity, so no flash. */
+@keyframes cycleCardSettle {
+    0%   { opacity: 0;    transform: scale(0.90) rotate(-5deg);  box-shadow: 0 0 0 0 rgba(168, 96, 255, 0); }
+    45%  { opacity: 1;    transform: scale(1.025) rotate(1.5deg); box-shadow: 0 0 22px 2px rgba(168, 96, 255, 0.42); }
+    100% {                transform: scale(1) rotate(0);          box-shadow: 0 0 0 0 rgba(168, 96, 255, 0); }
+}
+.task-item.cycle-settling { animation: cycleCardSettle 0.5s cubic-bezier(0.34, 1.4, 0.5, 1); }
+@media (prefers-reduced-motion: reduce) { .task-item.cycle-settling { animation: none; } }
+/* Same ritual for a recurring SUBTASK card. Glow via filter:drop-shadow (not
+   box-shadow) so the subtask's inset outline survives the pulse; smaller rotate
+   to read well inside the 2-col grid. Lands on natural opacity (no `to`). */
+@keyframes subCycleCardSettle {
+    0%   { opacity: 0; transform: scale(0.92) rotate(-3deg); filter: drop-shadow(0 0 0 rgba(168, 96, 255, 0)); }
+    45%  { opacity: 1; transform: scale(1.03) rotate(1deg);  filter: drop-shadow(0 0 9px rgba(168, 96, 255, 0.6)); }
+    100% {             transform: scale(1) rotate(0);        filter: drop-shadow(0 0 0 rgba(168, 96, 255, 0)); }
+}
+.subtask-item.cycle-settling { animation: subCycleCardSettle 0.46s cubic-bezier(0.34, 1.4, 0.5, 1); }
+@media (prefers-reduced-motion: reduce) { .subtask-item.cycle-settling { animation: none; } }
+
+/* Auto-check feedback: a check pulse on the CURRENT (plain) card BEFORE it re-renders,
+   so an auto-checked parent / its triggering subtask show a clear check even when the
+   filter then hides them. Recurring items use the coffin spin instead. Subtask glow
+   uses filter:drop-shadow so its inset outline survives. */
+@keyframes checkPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(168, 96, 255, 0); }
+    35%  { transform: scale(1.05); box-shadow: 0 0 26px 3px rgba(168, 96, 255, 0.6); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(168, 96, 255, 0); }
+}
+.task-item.check-pulse { animation: checkPulse 0.34s var(--ease-spring); }
+@keyframes checkPulseSub {
+    0%   { filter: drop-shadow(0 0 0 rgba(168, 96, 255, 0)); }
+    35%  { transform: scale(1.06); filter: drop-shadow(0 0 11px rgba(168, 96, 255, 0.75)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(168, 96, 255, 0)); }
+}
+.subtask-item.check-pulse { animation: checkPulseSub 0.34s var(--ease-spring); }
+/* Auto-UNcheck feedback: a cool "release / unseal" dip (scale-DOWN + dimmer cool
+   glow) — deliberately distinct from the check seal-pulse so an auto-uncleared
+   parent + its triggering subtask read clearly when a sub is un-done in any/all mode. */
+@keyframes uncheckPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(150, 130, 205, 0); }
+    35%  { transform: scale(0.965); box-shadow: 0 0 20px 2px rgba(150, 130, 205, 0.4); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(150, 130, 205, 0); }
+}
+.task-item.uncheck-pulse { animation: uncheckPulse 0.34s var(--ease-gothic); }
+@keyframes uncheckPulseSub {
+    0%   { filter: drop-shadow(0 0 0 rgba(150, 130, 205, 0)); }
+    35%  { transform: scale(0.95); filter: drop-shadow(0 0 8px rgba(150, 130, 205, 0.5)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(150, 130, 205, 0)); }
+}
+.subtask-item.uncheck-pulse { animation: uncheckPulseSub 0.34s var(--ease-gothic); }
+@media (prefers-reduced-motion: reduce) {
+    .task-item.check-pulse, .subtask-item.check-pulse,
+    .task-item.uncheck-pulse, .subtask-item.uncheck-pulse { animation: none; }
 }
 /* Allow text selection only in editable areas */
 .task-item .task-text[contenteditable="true"] { user-select: text; -webkit-user-select: text; }
@@ -2085,10 +2157,12 @@ body::after {
     border-left-color: transparent !important;
     box-shadow: none !important;
     cursor: not-allowed;   /* P3: drag forbidden — show not-allowed cursor */
-    animation: taskCheckIn 0.30s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
+/* Dim is now STATIC (no replay-on-render `both` animation). The check/uncheck
+   move-entrance is driven by .settling-in (itemSettleIn) / .cycle-settling, so the
+   row animates every toggle instead of only the first, with no re-dim flash. */
 .task-item.cycle-checked {
-    animation: taskCheckIn 0.30s cubic-bezier(0.4, 0, 0.2, 1) both;
+    opacity: 0.65;
 }
 @keyframes taskCheckIn {
     from { opacity: 1; transform: scale(1); }
@@ -2633,8 +2707,7 @@ body::after {
 .subtask-item.checked {
     opacity: 0.55;
     cursor: not-allowed;
-    transition: opacity 0.25s ease;
-    animation: subCheckIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+    transition: opacity 0.25s ease;   /* static dim; entrance handled by .settling-in */
 }
 .subtask-item.checked::before { opacity: 0; } /* fade out priority accent when done */
 @keyframes subCheckIn {

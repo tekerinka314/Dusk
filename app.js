@@ -7295,16 +7295,42 @@ function removeTask(id) {
 // its new active/completed slot — smooth in both the normal list and the split
 // active/done zones. The coffin seal/unseal still plays on the checkbox during
 // the fade. Falls back to an immediate render when motion is reduced.
+// Add an animation class and auto-remove it when the element's OWN animation ends
+// (e.target guard ignores animationend bubbling up from children — needed when a
+// checkbox spin and a card pulse run on the same row at once).
+function _animClassSelf(el, cls) {
+    if (!el) return;
+    el.classList.add(cls);
+    const h = (e) => { if (e.target !== el) return; el.classList.remove(cls); el.removeEventListener('animationend', h); };
+    el.addEventListener('animationend', h);
+}
+
+// Cycle-complete card animation for recurring tasks — a glow+rotate pulse that
+// resonates with the coffin's 360° spin (distinct from the plain settle), played
+// on the rebuilt cycle-checked row. Removed on animationend so it re-fires each cycle.
+function _cycleSettle(id) {
+    if (prefersReducedMotion()) return;
+    const li = document.querySelector(`.task-item[data-id="${id}"]`);
+    if (!li) return;
+    li.classList.add('cycle-settling');
+    li.addEventListener('animationend', () => li.classList.remove('cycle-settling'), { once: true });
+}
+
 function _leaveTaskThenRender(id, opts = {}) {
     const li      = document.querySelector(`.task-item[data-id="${id}"]`);
     const checkEl = li && li.querySelector('.task-check');
     const reduced = prefersReducedMotion();
     const afterRender = () => {
-        if (opts.fadeIn && !reduced) {
+        // Settle the rebuilt row into its new slot (done-zone / list bottom) so a
+        // check OR uncheck reads as a smooth move, not a pop-in. When checking with
+        // the filter on, the row is gone → nothing to settle (clean disappearance).
+        // Removed on animationend so the NEXT toggle gets a fresh animation (the
+        // base .checked dim is now static, so removal no longer flashes).
+        if (!reduced) {
             const newLi = document.querySelector(`.task-item[data-id="${id}"]`);
             if (newLi) {
-                newLi.classList.add('reentering');
-                requestAnimationFrame(() => requestAnimationFrame(() => newLi.classList.remove('reentering')));
+                newLi.classList.add('settling-in');
+                newLi.addEventListener('animationend', () => newLi.classList.remove('settling-in'), { once: true });
             }
         }
         if (opts.checkAllDone) {
@@ -7350,9 +7376,11 @@ function toggleCheck(id) {
                     checkEl.addEventListener('animationend', () => {
                         checkEl.classList.remove('cycle-spinning');
                         render(); // rebuild DOM with cycle-checked state after spin
+                        _cycleSettle(id);   // special card animation resonating with the spin
                     }, { once: true });
                 } else {
                     render(); // no element found — render immediately
+                    _cycleSettle(id);
                 }
             } else {
                 render(); // reduced motion — no spin, render immediately
@@ -8351,20 +8379,78 @@ function toggleSubtask(taskId, subId) {
     else if (subNowChecked)  { playSound('check'); }
 
     if (pc !== 0) {
-        // Parent done-state changed → full render so the parent row re-seats.
-        saveState(); render();
-        if (pc === 1) {
-            const allFinished = state.tasks.length > 0 &&
-                state.tasks.every(t => t.checked || t.cycleChecked);
-            if (allFinished) showAllDone();
+        // Auto-(un)check mode: the subtask toggle flipped the parent's done-state.
+        saveState();
+        const parentRecurring  = task.repeat && task.repeat !== 'none';
+        const parentNowChecked = pc === 1;
+        const reduced = prefersReducedMotion();
+        const finishAllDone = () => {
+            if (pc === 1) {
+                const allFinished = state.tasks.length > 0 &&
+                    state.tasks.every(t => t.checked || t.cycleChecked);
+                if (allFinished) showAllDone();
+            }
+        };
+        // After the in-place ritual + render, settle whichever rows survive the filter
+        // into their new slot (recurring-complete → resonant cycle pulse, else fade-settle).
+        const settleSurvivors = () => {
+            if (reduced) return;
+            const sEl = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
+            if (sEl) _animClassSelf(sEl, (subIsRecurring && subNowChecked) ? 'cycle-settling' : 'settling-in');
+            const tEl = document.querySelector(`.task-item[data-id="${taskId}"]`);
+            if (tEl) _animClassSelf(tEl, (parentNowChecked && parentRecurring) ? 'cycle-settling' : 'settling-in');
+        };
+        if (reduced) { render(); settleSurvivors(); finishAllDone(); return; }
+        // Play a ritual SIMULTANEOUSLY on the triggering subtask AND the parent it
+        // auto-(un)checked, on the CURRENT still-visible nodes, then render + settle —
+        // so the move is seen in BOTH directions and even when the filter then hides them.
+        //   recurring CHECK → coffin 360° spin; plain CHECK → seal-pulse;
+        //   any UNCHECK     → cool release/unseal pulse (recurring uncheck never spins).
+        const subEl  = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
+        const taskEl = document.querySelector(`.task-item[data-id="${taskId}"]`);
+        let dur = 360;
+        if (subEl) {
+            if (subIsRecurring && subNowChecked) { _animClassSelf(subEl.querySelector('.sub-check'), 'cycle-spinning'); dur = Math.max(dur, 640); }
+            else subEl.classList.add(subNowChecked ? 'check-pulse' : 'uncheck-pulse');
         }
+        if (taskEl) {
+            if (parentNowChecked && parentRecurring) { _animClassSelf(taskEl.querySelector('.task-check'), 'cycle-spinning'); dur = Math.max(dur, 640); }
+            else taskEl.classList.add(parentNowChecked ? 'check-pulse' : 'uncheck-pulse');
+        }
+        setTimeout(() => { render(); settleSurvivors(); finishAllDone(); }, dur);
         return;
     }
 
     // Parent unchanged → re-sort just this sublist, fading the old slot out first
     // so the move reads smoothly in both normal and split layouts (problem 4).
     saveState();
-    _animateSubThenRefresh(taskId, subId);
+    // Recurring subtask completing its cycle gets the same ritual as a recurring
+    // task: a 360° spin on its coffin + a resonating card pulse (not the plain fade).
+    if (subIsRecurring && subNowChecked) _animateSubCycleThenRefresh(taskId, subId);
+    else                                 _animateSubThenRefresh(taskId, subId);
+}
+
+// Recurring-subtask cycle-complete: spin the sub's coffin, then rebuild and pulse
+// the rebuilt card (mirrors the recurring-task path: cycleSpin + cycleCardSettle).
+function _animateSubCycleThenRefresh(taskId, subId) {
+    const checkEl = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"] .sub-check`);
+    if (!checkEl || (typeof prefersReducedMotion === 'function' && prefersReducedMotion())) {
+        refreshSubtaskList(taskId);
+        return;
+    }
+    let done = false;
+    const finish = () => {
+        if (done) return; done = true;
+        refreshSubtaskList(taskId);
+        const moved = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
+        if (moved) {
+            moved.classList.add('cycle-settling');
+            moved.addEventListener('animationend', () => moved.classList.remove('cycle-settling'), { once: true });
+        }
+    };
+    checkEl.classList.add('cycle-spinning');
+    checkEl.addEventListener('animationend', finish, { once: true });
+    setTimeout(finish, 700); // safety net (spin ≈ --dur-ritual)
 }
 
 // Smoothly fades the toggled subtask's old node out, then rebuilds the list so
@@ -8377,7 +8463,17 @@ function _animateSubThenRefresh(taskId, subId) {
         return;
     }
     let done = false;
-    const finish = () => { if (done) return; done = true; refreshSubtaskList(taskId); };
+    const finish = () => {
+        if (done) return; done = true;
+        refreshSubtaskList(taskId);
+        // Settle the moved subtask into its new slot (active/done split or reorder)
+        // so it fades in rather than popping. Removed on animationend → next toggle re-animates.
+        const moved = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"]`);
+        if (moved) {
+            moved.classList.add('settling-in');
+            moved.addEventListener('animationend', () => moved.classList.remove('settling-in'), { once: true });
+        }
+    };
     itemEl.classList.add('checking-out');
     itemEl.addEventListener('animationend', finish, { once: true });
     setTimeout(finish, 220); // safety net if animationend never fires
