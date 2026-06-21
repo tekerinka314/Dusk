@@ -1575,20 +1575,25 @@ function grimOpenHistory(id) {
         document.body.appendChild(ov);
     }
     // NA-8: a11y parity with the standard modal controller (U-1/U-2) — remember the
-    // trigger to restore focus on close, move focus inside, and trap Tab within the
-    // dialog. The listener lives on `ov` (not its innerHTML), so it survives the
-    // per-selection _grimRenderHistory() rebuilds.
+    // trigger to restore focus on close, move focus inside, and trap Tab within the dialog.
     ov._returnFocus = document.activeElement;
     if (!ov._trap) {
+        // NA-8 (fix): the trap listens on DOCUMENT in capture, not on `ov`. The modal
+        // rebuilds its innerHTML on every version preview (_grimRenderHistory), which
+        // destroys the focused button → activeElement drops to <body>, OUTSIDE `ov`. A
+        // listener bound to `ov` then never sees the next Tab (it no longer bubbles through
+        // ov) and focus escapes to the page behind. A document-capture listener always
+        // fires; when focus has left the dialog we pull it back in.
         ov._trap = (e) => {
             if (e.key !== 'Tab') return;
             const els = Array.from(ov.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
             if (!els.length) return;
             const first = els[0], last = els[els.length - 1];
+            if (!ov.contains(document.activeElement)) { e.preventDefault(); first.focus(); return; }
             if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
             else            { if (document.activeElement === last)  { e.preventDefault(); first.focus(); } }
         };
-        ov.addEventListener('keydown', ov._trap);
+        document.addEventListener('keydown', ov._trap, true);
     }
     _grimRenderHistory();
     requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -1601,7 +1606,7 @@ function grimCloseHistory() {
     const ov = document.getElementById('grim-hist-ov');
     _grimHistId = null; _grimHistSel = null;
     if (!ov) return;
-    if (ov._trap) { ov.removeEventListener('keydown', ov._trap); ov._trap = null; }
+    if (ov._trap) { document.removeEventListener('keydown', ov._trap, true); ov._trap = null; }
     // Return focus to the control that opened the Летопись (NA-8).
     const rf = ov._returnFocus; ov._returnFocus = null;
     if (rf && typeof rf.focus === 'function') rf.focus();
@@ -1658,6 +1663,11 @@ function _grimRenderHistory() {
         preview = `<div class="grim-hist-empty big">Эта запись ещё без летописи.<br>Снимки появятся по мере правок.</div>`;
     }
 
+    // NA-8 (fix): rebuilding innerHTML destroys whatever was focused inside the
+    // dialog (e.g. the version button just clicked via keyboard), dropping focus to
+    // <body>. If focus was inside, restore it to the now-active entry so keyboard
+    // users keep their place and focus never leaves the modal.
+    const hadFocus = ov.contains(document.activeElement);
     ov.innerHTML = `<div class="grim-hist-modal" role="dialog" aria-modal="true" aria-label="Летопись записи">
       <div class="grim-hist-bar">
         <span class="grim-hist-title">${GIC.chronicle}<span>Летопись</span></span>
@@ -1668,6 +1678,10 @@ function _grimRenderHistory() {
         <section class="grim-hist-pv">${preview}</section>
       </div>
     </div>`;
+    if (hadFocus) {
+        const tgt = ov.querySelector('.grim-hist-item.active') || ov.querySelector(FOCUSABLE);
+        if (tgt) tgt.focus();
+    }
 }
 
 // Roll the note back to a stored version. Before overwriting, save the current
