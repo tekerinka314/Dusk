@@ -1086,11 +1086,24 @@ body::after {
     border: 1px solid rgba(140, 60, 255, 0.32);
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-md), 0 0 20px rgba(80, 20, 180, 0.18);
-    animation: snoozeMenuIn 0.16s var(--ease-emerge) both;
+    animation: snoozeMenuIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: top center;
 }
 @keyframes snoozeMenuIn {
-    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    from { opacity: 0; transform: translateY(-7px) scale(0.96); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Smooth exit (added by closeFloatMenu before removal) — symmetric to the open. */
+.snooze-menu.float-menu-closing {
+    animation: snoozeMenuOut 0.17s cubic-bezier(0.4, 0, 1, 1) both !important;
+    pointer-events: none;
+}
+@keyframes snoozeMenuOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to   { opacity: 0; transform: translateY(-7px) scale(0.96); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .snooze-menu.float-menu-closing { animation: none !important; }
 }
 .snooze-menu button {
     display: flex;
@@ -1114,10 +1127,55 @@ body::after {
 /* Idea 3: demote parent-picker uses the same floating menu, scrollable task list */
 .snooze-menu.demote-menu { max-width: 250px; max-height: 320px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent; }
 .float-menu-head {
-    font-family: var(--font-label); font-size: 9px; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--text-muted); padding: 3px 10px 6px;
+    font-family: var(--font-label); font-size: 9.5px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--accent-hover); font-weight: 600;
+    padding: 3px 10px 6px;
 }
 .snooze-menu .float-menu-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
+/* Task-row overflow «…»: rare actions (template / duplicate / demote) */
+.snooze-menu.task-more-menu { min-width: 190px; }
+.snooze-menu.task-more-menu button span { white-space: nowrap; }
+/* «…» glyph is a thin column — widened lozenges + a small bump balance it with
+   neighbours without making its footprint exceed theirs. */
+.btn-task-action.btn-task-more svg { width: 15px; height: 15px; }
+
+/* The new sub-check mode toolbar rosette reads light/airy → enlarge it (~1.4×) so
+   it carries the same visual weight as the other "вид" glyphs. */
+#btn-sub-anymode svg { width: 20px; height: 20px; }
+
+/* Demote parent-picker group headers (rendered only for non-empty buckets). */
+.snooze-menu.demote-menu .demote-group-head {
+    font-family: var(--font-label); font-size: 9px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--accent-hover); font-weight: 600;
+    padding: 8px 10px 3px;
+    border-top: 1px solid rgba(140, 60, 255, 0.22);
+}
+.snooze-menu.demote-menu .demote-group-head:first-of-type { border-top: none; padding-top: 3px; }
+
+/* Compact sub-check mode selector (toolbar 2-option + per-task 3-option). The
+   selected radio glows with the accent so the current mode reads at a glance. A
+   dedicated, more pronounced pop-in makes the open unmistakable even when it
+   swaps in over the "…" menu at the same anchor. */
+.snooze-menu.submode-menu,
+.snooze-menu.demote-subs-menu {
+    animation: subMenuPop 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes subMenuPop {
+    from { opacity: 0; transform: translateY(-10px) scale(0.92); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .snooze-menu.submode-menu, .snooze-menu.demote-subs-menu { animation: none; }
+}
+.snooze-menu.submode-menu { min-width: 196px; }
+.snooze-menu.submode-menu button span { white-space: nowrap; }
+.snooze-menu.submode-menu .submode-opt.on {
+    background: var(--accent-soft, rgba(110, 30, 210, 0.20));
+    color: var(--text-primary);
+}
+.snooze-menu.submode-menu .submode-opt.on svg { opacity: 1; }
+.snooze-menu.demote-subs-menu { min-width: 168px; }
+.snooze-menu.demote-subs-menu button span { white-space: nowrap; }
 
 /* ── Idea 4: quick-add typeahead dropdown (anchored under the new-task input) ── */
 .qa-menu {

@@ -112,6 +112,38 @@ function hexToRgb(h) {
 //    drag    — 6-dot grid = universal drag affordance
 // ============================================================
 const IC = {
+    // Overflow «…» — gothic vine of lozenges (more actions). Lozenges widened a
+    // touch (±2.65) + a small CSS size bump (.btn-task-more) so the thin column
+    // reads as substantial as its neighbours without overpowering them.
+    more: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 8.5V9.5M12 14.5V15.5" opacity=".55"/>
+        <path d="M12 3L15.5 6L12 9L8.5 6Z"/>
+        <path d="M12 9L15.5 12L12 15L8.5 12Z"/>
+        <path d="M12 15L15.5 18L12 21L8.5 18Z"/>
+        <circle cx="12" cy="6" r=".66" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="12" r=".66" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="18" r=".66" fill="currentColor" stroke="none"/>
+    </svg>`,
+    // Gothic rosette (quatrefoil) — "parent checks by subtasks" motif. Three fill
+    // variants light progressively: g4 = inherit (outline), g4any = one petal +
+    // core lit ("any one → the whole"), g4all = every petal lit ("all → whole").
+    g4: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="7" r="2.2"/><circle cx="17" cy="12" r="2.2"/>
+        <circle cx="12" cy="17" r="2.2"/><circle cx="7" cy="12" r="2.2"/>
+        <circle cx="12" cy="12" r="2.1"/>
+    </svg>`,
+    g4any: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="7" r="2.2" fill="currentColor" stroke="none"/>
+        <circle cx="17" cy="12" r="2.2"/><circle cx="12" cy="17" r="2.2"/><circle cx="7" cy="12" r="2.2"/>
+        <circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none" opacity=".9"/>
+    </svg>`,
+    g4all: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="7" r="2.2" fill="currentColor" stroke="none"/>
+        <circle cx="17" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="17" r="2.2" fill="currentColor" stroke="none"/>
+        <circle cx="7" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none" opacity=".9"/>
+    </svg>`,
     // Skull (delete forever)
     skull: `<svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
         <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
@@ -553,6 +585,7 @@ let state = {
     nextSubId:        1,
     sortMode:         'priority',  // 'priority' | 'order'  (global sort mode)
     sortModeOverrides: {},         // { [groupId | '__ungrouped__']: 'priority' | 'order' }
+    subAnyMode:       false,       // global default: parent auto-checks by ALL subs (false) / ANY one sub (true)
 };
 
 // ---- UI STATE ----
@@ -1075,6 +1108,7 @@ function loadUiState() {
     if (todayBtn) todayBtn.classList.toggle('active', isTodayMode);
     const splitBtn = document.getElementById('btn-split-groups');
     if (splitBtn) splitBtn.classList.toggle('active', isGroupSplitMode);
+    updateSubAnyModeBtn();
     // Sort mode button
     const sortBtn = document.getElementById('btn-sort-mode');
     if (sortBtn) {
@@ -5199,11 +5233,21 @@ function appendScheduleSection(container, withDl, noDl, groupId) {
 // extract them BEFORE the mode-specific sort so they sit on top in normal,
 // schedule AND split modes. In split mode they get their own gothic
 // "Закреплённые" zone (see appendPinnedBlock); elsewhere they're plain cards.
+// "Incomplete-only" filter predicate. Keeps a task that is not done — OR that was
+// AUTO-checked from its subtasks (any-mode) yet still has active subtasks: hiding
+// such a parent would strand its pending subtasks, so unchecking the triggering
+// subtask to reopen the parent becomes impossible. Manually-checked parents are
+// unaffected (autoChecked is false) and still hide as before.
+function _visibleUnderFilter(t) {
+    return (!t.checked && !t.cycleChecked) ||
+           (t.autoChecked && (t.subtasks || []).some(s => !s.checked && !s.cycleChecked));
+}
+
 function extractPinned(tasks, query) {
     // Mirror the visibility filters used by filterAndSort so a hidden task never
     // surfaces in the pinned block.
     let list = [...tasks];
-    if (isFiltered)  list = list.filter(t => !t.checked && !t.cycleChecked);
+    if (isFiltered)  list = list.filter(_visibleUnderFilter);
     if (isTodayMode) list = list.filter(t => isDueTodayOrOverdue(t.deadline));
     if (query) list = list.filter(t =>
         t.text.toLowerCase().includes(query) ||
@@ -5291,7 +5335,7 @@ function isDueTodayOrOverdue(dl) {
 function filterAndSort(tasks, query, groupId = null) {
     let list = [...tasks];
     // Hide both permanently-done AND cycle-completed recurring tasks when filter is on.
-    if (isFiltered) list = list.filter(t => !t.checked && !t.cycleChecked);
+    if (isFiltered) list = list.filter(_visibleUnderFilter);
     // P-B: "Today" view keeps only tasks due today or overdue.
     if (isTodayMode) list = list.filter(t => isDueTodayOrOverdue(t.deadline));
     if (query) list = list.filter(t =>
@@ -5326,7 +5370,7 @@ function filterAndSort(tasks, query, groupId = null) {
 // Sort by deadline (earliest first), tasks without deadline at bottom sorted by priority
 function filterAndSortDeadline(tasks, query) {
     let list = [...tasks];
-    if (isFiltered) list = list.filter(t => !t.checked && !t.cycleChecked);
+    if (isFiltered) list = list.filter(_visibleUnderFilter);
     // P-B: "Today" view keeps only tasks due today or overdue.
     if (isTodayMode) list = list.filter(t => isDueTodayOrOverdue(t.deadline));
     if (query) list = list.filter(t =>
@@ -5502,16 +5546,42 @@ function snoozeDeadline(id, preset) {
 
 // ── Shared floating popup-menu (used by snooze + demote parent-picker) ───────
 let _floatMenuEl = null;
+let _floatMenuAnchor = null;          // the trigger button the open menu belongs to
+let _suppressReopenAnchor = null;     // set on a toggle-close so the trailing click doesn't reopen
+let _suppressReopenAt = 0;
 function closeFloatMenu() {
-    if (_floatMenuEl) { _floatMenuEl.remove(); _floatMenuEl = null; }
+    const m = _floatMenuEl;
+    _floatMenuEl = null;            // clear refs first so an immediate reopen makes a fresh element
+    _floatMenuAnchor = null;
     document.removeEventListener('pointerdown', _floatMenuOutside, true);
+    if (m) {
+        // Smooth exit: fade/scale the old element out, then remove it.
+        m.classList.add('float-menu-closing');
+        let gone = false;
+        const drop = () => { if (gone) return; gone = true; m.remove(); };
+        m.addEventListener('animationend', drop, { once: true });
+        setTimeout(drop, 240);      // safety net if animationend never fires
+    }
 }
 function _floatMenuOutside(e) {
-    if (_floatMenuEl && !_floatMenuEl.contains(e.target)) closeFloatMenu();
+    if (!_floatMenuEl || _floatMenuEl.contains(e.target)) return;
+    // A pointerdown on the very anchor that opened the menu is a toggle-close: the
+    // trailing click would otherwise re-run the opener and reopen it. Remember the
+    // anchor so _openFloatMenu suppresses that one reopen → the button toggles shut.
+    if (_floatMenuAnchor && _floatMenuAnchor.contains(e.target)) {
+        _suppressReopenAnchor = _floatMenuAnchor;
+        _suppressReopenAt = performance.now();
+    }
+    closeFloatMenu();
 }
 // Opens a body-level menu anchored under `btn`. Returns false if it just toggled
-// an already-open menu closed.
+// an already-open menu closed (incl. the same-anchor re-click toggle).
 function _openFloatMenu(btn, innerHTML, extraClass) {
+    if (_suppressReopenAnchor === btn && performance.now() - _suppressReopenAt < 400) {
+        _suppressReopenAnchor = null;
+        return false;
+    }
+    _suppressReopenAnchor = null;
     if (_floatMenuEl) { closeFloatMenu(); return false; }
     const menu = document.createElement('div');
     menu.className = 'snooze-menu' + (extraClass ? ' ' + extraClass : '');
@@ -5523,6 +5593,7 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
     menu.style.top  = Math.round(r.bottom + 5) + 'px';
     menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
     _floatMenuEl = menu;
+    _floatMenuAnchor = btn;
     // Defer so this same click doesn't immediately close it
     setTimeout(() => document.addEventListener('pointerdown', _floatMenuOutside, true), 0);
     return true;
@@ -6578,9 +6649,7 @@ function createTaskEl(task, showDlSide) {
                     <button class="btn-task-action" onclick="openRepeatModal(${task.id})" title="Повтор">${IC.ouroboros}</button>
                     <button class="btn-task-action" onclick="openPrioModal(${task.id})" title="Приоритет">${IC.spires}</button>
                     ${addNoteBtn}
-                    <button class="btn-task-action" onclick="saveTaskAsTemplate(${task.id})" title="Сохранить как шаблон">${IC.template}</button>
-                    <button class="btn-task-action" onclick="duplicateTask(${task.id})" title="Дублировать задачу">${IC.twinCoffin}</button>
-                    ${state.tasks.length > 1 ? `<button class="btn-task-action" onclick="openDemoteMenu(event, ${task.id})" title="Сделать подпунктом другой задачи">${IC.demote}</button>` : ''}
+                    <button class="btn-task-action btn-task-more" onclick="openTaskMoreMenu(event, ${task.id})" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
                     <button class="btn-task-action archive-btn" onclick="removeTask(${task.id})" title="В архив">${IC.archive}</button>
                     <button class="btn-task-action danger" onclick="deleteTaskForever(${task.id})" title="Удалить навсегда">${IC.skull}</button>
                 </div>
@@ -7261,6 +7330,7 @@ function toggleCheck(id) {
     if (!task) return;
 
     if (task.repeat && task.repeat !== 'none') {
+        task.autoChecked = false;   // manual parent toggle → auto-sync no longer owns it
         if (!task.cycleChecked) {
             task.cycleChecked = true;
             task.nextReset    = getNextResetTimestamp(task);
@@ -7301,6 +7371,7 @@ function toggleCheck(id) {
     }
 
     task.checked = !task.checked;
+    task.autoChecked = false;   // manual parent toggle → auto-sync no longer owns it
     // Subtasks are fully independent — parent toggle does NOT change their state
     if (task.checked) { playSound('check'); vibrate(30); }
     saveState(); // persist immediately — render is deferred until the fade-out ends
@@ -7873,6 +7944,7 @@ function checkCycleResets() {
             } else if (Date.now() >= t.nextReset) {
                 t.cycleChecked = false;
                 t.nextReset    = null;
+                t.autoChecked  = false;   // parent's own cycle reset clears the auto-flag
                 t.deadline     = shiftDeadline(t.deadline, t.repeat);
                 changed = true;
             }
@@ -7893,16 +7965,13 @@ function checkCycleResets() {
                 }
             }
         });
-        // Problem 5: a subtask returning to "active" must also re-open a parent that
-        // was auto-completed because every subtask was done — otherwise the parent
-        // stays marked done until the user manually toggles it. Mirrors the
-        // "any sub unchecked → uncheck parent" rule in toggleSubtask().
+        // Problem 5: a subtask returning to "active" must re-open a parent that was
+        // auto-completed from its subtasks — otherwise it stays marked done until a
+        // manual toggle. Mode-aware + uncheck-only (allowAutoCheck:false): a reset
+        // can only *reduce* done-subs, so this never re-checks the parent or fights
+        // the parent's own repeat; and a manually-checked parent is left untouched.
         if (subReset && (t.subtasks || []).length > 0) {
-            const allSubsDone = t.subtasks.every(s => s.checked || s.cycleChecked);
-            if (!allSubsDone) {
-                if (t.cycleChecked) { t.cycleChecked = false; t.nextReset = null; changed = true; }
-                else if (t.checked) { t.checked = false; changed = true; }
-            }
+            if (_syncParentDone(t, { allowAutoCheck: false, subNowChecked: false }) !== 0) changed = true;
         }
     });
     if (changed) { saveState(); render(); }
@@ -8205,6 +8274,55 @@ function addSubtask(taskId) {
 
 function handleSubAdd(event, taskId) { if (event.key === 'Enter') addSubtask(taskId); }
 
+// ── Parent ⇄ subtasks auto-check ─────────────────────────────────────────────
+// Effective mode for a task: its own override ('any'/'all') or the global default
+// (state.subAnyMode → 'any', else 'all'). 'inherit'/undefined fall through to global.
+function _subCheckMode(task) {
+    const m = task && task.subCheckMode;
+    if (m === 'any' || m === 'all') return m;
+    return state.subAnyMode ? 'any' : 'all';
+}
+// Auto-check / auto-uncheck the parent from its subtasks under the effective mode.
+// "Respect manual": auto-sync only manages a parent it auto-checked itself
+// (task.autoChecked) — a manually-marked parent is never auto-uncleared.
+//   allowAutoCheck:false → uncheck-direction only (used by cycle resets so a
+//   subtask returning to active never *re-checks* the parent or fights its own repeat).
+// Returns 1 (auto-checked), -1 (auto-unchecked) or 0 (no change).
+function _syncParentDone(task, { allowAutoCheck, subNowChecked }) {
+    const subs = task.subtasks || [];
+    if (!subs.length) return 0;
+    const mode        = _subCheckMode(task);
+    const isRecurring = task.repeat && task.repeat !== 'none';
+    const isDone      = isRecurring ? !!task.cycleChecked : !!task.checked;
+    const doCheck = () => {
+        if (isRecurring) { task.cycleChecked = true; task.nextReset = getNextResetTimestamp(task); }
+        else             { task.checked = true; }
+        task.autoChecked = true; return 1;
+    };
+    const doUncheck = () => {
+        if (isRecurring) { task.cycleChecked = false; task.nextReset = null; }
+        else             { task.checked = false; }
+        task.autoChecked = false; return -1;
+    };
+
+    if (mode === 'any') {
+        // Action-driven: a sub turning ON checks the parent; a sub turning OFF
+        // unchecks it even while OTHER subs stay checked. With no direction given
+        // (a mode switch) fall back to "is any sub done?".
+        if (subNowChecked === true)  return (!isDone && allowAutoCheck) ? doCheck() : 0;
+        if (subNowChecked === false) return ( isDone && task.autoChecked) ? doUncheck() : 0;
+        const anyDone = subs.some(s => s.checked || s.cycleChecked);
+        if ( anyDone && !isDone && allowAutoCheck)   return doCheck();
+        if (!anyDone &&  isDone && task.autoChecked) return doUncheck();
+        return 0;
+    }
+    // 'all' mode — state-driven: parent done iff every sub is done.
+    const allDone = subs.every(s => s.checked || s.cycleChecked);
+    if ( allDone && !isDone && allowAutoCheck)   return doCheck();
+    if (!allDone &&  isDone && task.autoChecked) return doUncheck();
+    return 0;
+}
+
 function toggleSubtask(taskId, subId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -8212,101 +8330,40 @@ function toggleSubtask(taskId, subId) {
     if (!sub) return;
     pushUndo();
 
-    // P6: subtask-level cycle repeat — toggle cycleChecked, not checked
+    // P6: subtask-level cycle repeat toggles cycleChecked (not checked).
     const subIsRecurring = sub.repeat && sub.repeat !== 'none';
+    let subNowChecked;
     if (subIsRecurring) {
         sub.cycleChecked = !sub.cycleChecked;
         sub.checked = false;
-        // Set nextReset when marking done so checkCycleResets can auto-uncheck later
-        if (sub.cycleChecked) {
-            sub.nextReset = getNextResetTimestamp(sub);
-        } else {
-            sub.nextReset = null;
-        }
-
-        // P3: also check if all subs are now done → auto-complete parent
-        if (sub.cycleChecked) {
-            const allSubsDone = task.subtasks.length > 0 &&
-                task.subtasks.every(s => s.checked || s.cycleChecked);
-            if (allSubsDone) {
-                // V-5: no extra pushUndo — the snapshot at the top of toggleSubtask
-                // already covers this whole action, so one Ctrl+Z reverts both the
-                // subtask toggle and the parent auto-completion.
-                const isRecurring = task.repeat && task.repeat !== 'none';
-                if (isRecurring) {
-                    if (!task.cycleChecked) {
-                        task.cycleChecked = true;
-                        task.nextReset = getNextResetTimestamp(task);
-                        playSound('check'); vibrate(30);
-                    }
-                } else if (!task.checked) {
-                    task.checked = true;
-                    playSound('check'); vibrate(30);
-                }
-                saveState(); render();
-                const allFinished = state.tasks.length > 0 &&
-                    state.tasks.every(t => t.checked || t.cycleChecked);
-                if (allFinished) showAllDone();
-                return;
-            }
-        }
-
-        saveState();
-        if (sub.cycleChecked) playSound('check');
-        // Re-sort so cycle-checked items move to their correct position group,
-        // with a smooth fade-out of the old position first (problem 4).
-        _animateSubThenRefresh(taskId, subId);
-        return;
+        sub.nextReset = sub.cycleChecked ? getNextResetTimestamp(sub) : null;
+        subNowChecked = sub.cycleChecked;
+    } else {
+        sub.checked = !sub.checked;
+        subNowChecked = sub.checked;
     }
 
-    sub.checked = !sub.checked;
+    // Mode-aware parent sync. V-5: single undo point (the snapshot above covers the
+    // subtask toggle AND any parent auto-completion → one Ctrl+Z reverts both).
+    const pc = _syncParentDone(task, { allowAutoCheck: true, subNowChecked });
 
-    const isRecurring = task.repeat && task.repeat !== 'none';
+    if (pc === 1)            { playSound('check'); vibrate(30); }   // parent auto-completed (single sound)
+    else if (subNowChecked)  { playSound('check'); }
 
-    // All subs "done" → auto-mark parent done.
-    const allSubsDone = task.subtasks.length > 0 &&
-        task.subtasks.every(s => s.checked || s.cycleChecked);
-
-    if (sub.checked && allSubsDone) {
-        // V-5: single undo point (snapshot taken at the top of toggleSubtask).
-        if (isRecurring) {
-            if (!task.cycleChecked) {
-                task.cycleChecked = true;
-                task.nextReset    = getNextResetTimestamp(task);
-                playSound('check'); vibrate(30);
-            }
-        } else if (!task.checked) {
-            task.checked = true;
-            playSound('check'); vibrate(30);
-        }
+    if (pc !== 0) {
+        // Parent done-state changed → full render so the parent row re-seats.
         saveState(); render();
-        const allFinished = state.tasks.length > 0 &&
-            state.tasks.every(t => t.checked || t.cycleChecked);
-        if (allFinished) showAllDone();
+        if (pc === 1) {
+            const allFinished = state.tasks.length > 0 &&
+                state.tasks.every(t => t.checked || t.cycleChecked);
+            if (allFinished) showAllDone();
+        }
         return;
     }
 
-    // Any sub unchecked → auto-uncheck parent
-    if (!sub.checked) {
-        if (isRecurring) {
-            if (task.cycleChecked) {
-                task.cycleChecked = false;
-                task.nextReset    = null;
-                saveState(); render();
-                return;
-            }
-        } else if (task.checked) {
-            task.checked = false;
-            saveState(); render();
-            return;
-        }
-    }
-
-    // Re-sort: checked items sink to bottom, unchecked float back up.
-    // Fade the old position out first so the move reads smoothly in both the
-    // normal and split layouts (problem 4).
+    // Parent unchanged → re-sort just this sublist, fading the old slot out first
+    // so the move reads smoothly in both normal and split layouts (problem 4).
     saveState();
-    if (sub.checked) playSound('check');
     _animateSubThenRefresh(taskId, subId);
 }
 
@@ -8375,22 +8432,160 @@ function promoteSubtask(taskId, subId) {
 }
 
 // ── Idea 3: demote a task into a subtask of another task ─────────────────────
-function openDemoteMenu(event, id) {
+// Overflow «…» on a task row — declutters the action row by holding the rarely
+// used actions (template / duplicate / demote) behind one gothic trigger.
+let _taskMoreAnchor = null;
+function openTaskMoreMenu(event, id) {
     event.stopPropagation();
-    const candidates = state.tasks.filter(t => t.id !== id && !t.checked && !t.cycleChecked);
-    if (!candidates.length) { showToast('Нет другой задачи для вложения'); return; }
-    const items = candidates.slice(0, 40).map(t =>
-        `<button type="button" role="menuitem" onclick="demoteTask(${id}, ${t.id})"><span class="float-menu-name">${escHtml(t.text)}</span></button>`
-    ).join('');
-    _openFloatMenu(event.currentTarget, `<div class="float-menu-head">В подпункт к…</div>${items}`, 'demote-menu');
+    _taskMoreAnchor = event.currentTarget;
+    const task      = state.tasks.find(t => t.id === id);
+    const canDemote = state.tasks.length > 1;
+    const hasSubs   = task && (task.subtasks || []).length > 0;
+    // Per-task sub-check selector — only meaningful when the task has subtasks. The
+    // entry shows the effective mode's rosette variant; clicking opens the 3-option
+    // compact selector (как везде / по любому / по всем).
+    let subModeItem = '';
+    if (hasSubs) {
+        const eff = task.subCheckMode === 'any' ? IC.g4any
+                  : task.subCheckMode === 'all' ? IC.g4all
+                  : (state.subAnyMode ? IC.g4any : IC.g4all);
+        subModeItem = `<button type="button" role="menuitem" onclick="_taskMore('submode', ${id})">${eff}<span>Чек по подпунктам</span></button>`;
+    }
+    _openFloatMenu(event.currentTarget, `
+        <button type="button" role="menuitem" onclick="_taskMore('tpl', ${id})">${IC.template}<span>Сохранить как шаблон</span></button>
+        <button type="button" role="menuitem" onclick="_taskMore('dup', ${id})">${IC.twinCoffin}<span>Дублировать задачу</span></button>
+        ${subModeItem}
+        ${canDemote ? `<button type="button" role="menuitem" onclick="_taskMore('demote', ${id})">${IC.demote}<span>Сделать подпунктом</span></button>` : ''}`,
+        'task-more-menu');
+}
+function _taskMore(act, id) {
+    const anchor = _taskMoreAnchor;
+    closeFloatMenu();
+    if (act === 'tpl')          saveTaskAsTemplate(id);
+    else if (act === 'dup')     duplicateTask(id);
+    else if (act === 'submode') _openSubModeMenu(anchor, id);
+    else if (act === 'demote')  _openDemoteMenuAt(anchor, id);
 }
 
-function demoteTask(id, targetId) {
+// Per-task compact selector for "parent checks by subtasks" (3 options incl. inherit).
+function _openSubModeMenu(anchorEl, id) {
+    const task = state.tasks.find(t => t.id === id);
+    if (!task) return;
+    const cur = (task.subCheckMode === 'any' || task.subCheckMode === 'all') ? task.subCheckMode : 'inherit';
+    const opt = (val, icon, label) =>
+        `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" onclick="setTaskSubMode(${id}, '${val}')">${icon}<span>${label}</span></button>`;
+    _openFloatMenu(anchorEl, `
+        <div class="float-menu-head">Чек родителя по подпунктам</div>
+        ${opt('inherit', IC.g4,    'Как везде')}
+        ${opt('any',     IC.g4any, 'По любому подпункту')}
+        ${opt('all',     IC.g4all, 'По всем подпунктам')}`,
+        'submode-menu');
+}
+function setTaskSubMode(id, mode) {
+    closeFloatMenu();
+    const task = state.tasks.find(t => t.id === id);
+    if (!task) return;
+    pushUndo();
+    task.subCheckMode = mode;   // 'inherit' | 'any' | 'all'
+    _syncParentDone(task, { allowAutoCheck: true });   // re-evaluate parent under the new mode
+    saveState(); render();
+}
+
+// Global compact selector (2 options) for the default sub-check mode.
+function openSubAnyModeMenu(event) {
+    event.stopPropagation();
+    const cur = state.subAnyMode ? 'any' : 'all';
+    const opt = (val, icon, label) =>
+        `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" onclick="setGlobalSubMode('${val}')">${icon}<span>${label}</span></button>`;
+    _openFloatMenu(event.currentTarget, `
+        <div class="float-menu-head">Чек родителя по подпунктам</div>
+        ${opt('all', IC.g4all, 'По всем подпунктам')}
+        ${opt('any', IC.g4any, 'По любому подпункту')}`,
+        'submode-menu');
+}
+function setGlobalSubMode(val) {
+    closeFloatMenu();
+    pushUndo();
+    state.subAnyMode = (val === 'any');
+    // Re-evaluate every task that inherits the global default under the new mode.
+    state.tasks.forEach(t => {
+        if (t.subCheckMode !== 'any' && t.subCheckMode !== 'all') _syncParentDone(t, { allowAutoCheck: true });
+    });
+    updateSubAnyModeBtn();
+    saveState(); render();
+}
+function updateSubAnyModeBtn() {
+    const b = document.getElementById('btn-sub-anymode');
+    if (!b) return;
+    // Default (all) is the baseline → not "active"; "any" is the engaged state.
+    b.classList.toggle('active', !!state.subAnyMode);
+    b.innerHTML = state.subAnyMode ? IC.g4any : IC.g4all;
+    b.title = state.subAnyMode
+        ? 'Родитель чекается по любому подпункту'
+        : 'Родитель чекается по всем подпунктам';
+}
+
+function openDemoteMenu(event, id) {
+    event.stopPropagation();
+    _openDemoteMenuAt(event.currentTarget, id);
+}
+let _demoteAnchor = null;
+// Anchored variant so the "…" overflow menu can re-open it on its own trigger.
+// Candidates are bucketed by group (incl. «Без группы»); a section header renders
+// only for a group that actually holds a candidate, and only when ≥2 buckets exist
+// (a lone ungrouped list stays flat).
+function _openDemoteMenuAt(anchorEl, id) {
+    const candidates = state.tasks.filter(t => t.id !== id && !t.checked && !t.cycleChecked);
+    if (!candidates.length) { showToast('Нет другой задачи для вложения'); return; }
+    _demoteAnchor = anchorEl;
+
+    const sections = [];
+    const ungrouped = candidates.filter(t => !t.groupId);
+    if (ungrouped.length) sections.push({ name: 'Без группы', items: ungrouped });
+    state.groups.forEach(g => {
+        const items = candidates.filter(t => t.groupId === g.id);
+        if (items.length) sections.push({ name: g.name, items });
+    });
+    const showHeaders = !(sections.length === 1 && sections[0].name === 'Без группы');
+
+    let html = '<div class="float-menu-head">В подпункт к…</div>';
+    let shown = 0;
+    for (const sec of sections) {
+        if (shown >= 40) break;
+        if (showHeaders) html += `<div class="demote-group-head">${escHtml(sec.name)}</div>`;
+        for (const t of sec.items) {
+            if (shown >= 40) break;
+            html += `<button type="button" role="menuitem" onclick="_pickDemoteTarget(${id}, ${t.id})"><span class="float-menu-name">${escHtml(t.text)}</span></button>`;
+            shown++;
+        }
+    }
+    _openFloatMenu(anchorEl, html, 'demote-menu');
+}
+
+// When the source task carries its own subtasks, ask whether to drop them (default)
+// or carry them alongside; otherwise demote straight away.
+function _pickDemoteTarget(id, targetId) {
+    const task = state.tasks.find(t => t.id === id);
+    if (task && (task.subtasks || []).length > 0) {
+        const anchor = _demoteAnchor;
+        closeFloatMenu();
+        _openFloatMenu(anchor, `
+            <div class="float-menu-head">Подпункты задачи…</div>
+            <button type="button" role="menuitem" onclick="demoteTask(${id}, ${targetId}, true)"><span>Отбросить</span></button>
+            <button type="button" role="menuitem" onclick="demoteTask(${id}, ${targetId}, false)"><span>Перенести рядом</span></button>`,
+            'demote-subs-menu');
+    } else {
+        demoteTask(id, targetId, true);
+    }
+}
+
+function demoteTask(id, targetId, dropSubs) {
     closeFloatMenu();
     const task   = state.tasks.find(t => t.id === id);
     const target = state.tasks.find(t => t.id === targetId);
     if (!task || !target || id === targetId) return;
     pushUndo();
+    const hadSubs = (task.subtasks || []).length > 0;
     const base = target.subtasks.length;
     target.subtasks.push({
         id: state.nextSubId++, text: task.text, checked: !!task.checked,
@@ -8402,14 +8597,18 @@ function demoteTask(id, targetId) {
         repeatAnchorMonthday: task.repeatAnchorMonthday || null,
         cycleChecked: !!task.cycleChecked, nextReset: task.nextReset || null,
     });
-    // Subtasks can't nest — flatten the demoted task's own subtasks into the target.
-    (task.subtasks || []).forEach((s, i) => {
-        target.subtasks.push({ ...s, id: state.nextSubId++, order: base + 1 + i });
-    });
+    // Subtasks can't nest. dropSubs (default) discards the demoted task's own
+    // subtasks; otherwise flatten them alongside it under the target.
+    if (!dropSubs) {
+        (task.subtasks || []).forEach((s, i) => {
+            target.subtasks.push({ ...s, id: state.nextSubId++, order: base + 1 + i });
+        });
+    }
     target.subtasksOpen = true;
     state.tasks = state.tasks.filter(t => t.id !== id);
     saveState(); render();
-    showToast('Задача стала подпунктом');
+    showToast(dropSubs && hadSubs ? 'Задача стала подпунктом · подпункты отброшены' : 'Задача стала подпунктом',
+              hadSubs ? { undo: true } : undefined);
 }
 
 function cycleSubPriority(taskId, subId) {
