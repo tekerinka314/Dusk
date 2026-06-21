@@ -6260,6 +6260,14 @@ kbd {
         transition: opacity var(--dur-standard) var(--ease-sink), transform var(--dur-ritual) var(--ease-sink);
     }
 }
+/* NA-4 (option 2): a heavy note body re-flows its text every frame as the pane width
+   animates on fold/unfold (flex-basis 100%↔198px), stalling the pane up to 1–2 s on
+   big notes. For such notes grimToggleCollapse adds .grim-snap for one frame so the
+   transition is suppressed — the fold/unfold is instant (a single reflow) instead of a
+   janky animation. Normal-size notes keep the smooth motion. */
+.grim-layout.grim-snap,
+.grim-layout.grim-snap .grim-list,
+.grim-layout.grim-snap .grim-detail { transition: none !important; }
 /* Focus toggle — corner button on the page (desktop only; mobile uses the back button instead). */
 .grim-focus-toggle {
     position: absolute; top: 6px; right: 12px; z-index: 2;
