@@ -6567,6 +6567,11 @@ kbd {
     transform: translateX(0) scale(1);
     transition: opacity var(--dur-ritual) var(--ease-emerge), transform var(--dur-ritual) var(--ease-emerge);
 }
+/* NA-4 (option 3): while folding/unfolding a note whose .grim-page width is pinned in px
+   (so the heavy body never re-flows — see grimToggleCollapse), the pane must clip the
+   fixed-width page instead of letting it overflow to the right. Held from collapse until
+   the expand settles, then removed with the pin. */
+.grim-detail.grim-pin { overflow: hidden; }
 .grim-list {
     display: flex; flex-direction: column; gap: 7px;
     flex: 0 0 244px; min-width: 0;   /* flex item in the layout; width driven below */

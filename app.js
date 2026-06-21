@@ -1789,6 +1789,20 @@ function grimToggleCollapse() {
     clearTimeout(_grimSaveT); saveState();   // flush pending edits before folding the editor away
     grimNoteCollapsed = !grimNoteCollapsed;
     const layoutEl = document.getElementById('grim-layout');
+    const detailEl = document.getElementById('grim-detail');
+    const pageEl   = detailEl && detailEl.querySelector('.grim-page');
+    const desktop  = !window.matchMedia || window.matchMedia('(min-width: 641px)').matches;
+    // NA-4 (option 3): pin the page's pixel width before the note pane folds to zero.
+    // The fold shrinks .grim-detail to ~0 width; without a pin the heavy body re-flows
+    // its text to that width — the "vertical line" artifact — and back on expand, up to
+    // 1–2 s of layout. Pinned in px the body never re-flows; .grim-pin clips the fixed-width
+    // page to the pane (so it can't overflow right while the pane is narrower than the pin).
+    // The opacity/transform veil still masks the fold. Un-pinned on expand-settle, when the
+    // pane is full again so the natural width equals the pin → no reflow then either.
+    if (desktop && pageEl && grimNoteCollapsed) {
+        pageEl.style.width = pageEl.getBoundingClientRect().width + 'px';
+        detailEl.classList.add('grim-pin');
+    }
     _grimApplyFocus(layoutEl);
     if (!grimNoteCollapsed) {                // re-expanded → restore editing + re-glue table overlay
         if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
@@ -1806,6 +1820,8 @@ function grimToggleCollapse() {
                 if (done) return; done = true;
                 clearTimeout(fb);
                 layoutEl.removeEventListener('transitionend', onEnd);
+                if (pageEl) pageEl.style.width = '';            // NA-4: un-pin once the pane is full again
+                if (detailEl) detailEl.classList.remove('grim-pin');
                 _grimReflowOverlay();
             };
             const onEnd = (ev) => {
@@ -1813,6 +1829,9 @@ function grimToggleCollapse() {
             };
             layoutEl.addEventListener('transitionend', onEnd);
             const fb = setTimeout(finish, 700);
+        } else {
+            if (pageEl) pageEl.style.width = '';
+            if (detailEl) detailEl.classList.remove('grim-pin');
         }
     }
 }
