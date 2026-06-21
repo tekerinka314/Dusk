@@ -1784,26 +1784,11 @@ function _grimApplyFocus(layoutEl) {
 
 // Desktop: fold the open record's pane away to browse the full-width list (selection kept),
 // or expand it again. Triggered by clicking the entry that is already open (toggle).
-// NA-4 (option 2): note bodies past this size (chars of HTML) snap instead of animating
-// the fold/unfold — the per-frame text re-flow during the width transition otherwise
-// stalls a heavy note for up to 1–2 s. Tunable: lower if a laggy note still animates,
-// raise if normal notes lose the animation needlessly.
-const GRIM_SNAP_CHARS = 50000;
 function grimToggleCollapse() {
     if (!currentNoteId) return;
     clearTimeout(_grimSaveT); saveState();   // flush pending edits before folding the editor away
     grimNoteCollapsed = !grimNoteCollapsed;
     const layoutEl = document.getElementById('grim-layout');
-    // NA-4 (option 2): for a heavy body, suppress the width animation for this toggle
-    // (instant snap = one reflow, no per-frame re-flow jank). Removed after it paints so
-    // later interactions on smaller notes animate again.
-    const _curNote = _grimCurrentNote();
-    if (layoutEl && _curNote && (_curNote.body || '').length > GRIM_SNAP_CHARS) {
-        layoutEl.classList.add('grim-snap');
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-            const l = document.getElementById('grim-layout'); if (l) l.classList.remove('grim-snap');
-        }));
-    }
     _grimApplyFocus(layoutEl);
     if (!grimNoteCollapsed) {                // re-expanded → restore editing + re-glue table overlay
         if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
