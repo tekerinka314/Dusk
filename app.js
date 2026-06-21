@@ -4175,8 +4175,8 @@ function _grimToolbarHTML() {
 }
 
 // ── Markdown export ─────────────────────────────────────────────────────
-function _grimDownload(name, text) {
-    const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+function _grimDownload(name, text, mime) {
+    const blob = new Blob([text], { type: (mime || 'text/markdown') + ';charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = name;
@@ -4276,6 +4276,9 @@ const GRIM_IO_IC = {
     import:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 13.2h15.2v5.4a1.2 1.2 0 0 1-1.2 1.2H5.6a1.2 1.2 0 0 1-1.2-1.2Z"/><path d="M4.4 13.2Q4.4 10.6 7 10.6h10q2.6 0 2.6 2.6"/><path d="M8.4 10.8v9M15.6 10.8v9" opacity=".5"/><circle cx="8.4" cy="12.6" r=".55" fill="currentColor" stroke="none"/><circle cx="15.6" cy="12.6" r=".55" fill="currentColor" stroke="none"/><rect x="10.7" y="14.6" width="2.6" height="3" rx=".4"/><circle cx="12" cy="15.6" r=".5"/><path d="M5.7 19.8l-.7 1.4M18.3 19.8l.7 1.4" opacity=".7"/><path d="M9.7 2.3h4.6q1 0 1 1v4.3q0 1-1 1H9.7q-1 0-1-1V3.3q0-1 1-1Z"/><path d="M14.3 2.3q1 0 1 1 0 .9-1 .9h-1.5" opacity=".65"/><path d="M8.7 3.6h5.6" opacity=".5"/><path d="M10.2 5.2h3.1M10.2 6.6h2.1" opacity=".45"/></svg>`,
     backup:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.4h10a1.6 1.6 0 0 1 1.6 1.6V19a1.6 1.6 0 0 1-1.6 1.6H6Q4 20.6 4 18.7V5.3Q4 3.4 6 3.4Z"/><path d="M6.6 3.4V20.6" opacity=".4"/><path d="M8 5.4 8.7 6.1 8 6.8 7.3 6.1Z" fill="currentColor" stroke="none" opacity=".7"/><path d="M15 5.4 15.7 6.1 15 6.8 14.3 6.1Z" fill="currentColor" stroke="none" opacity=".7"/><path d="M8 17.4 8.7 18.1 8 18.8 7.3 18.1Z" fill="currentColor" stroke="none" opacity=".7"/><path d="M15 17.4 15.7 18.1 15 18.8 14.3 18.1Z" fill="currentColor" stroke="none" opacity=".7"/><circle cx="11.8" cy="12" r="2.9"/><path d="M11.8 9.8 12.7 12 11.8 14.2 10.9 12Z" opacity=".65"/><path d="M17.6 10.2h1.4a.6.6 0 0 1 .6.6v2.4a.6.6 0 0 1-.6.6h-1.4"/></svg>`,
     reading: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 4.2q1.3 0 1.3 1.4v11.2q0 1.4 1.3 1.4h-6.6q-1.3 0-1.3-1.4V5.6q0-1.4 1.3-1.4Z" opacity=".5"/><path d="M11.4 6.4q1.3 0 1.3 1.4v11.2q0 1.4 1.3 1.4H7.4q-1.3 0-1.3-1.4V7.8q0-1.4 1.3-1.4Z"/><path d="M6.1 7.5h6.6M6.1 19h6.6" opacity=".45"/><path d="M7.7 10.3h3.4M7.7 12.2h3.4M7.7 14.1h2.2" opacity=".45"/><path d="M4.4 13.4q7.5 2 15.2 0" opacity=".85"/><path d="M11.6 14.1q.5 1.5-.5 2.8m2-2.6q.6 1.4-.3 2.8" opacity=".6"/></svg>`,
+    // «Полный бэкап» (.json + летопись) — warded coffer/vault: arched lid, banded
+    // body, cross-keyhole seal. Carries the whole grimoire incl. «Летопись».
+    full:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.6q0-1.6 1.6-1.6h10.8q1.6 0 1.6 1.6v7.9a1.3 1.3 0 0 1-1.3 1.3H6.3A1.3 1.3 0 0 1 5 18.5Z"/><path d="M5 10.6q1-4.2 7-4.2t7 4.2" opacity=".7"/><path d="M5 13.2h14" opacity=".5"/><path d="M9 9V19.8M15 9V19.8" opacity=".4"/><circle cx="12" cy="13.1" r="1.45"/><path d="M12 14.5v2.3"/></svg>`,
 };
 function _grimDownloadBlob(name, blob) {
     const url = URL.createObjectURL(blob);
@@ -4321,6 +4324,39 @@ function grimExportReading(scope) {
     _grimDownloadBlob('grimoire.zip', _grimZipStore(files));
     showToast('Экспортировано: grimoire.zip (' + files.length + ')');
 }
+// NA-3 (Б): full grimoire backup as JSON — unlike the .md/.zip exports this carries
+// the rich data markdown can't hold: note ids (so «Летопись» re-attaches), colour,
+// the склеп (archive), note templates, sort, AND the version store (grimVersions)
+// for every exported note. Round-trips through grimImportFiles → choice modal
+// («Добавить» / «Заменить»), restoring history. scope 'all' = whole grimoire;
+// 'sel' = ticked notes + their letopis only.
+function grimExportFullBackup(scope) {
+    _grimCloseIoMenu();
+    let notes, archive, templates;
+    if (scope === 'sel') {
+        const ids = grimSelectedIds;
+        notes    = (state.notes || []).filter(n => ids.has(n.id));
+        archive  = (state.notesArchive || []).filter(n => ids.has(n.id));
+        templates = [];
+        if (!notes.length && !archive.length) { showToast('Нет выбранных записей'); return; }
+    } else {
+        notes    = (state.notes || []).slice();
+        archive  = (state.notesArchive || []).slice();
+        templates = (state.noteTemplates || []).slice();
+        if (!notes.length && !archive.length) { showToast('Нет записей для экспорта'); return; }
+    }
+    const ids = new Set([...notes, ...archive].map(n => n.id));
+    const versions = {};
+    for (const id of ids) { if (Array.isArray(grimVersions[id]) && grimVersions[id].length) versions[id] = grimVersions[id]; }
+    const payload = {
+        _grimFull: 1,
+        notes, notesArchive: archive, noteTemplates: templates,
+        notesSort: state.notesSort || null,
+        _grimVersions: versions,
+    };
+    _grimDownload((scope === 'sel' ? 'grimoire-selection' : 'grimoire-full') + '.json',
+                  JSON.stringify(payload, null, 2), 'application/json');
+}
 
 // Minimal store-method ZIP writer (no dependency). files = [{name, text}].
 const _GRIM_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
@@ -4362,14 +4398,16 @@ function _grimRenderIoMenu() {
     const pop = document.getElementById('grim-io-pop'); if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Перенос записей</div>'
         + '<div class="grim-tpl-sect">Импорт</div>'
-        + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md и .zip · можно несколько', 'grimImportFiles()')
+        + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md · .zip · .json · можно несколько', 'grimImportFiles()')
         + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Экспорт всего</div>'
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап', '.json · с летописью, переносит всё', "grimExportFullBackup('all')")
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', "grimExportBackup('all')")
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', "grimExportReading('all')");
 }
 function _grimRenderIoSelMenu() {
     const pop = document.getElementById('grim-io-sel-pop'); if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Экспорт выбранных</div>'
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап', '.json · выбранные + летопись', "grimExportFullBackup('sel')")
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', "grimExportBackup('sel')")
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу', "grimExportReading('sel')");
 }
@@ -4648,6 +4686,64 @@ function _grimImportDocs(docs) {
     const ti = document.getElementById('grim-title-in'); if (ti) ti.focus();
     showToast('Импортировано записей: ' + added);
 }
+// NA-3 (Б): a JSON «Полный бэкап» (grimExportFullBackup) was dropped into the import
+// picker — offer the same «Добавить» / «Заменить» choice DUSK uses, then restore notes
+// + склеп + templates + «Летопись» (reusing _grimRestoreVersions). Reuses the shared
+// import-choice modal; both openers now set their own title/desc so the text can't bleed.
+function _grimFullImport(loaded) {
+    const overlay = document.getElementById('import-choice-overlay');
+    if (!overlay) { _grimApplyFullBackup(loaded, 'replace'); return; }   // fallback
+    const title = document.getElementById('import-choice-title');
+    const desc  = overlay.querySelector('.import-choice-desc');
+    if (title) title.textContent = 'Импорт записей';
+    if (desc)  desc.textContent  = 'Добавить записи Гримуара к существующим или полностью заменить?';
+    const replaceBtn = document.getElementById('import-replace-btn');
+    const mergeBtn   = document.getElementById('import-merge-btn');
+    const cancelBtn  = document.getElementById('import-cancel-btn');
+    const close = () => closeModalWithAnim('import-choice-overlay');
+    replaceBtn.onclick = () => { close(); _grimApplyFullBackup(loaded, 'replace'); };
+    mergeBtn.onclick   = () => { close(); _grimApplyFullBackup(loaded, 'merge'); };
+    cancelBtn.onclick  = close;
+    openModalWithFocus('import-choice-overlay');
+}
+function _grimApplyFullBackup(loaded, mode) {
+    if (grimMode !== 'active') grimMode = 'active';
+    clearTimeout(_grimSaveT); saveState();
+    grimFindClose();
+    pushUndo();
+    if (!Array.isArray(state.notes))         state.notes = [];
+    if (!Array.isArray(state.notesArchive))  state.notesArchive = [];
+    if (!Array.isArray(state.noteTemplates)) state.noteTemplates = [];
+    const inN = Array.isArray(loaded.notes) ? loaded.notes : [];
+    const inA = Array.isArray(loaded.notesArchive) ? loaded.notesArchive : [];
+    const inT = Array.isArray(loaded.noteTemplates) ? loaded.noteTemplates : [];
+    let added = 0, lastId = null;
+    if (mode === 'replace') {
+        state.notes = inN.slice();
+        state.notesArchive = inA.slice();
+        state.noteTemplates = inT.slice();
+        if (loaded.notesSort) state.notesSort = loaded.notesSort;
+        added = inN.length;
+        lastId = inN.length ? inN[0].id : null;
+    } else {
+        const seenN = new Set(state.notes.map(n => n.id));
+        inN.forEach(n => { if (n && n.id && !seenN.has(n.id)) { state.notes.unshift(n); seenN.add(n.id); added++; lastId = n.id; } });
+        const seenA = new Set(state.notesArchive.map(n => n.id));
+        inA.forEach(n => { if (n && n.id && !seenA.has(n.id)) { state.notesArchive.push(n); seenA.add(n.id); } });
+        const seenT = new Set(state.noteTemplates.map(t => t.id));
+        inT.forEach(t => { if (t && t.id && !seenT.has(t.id)) { state.noteTemplates.push(t); seenT.add(t.id); } });
+        if (!state.notesSort && loaded.notesSort) state.notesSort = loaded.notesSort;
+    }
+    normalizeState();                       // NA-2: sanitize imported bodies at the boundary
+    _grimRestoreVersions(loaded, mode);      // NA-3: bring «Летопись» across (replace=take file's, merge=fill gaps)
+    if (currentNoteId && ![...(state.notes || []), ...(state.notesArchive || [])].some(n => n.id === currentNoteId)) currentNoteId = null;
+    if (mode === 'replace') { currentNoteId = lastId; grimNoteCollapsed = false; }
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box'); if (sb) sb.value = '';
+    saveState();
+    renderNotes();
+    showToast(mode === 'replace' ? ('Заменено · записей: ' + state.notes.length) : ('Добавлено записей: ' + added), { undo: true });
+}
 // Read a .md/.markdown/.txt entry from a ZIP (store or deflate via DecompressionStream).
 async function _grimInflate(bytes) {
     const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
@@ -4689,7 +4785,7 @@ function grimImportFiles() {
     const inp = document.createElement('input');
     inp.type = 'file';
     inp.multiple = true;
-    inp.accept = '.md,.markdown,.txt,.zip,text/markdown,text/plain,application/zip';
+    inp.accept = '.md,.markdown,.txt,.zip,.json,text/markdown,text/plain,application/zip,application/json';
     inp.style.display = 'none';
     inp.onchange = async () => {
         const files = [...(inp.files || [])]; inp.remove();
@@ -4697,6 +4793,14 @@ function grimImportFiles() {
         const docs = [];
         for (const f of files) {
             try {
+                // NA-3 (Б): a JSON «Полный бэкап» takes its own path (choice modal +
+                // history restore) — it can't be flattened into the .md note pipeline.
+                if (/\.json$/i.test(f.name)) {
+                    let loaded = null;
+                    try { loaded = JSON.parse(await f.text()); } catch (_) { showToast('Не удалось прочитать .json'); return; }
+                    if (loaded && loaded._grimFull) { _grimFullImport(loaded); return; }
+                    showToast('Это не полный бэкап Гримуара'); return;
+                }
                 if (/\.zip$/i.test(f.name)) {
                     const entries = await _grimUnzip(new Uint8Array(await f.arrayBuffer()));
                     entries.forEach(e => docs.push(e));
@@ -5693,6 +5797,12 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         };
 
         cancelBtn.onclick = close;
+        // NA-3 (Б): the grimoire JSON import reuses this same overlay and rewrites its
+        // title/desc, so set our own here too — each opener is self-contained, text can't bleed.
+        const _t = document.getElementById('import-choice-title');
+        const _d = overlay.querySelector('.import-choice-desc');
+        if (_t) _t.textContent = 'Импорт данных';
+        if (_d) _d.textContent = 'Добавить задачи к существующим или полностью заменить?';
         // U-1: NO backdrop-close for this destructive choice (per user) — a stray click
         // outside must not dismiss it. Esc + the three buttons remain the only exits.
         openModalWithFocus('import-choice-overlay');

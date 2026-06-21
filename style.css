@@ -4205,6 +4205,14 @@ textarea:focus-visible {
     letter-spacing: 1.5px;
     text-transform: uppercase;
 }
+/* NA-3: «Заменить» had no hover state (cancel/confirm did) — it read as dead next
+   to them. Intensify the danger red on hover, mirroring the confirm-button glow. */
+.btn-modal-danger:not(.btn-dl-clear):hover {
+    background: rgba(180, 20, 55, 0.55);
+    border-color: var(--prio-high);
+    color: #fff;
+    box-shadow: 0 0 13px rgba(230, 60, 80, 0.35);
+}
 /* Deadline clear button — icon-only variant of btn-modal-danger */
 .btn-modal-danger.btn-dl-clear {
     display: flex;
