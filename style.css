@@ -6316,6 +6316,7 @@ kbd {
 
 /* ── search ── */
 .grim-search-wrap {
+    position: relative;   /* NA-13: anchor for the in-pill clear button */
     display: flex;
     align-items: center;
     gap: 9px;
@@ -6350,8 +6351,43 @@ kbd {
     /* The rounded pill is the WRAPPER's job; the input must stay square — otherwise
        its own border-radius clips the selection box into a rounded left edge. */
     border-radius: 0;
+    /* NA-13: keep a long query from running under the absolute clear button. */
+    padding-right: 22px;
 }
 .grim-search-wrap input::placeholder { color: var(--text-muted); opacity: 0.85; font-style: italic; }
+
+/* NA-13: clear button — lives inside the search pill (shares its background, no
+   bordered box), crossed-daggers glyph. Hidden while empty; slides + fades out from
+   the field's right edge once there's a query (driven purely by :placeholder-shown). */
+.grim-search-x {
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.78);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition), transform var(--transition), color var(--transition);
+}
+.grim-search-wrap input:not(:placeholder-shown) ~ .grim-search-x {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+    pointer-events: auto;
+}
+.grim-search-x:hover { color: var(--accent-hover); }
+/* Override the generic `.grim-search-wrap svg { color: var(--text-muted) }` so the
+   glyph inherits the button's colour (and therefore the hover tint). */
+.grim-search-x svg { width: 14px; height: 14px; display: block; color: inherit; }
+@media (prefers-reduced-motion: reduce) { .grim-search-x { transition: color var(--transition); } }
 
 /* ── master–detail layout (codex spread) ── */
 .grim-layout {

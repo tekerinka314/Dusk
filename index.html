@@ -721,6 +721,12 @@
                 </svg>
                 <input type="text" id="notes-search-box" placeholder="Искать в гримуаре…"
                        autocomplete="off" spellcheck="false" oninput="grimSearch(this.value)">
+                <!-- NA-13: clear button — two crossed gothic daggers (GIC.dismiss); slides out
+                     from inside the search pill (shares its background), shown only when typed in. -->
+                <button type="button" class="grim-search-x" tabindex="-1"
+                        onclick="grimClearSearch()" title="Очистить" aria-label="Очистить поиск">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
+                </button>
             </div>
             <!-- п11/1b: bulk-select bar — mirrors the task select bar (centred square
                  icon cluster). Archive/restore swap by segment; delete is two-step. -->

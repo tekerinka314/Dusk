@@ -606,6 +606,7 @@ let expandOpen       = false;
 let currentPage      = 'main';
 let currentNoteId    = null;   // п11: open grimoire note id (uuid) or null
 let notesSearchQuery = '';     // п11: grimoire search filter
+let _grimVisibleIds  = [];     // NA-9: ids of notes currently shown (order for J/K nav)
 let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
 let grimFocus        = 0;      // п11: focus level 0=both · 1=list rail · 2=list hidden (note full)
 let grimNoteCollapsed = false; // п11: transient — open note's pane folded away, full-width list (click open entry to toggle)
@@ -2091,6 +2092,7 @@ function renderGrimList(animate) {
     const shown = q
         ? all.filter(n => (n.title || '').toLowerCase().includes(q) || _grimPlain(n.body).toLowerCase().includes(q))
         : all;
+    _grimVisibleIds = shown.map(n => n.id);   // NA-9: visible order for J/K notes nav
     const label = grimMode === 'archive' ? 'Склеп' : 'Записи';
     const sortCtl = grimMode === 'active' ? _grimSortControl() : '';
     const head = `<div class="grim-list-head"><span>${q ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span>${sortCtl}</div>`;
@@ -2329,10 +2331,19 @@ function renderGrimDetail() {
 }
 
 // Auto-grow the title <textarea> to fit wrapped lines (no inner scrollbar).
+let _grimGrowRAF = 0;
 function _grimGrowTitle(el) {
     if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
+    // NA-12: coalesce the auto-grow into a single rAF. The title's ResizeObserver
+    // calls this on every layout pass, and the height write can itself re-trigger
+    // the observer — doing the read→write→read→write inline each time thrashes
+    // layout. One pending frame, keyed to the live element, breaks the storm.
+    if (_grimGrowRAF) cancelAnimationFrame(_grimGrowRAF);
+    _grimGrowRAF = requestAnimationFrame(() => {
+        _grimGrowRAF = 0;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    });
 }
 
 // Switch between Записи and Склеп.
@@ -2353,8 +2364,11 @@ function grimSetMode(mode) {
 }
 
 // Open a record in the detail pane (persist pending edits of the previous one first).
-function grimOpen(id) {
-    if (id === currentNoteId) { grimToggleCollapse(); return; }   // re-click the open entry → fold/unfold its pane
+// opts.fromKb (NA-9): keyboard J/K browsing — keep focus on the list leaf so the next
+// J/K is received (the editor would otherwise swallow it), and scroll it into view.
+function grimOpen(id, opts) {
+    const fromKb = !!(opts && opts.fromKb);
+    if (id === currentNoteId) { if (!fromKb) grimToggleCollapse(); return; }   // re-click the open entry → fold/unfold its pane
     grimNoteCollapsed = false;                                    // opening a different record always expands
     clearTimeout(_grimSaveT); saveState();
     clearTimeout(_grimSwapT);
@@ -2368,13 +2382,19 @@ function grimOpen(id) {
             layoutEl.classList.add('show-detail');
             _grimApplyFocus(layoutEl);            // honour persisted focus on open
         }
-        if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
+        // Only a manual open drops the caret into the editor; keyboard browsing keeps
+        // focus on the list (see the leaf .focus() below) so J/K stay repeatable.
+        if (!fromKb && grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
     };
 
     const detailEl = document.getElementById('grim-detail');
     const oldPage = detailEl && detailEl.querySelector('.grim-page');
     currentNoteId = id;
     renderGrimList(false);                        // instant active-highlight feedback
+    if (fromKb) {
+        const leaf = document.querySelector(`.grim-leaf[data-id="${id}"]`);
+        if (leaf) { leaf.focus({ preventScroll: true }); leaf.scrollIntoView({ block: 'nearest' }); }
+    }
 
     if (oldPage && !prefersReducedMotion()) {
         // Crossfade: sink the outgoing page, then materialise the new one.
@@ -2631,6 +2651,15 @@ function grimSearch(v) {
     // and jump to matches in its body too (но без насильного скролла на каждый символ).
     if (currentNoteId && grimMode === 'active') _grimFindRun(notesSearchQuery, false);
     else grimFindClose();
+}
+
+// NA-13: the crossed-daggers button empties the search and runs an empty query
+// (drops the list filter + in-note highlight), then returns focus to the field.
+function grimClearSearch() {
+    const sb = document.getElementById('notes-search-box');
+    if (sb) sb.value = '';
+    grimSearch('');
+    if (sb) sb.focus();
 }
 
 // ── п11/A: in-note find — CSS Custom Highlight API (range-based, never written to
@@ -13125,6 +13154,23 @@ document.addEventListener('keydown', e => {
     const tag = document.activeElement?.tagName;
     const inInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
                     document.activeElement?.contentEditable === 'true';
+
+    // NA-9: notes-page keyboard parity — N forges a new record, J/K walk the list.
+    // Placed before the task shortcuts so the same keys mean "notes" on the notes page.
+    if (currentPage === 'notes' && !grimSelectMode && !inInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (_matchKey(e, 'N')) { e.preventDefault(); grimNew(); return; }
+        if (_matchKey(e, 'J') || _matchKey(e, 'K')) {
+            e.preventDefault();
+            const nids = _grimVisibleIds || [];
+            if (!nids.length) return;
+            const cur = nids.indexOf(currentNoteId);
+            const idx = _matchKey(e, 'J')
+                ? (cur < nids.length - 1 ? cur + 1 : 0)
+                : (cur > 0 ? cur - 1 : nids.length - 1);
+            grimOpen(nids[idx], { fromKb: true });
+            return;
+        }
+    }
 
     // N and / work even without a focused task
     if (_matchKey(e, 'N') && !inInput && !e.ctrlKey && !e.metaKey) { e.preventDefault(); inputBox.focus(); return; }
