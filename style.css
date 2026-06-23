@@ -6866,21 +6866,15 @@ kbd {
     /* Explicit shrink-to-content — a fixed element with left:auto + right:Npx otherwise
        blows up to a huge used width and spills off the left edge. */
     width: max-content;
-    min-width: 188px;
-    max-width: 260px;
+    min-width: 162px;
+    max-width: 240px;
     z-index: 1500;
-    padding: 6px;
-    /* Richer gothic panel: a faint crown of light over a deep violet→near-black gradient,
-       an amethyst hairline border, layered drop + inner glow. */
-    background:
-        radial-gradient(120% 80% at 50% -12%, rgba(125, 55, 225, 0.18), transparent 62%),
-        linear-gradient(165deg, #110827 0%, #07031b 72%);
-    border: 1px solid rgba(150, 85, 255, 0.42);
+    padding: 4px;
+    /* Elegant, restrained: near-black violet, a thin amethyst hairline, one soft shadow. */
+    background: linear-gradient(168deg, #0d0622 0%, #08041a 100%);
+    border: 1px solid rgba(150, 85, 255, 0.30);
     border-radius: var(--radius-md);
-    box-shadow:
-        0 20px 46px rgba(0, 0, 0, 0.62),
-        0 0 20px rgba(120, 40, 220, 0.24),
-        inset 0 1px 0 rgba(170, 110, 255, 0.14);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(170, 110, 255, 0.10);
 }
 /* Visible + animated only while portaled open (the shared .dl-month-list keeps it at
    opacity:0 otherwise; we don't use the in-picker .open state for task sort). */
@@ -6897,30 +6891,36 @@ kbd {
 .task-sort-list .dl-month-option {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    padding: 9px 12px;
-    border-radius: 8px;
+    gap: 9px;
+    font-size: 13px;
+    padding: 7px 11px;
+    border-radius: 7px;
     white-space: nowrap;
 }
 .task-sort-list .dl-month-option .tso-ic {
     flex: 0 0 auto;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
     transition: color var(--dur-micro);
 }
-.task-sort-list .dl-month-option .tso-ic svg { width: 18px; height: 18px; }
+.task-sort-list .dl-month-option .tso-ic svg { width: 15px; height: 15px; }
 .task-sort-list .dl-month-option .tso-label { flex: 1; }
 .task-sort-list .dl-month-option:hover .tso-ic { color: var(--accent-hover); }
-/* Active row: a glowing left "ember" bar + tinted glyph (matches the app's priority ember). */
+/* Active row: a slim left "ember" bar + tinted glyph (matches the app's priority ember). */
 .task-sort-list .dl-month-option.active {
-    box-shadow: inset 3px 0 0 var(--accent), 0 0 12px rgba(120, 40, 220, 0.14);
+    box-shadow: inset 2px 0 0 var(--accent);
 }
 .task-sort-list .dl-month-option.active .tso-ic { color: var(--accent-hover); }
+/* The global toolbar picker (#task-sort-list) reads as a primary control → a touch larger
+   than the compact per-group pickers. (The id survives the body-portal.) */
+#task-sort-list { min-width: 180px; padding: 5px; }
+#task-sort-list .dl-month-option { font-size: 13.5px; gap: 10px; padding: 8px 12px; border-radius: 8px; }
+#task-sort-list .dl-month-option .tso-ic { width: 17px; height: 17px; }
+#task-sort-list .dl-month-option .tso-ic svg { width: 16px; height: 16px; }
 @media (prefers-reduced-motion: reduce) {
     .task-sort-list.task-sort-portal { animation: none; }
 }
