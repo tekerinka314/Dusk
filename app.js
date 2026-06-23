@@ -187,6 +187,12 @@ const IC = {
         <line x1="4" y1="18" x2="20" y2="18"/>
         <circle cx="8" cy="12" r="2.2" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
+    // Sort alphabetically — a gothic "A" over "Z" with a descending arrow (A→Z order).
+    sortAlpha: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.5 10.5 L6 4 L8.5 10.5"/><line x1="4.5" y1="8.4" x2="7.5" y2="8.4"/>
+        <path d="M3.6 14 H8.4 L3.6 20 H8.4"/>
+        <line x1="15.5" y1="4.5" x2="15.5" y2="19"/><path d="M13 16.3 L15.5 19 L18 16.3"/>
+    </svg>`,
     // Focus mode — gothic single lancet arch with rays (spotlight on one group)
     focusMode: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 3C9.5 3 7.5 6 7.5 10V18H16.5V10C16.5 6 14.5 3 12 3Z"/>
@@ -643,6 +649,7 @@ let editingSubId     = null;   // for subtask repeat modal
 
 // Feature: color filter
 let colorFilter      = null;   // null | CSS color string — filter tasks by label color
+let noteColorFilter  = null;   // NA-10: null | CSS color string — filter grimoire records by colour
 
 // Feature: focus mode — show only one group at a time
 let focusGroupId     = null;   // null | number
@@ -845,13 +852,8 @@ function init() {
     // IMP-7: unify deadline icon
     const dlTriggerIcon = document.querySelector('#deadline-trigger svg');
     if (dlTriggerIcon) dlTriggerIcon.outerHTML = IC.window;
-    // Sort mode button initial state
-    const sortBtn = document.getElementById('btn-sort-mode');
-    if (sortBtn) {
-        sortBtn.innerHTML = state.sortMode === 'order' ? IC.sortOrder : IC.sortPriority;
-        sortBtn.title = state.sortMode === 'order' ? 'Режим: по порядку' : 'Режим: по приоритету';
-        sortBtn.classList.toggle('active', state.sortMode === 'order');
-    }
+    // NA-11: sort mode trigger (icon + option list) — gothic 3-mode picker.
+    _renderTaskSortControl();
     // Notifications button initial state
     // Use Notification.permission if available; fall back to localStorage for PWA offline
     const notifBtn = document.getElementById('btn-notifications');
@@ -1092,6 +1094,7 @@ function loadUiState() {
     if (!state.sortModeOverrides) state.sortModeOverrides = {};
     // Color filter
     colorFilter  = localStorage.getItem('dusk_colorFilter') || null;
+    noteColorFilter = localStorage.getItem('dusk_noteColorFilter') || null;   // NA-10
     // Focus group
     const fg = localStorage.getItem('dusk_focusGroup');
     focusGroupId = fg ? parseInt(fg) || null : null;
@@ -1110,13 +1113,8 @@ function loadUiState() {
     const splitBtn = document.getElementById('btn-split-groups');
     if (splitBtn) splitBtn.classList.toggle('active', isGroupSplitMode);
     updateSubAnyModeBtn();
-    // Sort mode button
-    const sortBtn = document.getElementById('btn-sort-mode');
-    if (sortBtn) {
-        sortBtn.innerHTML = state.sortMode === 'order' ? IC.sortOrder : IC.sortPriority;
-        sortBtn.title = state.sortMode === 'order' ? 'Режим: по порядку' : 'Режим: по приоритету';
-        sortBtn.classList.toggle('active', state.sortMode === 'order');
-    }
+    // NA-11: sort mode trigger (icon + option list) — gothic 3-mode picker.
+    _renderTaskSortControl();
     // D-1: removed dead #btn-focus-mode lookup — no such element exists (focus is
     // toggled per-group from the group header), the getElementById always returned null.
     // Color filter swatch active state
@@ -1134,6 +1132,8 @@ function saveUiState() {
     localStorage.setItem('groupSplitMode', isGroupSplitMode ? '1' : '0');
     if (colorFilter) localStorage.setItem('dusk_colorFilter', colorFilter);
     else localStorage.removeItem('dusk_colorFilter');
+    if (noteColorFilter) localStorage.setItem('dusk_noteColorFilter', noteColorFilter);   // NA-10
+    else localStorage.removeItem('dusk_noteColorFilter');
     if (focusGroupId != null) localStorage.setItem('dusk_focusGroup', String(focusGroupId));
     else localStorage.removeItem('dusk_focusGroup');
 }
@@ -2089,13 +2089,24 @@ function renderGrimList(animate) {
         return cmp(a, b);
     });
     const q = notesSearchQuery.toLowerCase();
-    const shown = q
+    let shown = q
         ? all.filter(n => (n.title || '').toLowerCase().includes(q) || _grimPlain(n.body).toLowerCase().includes(q))
         : all;
+    if (noteColorFilter) shown = shown.filter(n => n.color === noteColorFilter);   // NA-10
     _grimVisibleIds = shown.map(n => n.id);   // NA-9: visible order for J/K notes nav
+    const filtering = !!(q || noteColorFilter);   // either narrows the set → show the found count
+    // NA-10: keep the colour-filter trigger in sync — active ring + the crystal tinted to
+    // the chosen colour (via _grimInk so a near-black pick stays legible on the dark bg).
+    const cfb = document.getElementById('grim-cfilter-btn');
+    if (cfb) {
+        cfb.classList.toggle('active', !!noteColorFilter);
+        const ink = noteColorFilter ? _grimInk(noteColorFilter) : '';
+        cfb.style.color = ink;
+        cfb.style.borderColor = ink;   // active: tint the outline to the chosen colour too
+    }
     const label = grimMode === 'archive' ? 'Склеп' : 'Записи';
     const sortCtl = grimMode === 'active' ? _grimSortControl() : '';
-    const head = `<div class="grim-list-head"><span>${q ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span>${sortCtl}</div>`;
+    const head = `<div class="grim-list-head"><span>${filtering ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span>${sortCtl}</div>`;
     const body = shown.length
         ? shown.map((n, i) => _grimLeafHTML(n, q, i, animate)).join('')
         : `<div class="grim-list-none">Ничего не найдено</div>`;
@@ -2111,7 +2122,7 @@ function _grimInitListSortable() {
     if (_grimListSortable) { _grimListSortable.destroy(); _grimListSortable = null; }
     const listEl = document.getElementById('grim-list');
     if (!listEl) return;
-    if (grimMode !== 'active' || grimSelectMode || notesSearchQuery.trim()) return;
+    if (grimMode !== 'active' || grimSelectMode || notesSearchQuery.trim() || noteColorFilter) return;
     const effSort = state.notesSort === 'manual' ? 'edited' : (state.notesSort || 'edited');
     if (effSort !== 'edited') return;   // DnD only in the hybrid «По правке»; computed orders disable it
     if (listEl.querySelectorAll('.grim-leaf').length < 2) return;
@@ -2358,6 +2369,10 @@ function grimSetMode(mode) {
     notesSearchQuery = '';
     const sb = document.getElementById('notes-search-box');
     if (sb) sb.value = '';
+    // NA-10: drop the colour filter on segment switch — a colour present in Записи may
+    // be absent in Склеп, which would otherwise show a confusing empty list.
+    grimCloseColorFilter();
+    if (noteColorFilter) { noteColorFilter = null; localStorage.removeItem('dusk_noteColorFilter'); }
     const layoutEl = document.getElementById('grim-layout');
     if (layoutEl) layoutEl.classList.remove('show-detail');
     renderNotes();
@@ -2660,6 +2675,62 @@ function grimClearSearch() {
     if (sb) sb.value = '';
     grimSearch('');
     if (sb) sb.focus();
+}
+
+// ── NA-10: colour filter for grimoire records (crystal button + swatch popover) ──
+function grimToggleColorFilter(e) {
+    if (e) e.stopPropagation();
+    const p = document.getElementById('grim-cfilter');
+    if (!p) return;
+    const open = !p.classList.contains('open');
+    if (open) _grimBuildColorFilterPop();
+    p.classList.toggle('open', open);
+    const btn = document.getElementById('grim-cfilter-btn');
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const pop = document.getElementById('grim-cfilter-pop');
+    if (pop) pop.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) document.addEventListener('click', _grimColorFilterOutside);
+    else document.removeEventListener('click', _grimColorFilterOutside);
+}
+function _grimColorFilterOutside(e) {
+    const p = document.getElementById('grim-cfilter');
+    if (p && !p.contains(e.target)) grimCloseColorFilter();
+}
+function grimCloseColorFilter() {
+    const p = document.getElementById('grim-cfilter');
+    if (p) p.classList.remove('open');
+    const btn = document.getElementById('grim-cfilter-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', _grimColorFilterOutside);
+}
+// Build the swatch popover from the colours actually present in the current segment.
+function _grimBuildColorFilterPop() {
+    const pop = document.getElementById('grim-cfilter-pop');
+    if (!pop) return;
+    const colors = [...new Set(_grimList().filter(n => n.color).map(n => n.color))];
+    if (!colors.length) {
+        pop.innerHTML = '<p class="grim-cfilter-empty">Нет записей с цветом</p>';
+        return;
+    }
+    const check = `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`;
+    const swatches = colors.map(c => `
+        <button class="color-filter-swatch${noteColorFilter === c ? ' active' : ''}" style="background:${c}"
+                onclick="grimSetColorFilter('${c}')" aria-label="Цвет ${c}" title="Цвет ${c}">
+            ${noteColorFilter === c ? check : ''}
+        </button>`).join('');
+    const clearBtn = noteColorFilter ? `
+        <button class="color-filter-swatch color-filter-clear" onclick="grimSetColorFilter(noteColorFilter)" title="Снять фильтр по цвету">
+            ${IC.crossedSwords}
+        </button>` : '';
+    pop.innerHTML = swatches + clearBtn;
+}
+// Toggle the colour filter (re-click the active colour clears it), persist, re-render.
+function grimSetColorFilter(color) {
+    noteColorFilter = (noteColorFilter === color) ? null : color;
+    if (noteColorFilter) localStorage.setItem('dusk_noteColorFilter', noteColorFilter);
+    else localStorage.removeItem('dusk_noteColorFilter');
+    _grimBuildColorFilterPop();          // refresh active ring + clear button
+    renderGrimList(false);               // (also re-syncs the trigger's .active state)
 }
 
 // ── п11/A: in-note find — CSS Custom Highlight API (range-based, never written to
@@ -5179,8 +5250,7 @@ function renderTasks() {
                 <div class="group-actions" onclick="event.stopPropagation()">
                     <button class="btn-group-action${grpSched ? ' active-sched' : ''}"
                             onclick="toggleScheduleMode(${group.id})" title="Сортировка по дедлайну">${IC.sundial}</button>
-                    <button class="btn-group-action btn-group-sort${hasOverride ? ' sort-overridden' : ''}"
-                            onclick="toggleGroupSortMode(${group.id})" title="${grpSortMode === 'order' ? 'Режим: по порядку' : 'Режим: по приоритету'}">${grpSortMode === 'order' ? IC.sortOrder : IC.sortPriority}</button>
+                    ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
                             onclick="toggleFocusGroup(${group.id})" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
                     <button class="btn-group-action" onclick="duplicateGroup(${group.id})" title="Дублировать группу">${IC.twinCoffin}</button>
@@ -5386,6 +5456,12 @@ function filterAndSort(tasks, query, groupId = null) {
         const ta = a.checked ? 2 : (a.cycleChecked ? 1 : 0);
         const tb = b.checked ? 2 : (b.cycleChecked ? 1 : 0);
         if (ta !== tb) return ta - tb;
+        // NA-11: alpha mode sorts by task text (ru, case/diacritic-insensitive); ties → order.
+        if (sortMode === 'alpha') {
+            const c = (a.text || '').localeCompare(b.text || '', 'ru', { sensitivity: 'base' });
+            if (c !== 0) return c;
+            return (a.order ?? a.id) - (b.order ?? b.id);
+        }
         // In 'order' mode skip priority, go straight to order
         if (sortMode !== 'order') {
             const pd = (P[a.priority] ?? 3) - (P[b.priority] ?? 3);
@@ -5465,6 +5541,120 @@ function scheduleActive(groupId) {
 }
 
 // ---- Sort Mode ----
+// ── NA-11: task sort as a gothic 3-mode picker (priority / order / alpha), global +
+// per-group override. Reuses the .dl-month-* picker visuals (deadline / grimoire sort).
+const TASK_SORTS = [
+    { k: 'priority', label: 'По приоритету' },
+    { k: 'order',    label: 'По порядку'    },
+    { k: 'alpha',    label: 'По алфавиту'   },
+];
+const TASK_SORT_ICON = { priority: 'sortPriority', order: 'sortOrder', alpha: 'sortAlpha' };
+function _taskSortIcon(k)  { return IC[TASK_SORT_ICON[k] || 'sortPriority']; }
+function _taskSortLabel(k) { return (TASK_SORTS.find(s => s.k === k) || TASK_SORTS[0]).label; }
+// Option rows for a picker; `onclickFor(key)` returns the JS call string for each row.
+// Each row carries the mode's own glyph (richer + reads at a glance).
+function _taskSortOptions(curK, onclickFor) {
+    return TASK_SORTS.map(s =>
+        `<div class="dl-month-option task-sort-opt${s.k === curK ? ' active' : ''}" role="option" aria-selected="${s.k === curK}" onclick="${onclickFor(s.k)}">`
+        + `<span class="tso-ic">${_taskSortIcon(s.k)}</span><span class="tso-label">${s.label}</span></div>`
+    ).join('');
+}
+// Per-group picker markup (string) injected into the group header.
+function _groupSortPicker(groupId, curK, hasOverride) {
+    return `<span class="task-sort grp-sort dl-month-picker">
+        <button class="btn-group-action btn-group-sort${hasOverride ? ' sort-overridden' : ''}" type="button"
+                onclick="toggleSortPicker(event)" aria-haspopup="listbox" aria-expanded="false"
+                title="Сортировка: ${_taskSortLabel(curK).toLowerCase()}">${_taskSortIcon(curK)}</button>
+        <div class="dl-month-list task-sort-list" role="listbox" aria-hidden="true">${_taskSortOptions(curK, k => `setGroupSort(${groupId},'${k}')`)}</div>
+    </span>`;
+}
+// Refresh the global toolbar trigger (icon + title + active ring) and its option list.
+function _renderTaskSortControl() {
+    const btn = document.getElementById('btn-sort-mode');
+    if (btn) {
+        btn.innerHTML = _taskSortIcon(state.sortMode);
+        btn.title = 'Сортировка: ' + _taskSortLabel(state.sortMode).toLowerCase();
+        btn.classList.toggle('active', state.sortMode !== 'priority');   // priority = the default
+    }
+    const list = document.getElementById('task-sort-list');
+    if (list) list.innerHTML = _taskSortOptions(state.sortMode, k => `setTaskSort('${k}')`);
+}
+// One picker open at a time; outside-click closes. Works for the toolbar + every group.
+// The list is PORTALED to <body> while open so it can't be clipped or painted over by a
+// transformed ancestor / overflow / stacking context; closing restores it into the picker.
+let _openSortPicker = null;
+let _portaledList = null;   // { el, parent } — the list moved to <body>, and where it came from
+function toggleSortPicker(e) {
+    if (e) e.stopPropagation();
+    const picker = e.currentTarget.closest('.dl-month-picker');
+    if (!picker) return;
+    const willOpen = !picker.classList.contains('open');
+    _closeSortPicker();
+    if (!willOpen) return;
+    const lst = picker.querySelector('.dl-month-list');
+    const r = picker.getBoundingClientRect();
+    const openUp = r.bottom > window.innerHeight - 260;
+    picker.classList.add('open');
+    const tr = picker.querySelector('[aria-haspopup]'); if (tr) tr.setAttribute('aria-expanded', 'true');
+    if (lst) {
+        _portaledList = { el: lst, parent: picker };
+        document.body.appendChild(lst);          // escape transformed/clipped/stacked ancestors
+        lst.classList.add('task-sort-portal');
+        lst.setAttribute('aria-hidden', 'false');
+        // Anchor to the trigger; flip upward when it sits near the viewport bottom (S1-7).
+        lst.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+        if (openUp) { lst.style.top = 'auto'; lst.style.bottom = (window.innerHeight - r.top + 6) + 'px'; }
+        else        { lst.style.bottom = 'auto'; lst.style.top = (r.bottom + 6) + 'px'; }
+    }
+    _openSortPicker = picker;
+    document.addEventListener('click', _sortPickerOutside);
+}
+function _sortPickerOutside(e) {
+    if (!_openSortPicker) return;
+    const lst = _portaledList && _portaledList.el;
+    if (_openSortPicker.contains(e.target) || (lst && lst.contains(e.target))) return;
+    _closeSortPicker();
+}
+function _closeSortPicker() {
+    if (!_openSortPicker) return;
+    const pk = _openSortPicker;
+    pk.classList.remove('open', 'open-up');
+    const tr = pk.querySelector('[aria-haspopup]'); if (tr) tr.setAttribute('aria-expanded', 'false');
+    if (_portaledList) {
+        const { el, parent } = _portaledList;
+        el.classList.remove('task-sort-portal');
+        el.style.top = el.style.bottom = el.style.right = '';
+        el.setAttribute('aria-hidden', 'true');
+        if (parent && parent.isConnected) parent.appendChild(el);   // restore into the picker
+        else if (el.parentNode) el.parentNode.removeChild(el);      // picker re-rendered away → drop orphan
+        _portaledList = null;
+    }
+    _openSortPicker = null;
+    document.removeEventListener('click', _sortPickerOutside);
+}
+// Global sort mode.
+function setTaskSort(k) {
+    if (!TASK_SORTS.some(s => s.k === k)) return;
+    _closeSortPicker();
+    if (k === state.sortMode) return;
+    state.sortMode = k;
+    saveState();
+    render();
+    _renderTaskSortControl();
+    showToast('Сортировка: ' + _taskSortLabel(k).toLowerCase());
+}
+// Per-group override (clears itself when it matches the global mode → group follows global).
+function setGroupSort(groupId, k) {
+    if (!TASK_SORTS.some(s => s.k === k)) return;
+    _closeSortPicker();
+    if (!state.sortModeOverrides) state.sortModeOverrides = {};
+    const key = String(groupId);
+    if (k === (state.sortMode || 'priority')) delete state.sortModeOverrides[key];
+    else state.sortModeOverrides[key] = k;
+    saveState();
+    render();
+}
+
 function toggleSortMode() {
     state.sortMode = (state.sortMode === 'priority') ? 'order' : 'priority';
     saveState();

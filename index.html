@@ -353,8 +353,13 @@
                 <div class="tag-cloud" id="tag-cloud" style="display:none"></div>
                 <div class="toolbar-actions">
                     <div class="toolbar-group"><div class="toolbar-group-btns">
-                    <!-- Sort mode toggle: priority ↔ order (icon injected by JS) -->
-                    <button class="btn-tool" id="btn-sort-mode" onclick="toggleSortMode()" title="Режим: по приоритету"></button>
+                    <!-- NA-11: sort picker — icon → gothic popup (priority / order / alpha).
+                         Icon + option list injected by JS (_renderTaskSortControl). -->
+                    <span class="task-sort dl-month-picker" id="task-sort-picker">
+                        <button class="btn-tool" id="btn-sort-mode" type="button" onclick="toggleSortPicker(event)"
+                                aria-haspopup="listbox" aria-expanded="false" title="Сортировка"></button>
+                        <div class="dl-month-list task-sort-list" id="task-sort-list" role="listbox" aria-hidden="true"></div>
+                    </span>
                     <!-- Web Notifications bell (hidden if API unsupported) -->
                     <button class="btn-tool" id="btn-notifications" onclick="requestNotificationPermission()" title="Уведомления о дедлайнах" style="display:none">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -713,7 +718,8 @@
                     </div>
                 </div>
             </div>
-            <div class="grim-search-wrap">
+            <div class="grim-search-row">
+              <div class="grim-search-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
                     <ellipse cx="11" cy="11" rx="5" ry="7.5" transform="rotate(-30 11 11)"/>
                     <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
@@ -727,6 +733,23 @@
                         onclick="grimClearSearch()" title="Очистить" aria-label="Очистить поиск">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
                 </button>
+              </div>
+              <!-- NA-10: filter records by colour. Reuses the SAME gothic crystal/prism glyph
+                   as the tasks colour filter (consistent role), popover of swatches present. -->
+              <div class="grim-cfilter" id="grim-cfilter">
+                <button type="button" class="grim-cfilter-btn" id="grim-cfilter-btn"
+                        onclick="grimToggleColorFilter(event)" aria-haspopup="true" aria-expanded="false"
+                        title="Фильтр по цвету">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
+                        <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
+                        <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
+                        <line x1="6" y1="13" x2="18" y2="13" stroke-width="1" opacity="0.35"/>
+                        <circle cx="12" cy="10.5" r="1.4" fill="currentColor" stroke="none" opacity="0.7"/>
+                    </svg>
+                </button>
+                <div class="grim-cfilter-pop" id="grim-cfilter-pop" role="menu" aria-hidden="true"></div>
+              </div>
             </div>
             <!-- п11/1b: bulk-select bar — mirrors the task select bar (centred square
                  icon cluster). Archive/restore swap by segment; delete is two-step. -->

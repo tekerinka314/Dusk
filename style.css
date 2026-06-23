@@ -6315,8 +6315,17 @@ kbd {
 .grim-select-bar { position: relative; z-index: 40; }
 
 /* ── search ── */
+/* NA-10: the search pill + colour-filter button share one row. */
+.grim-search-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 20px;
+}
 .grim-search-wrap {
     position: relative;   /* NA-13: anchor for the in-pill clear button */
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 9px;
@@ -6324,7 +6333,6 @@ kbd {
     border: 1px solid var(--border-input);
     border-radius: var(--radius-md);
     padding: 9px 14px;
-    margin-bottom: 20px;
     transition: border-color var(--transition), box-shadow var(--transition);
 }
 .grim-search-wrap:focus-within {
@@ -6388,6 +6396,77 @@ kbd {
    glyph inherits the button's colour (and therefore the hover tint). */
 .grim-search-x svg { width: 14px; height: 14px; display: block; color: inherit; }
 @media (prefers-reduced-motion: reduce) { .grim-search-x { transition: color var(--transition); } }
+
+/* NA-10: colour-filter — a crystal button beside the search pill + a swatch popover. */
+.grim-cfilter { position: relative; flex: 0 0 auto; }
+.grim-cfilter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 100%;
+    min-height: 40px;
+    padding: 0;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition), color var(--transition);
+}
+.grim-cfilter-btn svg { width: 19px; height: 19px; display: block; }
+.grim-cfilter-btn:hover { color: var(--accent-hover); border-color: var(--border-bright); }
+.grim-cfilter-btn.active {
+    color: var(--accent-hover);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(120, 40, 220, 0.28), inset 0 0 8px rgba(120, 40, 220, 0.16);
+}
+.grim-cfilter.open .grim-cfilter-btn { border-color: var(--border-bright); color: var(--accent-hover); }
+
+/* Popover: drops below the button, right-aligned, gothic panel. Hugs its content
+   (width:max-content) so a 2-colour set has no empty gutter and the clear button sits
+   in the same row as the swatches — every cell is the same 36px square, evenly gapped. */
+.grim-cfilter-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 60;
+    width: max-content;
+    max-width: 224px;   /* ~5 swatches before wrapping */
+    padding: 9px;
+    background: var(--bg-elevated, var(--bg-input));
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-md);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 16px rgba(120, 40, 220, 0.16);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    gap: 9px;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+    transform-origin: top right;
+    pointer-events: none;
+    transition: opacity var(--transition), transform var(--transition);
+}
+.grim-cfilter-pop .color-filter-swatch { flex: 0 0 auto; margin: 0; }
+.grim-cfilter.open .grim-cfilter-pop {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+.grim-cfilter-empty {
+    margin: 0;
+    font-family: var(--font-label);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+    .grim-cfilter-pop { transition: opacity var(--transition); transform: none; }
+    .grim-cfilter.open .grim-cfilter-pop { transform: none; }
+}
 
 /* ── master–detail layout (codex spread) ── */
 .grim-layout {
@@ -6775,6 +6854,76 @@ kbd {
 /* Right-anchored, content-width popup (the shared rule stretches it full-width otherwise). */
 .grim-sort .dl-month-list { left: auto; right: 0; min-width: 150px; }
 .grim-sort .dl-month-option { font-size: 13px; padding: 8px 14px; }
+
+/* NA-11: task sort picker — icon trigger (toolbar + per-group). On open the list is
+   PORTALED to <body> (JS) so it escapes transformed ancestors / overflow clips / stacking
+   contexts — task rows and groups can never paint over it. Styles hang off the list's own
+   .task-sort-list class (not a .task-sort ancestor) so they survive the move. */
+.task-sort.dl-month-picker { position: relative; display: inline-flex; }
+.task-sort-list {
+    position: fixed;
+    left: auto;
+    /* Explicit shrink-to-content — a fixed element with left:auto + right:Npx otherwise
+       blows up to a huge used width and spills off the left edge. */
+    width: max-content;
+    min-width: 188px;
+    max-width: 260px;
+    z-index: 1500;
+    padding: 6px;
+    /* Richer gothic panel: a faint crown of light over a deep violet→near-black gradient,
+       an amethyst hairline border, layered drop + inner glow. */
+    background:
+        radial-gradient(120% 80% at 50% -12%, rgba(125, 55, 225, 0.18), transparent 62%),
+        linear-gradient(165deg, #110827 0%, #07031b 72%);
+    border: 1px solid rgba(150, 85, 255, 0.42);
+    border-radius: var(--radius-md);
+    box-shadow:
+        0 20px 46px rgba(0, 0, 0, 0.62),
+        0 0 20px rgba(120, 40, 220, 0.24),
+        inset 0 1px 0 rgba(170, 110, 255, 0.14);
+}
+/* Visible + animated only while portaled open (the shared .dl-month-list keeps it at
+   opacity:0 otherwise; we don't use the in-picker .open state for task sort). */
+.task-sort-list.task-sort-portal {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    animation: sortPortalIn var(--dur-quick) var(--ease-emerge);
+}
+@keyframes sortPortalIn {
+    from { opacity: 0; transform: translateY(-6px) scaleY(0.97); }
+    to   { opacity: 1; transform: none; }
+}
+.task-sort-list .dl-month-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+.task-sort-list .dl-month-option .tso-ic {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: color var(--dur-micro);
+}
+.task-sort-list .dl-month-option .tso-ic svg { width: 18px; height: 18px; }
+.task-sort-list .dl-month-option .tso-label { flex: 1; }
+.task-sort-list .dl-month-option:hover .tso-ic { color: var(--accent-hover); }
+/* Active row: a glowing left "ember" bar + tinted glyph (matches the app's priority ember). */
+.task-sort-list .dl-month-option.active {
+    box-shadow: inset 3px 0 0 var(--accent), 0 0 12px rgba(120, 40, 220, 0.14);
+}
+.task-sort-list .dl-month-option.active .tso-ic { color: var(--accent-hover); }
+@media (prefers-reduced-motion: reduce) {
+    .task-sort-list.task-sort-portal { animation: none; }
+}
 .grim-list-none {
     font-size: 14px; font-style: italic; color: var(--text-muted);
     padding: 16px 4px; text-align: center; opacity: 0.85;
