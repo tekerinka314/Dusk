@@ -3802,6 +3802,26 @@ textarea:focus-visible {
     font-family: var(--font-label);
     animation: ornamentPulse 5s ease-in-out infinite;
 }
+/* #4 (порт _grimEmptyHTML): CTA пустого состояния — та же готик-кнопка, что «Начертать первую». */
+.empty-add-btn {
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: linear-gradient(135deg, rgba(110, 30, 220, 0.28), rgba(80, 15, 180, 0.16));
+    color: var(--accent-hover);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    padding: 9px 16px;
+    font-family: var(--font-label);
+    font-size: 11.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.empty-add-btn:hover { border-color: var(--border-bright); box-shadow: 0 0 16px rgba(120, 40, 220, 0.28); color: var(--text-primary); }
+.empty-add-btn svg { width: 14px; height: 14px; }
 .empty-state p { font-size: 14px; letter-spacing: 1px; font-family: var(--font-label); opacity: 0.65; }
 
 /* All-done: purple, not green */
@@ -6397,6 +6417,41 @@ kbd {
 .grim-search-x svg { width: 14px; height: 14px; display: block; color: inherit; }
 @media (prefers-reduced-motion: reduce) { .grim-search-x { transition: color var(--transition); } }
 
+/* #3 (порт NA-13 в DUSK): тот же ✕-кинжалы внутри пилюли поиска — основной тулбар и
+   архив. Делит фон поля (без отдельной рамки), выезжает+гаснет от правого края, когда
+   есть запрос (чистый :placeholder-shown, без JS на показ/скрытие). */
+.search-wrap, .archive-search-wrap { position: relative; }
+.search-wrap #search-box,
+.archive-search-wrap #archive-search-box { padding-right: 22px; }
+.search-x {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.78);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition), transform var(--transition), color var(--transition);
+}
+.search-wrap input:not(:placeholder-shown) ~ .search-x,
+.archive-search-wrap input:not(:placeholder-shown) ~ .search-x {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+    pointer-events: auto;
+}
+.search-x:hover { color: var(--accent-hover); }
+.search-x svg { width: 14px; height: 14px; display: block; color: inherit; }
+@media (prefers-reduced-motion: reduce) { .search-x { transition: color var(--transition); } }
+
 /* NA-10: colour-filter — a crystal button beside the search pill + a swatch popover. */
 .grim-cfilter { position: relative; flex: 0 0 auto; }
 .grim-cfilter-btn {
@@ -6928,6 +6983,44 @@ kbd {
     font-size: 14px; font-style: italic; color: var(--text-muted);
     padding: 16px 4px; text-align: center; opacity: 0.85;
 }
+
+/* cross-app #8: crypt (note archive) month sections — mirror the task archive, styled to
+   the grimoire rail (label font, gothic violet hairline). The crypt has no DnD/sort, so
+   these sections are purely a chronological grouping by archived month. */
+.grim-crypt-month { margin-top: 10px; }
+.grim-crypt-month:first-child { margin-top: 2px; }
+.grim-crypt-month-head {
+    position: relative;
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 4px 2px 7px; background: transparent; border: none; cursor: pointer;
+    font-family: var(--font-label); font-size: 10px; letter-spacing: 1.3px;
+    text-transform: uppercase; color: var(--text-muted);
+    transition: color var(--transition-slow);
+}
+.grim-crypt-month-head::after {           /* same hairline violet divider as the list head */
+    content: ''; position: absolute; left: 2px; right: 2px; bottom: 0; height: 1px;
+    background: linear-gradient(90deg,
+        rgba(150,70,240,0.45) 0%, rgba(146,66,236,0.20) 50%, rgba(150,70,240,0.45) 100%);
+}
+.grim-crypt-month-head:hover { color: var(--text-secondary); }
+.grim-crypt-month-name { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grim-crypt-month-count {
+    flex-shrink: 0; font-size: 9px; opacity: 0.55; font-weight: 600; letter-spacing: 0.5px;
+    background: var(--bg-item); border: 1px solid var(--border); border-radius: 99px; padding: 1px 7px;
+}
+.grim-crypt-month-chevron {
+    width: 13px; height: 13px; flex-shrink: 0; opacity: 0.7;
+    transition: transform var(--transition-slow), opacity var(--transition-slow);
+}
+.grim-crypt-month-head:hover .grim-crypt-month-chevron { opacity: 1; }
+.grim-crypt-month.collapsed .grim-crypt-month-chevron { transform: rotate(-90deg); }
+/* Clean grid-rows collapse (0fr↔1fr) — smooth, no JS height measuring. */
+.grim-crypt-month-body {
+    display: grid; grid-template-rows: 1fr;
+    transition: grid-template-rows var(--dur-collapse) var(--ease-gothic);
+}
+.grim-crypt-month.collapsed .grim-crypt-month-body { grid-template-rows: 0fr; }
+.grim-crypt-month-inner { overflow: hidden; min-height: 0; }
 
 /* ── list entry ("leaf") ── */
 .grim-leaf {

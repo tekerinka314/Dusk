@@ -348,6 +348,10 @@
                         <line x1="14.5" y1="16" x2="21" y2="21"/>
                     </svg>
                     <input type="text" id="search-box" placeholder="Поиск..." autocomplete="off" spellcheck="false">
+                    <!-- #3 (порт NA-13): очистка поиска — скрещённые кинжалы, выезжает изнутри пилюли, видна только при вводе. -->
+                    <button type="button" class="search-x" tabindex="-1" onclick="clearMainSearch()" title="Очистить" aria-label="Очистить поиск">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
+                    </button>
                 </div>
                 <!-- Tag cloud — rendered by JS, hidden when no tags exist -->
                 <div class="tag-cloud" id="tag-cloud" style="display:none"></div>
@@ -589,6 +593,12 @@
             <div class="empty-state" id="empty-state">
                 <div class="empty-rune">✦</div>
                 <p>Нет задач. Добавьте первую.</p>
+                <!-- #4 (порт _grimEmptyHTML): действие в пустом состоянии. Видна только когда задач НЕТ
+                     (не при «Ничего не найдено» под фильтром) — переключается в updateVisibility. -->
+                <button class="empty-add-btn" id="empty-add-btn" type="button" onclick="focusNewTaskInput()" style="display:none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Добавить первую задачу</span>
+                </button>
             </div>
 
             <div class="all-done" id="all-done" style="display:none">
@@ -614,7 +624,11 @@
                     </svg>
                     <input type="text" id="archive-search-box"
                            placeholder="Поиск в архиве..." autocomplete="off" spellcheck="false"
-                           oninput="archiveSearchQuery=this.value.trim();_applyArchiveSearch()">
+                           oninput="archiveSearchQuery=this.value.trim();renderArchive()">
+                    <!-- #3 (порт NA-13): очистка архив-поиска — скрещённые кинжалы. -->
+                    <button type="button" class="search-x" tabindex="-1" onclick="clearArchiveSearch()" title="Очистить" aria-label="Очистить поиск">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
+                    </button>
                 </div>
                 <div class="archive-btns" id="archive-btns" style="display:none">
                     <button class="btn-archive-action" id="btn-restore-all" onclick="restoreAll()" title="Восстановить всё">
@@ -762,6 +776,9 @@
                         </button>
                         <button class="sb-btn sb-archive" id="grim-bulk-restore" onclick="grimBulkRestore()" title="Вернуть в гримуар" disabled style="display:none">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V12C5 8 8 5 12 5C16 5 19 8 19 12V20"/><line x1="3" y1="20" x2="21" y2="20"/><path d="M12 4 L12 11" stroke-width="1.5"/><path d="M9 7 L12 4 L15 7" stroke-width="1.5"/></svg>
+                        </button>
+                        <button class="sb-btn" id="grim-bulk-color" onclick="openGrimBulkColorModal()" title="Цвет выбранных" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg>
                         </button>
                         <span class="grim-io-sel" id="grim-io-sel">
                             <button class="sb-btn" id="grim-bulk-export" onclick="grimToggleIoSelMenu(event)" title="Экспорт выбранных" aria-haspopup="true" aria-expanded="false" disabled>
@@ -1353,6 +1370,8 @@ if ('serviceWorker' in navigator) {
     });
 }
 </script>
+<!-- D-3: «Звук пера» base64-семпл вынесен из app.js; ДОЛЖЕН грузиться ДО app.js (кладёт window.PEN_ASSET). -->
+<script src="pen-asset.js"></script>
 <script src="app.js"></script>
 <!-- Color Filter Modal -->
 <div class="modal-overlay" id="color-filter-modal" style="display:none"

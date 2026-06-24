@@ -33,6 +33,7 @@ const CORE_ASSETS = [
 ];
 const OPTIONAL_ASSETS = [
     './bg-gothic.jpg',
+    './pen-asset.js',   // D-3: «Звук пера» семпл (грузится из index.html; декод in-memory, оффлайн-safe)
 ];
 
 // Install: core atomically; optional best-effort (failures ignored, never block install).

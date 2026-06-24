@@ -1,13 +1,17 @@
 # DUSK — task journal
 
 A single-page, offline-first gothic task manager (PWA). Plain vanilla JS — no
-framework, no build step. Three source files do everything:
+framework, no build step. Source files:
 
 - `index.html` — markup, all modals, inline SVG icons, SVG `<symbol>` defs.
 - `app.js` — all logic (state, rendering, repeats/cycles, drag-and-drop via
-  SortableJS, deadlines, archive, import/export). State persists to
+  SortableJS, deadlines, archive, import/export). ~14.3k lines. State persists to
   `localStorage` under `duskState_v3`.
 - `style.css` — all styling and animations.
+- `pen-asset.js` — the «Звук пера» base64 audio sample, extracted from `app.js`
+  (D-3). MUST load via its own `<script>` **before** `app.js` (sets
+  `window.PEN_ASSET`). Decoded in-memory via `atob` (no `fetch`), so the pen
+  sound works fully offline from a `file://` page with no server.
 
 ## Design & UX — gothic aesthetic is MANDATORY
 
@@ -90,7 +94,7 @@ ONLY when the user greenlights the "refactor stage":
    fragile id-offset in merge-import and is platform-agnostic. High blast radius
    (touches nearly every `find(t=>t.id===...)`, DnD, archive, undo) → needs a
    sweep + thorough data-safety tests. This is step 1 of the **Sync** section below.
-2. **7c — modular split + event delegation.** `app.js` is a 7680-line monolith
+2. **7c — modular split + event delegation.** `app.js` is a ~14.3k-line monolith
    wired with inline `onclick=` (forces all handlers global, invites XSS-class
    bugs). Plan: convert handlers to `data-action` + delegation from the list root,
    split into modules (state, render, deadlines, repeats, subtasks, dnd, modals,
@@ -106,7 +110,7 @@ ONLY when the user greenlights the "refactor stage":
 5. **Idea 5 — calendar view** (third page, monthly grid of deadlines). Large new
    surface (markup + responsive + gothic grid). Own block, later.
 6. **Idea 2 — streak counter** for recurring tasks. Postponed (gothic-ascetic fit
-   doubts). A dead `Streak counter` CSS stub already exists.
+   doubts). (The old dead `Streak counter` CSS stub has since been removed.)
 
 ### Product decisions made this session (keep consistent going forward)
 - **Quick-add trigger symbols:** `!` = priority, and (per user) tags use **`*`**
