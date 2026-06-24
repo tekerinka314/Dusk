@@ -464,7 +464,7 @@
                     </div><span class="toolbar-group-label">выбор</span></div>
                     <div class="toolbar-group"><div class="toolbar-group-btns">
                     <!-- Export data (gothic scroll leaving the vault) -->
-                    <button class="btn-tool" onclick="exportData()" title="Экспорт в JSON">
+                    <button class="btn-tool" id="btn-export" onclick="openExportMenu(event)" title="Экспорт: только задачи / всё" aria-haspopup="menu">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M7 2H17V16L12 20L7 16V2Z"/>
                             <path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/>
@@ -473,7 +473,7 @@
                         </svg>
                     </button>
                     <!-- Import data (gothic scroll entering the vault) -->
-                    <button class="btn-tool" onclick="triggerImport()" title="Импорт данных из JSON">
+                    <button class="btn-tool" onclick="triggerImport()" title="Импорт полного бэкапа DUSK (.json)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M7 2H17V16L12 20L7 16V2Z"/>
                             <path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/>
@@ -1370,9 +1370,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 </script>
-<!-- D-3: «Звук пера» base64-семпл вынесен из app.js; ДОЛЖЕН грузиться ДО app.js (кладёт window.PEN_ASSET). -->
-<script src="pen-asset.js"></script>
-<script src="app.js"></script>
 <!-- Color Filter Modal -->
 <div class="modal-overlay" id="color-filter-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="color-filter-title">
@@ -1437,6 +1434,12 @@ if ('serviceWorker' in navigator) {
         </div>
     </div>
 </div>
+
+<!-- F-A: pen-asset.js + app.js грузятся В КОНЦЕ <body> — после ВСЕХ модалок (color-filter,
+     templates, backup, bulk-group, import-choice), чтобы синхронный init() в конце app.js
+     видел весь DOM. pen-asset.js ДОЛЖЕН идти ДО app.js (кладёт window.PEN_ASSET). -->
+<script src="pen-asset.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>

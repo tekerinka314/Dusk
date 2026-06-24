@@ -4637,14 +4637,14 @@ function _grimRenderIoMenu() {
         + '<div class="grim-tpl-sect">Импорт</div>'
         + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md · .zip · .json · можно несколько', 'grimImportFiles()')
         + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Экспорт всего</div>'
-        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап', '.json · с летописью, переносит всё', "grimExportFullBackup('all')")
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · все записи Гримуара + летопись', "grimExportFullBackup('all')")
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', "grimExportBackup('all')")
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', "grimExportReading('all')");
 }
 function _grimRenderIoSelMenu() {
     const pop = document.getElementById('grim-io-sel-pop'); if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Экспорт выбранных</div>'
-        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап', '.json · выбранные + летопись', "grimExportFullBackup('sel')")
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · выбранные записи + летопись', "grimExportFullBackup('sel')")
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', "grimExportBackup('sel')")
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу', "grimExportReading('sel')");
 }
@@ -5036,7 +5036,10 @@ function grimImportFiles() {
                     let loaded = null;
                     try { loaded = JSON.parse(await f.text()); } catch (_) { showToast('Не удалось прочитать .json'); return; }
                     if (loaded && loaded._grimFull) { _grimFullImport(loaded); return; }
-                    showToast('Это не полный бэкап Гримуара'); return;
+                    // F-B: развести два формата. Полный бэкап DUSK (есть .tasks) — это бэкап ВСЕГО
+                    // приложения; его место в импорте задач (тулбар), не здесь.
+                    if (loaded && Array.isArray(loaded.tasks)) { showToast('Это полный бэкап DUSK — импортируйте его на странице «Задачи» (кнопка импорта в тулбаре)'); return; }
+                    showToast('Это не бэкап записей Гримуара'); return;
                 }
                 if (/\.zip$/i.test(f.name)) {
                     const entries = await _grimUnzip(new Uint8Array(await f.arrayBuffer()));
@@ -6064,6 +6067,11 @@ function importData(event) {
     reader.onload = (e) => {
         try {
             const loaded = JSON.parse(e.target.result);
+            // F-B: развести два формата. Бэкап записей Гримуара (_grimFull) — только заметки;
+            // его место в импорте Гримуара (Перенос → Импорт), не здесь.
+            if (loaded && loaded._grimFull && !Array.isArray(loaded.tasks)) {
+                showToast('Это бэкап записей Гримуара — импортируйте его в Гримуаре (Перенос → Импорт)'); return;
+            }
             if (!loaded || !Array.isArray(loaded.tasks)) {
                 showToast('Неверный формат файла'); return;
             }
@@ -6114,6 +6122,12 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         replaceBtn.onclick = () => {
             close();
             pushUndo();
+            // F-B: «Заменить» заменяет ТОЛЬКО домены, присутствующие в файле. Бэкап
+            // «только задачи» не несёт данных Гримуара → сохраняем текущие записи/склеп/
+            // шаблоны записей/сорт/летопись (правило №1: не теряем данные).
+            const keepGrim = !('notes' in loaded) && !('notesArchive' in loaded);
+            const _g = keepGrim ? { notes: state.notes, notesArchive: state.notesArchive,
+                                    noteTemplates: state.noteTemplates, notesSort: state.notesSort } : null;
             state = {
                 tasks: [], groups: [], archive: [],
                 nextId: 1, nextGroupId: 1, nextSubId: 1,
@@ -6123,10 +6137,13 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
                 groups:  (loaded.groups  || []).map(sanitizeGroup),
                 archive: (loaded.archive || []).map(sanitizeTask),
             };
+            delete state._grimVersions;
+            if (_g) { state.notes = _g.notes; state.notesArchive = _g.notesArchive;
+                      state.noteTemplates = _g.noteTemplates; state.notesSort = _g.notesSort; }
             migrateTasks(state.tasks);
             migrateTasks(state.archive || []);
             normalizeState();
-            _grimRestoreVersions(loaded, 'replace');   // NA-3: bring «Летопись» across
+            if (!keepGrim) _grimRestoreVersions(loaded, 'replace');   // NA-3: только если файл нёс записи
             // C3-2: do NOT wipe undoStack — pushUndo() above is the only safety net
             // that lets the user undo a destructive "Replace" import.
             saveState(); render(); updateArchiveBadge();
@@ -6208,6 +6225,10 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
     } else {
         // Fallback if modal not in HTML — just replace
         pushUndo();
+        // F-B: как и в основной ветке — сохраняем данные Гримуара, если файл их не нёс.
+        const keepGrim = !('notes' in loaded) && !('notesArchive' in loaded);
+        const _g = keepGrim ? { notes: state.notes, notesArchive: state.notesArchive,
+                                noteTemplates: state.noteTemplates, notesSort: state.notesSort } : null;
         state = {
             tasks: [], groups: [], archive: [],
             nextId: 1, nextGroupId: 1, nextSubId: 1,
@@ -6217,10 +6238,13 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             groups:  (loaded.groups  || []).map(sanitizeGroup),
             archive: (loaded.archive || []).map(sanitizeTask),
         };
+        delete state._grimVersions;
+        if (_g) { state.notes = _g.notes; state.notesArchive = _g.notesArchive;
+                  state.noteTemplates = _g.noteTemplates; state.notesSort = _g.notesSort; }
         migrateTasks(state.tasks);
         migrateTasks(state.archive || []);
         normalizeState();
-        _grimRestoreVersions(loaded, 'replace');   // NA-3: bring «Летопись» across
+        if (!keepGrim) _grimRestoreVersions(loaded, 'replace');   // NA-3: только если файл нёс записи
         // C3-2: keep the pre-import snapshot so Replace stays undoable.
         saveState(); render(); updateArchiveBadge();
         showToast(`Импортировано: ${state.tasks.length} задач`, { undo: true });
@@ -13112,11 +13136,11 @@ function escHtml(str) {
 }
 
 // ============================================================
-//  Idea 4: QUICK-ADD — inline syntax  #tag  !priority  ~date
+//  Idea 4: QUICK-ADD — inline syntax  *tag  %date  !priority
 //  + an interactive typeahead dropdown (keyboard + mouse).
 // ============================================================
-// Parse the raw input: pull out !priority and ~date tokens (removed from the
-// text), keep #tags in the text (they're already highlighted + searchable).
+// Parse the raw input: pull out !priority and %date tokens (removed from the
+// text), keep *tags in the text (they're already highlighted + searchable).
 function parseQuickInput(raw) {
     let text = raw;
     let priority = null;
@@ -13320,20 +13344,47 @@ function _qaKeydown(e) {
 //  EXPORT / IMPORT  (audit G-5)
 // ============================================================
 
-/** Export full state as a timestamped JSON file. */
-function exportData() {
-    const filename = `dusk-backup-${new Date().toISOString().slice(0,10)}.json`;
-    // NA-3: the «Летопись» version store lives in its own LS key (outside state),
-    // so a plain JSON.stringify(state) silently dropped all note history on a
-    // device move. Carry it as a top-level key in the backup (rule #1: never lose data).
-    const payload = { ...state, _grimVersions: grimVersions };
+// F-B: gothic coffin glyph for the «Только задачи» export row (no width/height →
+// sized by .snooze-menu svg CSS, like every other float-menu icon).
+const _EXPORT_TASKS_IC = `<svg viewBox="0 0 24 26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5H16L21 8V22.5Q12 26 3 22.5V8Z"/><line x1="7" y1="11.5" x2="17" y2="11.5" stroke-width="1.2" opacity="0.6"/></svg>`;
+
+// F-B: the export icon opens a small gothic popover with two scopes instead of
+// exporting directly — «Только задачи» (все данные DUSK, без Гримуара) или «Всё».
+function openExportMenu(event) {
+    event.stopPropagation();
+    _openFloatMenu(event.currentTarget, `
+        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('tasks')">${_EXPORT_TASKS_IC}<span>Только задачи</span></button>
+        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('all')">${GRIM_IO_IC.full}<span>Всё — полный бэкап</span></button>`,
+        'export-menu');
+}
+
+/** Export DUSK data as a timestamped JSON file.
+ *  scope 'tasks' → ВСЕ данные DUSK (задачи/группы/архив/заметки задач/подпункты/шаблоны
+ *                  задач/сортировки/счётчики), БЕЗ данных Гримуара.
+ *  scope 'all'   → полный бэкап всего приложения + «Летопись» Гримуара. */
+function exportData(scope) {
+    scope = scope || 'all';
+    const date = new Date().toISOString().slice(0, 10);
+    let payload, filename;
+    if (scope === 'tasks') {
+        // Вынимаем только данные Гримуара (записи, склеп, шаблоны записей, сорт записей,
+        // на всякий случай летопись); всё остальное в state — данные DUSK — остаётся.
+        const { notes, notesArchive, noteTemplates, notesSort, _grimVersions, ...dusk } = state;
+        payload  = dusk;
+        filename = `dusk-tasks-${date}.json`;
+    } else {
+        // NA-3: «Летопись» живёт в своём LS-ключе (вне state) — без неё device-move терял
+        // историю записей; кладём её верхним ключом (правило №1: не теряем данные).
+        payload  = { ...state, _grimVersions: grimVersions };
+        filename = `dusk-backup-${date}.json`;
+    }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = filename;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast(`Экспортировано: ${filename}`);
+    showToast(scope === 'tasks' ? `Экспортировано (только задачи): ${filename}` : `Экспортировано: ${filename}`);
 }
 
 /** Open system file picker for JSON import. */
