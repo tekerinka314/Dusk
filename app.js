@@ -676,6 +676,7 @@ const _newTaskIds = new Set();
 const _newNoteIds = new Set();
 let renamingGroupId  = null;
 let dlCurrentMode    = 'time'; // default — updated from localStorage on init
+let _dlAutoRepeat    = true;   // X-6: weektime → auto-weekly toggle (default ON; off is the non-standard one-shot mode)
 
 // ── Deadline mode persistence key
 const K_DL_MODE = 'dusk_lastDlMode';
@@ -5274,6 +5275,11 @@ function renderListOnly() {
 }
 
 function renderTasks() {
+    // D-4: if a per-group sort picker is open, its <body>-portaled list would be
+    // orphaned (left floating) when we wipe the list below. Close it first — while
+    // the owning picker is still connected, so the list restores cleanly before the
+    // rebuild. No-op when nothing is open.
+    _closeSortPicker();
     listContainer.innerHTML   = '';
     groupsContainer.innerHTML = '';
     const query = searchQuery.toLowerCase();
@@ -7563,6 +7569,16 @@ function addTask() {
     const _fRAd  = formRepeatAnchorDay;
     const _fRAmd = formRepeatAnchorMonthday;
 
+    // X-6: a quick-add %weekday deadline auto-enables weekly repeat (default ON,
+    // matching the deadline modal) — only when the form didn't set an explicit
+    // repeat. Quick-add has no toggle, so it always uses the ON default.
+    let _effRepeat    = selectedRepeat;
+    let _effAnchorDay = _fRAd;
+    if (parsed.deadline && parsed.deadline.mode === 'weektime' && (!_effRepeat || _effRepeat === 'none')) {
+        _effRepeat    = 'weekly';
+        _effAnchorDay = parseInt((parsed.deadline.value || '').split('|')[0]) || null;
+    }
+
     const newSubtasks = formSubtasks.map((s, i) => ({
         id: state.nextSubId++, text: s.text, checked: false,
         priority: s.priority || 'none',
@@ -7583,9 +7599,9 @@ function addTask() {
         color: (effPriority && effPriority !== 'none') ? null : (selectedFormColor || null),
         groupId, deadline, note, noteOpen: false,
         order: state.tasks.length,
-        repeat: selectedRepeat,
+        repeat: _effRepeat,
         repeatAnchorTime:     _fRAt  || null,
-        repeatAnchorDay:      _fRAd  || null,
+        repeatAnchorDay:      _effAnchorDay || null,
         repeatAnchorMonthday: _fRAmd || null,
         cycleChecked: false,
         nextReset: null,
@@ -10917,6 +10933,22 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
         }
     }
 
+    // X-6: weektime auto-weekly toggle. Default ON; but if this target already
+    // carries a weektime deadline whose repeat the user left non-recurring («none»),
+    // reflect that opt-out instead of silently re-enabling it on every re-edit.
+    let _arInit = true;
+    if (existing && existing.mode === 'weektime') {
+        const tgtRepeat = formSubIdx !== null
+            ? (formSubtasks[formSubIdx] || {}).repeat
+            : (subId !== null
+                ? (((state.tasks.find(t => t.id === taskId) || {}).subtasks || []).find(s => s.id === subId) || {}).repeat
+                : (taskId !== null
+                    ? (state.tasks.find(t => t.id === taskId) || {}).repeat
+                    : selectedRepeat));
+        _arInit = (tgtRepeat !== 'none');
+    }
+    _setDlAutoRepeat(_arInit);
+
     openModalWithFocus('deadline-modal');
     // After the modal's entrance animation (~200ms), focus the active mode's input.
     // Two rAFs: first lets display:flex settle, second lets the modal animate in.
@@ -11050,6 +11082,17 @@ function clearDeadlineModal() {
     }
 }
 
+// X-6: weektime auto-weekly toggle (lives in the «День + Время» deadline section).
+function _setDlAutoRepeat(on) {
+    _dlAutoRepeat = !!on;
+    const btn = document.getElementById('dl-repeat-toggle');
+    if (!btn) return;
+    btn.classList.toggle('on', _dlAutoRepeat);
+    btn.setAttribute('aria-checked', _dlAutoRepeat ? 'true' : 'false');
+    // State is conveyed by the lunar-phase switch + aria-checked (no text chip).
+}
+function toggleDlAutoRepeat() { _setDlAutoRepeat(!_dlAutoRepeat); }
+
 function confirmDeadline() {
     const mode = dlCurrentMode;
     const wasBulk = bulkDeadlineActive;   // P-D: don't touch the add-form repeat state in bulk
@@ -11081,7 +11124,7 @@ function confirmDeadline() {
             const fs = formSubtasks[_formSubDeadlineIdx];
             if (fs) {
                 fs.deadline = dl;
-                if (!fs.repeat || fs.repeat === 'none') {
+                if (_dlAutoRepeat && (!fs.repeat || fs.repeat === 'none')) {
                     fs.repeat = 'weekly';
                     fs.repeatAnchorDay = parseInt(wd) || null;
                 }
@@ -11102,7 +11145,7 @@ function confirmDeadline() {
             if (ssub) {
                 pushUndo();
                 ssub.deadline = dl;
-                if (!ssub.repeat || ssub.repeat === 'none') {
+                if (_dlAutoRepeat && (!ssub.repeat || ssub.repeat === 'none')) {
                     ssub.repeat = 'weekly';
                     ssub.repeatAnchorDay = parseInt(wd) || null;
                 }
@@ -11124,7 +11167,7 @@ function confirmDeadline() {
             if (task) {
                 pushUndo();
                 task.deadline = dl;
-                if (task.repeat === 'none') {
+                if (_dlAutoRepeat && task.repeat === 'none') {
                     task.repeat = 'weekly';
                     task.repeatAnchorDay = parseInt(wd) || null;
                 }
@@ -11134,7 +11177,16 @@ function confirmDeadline() {
             editingTaskId = null;
         } else {
             applyDeadline(dl);                       // form-creation / bulk path
-            if (!wasBulk) updateRepeatAvailability(dl.mode);
+            if (!wasBulk) {
+                updateRepeatAvailability(dl.mode);
+                // X-6: a fresh weektime deadline auto-enables weekly repeat on the
+                // add-form too (default ON), mirroring the existing-task coupling.
+                if (_dlAutoRepeat && selectedRepeat === 'none') {
+                    setFormRepeat('weekly');
+                    if (window._formWdPickerSet) window._formWdPickerSet(parseInt(wd) || '');
+                    else formRepeatAnchorDay = parseInt(wd) || null;
+                }
+            }
         }
         closeModalWithAnim('deadline-modal');
         return;
@@ -13347,14 +13399,19 @@ function _qaKeydown(e) {
 // F-B: gothic coffin glyph for the «Только задачи» export row (no width/height →
 // sized by .snooze-menu svg CSS, like every other float-menu icon).
 const _EXPORT_TASKS_IC = `<svg viewBox="0 0 24 26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5H16L21 8V22.5Q12 26 3 22.5V8Z"/><line x1="7" y1="11.5" x2="17" y2="11.5" stroke-width="1.2" opacity="0.6"/></svg>`;
+// X-2: «Задачи как markdown-чеклист» — gothic parchment sheet with curled edges
+// and two checkbox ticks (scroll motif, family of GRIM_IO_IC.reading). Readable,
+// lossy export (no JSON re-import) — sits beside the coffin/coffer backup glyphs.
+const _EXPORT_MD_IC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 4.2h11.2v13q0 2.4-2.4 2.4H8.8q-2.4 0-2.4-2.4Z"/><path d="M6.4 4.2q-1.4 0-1.4 1.3t1.4 1.3M17.6 4.2q1.4 0 1.4 1.3t-1.4 1.3" opacity=".55"/><path d="M8.4 10l1.1 1.1 1.8-2.1"/><line x1="12.9" y1="10" x2="16" y2="10" opacity=".7"/><path d="M8.4 14.4l1.1 1.1 1.8-2.1"/><line x1="12.9" y1="14.4" x2="16" y2="14.4" opacity=".7"/></svg>`;
 
-// F-B: the export icon opens a small gothic popover with two scopes instead of
-// exporting directly — «Только задачи» (все данные DUSK, без Гримуара) или «Всё».
+// F-B/X-2: the export icon opens a small gothic popover with the scopes instead of
+// exporting directly — «Только задачи» / «Всё» (JSON backups) + «Markdown-чеклист».
 function openExportMenu(event) {
     event.stopPropagation();
     _openFloatMenu(event.currentTarget, `
         <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('tasks')">${_EXPORT_TASKS_IC}<span>Только задачи</span></button>
-        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('all')">${GRIM_IO_IC.full}<span>Всё — полный бэкап</span></button>`,
+        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('all')">${GRIM_IO_IC.full}<span>Всё — полный бэкап</span></button>
+        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('md')">${_EXPORT_MD_IC}<span>Задачи — markdown-чеклист</span></button>`,
         'export-menu');
 }
 
@@ -13364,6 +13421,7 @@ function openExportMenu(event) {
  *  scope 'all'   → полный бэкап всего приложения + «Летопись» Гримуара. */
 function exportData(scope) {
     scope = scope || 'all';
+    if (scope === 'md') { _exportTasksMarkdown(); return; }   // X-2: readable checklist, not JSON
     const date = new Date().toISOString().slice(0, 10);
     let payload, filename;
     if (scope === 'tasks') {
@@ -13385,6 +13443,35 @@ function exportData(scope) {
     a.click();
     URL.revokeObjectURL(a.href);
     showToast(scope === 'tasks' ? `Экспортировано (только задачи): ${filename}` : `Экспортировано: ${filename}`);
+}
+
+// X-2: serialize tasks to a portable markdown checklist (grouped, nested subtasks,
+// deadline suffix). Lossy/human-readable — a companion to the JSON backup, not a
+// re-importable format. Order mirrors the app (ungrouped first, then groups by order).
+function _tasksToMarkdown() {
+    const date    = new Date().toISOString().slice(0, 10);
+    const byOrder = arr => arr.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    const dlSfx   = dl => (dl && dl.value) ? `  _(до: ${formatDeadlineAbsolute(dl)})_` : '';
+    const renderTask = t => {
+        const lines = [`- [${t.checked ? 'x' : ' '}] ${(t.text || '').trim()}${dlSfx(t.deadline)}`];
+        byOrder(t.subtasks || []).forEach(s =>
+            lines.push(`  - [${s.checked ? 'x' : ' '}] ${(s.text || '').trim()}${dlSfx(s.deadline)}`));
+        return lines.join('\n');
+    };
+    const out  = [`# DUSK — задачи`, '', `_${date}_`, ''];
+    const ung  = byOrder((state.tasks || []).filter(t => !t.groupId));
+    if (ung.length) { out.push('## Без группы', '', ...ung.map(renderTask), ''); }
+    byOrder(state.groups || []).forEach(g => {
+        const gt = byOrder((state.tasks || []).filter(t => t.groupId === g.id));
+        if (!gt.length) return;
+        out.push('## ' + ((g.name || '').trim() || 'Группа'), '', ...gt.map(renderTask), '');
+    });
+    if (out.length <= 4) out.push('_(задач нет)_', '');
+    return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+}
+function _exportTasksMarkdown() {
+    const date = new Date().toISOString().slice(0, 10);
+    _grimDownload(`dusk-tasks-${date}.md`, _tasksToMarkdown(), 'text/markdown');
 }
 
 /** Open system file picker for JSON import. */
@@ -14569,6 +14656,9 @@ function initFormWeekdayPicker() {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isOpen ? closePicker() : openPicker(); return; }
     });
     registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
+    // X-6: expose the day-setter so confirmDeadline's form-creation path can fill the
+    // weekly anchor day when a weektime deadline auto-enables weekly repeat.
+    window._formWdPickerSet = setDay;
 }
 
 

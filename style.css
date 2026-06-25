@@ -4444,6 +4444,103 @@ textarea:focus-visible {
 
 .dl-hint { font-size: 11px; color: var(--text-secondary); margin-top: 7px; font-style: italic; font-family: var(--font-label); }
 
+/* X-6: auto-weekly toggle inside the «День + Время» deadline section. Default ON
+   (a weekday deadline implies the task recurs each week); off = one-shot mode.
+   «Лунный круг» glyph + two-line label + lunar-phase switch — state driven by .on,
+   ON-lit but deliberately restrained (не кричит). */
+.dl-repeat-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 11px;
+    padding: 10px 13px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(14, 5, 38, 0.5), rgba(7, 3, 22, 0.5));
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color var(--dur-standard) var(--ease-gothic), background var(--dur-standard) var(--ease-gothic);
+}
+.dl-repeat-toggle:hover { border-color: var(--border-mid); }
+
+/* glyph — лунный круг */
+.dl-repeat-toggle .dl-rt-glyph {
+    width: 30px; height: 30px; flex: 0 0 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-secondary);
+    transition: color var(--dur-standard) var(--ease-gothic), filter var(--dur-standard) var(--ease-gothic), transform var(--dur-ritual) var(--ease-gothic);
+}
+.dl-repeat-toggle .dl-rt-glyph svg { width: 30px; height: 30px; display: block; overflow: visible; }
+
+/* two-line label, neatly stacked & left-aligned */
+.dl-repeat-toggle .dl-rt-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dl-repeat-toggle .dl-rt-title {
+    font-family: var(--font-label);
+    font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-secondary);
+    transition: color var(--dur-standard) var(--ease-gothic);
+}
+.dl-repeat-toggle .dl-rt-sub {
+    font-family: var(--font-main);
+    font-size: 12px; font-style: italic; letter-spacing: 0.2px; line-height: 1.3;
+    color: var(--text-muted);
+    text-transform: none; font-weight: 400;
+}
+
+/* lunar-phase switch (CSS-driven by .on) */
+.dl-repeat-toggle .dl-rt-switch {
+    position: relative; flex: 0 0 auto;
+    width: 54px; height: 24px; border-radius: 12px;
+    background: radial-gradient(100% 140% at 50% 0%, rgba(16, 7, 38, 0.92), rgba(4, 1, 12, 0.96));
+    border: 1px solid var(--border-input);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7);
+    transition: border-color var(--dur-quick) var(--ease-gothic), box-shadow var(--dur-quick) var(--ease-gothic);
+}
+.dl-repeat-toggle .dl-rt-stars { position: absolute; inset: 0; opacity: 0.5; }
+.dl-repeat-toggle .dl-rt-stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--text-muted); }
+.dl-repeat-toggle .dl-rt-stars i:nth-child(1) { left: 11px; top: 7px; }
+.dl-repeat-toggle .dl-rt-stars i:nth-child(2) { left: 18px; top: 15px; }
+.dl-repeat-toggle .dl-rt-stars i:nth-child(3) { left: 25px; top: 6px; }
+.dl-repeat-toggle .dl-rt-knob {
+    position: absolute; top: 50%; left: 3px; width: 18px; height: 18px;
+    transform: translateY(-50%);
+    border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 35% 30%, #6a4a98, #2a1850);
+    border: 1px solid rgba(150, 100, 220, 0.4);
+    transition: left var(--dur-quick) var(--ease-spring), box-shadow var(--dur-quick) var(--ease-gothic), background var(--dur-quick) var(--ease-gothic);
+}
+/* offset disc carves a crescent when OFF */
+.dl-repeat-toggle .dl-rt-knob::after {
+    content: ""; position: absolute; top: -2px; left: 5px; width: 18px; height: 22px;
+    border-radius: 50%; background: var(--bg-input);
+    transition: left var(--dur-quick) var(--ease-spring), opacity var(--dur-quick) var(--ease-gothic);
+}
+
+/* ON — lit, restrained: glyph & title brighten, orb slides to full moon */
+.dl-repeat-toggle.on { border-color: var(--border-mid); background: linear-gradient(180deg, rgba(26, 9, 60, 0.55), rgba(12, 4, 34, 0.5)); }
+.dl-repeat-toggle.on .dl-rt-glyph { color: var(--accent-hover); filter: drop-shadow(0 0 6px var(--accent-glow)); }
+.dl-repeat-toggle.on .dl-rt-title { color: var(--accent-hover); }
+.dl-repeat-toggle.on .dl-rt-switch { border-color: var(--border-bright); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 13px var(--accent-glow); }
+.dl-repeat-toggle.on .dl-rt-knob {
+    left: 33px;
+    background: radial-gradient(circle at 38% 32%, #f3e3ff, #9a6ae0);
+    box-shadow: 0 0 11px var(--accent-glow), inset 0 0 4px rgba(255, 255, 255, 0.5);
+}
+.dl-repeat-toggle.on .dl-rt-knob::after { left: 24px; opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+    .dl-repeat-toggle .dl-rt-knob,
+    .dl-repeat-toggle .dl-rt-knob::after,
+    .dl-repeat-toggle .dl-rt-glyph { transition: none; }
+}
+
+/* User-requested swap (deadline modal only): the day/month dropdown TRIGGER read
+   white-at-rest / violet-on-hover; invert to violet-at-rest / white-on-hover. */
+#deadline-modal .dl-month-trigger { color: var(--text-secondary); }
+#deadline-modal .dl-month-trigger:hover { color: var(--text-primary); }
+
 /* Optional time row inside date-mode deadline (Extension 7) */
 .dl-date-time-row {
     display: flex;
