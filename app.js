@@ -6277,7 +6277,7 @@ function _checkDeadlineNotifications() {
     state.tasks.forEach(task => {
         const status = (!task.checked && !task.cycleChecked && task.deadline)
             ? deadlineStatus(task.deadline) : null;
-        const due = status === 'critical' || status === 'over';
+        const due = status === 'critical' || status === 'over' || status === 'live';
         // D-5: not due (completed, deadline removed, or pushed back) → drop the flag so a
         // later re-entry can notify again.
         if (!due) { if (_notifiedDeadlines.delete(task.id)) changed = true; return; }
@@ -6922,6 +6922,7 @@ function createTaskEl(task, showDlSide) {
         const absolute  = formatDeadlineAbsolute(task.deadline, true);
         let tc = 'meta-tag deadline-tag';
         if (status === 'over')          tc += ' over';
+        else if (status === 'live')     tc += ' live';
         else if (status === 'critical') tc += ' critical';
         else if (status === 'urgent')   tc += ' urgent';
         else if (status === 'warn')     tc += ' warn';
@@ -10880,6 +10881,7 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
     if (segInputs['dl-weektime-time']) segInputs['dl-weektime-time'].clear();
     if (segInputs['dl-date'])          segInputs['dl-date'].clear();
     if (segInputs['dl-date-time'])     segInputs['dl-date-time'].clear();
+    _setDlDurationFields(0);           // X-7: reset event-duration fields
 
     // Restrict date picker (still validated in JS on confirm)
     const todayStr = new Date().toLocaleDateString('en-CA');
@@ -10906,6 +10908,7 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
             const dlTimeEl = document.getElementById('dl-date-time');
             if (dlTimeEl) dlTimeEl.value = (existing && existing.time) ? existing.time : '';
         }
+        _setDlDurationFields(existing.durationMin || 0);   // X-7: restore event-duration
     } else {
         // No existing deadline — clear time field too
         const dlTimeEl = document.getElementById('dl-date-time');
@@ -10937,7 +10940,7 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
     // carries a weektime deadline whose repeat the user left non-recurring («none»),
     // reflect that opt-out instead of silently re-enabling it on every re-edit.
     let _arInit = true;
-    if (existing && existing.mode === 'weektime') {
+    if (existing && _AUTO_REPEAT_BY_MODE[existing.mode]) {
         const tgtRepeat = formSubIdx !== null
             ? (formSubtasks[formSubIdx] || {}).repeat
             : (subId !== null
@@ -10977,6 +10980,11 @@ function setDeadlineMode(mode, withFocus) {
     document.querySelectorAll('.dl-input-wrap').forEach(w => w.classList.remove('active'));
     const wrap = document.getElementById('dl-wrap-' + mode);
     if (wrap) wrap.classList.add('active');
+    // X-7: event-duration row — only for time-precise modes (time / weektime / date).
+    const _durRow = document.getElementById('dl-duration-row');
+    if (_durRow) _durRow.hidden = !(mode === 'time' || mode === 'weektime' || mode === 'date');
+    // X-8: shared auto-repeat toggle — for the rhythmic modes (time / weektime / monthday).
+    _updateDlRepeatToggle(mode);
     if (mode === 'monthday') updateMonthdayMax();
     // Clear monthday inline warning and note when navigating away
     if (mode !== 'monthday') {
@@ -11042,21 +11050,16 @@ document.querySelectorAll('.dl-mode-btn').forEach(btn => {
 
 function updateRepeatAvailability(mode) {
     const repeatBtns = document.querySelectorAll('#repeat-selector .repeat-btn');
-    if (!mode || mode === 'time') {
-        // No deadline or time-only deadline — all repeat options available
-        repeatBtns.forEach(b => { b.disabled = false; });
-        if (mode === 'time') setFormRepeat('none');
-    } else if (mode === 'weektime') {
-        // Day + time → only weekly makes sense
-        repeatBtns.forEach(b => {
-            b.disabled = (b.dataset.repeat !== 'none' && b.dataset.repeat !== 'weekly');
-        });
-        if (selectedRepeat !== 'none' && selectedRepeat !== 'weekly') setFormRepeat('none');
-    } else {
-        // monthday / month / year / date → no recurring repeat makes sense
-        repeatBtns.forEach(b => { b.disabled = b.dataset.repeat !== 'none'; });
-        setFormRepeat('none');
-    }
+    // X-8: which repeats make sense per deadline mode. monthday now allows monthly
+    // (auto-repeat coupling); time keeps all options; weektime stays weekly-only.
+    // No forced reset for time/monthday so the auto-repeat coupling can stick.
+    let allowed;
+    if (!mode || mode === 'time') allowed = ['none', 'daily', 'weekly', 'weekdays', 'monthly'];
+    else if (mode === 'weektime') allowed = ['none', 'weekly'];
+    else if (mode === 'monthday') allowed = ['none', 'monthly'];
+    else                          allowed = ['none']; // month / year / date
+    repeatBtns.forEach(b => { b.disabled = !allowed.includes(b.dataset.repeat); });
+    if (!allowed.includes(selectedRepeat)) setFormRepeat('none');
 }
 
 function clearDeadlineModal() {
@@ -11093,6 +11096,77 @@ function _setDlAutoRepeat(on) {
 }
 function toggleDlAutoRepeat() { _setDlAutoRepeat(!_dlAutoRepeat); }
 
+// X-7: shared event-duration field (hours + minutes → total minutes; 0 = none).
+function _readDlDuration() {
+    const h = parseInt(document.getElementById('dl-dur-h')?.value) || 0;
+    const m = parseInt(document.getElementById('dl-dur-m')?.value) || 0;
+    return Math.max(0, h * 60 + m);
+}
+function _setDlDurationFields(min) {
+    const total = Math.max(0, parseInt(min) || 0);
+    const hEl = document.getElementById('dl-dur-h');
+    const mEl = document.getElementById('dl-dur-m');
+    if (hEl) hEl.value = total ? (Math.floor(total / 60) || '') : '';
+    if (mEl) mEl.value = total ? (total % 60 || '') : '';
+}
+// #2: validate + auto-correct the duration fields as the user types
+// (hours 0–23, minutes 0–59; strip non-digits; clamp out-of-range).
+function _clampDlDuration(el) {
+    if (!el) return;
+    const max = el.id === 'dl-dur-h' ? 23 : 59;
+    const digits = (el.value || '').replace(/\D/g, '');
+    if (digits === '') { el.value = ''; return; }
+    let n = parseInt(digits, 10);
+    if (isNaN(n) || n < 0) n = 0;
+    if (n > max) n = max;
+    el.value = String(n);
+}
+// #2: gothic arch steppers — bump hours (±1) / minutes (±5), clamped 0–23 / 0–59.
+// Zero shows as empty (placeholder «0»), consistent with _setDlDurationFields.
+function _stepDlDuration(which, delta) {
+    const el = document.getElementById(which === 'h' ? 'dl-dur-h' : 'dl-dur-m');
+    if (!el) return;
+    const max = which === 'h' ? 23 : 59;
+    let n = (parseInt((el.value || '').replace(/\D/g, ''), 10) || 0) + delta;
+    if (n < 0) n = 0;
+    if (n > max) n = max;
+    el.value = n ? String(n) : '';
+}
+
+// X-8: deadline-mode → auto-repeat coupling (time = daily, weektime = weekly,
+// monthday = monthly). weektime is coupled inline in confirmDeadline (it returns
+// early); the map drives the shared toggle label, _arInit, and the generic-path
+// coupling for time/monthday below.
+const _AUTO_REPEAT_BY_MODE = { time: 'daily', weektime: 'weekly', monthday: 'monthly' };
+const _DL_REPEAT_LABELS = {
+    weektime: { t: 'Повторять каждую неделю', s: 'Дедлайн сдвигается на следующую неделю — в выбранный день' },
+    time:     { t: 'Повторять каждый день',   s: 'Дедлайн сдвигается на следующий день — в то же время' },
+    monthday: { t: 'Повторять каждый месяц',  s: 'Дедлайн сдвигается на следующий месяц — на то же число' },
+};
+// Show + relabel the shared auto-repeat toggle for the active deadline mode.
+function _updateDlRepeatToggle(mode) {
+    const btn = document.getElementById('dl-repeat-toggle');
+    if (!btn) return;
+    const lbl = _DL_REPEAT_LABELS[mode];
+    btn.hidden = !lbl;
+    if (!lbl) return;
+    const tEl = btn.querySelector('.dl-rt-title');
+    const sEl = btn.querySelector('.dl-rt-sub');
+    if (tEl) tEl.textContent = lbl.t;
+    if (sEl) sEl.textContent = lbl.s;
+}
+// Apply the mode's recurring repeat (+anchor) to a task/subtask/formSubtask object.
+// Honours the auto-repeat toggle; never overrides an explicit non-'none' choice.
+function _applyAutoRepeatToTarget(obj, dl) {
+    if (!_dlAutoRepeat || !obj || !dl) return;
+    const rep = _AUTO_REPEAT_BY_MODE[dl.mode];
+    if (!rep) return;
+    if (obj.repeat && obj.repeat !== 'none') return;
+    obj.repeat = rep;
+    if (dl.mode === 'weektime')      obj.repeatAnchorDay      = parseInt(dl.value.split('|')[0]) || null;
+    else if (dl.mode === 'monthday') obj.repeatAnchorMonthday = parseInt(dl.value) || null;
+}
+
 function confirmDeadline() {
     const mode = dlCurrentMode;
     const wasBulk = bulkDeadlineActive;   // P-D: don't touch the add-form repeat state in bulk
@@ -11115,6 +11189,8 @@ function confirmDeadline() {
         const t  = segInputs['dl-weektime-time']?.getValue() || document.getElementById('dl-weektime-time').value;
         value = `${wd}|${t || '00:00'}`;
         const dl = { mode, value, timeSet: !!t };
+        // X-7: optional event-duration (only meaningful when a time is set).
+        if (t) { const _d = _readDlDuration(); if (_d > 0) dl.durationMin = _d; }
         localStorage.setItem(K_DL_MODE, mode);
         // I-9: save before applyDeadline() resets editingTaskId to null
         const targetId = editingTaskId;
@@ -11314,6 +11390,11 @@ function confirmDeadline() {
                          document.getElementById('dl-date-time')?.value || '').trim();
         if (timeVal) dl.time = timeVal;
     }
+    // X-7: optional event-duration for time-precise modes (instant when 0/unset).
+    if (dl && (mode === 'time' || (mode === 'date' && dl.time))) {
+        const _d = _readDlDuration();
+        if (_d > 0) dl.durationMin = _d;
+    }
     // Persist the chosen mode so next open pre-selects it
     if (dl) localStorage.setItem(K_DL_MODE, mode);
     // I-9: capture before applyDeadline() resets editingTaskId to null
@@ -11321,17 +11402,26 @@ function confirmDeadline() {
     applyDeadline(dl);
     closeModalWithAnim('deadline-modal');
     // Update repeat availability AFTER deadline is confirmed — not on tab click
-    if (targetId === null && !wasBulk) updateRepeatAvailability(dl ? dl.mode : null);
-    if (dl && dl.mode === 'weektime' && targetId !== null) {
-        const task = state.tasks.find(t => t.id === targetId);
-        if (task && task.repeat === 'none') { task.repeat = 'weekly'; saveState(); }
+    if (targetId === null && !wasBulk) {
+        updateRepeatAvailability(dl ? dl.mode : null);
+        // X-8: auto-repeat coupling for the add-form (time→daily, monthday→monthly;
+        // weektime is coupled in its own branch above). Object targets (task/sub/
+        // form-sub) are coupled inside applyDeadline via _applyAutoRepeatToTarget.
+        if (dl && _dlAutoRepeat && _AUTO_REPEAT_BY_MODE[dl.mode] && dl.mode !== 'weektime' && selectedRepeat === 'none') {
+            setFormRepeat(_AUTO_REPEAT_BY_MODE[dl.mode]);
+            if (dl.mode === 'monthday') {
+                const _md = parseInt(dl.value) || null;
+                if (window._formMdPickerSet) window._formMdPickerSet(_md || '');
+                else formRepeatAnchorMonthday = _md;
+            }
+        }
     }
 }
 
 function applyDeadline(dl) {
     if (_formSubDeadlineIdx !== null) {       // P-E: form-subtask deadline (task not yet created; all modes except weektime)
         const s = formSubtasks[_formSubDeadlineIdx];
-        if (s) { s.deadline = dl; renderFormSubtasks(); }
+        if (s) { s.deadline = dl; _applyAutoRepeatToTarget(s, dl); renderFormSubtasks(); }
         _formSubDeadlineIdx = null;
         editingTaskId = null;
         editingSubId  = null;
@@ -11343,6 +11433,7 @@ function applyDeadline(dl) {
         if (sub) {
             pushUndo();
             sub.deadline = dl;
+            _applyAutoRepeatToTarget(sub, dl);
             saveState();
             renderSubList(editingTaskId);
             showToast(dl ? 'Дедлайн установлен' : 'Дедлайн удалён');
@@ -11360,7 +11451,7 @@ function applyDeadline(dl) {
     if (editingTaskId !== null) {
         const task = state.tasks.find(t => t.id === editingTaskId);
         if (task) {
-            pushUndo(); task.deadline = dl; saveState(); render();
+            pushUndo(); task.deadline = dl; _applyAutoRepeatToTarget(task, dl); saveState(); render();
             showToast(dl ? 'Дедлайн установлен' : 'Дедлайн удалён');
         }
     } else {
@@ -11538,42 +11629,62 @@ function updateMonthdayMax() {
 // ============================================================
 //  DEADLINE UTILS
 // ============================================================
-function getDeadlineTimestamp(dl) {
+// X-7: event-window for time-precise deadlines (time / weektime+time / date+time).
+// Returns {start, end} in ms, end = start + durationMin*60000 (duration optional,
+// 0 when unset → instant). For RECURRING modes (time = daily, weektime = weekly)
+// the occurrence advances to the next period only once the WHOLE window has passed
+// (end <= now) — so the deadline stays "live/burning" for the event's full duration
+// instead of rolling forward the instant it begins. Returns null for modes without
+// a precise clock-time (callers then fall back to their own day-level logic).
+function deadlineWindow(dl) {
     if (!dl || !dl.value) return null;
     const { mode, value } = dl;
-    if (mode === 'date') {
-        // Extension 7: if time is specified, use that exact moment; otherwise midnight
-        if (dl.time) return new Date(value + 'T' + dl.time + ':00').getTime();
-        return new Date(value + 'T00:00:00').getTime();
-    }
+    const durMs = Math.max(0, parseInt(dl.durationMin) || 0) * 60000;
+    const now   = Date.now();
     if (mode === 'time') {
         const [h, m] = value.split(':').map(Number);
         const d = new Date(); d.setHours(h, m, 0, 0);
-        if (d <= Date.now()) d.setDate(d.getDate() + 1);
-        return d.getTime();
+        let start = d.getTime();
+        if (start + durMs <= now) start += 86400000;        // whole window passed → tomorrow
+        return { start, end: start + durMs };
     }
-    if (mode === 'weektime') {
+    if (mode === 'weektime' && dl.timeSet !== false) {
         const [wd, t] = value.split('|');
-        if (!wd) return null;
-        // Fix 1: day-only weektime — return midnight of target weekday (never rolls to +7)
-        if (dl.timeSet === false) {
-            const jsTarget = parseInt(wd) === 7 ? 0 : parseInt(wd);
-            const jsToday  = new Date().getDay();
-            const daysUntil = (jsTarget - jsToday + 7) % 7; // 0 = today
-            const d = new Date(); d.setHours(0, 0, 0, 0);
-            d.setDate(d.getDate() + daysUntil);
-            return d.getTime();
-        }
-        if (!t) return null;
-        const [h, m] = t.split(':').map(Number);
-        const now = new Date();
-        const result = new Date(now); result.setHours(h, m, 0, 0);
+        if (!wd || !t) return null;
+        const [h, m]   = t.split(':').map(Number);
         const jsTarget = parseInt(wd) === 7 ? 0 : parseInt(wd);
-        const jsToday  = now.getDay();
-        let daysUntil  = (jsTarget - jsToday + 7) % 7;
-        if (daysUntil === 0 && result <= now) daysUntil = 7;
-        result.setDate(result.getDate() + daysUntil);
-        return result.getTime();
+        const nowD     = new Date();
+        const res      = new Date(nowD); res.setHours(h, m, 0, 0);
+        res.setDate(res.getDate() + ((jsTarget - nowD.getDay() + 7) % 7));
+        let start = res.getTime();
+        if (start + durMs <= now) start += 7 * 86400000;    // whole window passed → next week
+        return { start, end: start + durMs };
+    }
+    if (mode === 'date' && dl.time) {
+        const start = new Date(value + 'T' + dl.time + ':00').getTime();
+        return { start, end: start + durMs };               // one-time: never advances
+    }
+    return null;
+}
+
+function getDeadlineTimestamp(dl) {
+    if (!dl || !dl.value) return null;
+    const { mode, value } = dl;
+    // X-7: time-precise modes resolve through the event-window (start of the current
+    // or next occurrence) — keeps countdown/sorting anchored to the event start.
+    const w = deadlineWindow(dl);
+    if (w) return w.start;
+    if (mode === 'date') {                  // date without time → midnight
+        return new Date(value + 'T00:00:00').getTime();
+    }
+    if (mode === 'weektime') {              // Fix 1: day-only weektime → midnight of target weekday
+        const [wd] = value.split('|');
+        if (!wd) return null;
+        const jsTarget  = parseInt(wd) === 7 ? 0 : parseInt(wd);
+        const daysUntil = (jsTarget - new Date().getDay() + 7) % 7; // 0 = today
+        const d = new Date(); d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + daysUntil);
+        return d.getTime();
     }
     if (mode === 'monthday') {
         const day = parseInt(value);
@@ -11642,36 +11753,37 @@ function deadlineStatus(dl) {
         return 'ok';
     }
 
-    const ts = getDeadlineTimestamp(dl);
-    if (ts === null) return null;
-    const diff = ts - now;
-
-    if (mode === 'time') {
-        if (diff < 0)                return 'over';
-        if (diff < 1  * 3600000)    return 'critical';
-        if (diff < 3  * 3600000)    return 'urgent';
-        if (diff < 6  * 3600000)    return 'warn';
-        return 'ok';
-    }
-    if (mode === 'weektime') { // timeSet === true (or migrated)
-        if (diff < 0)                return 'over';
-        if (diff < 2  * 3600000)    return 'critical';
-        if (diff < 8  * 3600000)    return 'urgent';
-        if (diff < 24 * 3600000)    return 'warn';
-        return 'ok';
-    }
-
-    // Fix 2: date and monthday — use calendar days, not raw milliseconds.
-    if (mode === 'date') {
-        // Extension 7: if time is specified, compare precisely at that moment
-        if (dl.time) {
-            const diff = ts - Date.now();
-            if (diff < 0)           return 'over';
-            if (diff < 3600000)     return 'critical';  // < 1h
-            if (diff < 86400000)    return 'urgent';    // < 1 day
-            if (diff < 259200000)   return 'warn';      // < 3 days
+    // X-7: time-precise modes (time / weektime+time / date+time) resolve through the
+    // event-window so the deadline burns ('live') for the WHOLE event, then advances.
+    const win = deadlineWindow(dl);
+    if (win) {
+        if (now >= win.start && now <= win.end) return 'live';   // event in progress → burning
+        if (now > win.end)  return 'over';                       // only one-time (date) reaches here
+        const diff = win.start - now;                            // pre-event countdown
+        if (mode === 'time') {
+            if (diff < 1  * 3600000) return 'critical';
+            if (diff < 3  * 3600000) return 'urgent';
+            if (diff < 6  * 3600000) return 'warn';
             return 'ok';
         }
+        if (mode === 'weektime') {
+            if (diff < 2  * 3600000) return 'critical';
+            if (diff < 8  * 3600000) return 'urgent';
+            if (diff < 24 * 3600000) return 'warn';
+            return 'ok';
+        }
+        // date + time
+        if (diff < 3600000)   return 'critical';   // < 1h
+        if (diff < 86400000)  return 'urgent';     // < 1 day
+        if (diff < 259200000) return 'warn';       // < 3 days
+        return 'ok';
+    }
+
+    const ts = getDeadlineTimestamp(dl);
+    if (ts === null) return null;
+
+    // Fix 2: date (no time) and monthday — use calendar days, not raw milliseconds.
+    if (mode === 'date') {
         const days = calDayDiff(ts);
         if (days < 0)  return 'over';
         if (days === 0) return 'critical';
@@ -11694,6 +11806,22 @@ function deadlineStatus(dl) {
 function formatDeadlineCountdown(dl) {
     if (!dl) return null;
     const { mode, value } = dl;
+    // X-7: during an event-window (time / weektime+time / date+time) show the live
+    // "идёт" state with time-left, instead of a count to the next occurrence.
+    const _win = deadlineWindow(dl);
+    if (_win) {
+        const _now = Date.now();
+        if (_now >= _win.start && _now <= _win.end) {
+            const left = _win.end - _now;
+            if (_win.end === _win.start) return 'идёт сейчас';
+            // X-7/#5: last minute → switch to seconds so the counter keeps ticking.
+            if (left < 60000) return `идёт · ещё ${Math.max(1, Math.ceil(left / 1000))}с`;
+            if (left < 3600000) return `идёт · ещё ${Math.round(left / 60000)}м`;
+            const h = Math.floor(left / 3600000);
+            const m = Math.round((left % 3600000) / 60000);
+            return m ? `идёт · ещё ${h}ч ${m}м` : `идёт · ещё ${h}ч`;
+        }
+    }
     if (mode === 'month') {
         const target = parseInt(value);
         const cur = new Date().getMonth() + 1;
@@ -11894,7 +12022,7 @@ const _PULSE_MS = 1600; // must match pulseCritical / pulseSide duration in CSS
 function _syncCriticalPulse() {
     if (prefersReducedMotion()) return;
     const delay = `-${(Date.now() - _PULSE_EPOCH) % _PULSE_MS}ms`;
-    document.querySelectorAll('.deadline-tag.critical, .dl-side-panel.dl-side-critical')
+    document.querySelectorAll('.meta-tag-wrap:has(> .deadline-tag.critical), .dl-side-panel.dl-side-critical')
         .forEach(el => { el.style.animationDelay = delay; });
 }
 
@@ -11913,6 +12041,7 @@ function updateDeadlineBadges() {
             const status = deadlineStatus(task.deadline);
             badge.className = 'meta-tag deadline-tag';
             if (status === 'over')          badge.classList.add('over');
+            else if (status === 'live')     badge.classList.add('live');
             else if (status === 'critical') badge.classList.add('critical');
             else if (status === 'urgent')   badge.classList.add('urgent');
             else if (status === 'warn')     badge.classList.add('warn');
