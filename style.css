@@ -4572,8 +4572,8 @@ textarea:focus-visible {
 .dl-duration-row {
     position: relative;
     width: 100%;
-    margin-top: 16px;
-    padding: 16px 14px 14px;
+    margin-top: 13px;
+    padding: 13px 12px 11px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-mid);
     background: radial-gradient(110% 120% at 50% 0%, rgba(150, 80, 255, 0.06), transparent 60%),
@@ -4583,26 +4583,26 @@ textarea:focus-visible {
 .dl-duration-row[hidden] { display: none; }
 
 /* enriched frame: 4 minimalist ornate corners (arc + bead) */
-.dl-dur-corner { position: absolute; width: 24px; height: 24px; color: var(--border-mid); opacity: 0.7; pointer-events: none; }
-.dl-dur-corner.tl { top: 7px; left: 7px; }
-.dl-dur-corner.tr { top: 7px; right: 7px; transform: scaleX(-1); }
-.dl-dur-corner.bl { bottom: 7px; left: 7px; transform: scaleY(-1); }
-.dl-dur-corner.br { bottom: 7px; right: 7px; transform: scale(-1, -1); }
+.dl-dur-corner { position: absolute; width: 19px; height: 19px; color: var(--border-mid); opacity: 0.7; pointer-events: none; }
+.dl-dur-corner.tl { top: 6px; left: 6px; }
+.dl-dur-corner.tr { top: 6px; right: 6px; transform: scaleX(-1); }
+.dl-dur-corner.bl { bottom: 6px; left: 6px; transform: scaleY(-1); }
+.dl-dur-corner.br { bottom: 6px; right: 6px; transform: scale(-1, -1); }
 
 /* legend notched into the top border */
 .dl-dur-legend {
     position: absolute; top: -8px; left: 50%; transform: translateX(-50%); z-index: 2;
     display: inline-flex; align-items: center; gap: 8px;
-    font-family: var(--font-label); font-size: 11px; letter-spacing: 2.4px; text-transform: uppercase;
-    color: var(--text-secondary); background: var(--bg-modal); padding: 0 8px; white-space: nowrap;
+    font-family: var(--font-label); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-secondary); background: var(--bg-modal); padding: 0 7px; white-space: nowrap;
 }
-.dl-dur-legend i { width: 5px; height: 5px; background: var(--text-muted); transform: rotate(45deg); flex: 0 0 auto; }
+.dl-dur-legend i { width: 4px; height: 4px; background: var(--text-muted); transform: rotate(45deg); flex: 0 0 auto; }
 
 /* two candles | centered inputs | two candles */
 .dl-dur-stage { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; }
 
-.dl-dur-candle { position: relative; width: 50px; height: 104px; display: grid; place-items: end center; }
-.dl-dur-candle svg { width: 50px; height: 104px; overflow: visible; display: block; }
+.dl-dur-candle { position: relative; width: 40px; height: 84px; display: grid; place-items: end center; }
+.dl-dur-candle svg { width: 40px; height: 84px; overflow: visible; display: block; }
 .dl-dur-candle.right svg { transform: scaleX(-1); }              /* mirror for symmetry */
 .dl-dur-candle.right .dl-flame,
 .dl-dur-candle.right .dl-halo { animation-delay: -1.5s; }        /* out-of-phase flicker */
@@ -4617,13 +4617,13 @@ textarea:focus-visible {
 
 /* inputs: strict grid — col1 hours, col2 dagger, col3 minutes; rows up/number/down/unit */
 .dl-dur-fields {
-    display: grid; grid-template-columns: 54px 30px 54px; grid-template-rows: auto auto auto auto;
-    align-items: center; justify-items: center; row-gap: 3px;
+    display: grid; grid-template-columns: 44px 24px 44px; grid-template-rows: auto auto auto auto;
+    align-items: center; justify-items: center; row-gap: 2px;
 }
 .dl-dur-num {
-    font-family: var(--font-title); font-weight: 600; font-size: 38px; line-height: 1; color: var(--text-primary);
-    background: transparent; border: 0; width: 54px; height: 40px; text-align: center; outline: none; padding: 0;
-    position: relative; top: 2px;  /* optical-center the cap-height numeral between the arches */
+    font-family: var(--font-title); font-weight: 600; font-size: 30px; line-height: 1; color: var(--text-primary);
+    background: transparent; border: 0; width: 44px; height: 33px; text-align: center; outline: none; padding: 0;
+    position: relative; top: 1.5px;  /* optical-center the cap-height numeral between the arches */
     text-shadow: 0 0 14px rgba(150, 80, 255, 0.28);
     -moz-appearance: textfield; appearance: textfield;
     transition: text-shadow var(--dur-quick) var(--ease-gothic);
@@ -4632,15 +4632,15 @@ textarea:focus-visible {
 .dl-dur-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .dl-dur-num::placeholder { color: var(--text-muted); opacity: 0.5; }
 .dl-dur-fields:focus-within .dl-dur-num:focus { text-shadow: 0 0 20px rgba(170, 100, 255, 0.55); }
-.dl-dur-unit { font-family: var(--font-label); font-size: 11px; letter-spacing: 1.6px; color: var(--text-muted); text-transform: lowercase; }
+.dl-dur-unit { font-family: var(--font-label); font-size: 10px; letter-spacing: 1.3px; color: var(--text-muted); text-transform: lowercase; }
 
 /* arch steppers — gothic lancet + finial (light outline; up = +, down = −) */
 .dl-dur-step {
-    width: 54px; height: 17px; display: grid; place-items: center; color: var(--text-muted);
+    width: 44px; height: 14px; display: grid; place-items: center; color: var(--text-muted);
     background: transparent; border: 0; cursor: pointer; padding: 0;
     transition: color var(--dur-quick) var(--ease-gothic);
 }
-.dl-dur-step svg { width: 26px; height: 15px; display: block; transition: transform 0.16s var(--ease-spring), filter var(--dur-quick) var(--ease-gothic); }
+.dl-dur-step svg { width: 21px; height: 12px; display: block; transition: transform 0.16s var(--ease-spring), filter var(--dur-quick) var(--ease-gothic); }
 .dl-dur-step.down svg { transform: rotate(180deg); }
 .dl-dur-step:hover { color: var(--accent-hover); }
 .dl-dur-step.up:hover svg { transform: translateY(-2px); filter: drop-shadow(0 0 5px var(--accent-glow)); }
@@ -4650,7 +4650,7 @@ textarea:focus-visible {
 
 /* dagger separator — middle column, centered on the number axis */
 .dl-dur-sep { display: flex; align-items: center; justify-content: center; color: var(--border-mid); align-self: center; justify-self: center; }
-.dl-dur-sep svg { width: 13px; height: 58px; display: block; }
+.dl-dur-sep svg { width: 11px; height: 47px; display: block; }
 
 @media (prefers-reduced-motion: reduce) {
     .dl-flame, .dl-halo { animation: none !important; }
