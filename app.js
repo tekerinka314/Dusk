@@ -1145,6 +1145,7 @@ const ACT_DBL   = {};   // dblclick
 const ACT_INPUT = {};   // input
 const ACT_BLUR  = {};   // focusout  (blur doesn't bubble; focusout does)
 const ACT_KEY   = {};   // keydown
+const ACT_OVER  = {};   // mouseover (hover affordances, e.g. quick-add typeahead)
 const _tid   = el => { const li = el && el.closest('.task-item'); return li ? +li.dataset.id : null; };
 const _sTid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.tid : null; };
 const _sSid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.sid : null; };
@@ -1164,6 +1165,7 @@ document.addEventListener('dblclick',  e => _delegate(ACT_DBL,   'data-actdbl', 
 document.addEventListener('input',     e => _delegate(ACT_INPUT, 'data-actinput', e));
 document.addEventListener('focusout',  e => _delegate(ACT_BLUR,  'data-actblur',  e));
 document.addEventListener('keydown',   e => _delegate(ACT_KEY,   'data-actkey',   e));
+document.addEventListener('mouseover', e => _delegate(ACT_OVER,  'data-actover',  e));
 document.addEventListener('mousedown', e => { const t = e.target; if (t && typeof t.closest === 'function' && t.closest('[data-pd]')) e.preventDefault(); });  // focus-steal guard
 Object.assign(ACT, {
     toggleCheck:              el     => toggleCheck(_tid(el)),
@@ -1271,6 +1273,20 @@ Object.assign(ACT, {
 Object.assign(ACT_KEY, {
     snoozeCustomKey: (el, e) => { if (e.key === 'Enter') { e.preventDefault(); _snoozeCustomApply(+el.dataset.id); } },
 });
+
+// 7c slice-3d — list widgets: archive rows, templates, backups, tag chips/hashtags,
+// quick-add typeahead. Archive rows ARE .task-item[data-id] → reuse _tid. The rest
+// carry their key on the button (template/backup id, tag string, qa index).
+Object.assign(ACT, {
+    restoreTask:           el => restoreTask(_tid(el)),
+    deleteFromArchive:     el => deleteFromArchive(_tid(el)),
+    createTaskFromTemplate: el => createTaskFromTemplate(+el.dataset.id),
+    deleteTemplate:        el => deleteTemplate(+el.dataset.id),
+    restoreBackup:         el => restoreBackup(+el.dataset.ts),
+    filterByTag:           el => filterByTag(el.dataset.tag),
+    _qaAccept:             el => _qaAccept(+el.dataset.idx),
+});
+Object.assign(ACT_OVER, { _qaHover: el => _qaHover(+el.dataset.idx) });
 
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
@@ -7016,8 +7032,8 @@ function renderArchive() {
 
             const actions = selectMode ? '' : `
                 <div class="task-actions archive-actions">
-                    <button class="btn-task-action restore-btn" onclick="restoreTask(${item.id})" title="Восстановить">${IC.restore}</button>
-                    <button class="btn-task-action danger" onclick="deleteFromArchive(${item.id})" title="Удалить навсегда">${IC.skull}</button>
+                    <button class="btn-task-action restore-btn" data-act="restoreTask" title="Восстановить">${IC.restore}</button>
+                    <button class="btn-task-action danger" data-act="deleteFromArchive" title="Удалить навсегда">${IC.skull}</button>
                 </div>`;
 
             li.innerHTML = `
@@ -8411,11 +8427,11 @@ function _renderTemplatesList() {
         if (t.deadline)                          bits.push(`<span class="tpl-bit">${IC.window}дедлайн</span>`);
         if (t.subtasks && t.subtasks.length)     bits.push(`<span class="tpl-bit">${t.subtasks.length} подп.</span>`);
         return `<div class="template-item">
-            <button class="template-create" onclick="createTaskFromTemplate(${t.id})" title="Создать задачу из шаблона">
+            <button class="template-create" data-act="createTaskFromTemplate" data-id="${t.id}" title="Создать задачу из шаблона">
                 <span class="template-name">${escHtml(t.name)}</span>
                 ${bits.length ? `<span class="template-meta">${bits.join('')}</span>` : ''}
             </button>
-            <button class="template-del" onclick="deleteTemplate(${t.id})" title="Удалить шаблон">${IC.skull}</button>
+            <button class="template-del" data-act="deleteTemplate" data-id="${t.id}" title="Удалить шаблон">${IC.skull}</button>
         </div>`;
     }).join('');
 }
@@ -8459,7 +8475,7 @@ function _renderBackupList() {
         const c = b.counts || {};
         const bits = [`${c.tasks ?? '?'} задач`, `${c.groups ?? '?'} групп`, `${c.archive ?? '?'} в архиве`];
         return `<div class="backup-item">
-            <button class="backup-restore" onclick="restoreBackup(${b.ts})" title="Восстановить это состояние">
+            <button class="backup-restore" data-act="restoreBackup" data-ts="${b.ts}" title="Восстановить это состояние">
                 <span class="backup-when">
                     <span class="backup-age">${_formatBackupAge(b.ts)}</span>
                     <span class="backup-stamp">${_formatBackupStamp(b.ts)}</span>
@@ -13529,7 +13545,7 @@ function shakeInput() {
 // ============================================================
 // Tags are written with a leading "*" (e.g. *дом). Highlighted + clickable.
 function highlightHashtags(html) {
-    return html.replace(/\*([\wа-яёА-ЯЁ]+)/gu, '<span class="hashtag" onclick="filterByTag(\'*$1\')">*$1</span>');
+    return html.replace(/\*([\wа-яёА-ЯЁ]+)/gu, '<span class="hashtag" data-act="filterByTag" data-tag="*$1">*$1</span>');
 }
 
 /** Extract all *tag strings from a text string. Returns lowercase array. */
@@ -13575,7 +13591,7 @@ function renderTagCloud() {
     cloud.innerHTML = sorted.map(([tag, count]) => {
         const isActive = active === tag;
         return `<button class="tag-chip${isActive ? ' active' : ''}"
-                        onclick="filterByTag('${escHtml(tag)}')"
+                        data-act="filterByTag" data-tag="${escHtml(tag)}"
                         title="${count} ${_zadachi(count)}"
                 >${escHtml(tag)}<span class="tag-chip-count">${count}</span></button>`;
     }).join('');
@@ -13762,7 +13778,7 @@ function _qaRenderMenu() {
         ? `<div class="qa-item qa-disabled"><span class="qa-dot qa-dot-blank"></span><span class="qa-label">${escHtml(it.label)}</span></div>`
         : `<button type="button" role="option" class="qa-item${i === active ? ' active' : ''}" data-idx="${i}"
                 aria-selected="${i === active ? 'true' : 'false'}"
-                onmousedown="event.preventDefault()" onclick="_qaAccept(${i})" onmouseover="_qaHover(${i})">
+                data-pd data-act="_qaAccept" data-actover="_qaHover">
             ${it.cls ? `<span class="qa-dot ${it.cls}"></span>` : `<span class="qa-dot qa-dot-blank"></span>`}
             <span class="qa-label">${escHtml(it.label)}</span>
             ${it.hint ? `<span class="qa-hint">${escHtml(it.hint)}</span>` : ''}
