@@ -1221,6 +1221,25 @@ Object.assign(ACT_INPUT, { _noteInput:  el => _noteInput(el) });
 Object.assign(ACT_BLUR,  { _noteCommit: el => _noteCommit(el) });
 Object.assign(ACT_KEY,   { _noteKeydown: (el, e) => _noteKeydown(e, el) });
 
+// 7c slice-3a — group header cluster. The group id lives on the .group-section
+// ancestor (data-group-id). The whole .group-header toggles collapse; the action
+// buttons sit nearer, so closest('[data-act]') resolves to the button (not the
+// header) — no stopPropagation needed. The drag handle + actions container carry
+// data-act="noop" so a click on their padding/gaps is ABSORBED (faithful to the
+// old per-container stopPropagation) instead of bubbling to the header toggle.
+// The sort picker button stays inline: it self-stops propagation, so it never
+// reaches the delegated header toggle.
+const _gid = el => { const s = el && el.closest('.group-section'); return s ? +s.dataset.groupId : null; };
+Object.assign(ACT, {
+    noop:                () => {},
+    toggleGroupCollapse: el => toggleGroupCollapse(_gid(el)),
+    toggleScheduleMode:  el => toggleScheduleMode(_gid(el)),
+    toggleFocusGroup:    el => toggleFocusGroup(_gid(el)),
+    duplicateGroup:      el => duplicateGroup(_gid(el)),
+    openRenameGroupModal: el => openRenameGroupModal(_gid(el)),
+    deleteGroup:         el => deleteGroup(_gid(el)),
+});
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
@@ -5530,22 +5549,22 @@ function renderTasks() {
                             (focusGroupId === group.id ? ' group-focused' : '');
         section.dataset.groupId = group.id;
         section.innerHTML = `
-            <div class="group-header" onclick="toggleGroupCollapse(${group.id})">
-                <div class="group-drag-handle" onclick="event.stopPropagation()" title="Перетащить группу">
+            <div class="group-header" data-act="toggleGroupCollapse">
+                <div class="group-drag-handle" data-act="noop" title="Перетащить группу">
                     ${IC.drag}
                 </div>
                 <div class="group-color-dot" style="background:${group.color}"></div>
                 <span class="group-title">${escHtml(group.name)}</span>
                 <span class="group-count">${done}/${total}</span>
-                <div class="group-actions" onclick="event.stopPropagation()">
+                <div class="group-actions" data-act="noop">
                     <button class="btn-group-action${grpSched ? ' active-sched' : ''}"
-                            onclick="toggleScheduleMode(${group.id})" title="Сортировка по дедлайну">${IC.sundial}</button>
+                            data-act="toggleScheduleMode" title="Сортировка по дедлайну">${IC.sundial}</button>
                     ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
-                            onclick="toggleFocusGroup(${group.id})" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
-                    <button class="btn-group-action" onclick="duplicateGroup(${group.id})" title="Дублировать группу">${IC.twinCoffin}</button>
-                    <button class="btn-group-action" onclick="openRenameGroupModal(${group.id})" title="Переименовать">${IC.quill}</button>
-                    <button class="btn-group-action danger" onclick="deleteGroup(${group.id})" title="Удалить группу">${IC.tombstone}</button>
+                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
+                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
+                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
+                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>
                 </div>
                 <span class="group-chevron">${IC.sword}</span>
             </div>
