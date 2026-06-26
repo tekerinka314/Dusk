@@ -1288,6 +1288,29 @@ Object.assign(ACT, {
 });
 Object.assign(ACT_OVER, { _qaHover: el => _qaHover(+el.dataset.idx) });
 
+// 7c slice-3e — form subtasks (task create/edit modal) + the per-task add-subtask
+// row. Form rows are <li.subtask-item data-form-sub-idx> (index into the transient
+// formSubtasks list — no real sub id), so a dedicated _fsi reads that index. The
+// add-subtask input/button live inside the task row → reuse _tid. Note handlers
+// (_noteEdit/_noteInput/_noteKeydown/_noteCommit/_noteDeleteClick) and kactivate are
+// shared with the real subtask slice — only the form-specific actions are added here.
+const _fsi = el => { const it = el && el.closest('.subtask-item'); return it && it.dataset.formSubIdx !== undefined ? +it.dataset.formSubIdx : null; };
+Object.assign(ACT, {
+    addSubtask:            el => addSubtask(_tid(el)),
+    openFormSubDeadline:   el => openFormSubDeadline(_fsi(el)),
+    clearFormSubDeadline:  el => clearFormSubDeadline(_fsi(el)),
+    cycleFormSubPriority:  el => cycleFormSubPriority(_fsi(el)),
+    openFormSubRepeat:     el => openFormSubRepeat(_fsi(el)),
+    toggleFormSubNote:     el => toggleFormSubNote(_fsi(el)),
+    removeFormSubtask:     el => removeFormSubtask(_fsi(el)),
+});
+Object.assign(ACT_DBL, {
+    startFormSubEdit: (el) => startFormSubEdit({ stopPropagation() {}, target: el }, _fsi(el)),
+});
+Object.assign(ACT_KEY, {
+    subAddKey: (el, e) => handleSubAdd(e, _tid(el)),
+});
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
@@ -7401,8 +7424,8 @@ function buildSubtaskSection(task, forceOpen) {
             <div class="subtask-add-row">
                 <input class="subtask-add-input" id="sub-input-${task.id}"
                        placeholder="Новый подпункт..." autocomplete="off" maxlength="200"
-                       onkeydown="handleSubAdd(event, ${task.id})">
-                <button class="btn-subtask-confirm" onclick="addSubtask(${task.id})" title="Добавить">
+                       data-actkey="subAddKey">
+                <button class="btn-subtask-confirm" data-act="addSubtask" title="Добавить">
                     ${IC.crossSm}
                 </button>
             </div>
@@ -7661,20 +7684,19 @@ function renderFormSubtasks() {
         const fDlCd     = fDl ? formatDeadlineCountdown(fDl) : '';
         const fDlCls    = fDlStatus ? ` sub-dl-${fDlStatus}` : '';
         const fDlBadge = fDl
-            ? `<button type="button" class="sub-deadline-badge${fDlCls}" onclick="openFormSubDeadline(${i})" title="${escHtml(fDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>`
+            ? `<button type="button" class="sub-deadline-badge${fDlCls}" data-act="openFormSubDeadline" title="${escHtml(fDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>`
             : '';
         const fDlSetBtn = fDl
             ? ''
-            : `<button type="button" class="btn-sub-action sub-deadline-btn" onclick="openFormSubDeadline(${i})" title="Назначить дедлайн">${IC.window}</button>`;
+            : `<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openFormSubDeadline" title="Назначить дедлайн">${IC.window}</button>`;
         const fDlWrap = fDl
             ? `<div class="sub-deadline-wrapper${fDlCls}">
             <div class="sub-deadline-inner">
                 <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить дедлайн"
-                      onclick="openFormSubDeadline(${i})"
-                      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFormSubDeadline(${i});}">
+                      data-act="openFormSubDeadline" data-actkey="kactivate">
                     ${fDlCd ? `<span class="sub-dl-countdown">${fDlCd}</span><span class="sub-dl-sep">·</span>` : ''}
                     <span class="sub-dl-date">${escHtml(fDlAbs)}</span>
-                    <button type="button" class="sub-dl-clear" onclick="event.stopPropagation();clearFormSubDeadline(${i})" title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
+                    <button type="button" class="sub-dl-clear" data-act="clearFormSubDeadline" data-stop title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
                 </span>
             </div>
         </div>`
@@ -7682,14 +7704,14 @@ function renderFormSubtasks() {
         return `<li class="subtask-item" data-form-sub-idx="${i}" data-sprio="${s.priority || 'none'}">
         <div class="sub-main-row">
             <div class="sub-drag-handle" aria-hidden="true">${IC.drag}</div>
-            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startFormSubEdit(event,${i})">${escHtml(s.text)}</span>
+            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startFormSubEdit">${escHtml(s.text)}</span>
             ${fDlBadge}
             <div class="sub-actions">
-                <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleFormSubPriority(${i})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
-                <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" onclick="openFormSubRepeat(${i})" title="${repeatTitle}">${IC.ouroboros}</button>
+                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleFormSubPriority" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
+                <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" data-act="openFormSubRepeat" title="${repeatTitle}">${IC.ouroboros}</button>
                 ${fDlSetBtn}
-                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" onpointerdown="event.preventDefault()" onclick="toggleFormSubNote(${i})" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
-                <button type="button" class="btn-sub-action danger" onclick="removeFormSubtask(${i})" title="Удалить подпункт">${IC.skull}</button>
+                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleFormSubNote" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
+                <button type="button" class="btn-sub-action danger" data-act="removeFormSubtask" title="Удалить подпункт">${IC.skull}</button>
             </div>
         </div>
         ${fDlWrap}
@@ -7698,12 +7720,12 @@ function renderFormSubtasks() {
                 <div class="sub-note-text" id="form-subnote-text-${i}"
                      spellcheck="false" data-placeholder="начертайте примечание…"
                      aria-label="Заметка подпункта"
-                     ondblclick="_noteEdit(this)"
-                     oninput="_noteInput(this)"
-                     onkeydown="_noteKeydown(event,this)"
-                     onblur="_noteCommit(this)"
+                     data-actdbl="_noteEdit"
+                     data-actinput="_noteInput"
+                     data-actkey="_noteKeydown"
+                     data-actblur="_noteCommit"
                     >${s.note ? noteDisplayHTML(s.note) : ''}</div>
-                ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="_noteDeleteClick(event,this.parentElement.querySelector('.sub-note-text'))" title="Удалить заметку">${IC.dagger}</button>` : ''}
+                ${s.note ? `<button type="button" class="btn-sub-note-delete" data-act="_noteDeleteClick" title="Удалить заметку">${IC.dagger}</button>` : ''}
             </div>
         </div>
     </li>`;
