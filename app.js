@@ -1426,6 +1426,16 @@ Object.assign(ACT, {
     toggleFilter:             () => toggleFilter(),
     openColorFilterModal:     () => openColorFilterModal(),
     toggleMainSelectMode:     () => toggleMainSelectMode(),
+    // 4c: more no-arg main-page actions (header + toolbar + empty state).
+    addTask:                  () => addTask(),
+    toggleExpand:             () => toggleExpand(),
+    clearMainSearch:          () => clearMainSearch(),
+    archiveAll:               () => archiveAll(),
+    openBackupModal:          () => openBackupModal(),
+    triggerImport:            () => triggerImport(),
+    showAddGroupModal:        () => showAddGroupModal(),
+    openTemplatesModal:       () => openTemplatesModal(),
+    focusNewTaskInput:        () => focusNewTaskInput(),
 });
 
 // Ensure optional collections exist after any whole-state replacement (load,
