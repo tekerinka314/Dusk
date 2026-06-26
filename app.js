@@ -1147,6 +1147,7 @@ const ACT_BLUR  = {};   // focusout  (blur doesn't bubble; focusout does)
 const ACT_KEY   = {};   // keydown
 const ACT_OVER  = {};   // mouseover (hover affordances, e.g. quick-add typeahead)
 const ACT_OUT   = {};   // mouseout  (hover-leave, paired with ACT_OVER)
+const ACT_PASTE = {};   // paste     (Grimoire body plain-text paste)
 const _tid   = el => { const li = el && el.closest('.task-item'); return li ? +li.dataset.id : null; };
 const _sTid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.tid : null; };
 const _sSid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.sid : null; };
@@ -1168,6 +1169,7 @@ document.addEventListener('focusout',  e => _delegate(ACT_BLUR,  'data-actblur',
 document.addEventListener('keydown',   e => _delegate(ACT_KEY,   'data-actkey',   e));
 document.addEventListener('mouseover', e => _delegate(ACT_OVER,  'data-actover',  e));
 document.addEventListener('mouseout',  e => _delegate(ACT_OUT,   'data-actout',   e));
+document.addEventListener('paste',     e => _delegate(ACT_PASTE, 'data-actpaste', e));
 document.addEventListener('mousedown', e => { const t = e.target; if (t && typeof t.closest === 'function' && t.closest('[data-pd]')) e.preventDefault(); });  // focus-steal guard
 Object.assign(ACT, {
     toggleCheck:              el     => toggleCheck(_tid(el)),
@@ -1325,6 +1327,59 @@ Object.assign(ACT, {
 });
 Object.assign(ACT_OVER, { hoverBg: el => { el.style.background = el.dataset.bghov; } });
 Object.assign(ACT_OUT,  { outBg:   el => { el.style.background = el.dataset.bg; } });
+
+// 7c slice-3g — Grimoire editor (header rail, title/body editors, action footer,
+// crypt restore/destroy) + the format toolbar. There is one open note at a time, so
+// these are singletons: the note id (a string) rides on each footer button's
+// data-nid; the header/editor handlers take no id. The toolbar collapses to one
+// adapter — every fmt button carries its command in data-cmd and dispatches through
+// _GRIM_FMT (table/callout anchor their popover off the button via _synEv).
+const _GRIM_FMT = {
+    bold:      () => grimFmt('bold'),
+    italic:    () => grimFmt('italic'),
+    underline: () => grimFmt('underline'),
+    strike:    () => grimFmt('strike'),
+    ul:        () => grimFmt('ul'),
+    ol:        () => grimFmt('ol'),
+    quote:     () => grimFmt('quote'),
+    hr:        () => grimFmt('hr'),
+    task:      () => grimChecklist(),
+    code:      () => grimInlineCode(),
+    codeblock: () => grimCodeBlock(),
+    link:      () => grimLink(),
+    h1:        () => grimHeading(1),
+    h2:        () => grimHeading(2),
+    h3:        () => grimHeading(3),
+    table:     (el, e) => grimTableMenu(_synEv(el, e)),
+    callout:   (el, e) => grimCalloutMenu(_synEv(el, e)),
+    export:    () => grimExportNote(),
+};
+Object.assign(ACT, {
+    grimBack:          () => grimBack(),
+    grimToggleFocus:   () => grimToggleFocus(),
+    grimToggleToc:     () => grimToggleToc(),
+    grimToggleBar:     () => grimToggleBar(),
+    grimBodyClick:     (el, e) => grimBodyClick(e),
+    grimTogglePin:     el => grimTogglePin(el.dataset.nid),
+    openGrimColorModal: el => openGrimColorModal(el.dataset.nid),
+    grimSaveAsTpl:     el => grimSaveAsTpl(el.dataset.nid),
+    grimOpenHistory:   el => grimOpenHistory(el.dataset.nid),
+    grimArchive:       el => grimArchive(el.dataset.nid),
+    grimDelete:        el => grimDelete(el.dataset.nid),
+    grimRestoreNote:   el => grimRestoreNote(el.dataset.nid),
+    grimDeleteForever: el => grimDeleteForever(el.dataset.nid),
+    grimFmtBtn:        (el, e) => { const f = _GRIM_FMT[el.dataset.cmd]; if (f) f(el, e); },
+});
+Object.assign(ACT_INPUT, {
+    grimTitleInput: el => grimTitleInput(el),
+    grimBodyInput:  el => grimBodyInput(el),
+});
+Object.assign(ACT_BLUR,  { grimCommit: (el, e) => grimCommit(e) });
+Object.assign(ACT_KEY, {
+    grimTitleKey: (el, e) => grimTitleKey(e),
+    grimBodyKey:  (el, e) => grimBodyKey(e),
+});
+Object.assign(ACT_PASTE, { plainTextPaste: (el, e) => plainTextPaste(e) });
 
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
@@ -2618,10 +2673,10 @@ function renderGrimDetail() {
         return;
     }
 
-    const backBtn = `<button class="grim-back" onclick="grimBack()" title="К списку">${GIC.back}</button>`;
-    const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" data-lvl="${grimFocus}" onclick="grimToggleFocus()" aria-label="${GRIM_FOCUS_TITLE[grimFocus]}" title="${GRIM_FOCUS_TITLE[grimFocus]}">${GIC.focusLvl[grimFocus]}</button>`;
-    const tocBtn = `<button class="grim-toc-toggle${grimTocOpen ? ' on' : ''}" onclick="grimToggleToc()" aria-label="${GRIM_TOC_TITLE}" title="${GRIM_TOC_TITLE}">${GIC.toc}</button>`;
-    const barBtn = `<button class="grim-bar-toggle${grimBarMode === 'open' ? ' on' : ''}" data-mode="${grimBarMode}" onclick="grimToggleBar()" aria-label="${GRIM_BAR_TITLE[grimBarMode]}" title="${GRIM_BAR_TITLE[grimBarMode]}">${GIC.barLvl[grimBarMode]}</button>`;
+    const backBtn = `<button class="grim-back" data-act="grimBack" title="К списку">${GIC.back}</button>`;
+    const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" data-lvl="${grimFocus}" data-act="grimToggleFocus" aria-label="${GRIM_FOCUS_TITLE[grimFocus]}" title="${GRIM_FOCUS_TITLE[grimFocus]}">${GIC.focusLvl[grimFocus]}</button>`;
+    const tocBtn = `<button class="grim-toc-toggle${grimTocOpen ? ' on' : ''}" data-act="grimToggleToc" aria-label="${GRIM_TOC_TITLE}" title="${GRIM_TOC_TITLE}">${GIC.toc}</button>`;
+    const barBtn = `<button class="grim-bar-toggle${grimBarMode === 'open' ? ' on' : ''}" data-mode="${grimBarMode}" data-act="grimToggleBar" aria-label="${GRIM_BAR_TITLE[grimBarMode]}" title="${GRIM_BAR_TITLE[grimBarMode]}">${GIC.barLvl[grimBarMode]}</button>`;
     // п.9 note colour: ink-tinted title/fleur + soft raw-colour glow.
     const colorCls = note.color ? ' has-color' : '';
     const colorVars = _grimColorVars(note);
@@ -2638,8 +2693,8 @@ function renderGrimDetail() {
             <div class="grim-meta">
                 <span class="grim-date" title="В склепе с">${GIC.coffin}<span>${grimDate(note.archivedAt || note.updatedAt)}</span></span>
                 <span class="grim-acts">
-                    <button class="grim-act" onclick="grimRestoreNote('${note.id}')" title="Вернуть в гримуар">${GIC.restore}<span>вернуть</span></button>
-                    <button class="grim-act danger" onclick="grimDeleteForever('${note.id}')" title="Уничтожить навсегда">${IC.skull}<span>удалить</span></button>
+                    <button class="grim-act" data-act="grimRestoreNote" data-nid="${note.id}" title="Вернуть в гримуар">${GIC.restore}<span>вернуть</span></button>
+                    <button class="grim-act danger" data-act="grimDeleteForever" data-nid="${note.id}" title="Уничтожить навсегда">${IC.skull}<span>удалить</span></button>
                 </span>
             </div>
           </div>
@@ -2657,25 +2712,25 @@ function renderGrimDetail() {
         ${backBtn}${barBtn}${focusBtn}${tocBtn}
         <textarea class="grim-title-in" id="grim-title-in" maxlength="120" rows="1"
                placeholder="Заглавие записи…" autocomplete="off" spellcheck="false"
-               oninput="grimTitleInput(this)" onblur="grimCommit(event)" onkeydown="grimTitleKey(event)"></textarea>
+               data-actinput="grimTitleInput" data-actblur="grimCommit" data-actkey="grimTitleKey"></textarea>
         <div class="grim-divider"><span class="grim-fleur">${GIC.dividerFleur}</span></div>
         ${_grimToolbarHTML()}
         <div class="grim-body" id="grim-body" contenteditable="true" spellcheck="false"
              data-placeholder="Начертайте запись…"
-             oninput="grimBodyInput(this)" onblur="grimCommit(event)" onpaste="plainTextPaste(event)"
-             onclick="grimBodyClick(event)" onkeydown="grimBodyKey(event)"></div>
+             data-actinput="grimBodyInput" data-actblur="grimCommit" data-actpaste="plainTextPaste"
+             data-act="grimBodyClick" data-actkey="grimBodyKey"></div>
         <div class="grim-meta">
             <div class="grim-stamps">
                 <span class="grim-stamp" title="Последняя правка">${GIC.quill}<span>правлено ${note.updatedAt ? grimDate(note.updatedAt) : '—'}</span></span>
                 ${note.createdAt ? `<span class="grim-stamp is-created" title="Когда начертана">${GIC.hourglass}<span>начертано ${grimDate(note.createdAt)}</span></span>` : ''}
             </div>
             <span class="grim-acts">
-                <button class="grim-act is-pin${note.pinned ? ' active' : ''}" onclick="grimTogglePin('${note.id}')" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
-                <button class="grim-act is-color${note.color ? ' active' : ''}" onclick="openGrimColorModal('${note.id}')" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg><span>цвет</span></button>
-                <button class="grim-act" onclick="grimSaveAsTpl('${note.id}')" title="Сохранить как шаблон">${GRIM_TPL_IC.save}<span>шаблон</span></button>
-                <button class="grim-act" onclick="grimOpenHistory('${note.id}')" title="Летопись — история версий записи">${GIC.chronicle}<span>летопись</span></button>
-                <button class="grim-act" onclick="grimArchive('${note.id}')" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
-                <button class="grim-act danger" onclick="grimDelete('${note.id}')" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
+                <button class="grim-act is-pin${note.pinned ? ' active' : ''}" data-act="grimTogglePin" data-nid="${note.id}" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
+                <button class="grim-act is-color${note.color ? ' active' : ''}" data-act="openGrimColorModal" data-nid="${note.id}" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg><span>цвет</span></button>
+                <button class="grim-act" data-act="grimSaveAsTpl" data-nid="${note.id}" title="Сохранить как шаблон">${GRIM_TPL_IC.save}<span>шаблон</span></button>
+                <button class="grim-act" data-act="grimOpenHistory" data-nid="${note.id}" title="Летопись — история версий записи">${GIC.chronicle}<span>летопись</span></button>
+                <button class="grim-act" data-act="grimArchive" data-nid="${note.id}" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
+                <button class="grim-act danger" data-act="grimDelete" data-nid="${note.id}" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
             </span>
         </div>
       </div><!-- /grim-page-main -->
@@ -4676,40 +4731,43 @@ const FIC = {
     alignR:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4.6V19.4"/><path d="M20 4.6 18.8 5.8 20 7 21.2 5.8Z" fill="currentColor" stroke="none"/><path d="M20 19.4 18.8 18.2 20 17 21.2 18.2Z" fill="currentColor" stroke="none"/><path d="M5.5 8h12"/><path d="M9.5 12h8"/><path d="M4.5 16h13"/></svg>`,
 };
 function _grimToolbarHTML() {
-    const btn = (cmd, on, title, svg) =>
-        `<button class="fmt-btn" data-cmd="${cmd}" onmousedown="event.preventDefault()" onclick="${on}" title="${title}">${svg}</button>`;
+    // Every fmt button is delegated: data-cmd carries the command, data-act="grimFmtBtn"
+    // dispatches through _GRIM_FMT; data-pd is the focus-steal guard (was onmousedown
+    // preventDefault) so the body keeps its selection/caret while the toolbar acts.
+    const btn = (cmd, title, svg) =>
+        `<button class="fmt-btn" data-cmd="${cmd}" data-pd data-act="grimFmtBtn" title="${title}">${svg}</button>`;
     // .fmt-inner is a pure collapse wrapper (overflow-hidden, no box) so the toolbar
     // truly folds to 0 when hidden — no residual padding/border leaking a gap under
     // the divider. .fmt-cluster carries the chrome and centres its grouped rows when
     // they wrap, so every wrapped row stays balanced and centred.
     return `<div class="fmt-bar" id="grim-fmt-bar"><div class="fmt-inner"><div class="fmt-cluster" role="toolbar" aria-label="Форматирование">
         <span class="fmt-grp">
-            <button class="fmt-btn fmt-h" data-cmd="h1" onmousedown="event.preventDefault()" onclick="grimHeading(1)" title="Заголовок 1">H1</button>
-            <button class="fmt-btn fmt-h" data-cmd="h2" onmousedown="event.preventDefault()" onclick="grimHeading(2)" title="Заголовок 2">H2</button>
-            <button class="fmt-btn fmt-h" data-cmd="h3" onmousedown="event.preventDefault()" onclick="grimHeading(3)" title="Заголовок 3">H3</button>
+            <button class="fmt-btn fmt-h" data-cmd="h1" data-pd data-act="grimFmtBtn" title="Заголовок 1">H1</button>
+            <button class="fmt-btn fmt-h" data-cmd="h2" data-pd data-act="grimFmtBtn" title="Заголовок 2">H2</button>
+            <button class="fmt-btn fmt-h" data-cmd="h3" data-pd data-act="grimFmtBtn" title="Заголовок 3">H3</button>
         </span>
         <span class="fmt-grp">
-            ${btn('bold', "grimFmt('bold')", 'Жирный (Ctrl+B)', FIC.bold)}
-            ${btn('italic', "grimFmt('italic')", 'Курсив (Ctrl+I)', FIC.italic)}
-            ${btn('underline', "grimFmt('underline')", 'Подчёркнутый (Ctrl+U)', FIC.underline)}
-            ${btn('strike', "grimFmt('strike')", 'Зачёркнутый', FIC.strike)}
+            ${btn('bold', 'Жирный (Ctrl+B)', FIC.bold)}
+            ${btn('italic', 'Курсив (Ctrl+I)', FIC.italic)}
+            ${btn('underline', 'Подчёркнутый (Ctrl+U)', FIC.underline)}
+            ${btn('strike', 'Зачёркнутый', FIC.strike)}
         </span>
         <span class="fmt-grp">
-            ${btn('ul', "grimFmt('ul')", 'Маркированный список', FIC.ul)}
-            ${btn('ol', "grimFmt('ol')", 'Нумерованный список', FIC.ol)}
-            ${btn('task', "grimChecklist()", 'Чек-лист', FIC.task)}
+            ${btn('ul', 'Маркированный список', FIC.ul)}
+            ${btn('ol', 'Нумерованный список', FIC.ol)}
+            ${btn('task', 'Чек-лист', FIC.task)}
         </span>
         <span class="fmt-grp">
-            ${btn('quote', "grimFmt('quote')", 'Цитата', FIC.quote)}
-            ${btn('code', "grimInlineCode()", 'Код', FIC.code)}
-            ${btn('codeblock', "grimCodeBlock()", 'Блок кода (```)', FIC.codeBlock)}
-            ${btn('hr', "grimFmt('hr')", 'Разделитель', FIC.hr)}
-            ${btn('link', "grimLink()", 'Ссылка (Ctrl+K)', FIC.link)}
+            ${btn('quote', 'Цитата', FIC.quote)}
+            ${btn('code', 'Код', FIC.code)}
+            ${btn('codeblock', 'Блок кода (```)', FIC.codeBlock)}
+            ${btn('hr', 'Разделитель', FIC.hr)}
+            ${btn('link', 'Ссылка (Ctrl+K)', FIC.link)}
         </span>
-        <span class="fmt-grp">${btn('table', "grimTableMenu(event)", 'Таблица', FIC.table)}</span>
-        <span class="fmt-grp">${btn('callout', "grimCalloutMenu(event)", 'Врезка (каллаут)', FIC.callout)}</span>
+        <span class="fmt-grp">${btn('table', 'Таблица', FIC.table)}</span>
+        <span class="fmt-grp">${btn('callout', 'Врезка (каллаут)', FIC.callout)}</span>
         <span class="fmt-grp">
-            <button class="fmt-btn export" onmousedown="event.preventDefault()" onclick="grimExportNote()" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
+            <button class="fmt-btn export" data-cmd="export" data-pd data-act="grimFmtBtn" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
         </span>
     </div></div></div>`;
 }
