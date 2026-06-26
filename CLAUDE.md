@@ -138,7 +138,10 @@ refactor is its prerequisite and the first concrete step.
   and let him confirm before (or instead of) committing. He'll say when to commit.
 - **Token-budget aware.** When budget is low, prefer small, well-reasoned,
   targeted edits over heavy browser-probing; change one thing at a time.
-- **Git:** active branch `fix/ui-repeat-meta-subtasks`; remote `origin` =
+- **Git:** active branch `refactor/sync` (switched 2026-06-26; this is now the
+  working branch for all forward work — do NOT ask which branch). Tag
+  `v1.86-stable-core` = the pre-refactor stable snapshot (rollback point). The old
+  `fix/ui-repeat-meta-subtasks` is frozen history. Remote `origin` =
   github.com/tekerinka314/Dusk. Commit (with the `Co-Authored-By` trailer) and
   push only when asked. Branch off the default branch rather than committing to it.
 - The user is a **beginner in backend/sync/infra** — explain in plain terms and
