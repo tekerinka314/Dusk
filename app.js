@@ -1146,6 +1146,7 @@ const ACT_INPUT = {};   // input
 const ACT_BLUR  = {};   // focusout  (blur doesn't bubble; focusout does)
 const ACT_KEY   = {};   // keydown
 const ACT_OVER  = {};   // mouseover (hover affordances, e.g. quick-add typeahead)
+const ACT_OUT   = {};   // mouseout  (hover-leave, paired with ACT_OVER)
 const _tid   = el => { const li = el && el.closest('.task-item'); return li ? +li.dataset.id : null; };
 const _sTid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.tid : null; };
 const _sSid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.sid : null; };
@@ -1166,6 +1167,7 @@ document.addEventListener('input',     e => _delegate(ACT_INPUT, 'data-actinput'
 document.addEventListener('focusout',  e => _delegate(ACT_BLUR,  'data-actblur',  e));
 document.addEventListener('keydown',   e => _delegate(ACT_KEY,   'data-actkey',   e));
 document.addEventListener('mouseover', e => _delegate(ACT_OVER,  'data-actover',  e));
+document.addEventListener('mouseout',  e => _delegate(ACT_OUT,   'data-actout',   e));
 document.addEventListener('mousedown', e => { const t = e.target; if (t && typeof t.closest === 'function' && t.closest('[data-pd]')) e.preventDefault(); });  // focus-steal guard
 Object.assign(ACT, {
     toggleCheck:              el     => toggleCheck(_tid(el)),
@@ -1310,6 +1312,19 @@ Object.assign(ACT_DBL, {
 Object.assign(ACT_KEY, {
     subAddKey: (el, e) => handleSubAdd(e, _tid(el)),
 });
+
+// 7c slice-3f — group widgets that live OUTSIDE a .group-section: the bulk-action
+// group picker and the form's group-chip dropdown. Their group id rides on the
+// button's own data-gid/data-chip (so deleteGroupById is a distinct adapter from
+// the header's _gid-based deleteGroup). The bulk-bar delete keeps its colour-hover
+// as a data-driven over/out pair instead of inline this.style mutation.
+Object.assign(ACT, {
+    bulkSetGroup:    el => bulkSetGroup('gid' in el.dataset ? +el.dataset.gid : null),
+    deleteGroupById: el => deleteGroup(+el.dataset.gid),
+    selectGroupChip: el => selectGroupChip(el.dataset.chip),
+});
+Object.assign(ACT_OVER, { hoverBg: el => { el.style.background = el.dataset.bghov; } });
+Object.assign(ACT_OUT,  { outBg:   el => { el.style.background = el.dataset.bg; } });
 
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
@@ -6788,9 +6803,9 @@ function _renderBulkGroupList() {
         const bg  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.13)` : 'rgba(110,40,200,0.13)';
         const bd  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.32)` : 'rgba(110,40,200,0.32)';
         return `<button class="bulk-group-pill meta-tag group-pill" style="background:${bg};color:${g.color};border-color:${bd}"
-                    onclick="bulkSetGroup(${g.id})">${escHtml(g.name)}</button>`;
+                    data-act="bulkSetGroup" data-gid="${g.id}">${escHtml(g.name)}</button>`;
     }).join('');
-    cont.innerHTML = `${pills}<button class="bulk-group-pill bulk-group-none" onclick="bulkSetGroup(null)">Без группы</button>`;
+    cont.innerHTML = `${pills}<button class="bulk-group-pill bulk-group-none" data-act="bulkSetGroup">Без группы</button>`;
 }
 
 function renderGroupBar() {
@@ -6804,7 +6819,7 @@ function renderGroupBar() {
         wrap.className = 'group-pill-wrap';
         wrap.innerHTML = `
             <span class="meta-tag group-pill" style="background:${bg};color:${g.color};border-color:${bd}">${escHtml(g.name)}</span>
-            <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd}" onmouseover="this.style.background='${bgHov}'" onmouseout="this.style.background='${bg}'" onclick="deleteGroup(${g.id})" title="Удалить группу">${IC.tombstone}</button>`;
+            <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
         groupsList.appendChild(wrap);
     });
 }
@@ -6843,16 +6858,16 @@ function renderGroupChips(currentVal) {
         ? `<span class="grp-dd-dot" style="background:${curGroup.color}"></span>${escHtml(curGroup.name)}`
         : `${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}`;
 
-    let html = `<div class="dl-month-option grp-dd-opt grp-dd-none${currentGid === '' ? ' active' : ''}" role="option" data-gid="" onclick="selectGroupChip('')">${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}</div>`;
+    let html = `<div class="dl-month-option grp-dd-opt grp-dd-none${currentGid === '' ? ' active' : ''}" role="option" data-gid="" data-act="selectGroupChip" data-chip="">${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}</div>`;
     state.groups.forEach(g => {
         const isActive = String(g.id) === String(currentGid);
-        html += `<div class="dl-month-option grp-dd-opt${isActive ? ' active' : ''}" role="option" data-gid="${g.id}" onclick="selectGroupChip('${g.id}')">
+        html += `<div class="dl-month-option grp-dd-opt${isActive ? ' active' : ''}" role="option" data-gid="${g.id}" data-act="selectGroupChip" data-chip="${g.id}">
             <span class="grp-dd-dot" style="background:${g.color}"></span>
             <span class="grp-dd-name">${escHtml(g.name)}</span>
-            <button class="grp-dd-del" type="button" data-gid="${g.id}" onclick="event.stopPropagation();deleteGroup(${g.id})" title="Удалить группу">${IC.tombstone}</button>
+            <button class="grp-dd-del" type="button" data-gid="${g.id}" data-act="deleteGroupById" data-stop title="Удалить группу">${IC.tombstone}</button>
         </div>`;
     });
-    html += `<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" onclick="selectGroupChip('__new__')">${IC.crossAdd}<span class="grp-dd-name">Создать группу</span></div>`;
+    html += `<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" data-act="selectGroupChip" data-chip="__new__">${IC.crossAdd}<span class="grp-dd-name">Создать группу</span></div>`;
     list.innerHTML = html;
 }
 
