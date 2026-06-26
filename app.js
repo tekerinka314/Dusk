@@ -1130,6 +1130,71 @@ function addTombstone(recUid, type, parentUid) {
     state.tombstones.push({ uid: recUid, type, parentUid: parentUid || null, deletedAt: nowTs() });
 }
 
+// ── 7c: event delegation (slice 1 — task rows) ──────────────────────────────
+// Handlers were historically baked into innerHTML as inline `onclick="fn(${id})"`.
+// That forces every handler to be a global and interpolates ids straight into an
+// attribute string (an XSS-class surface). 7c migrates these to `data-act` + one
+// set of document-level delegated listeners. Migration is INCREMENTAL and
+// additive: un-migrated inline handlers keep working alongside, so it lands one
+// subsystem at a time. An adapter reads its args from the element / its
+// `.task-item` ancestor (the task id already lives on that `data-id` — no
+// per-button duplication). currentTarget-dependent handlers (float-menu anchors)
+// get a thin synthetic event so the original functions stay untouched.
+const ACT       = {};   // click
+const ACT_DBL   = {};   // dblclick
+const ACT_INPUT = {};   // input
+const ACT_BLUR  = {};   // focusout  (blur doesn't bubble; focusout does)
+const ACT_KEY   = {};   // keydown
+const _tid   = el => { const li = el && el.closest('.task-item'); return li ? +li.dataset.id : null; };
+const _synEv = (el, e) => ({ currentTarget: el, target: e.target, stopPropagation() {}, preventDefault() { e.preventDefault(); } });
+function _delegate(map, attr, e) {
+    const t = e.target;
+    if (!t || typeof t.closest !== 'function') return;   // target can be document/window (e.g. keydown with no focus)
+    const el = t.closest('[' + attr + ']');
+    if (!el) return;
+    const fn = map[el.dataset[attr.slice(5)]];   // 'data-act' → dataset.act, 'data-actdbl' → dataset.actdbl, …
+    if (!fn) return;
+    if (el.dataset.stop !== undefined) e.stopPropagation();
+    fn(el, e);
+}
+document.addEventListener('click',     e => _delegate(ACT,       'data-act',      e));
+document.addEventListener('dblclick',  e => _delegate(ACT_DBL,   'data-actdbl',   e));
+document.addEventListener('input',     e => _delegate(ACT_INPUT, 'data-actinput', e));
+document.addEventListener('focusout',  e => _delegate(ACT_BLUR,  'data-actblur',  e));
+document.addEventListener('keydown',   e => _delegate(ACT_KEY,   'data-actkey',   e));
+document.addEventListener('mousedown', e => { const t = e.target; if (t && typeof t.closest === 'function' && t.closest('[data-pd]')) e.preventDefault(); });  // focus-steal guard
+Object.assign(ACT, {
+    toggleCheck:              el     => toggleCheck(_tid(el)),
+    togglePin:                el     => togglePin(_tid(el)),
+    openTaskColorModal:       el     => openTaskColorModal(_tid(el)),
+    openDeadlineModal:        el     => openDeadlineModal(_tid(el)),
+    clearTaskDeadline:        el     => clearTaskDeadline(_tid(el)),
+    openSnoozeMenu:           (el, e) => openSnoozeMenu(_synEv(el, e), _tid(el)),
+    openRepeatModal:          el     => openRepeatModal(_tid(el)),
+    clearTaskRepeat:          el     => clearTaskRepeat(_tid(el)),
+    openPrioModal:            el     => openPrioModal(_tid(el)),
+    openTaskMoreMenu:         (el, e) => openTaskMoreMenu(_synEv(el, e), _tid(el)),
+    removeTask:               el     => removeTask(_tid(el)),
+    deleteTaskForever:        el     => deleteTaskForever(_tid(el)),
+    toggleTaskNote:           el     => toggleTaskNote(_tid(el)),
+    toggleSubtasksSection:    el     => toggleSubtasksSection(_tid(el)),
+    toggleSubNotesAlwaysOpen: el     => toggleSubNotesAlwaysOpen(_tid(el)),
+    openNoteModal:            el     => openNoteModal(_tid(el)),
+    openEditNoteModal:        el     => openEditNoteModal(_tid(el)),
+    _taskNoteDelete:          (el, e) => _taskNoteDelete(e, _tid(el)),
+});
+Object.assign(ACT_DBL, {
+    startInlineEdit: (el, e) => startInlineEdit(_synEv(el, e), _tid(el)),
+    _taskNoteEdit:   el      => _taskNoteEdit(el),
+});
+Object.assign(ACT_INPUT, { _taskNoteInput:  el => _taskNoteInput(el) });
+Object.assign(ACT_BLUR,  { _taskNoteCommit: el => _taskNoteCommit(el) });
+Object.assign(ACT_KEY, {
+    _taskNoteKeydown: (el, e) => _taskNoteKeydown(e, el),
+    // keyboard activation for role="button" pills: Enter/Space triggers the click action
+    kactivate:        (el, e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const f = ACT[el.dataset.act]; if (f) f(el, e); } },
+});
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
@@ -7062,29 +7127,29 @@ function createTaskEl(task, showDlSide) {
         else if (status === 'urgent')   tc += ' urgent';
         else if (status === 'warn')     tc += ' warn';
         const cdHtml = countdown ? `<span class="dl-countdown">${countdown}</span><span class="dl-sep">·</span>` : '';
-        deadlineHtml = `<span class="meta-tag-wrap"><span class="${tc}" role="button" tabindex="0" title="Изменить дедлайн" onclick="openDeadlineModal(${task.id});event.stopPropagation();" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDeadlineModal(${task.id});}">${IC.window}<span class="dl-badge-inner">${cdHtml}<span class="dl-absolute">${absolute}</span></span></span><button class="btn-tag-clear" onclick="clearTaskDeadline(${task.id});event.stopPropagation();" title="Убрать дедлайн">${IC.crossedSwords}</button></span>`;
+        deadlineHtml = `<span class="meta-tag-wrap"><span class="${tc}" role="button" tabindex="0" title="Изменить дедлайн" data-act="openDeadlineModal" data-actkey="kactivate">${IC.window}<span class="dl-badge-inner">${cdHtml}<span class="dl-absolute">${absolute}</span></span></span><button class="btn-tag-clear" data-act="clearTaskDeadline" title="Убрать дедлайн">${IC.crossedSwords}</button></span>`;
     }
 
     // ── Repeat badge ──
     const rptAnchorLabel = getRepeatAnchorLabel(task.repeat, task.repeatAnchorTime, task.repeatAnchorDay, task.repeatAnchorMonthday);
     const rptHtml = (task.repeat && task.repeat !== 'none')
-        ? `<span class="meta-tag-wrap"><span class="meta-tag repeat-tag" role="button" tabindex="0" title="Изменить повтор" onclick="openRepeatModal(${task.id});event.stopPropagation();" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRepeatModal(${task.id});}">${IC.ouroboros}<span>${repeatLabel(task.repeat)}${rptAnchorLabel ? ` · ${rptAnchorLabel}` : ''}</span></span><button class="btn-tag-clear" onclick="clearTaskRepeat(${task.id});event.stopPropagation();" title="Убрать повтор">${IC.crossedSwords}</button></span>` : '';
+        ? `<span class="meta-tag-wrap"><span class="meta-tag repeat-tag" role="button" tabindex="0" title="Изменить повтор" data-act="openRepeatModal" data-actkey="kactivate">${IC.ouroboros}<span>${repeatLabel(task.repeat)}${rptAnchorLabel ? ` · ${rptAnchorLabel}` : ''}</span></span><button class="btn-tag-clear" data-act="clearTaskRepeat" title="Убрать повтор">${IC.crossedSwords}</button></span>` : '';
 
     // ── Note controls ──
     const hasNote = task.note && task.note.trim();
     // Single meta toggle (reads live DOM state): has note → show/hide the panel
     // (persisted in noteOpen); no note → open the panel straight into inline edit.
-    const noteToggle = `<button class="btn-note-toggle${(hasNote && task.noteOpen) ? ' open' : ''}" id="note-toggle-${task.id}" onmousedown="event.preventDefault()" onclick="toggleTaskNote(${task.id})" title="${hasNote ? (task.noteOpen ? 'Скрыть заметку' : 'Показать заметку') : 'Добавить заметку'}">${IC.sword}<span>заметка</span></button>`;
+    const noteToggle = `<button class="btn-note-toggle${(hasNote && task.noteOpen) ? ' open' : ''}" id="note-toggle-${task.id}" data-pd data-act="toggleTaskNote" title="${hasNote ? (task.noteOpen ? 'Скрыть заметку' : 'Показать заметку') : 'Добавить заметку'}">${IC.sword}<span>заметка</span></button>`;
 
     // ── Subtask toggle + always-show-notes button ──
     const subs    = task.subtasks || [];
     const sDone   = subs.filter(s => s.checked || s.cycleChecked).length;
     const subLbl  = subs.length ? ` ${sDone}/${subs.length}` : '';
-    const subToggle = `<button class="btn-subtask-toggle${task.subtasksOpen ? ' open' : ''}" data-tid="${task.id}" onclick="toggleSubtasksSection(${task.id})" title="Подпункты">${IC.sword}<span>подпункты${subLbl}</span></button>`;
+    const subToggle = `<button class="btn-subtask-toggle${task.subtasksOpen ? ' open' : ''}" data-tid="${task.id}" data-act="toggleSubtasksSection" title="Подпункты">${IC.sword}<span>подпункты${subLbl}</span></button>`;
     // Always-show-notes button: only rendered when there are subtasks that have notes
     const hasSubNotes = subs.some(s => s.note && s.note.trim());
     const subNotesAlwaysBtn = (subs.length > 0 && hasSubNotes)
-        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" onclick="toggleSubNotesAlwaysOpen(${task.id})" title="${task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов'}">${IC.gothEye}</button>`
+        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов'}">${IC.gothEye}</button>`
         : '';
 
     const displayText = highlightHashtags(
@@ -7108,7 +7173,7 @@ function createTaskEl(task, showDlSide) {
     // ── Note "full editor" button (task-action) ──
     // Secondary path: opens the modal textarea for comfortable long-note editing.
     // Inline editing lives in the panel itself (primary path).
-    const addNoteBtn = `<button class="btn-task-action${hasNote ? ' edit-note-btn' : ''}" id="note-modal-btn-${task.id}" onclick="${hasNote ? `openEditNoteModal(${task.id})` : `openNoteModal(${task.id})`}" title="${hasNote ? 'Изменить заметку в окне' : 'Заметка в окне'}">${hasNote ? IC.editNote : IC.addNote}</button>`;
+    const addNoteBtn = `<button class="btn-task-action${hasNote ? ' edit-note-btn' : ''}" id="note-modal-btn-${task.id}" data-act="${hasNote ? 'openEditNoteModal' : 'openNoteModal'}" title="${hasNote ? 'Изменить заметку в окне' : 'Заметка в окне'}">${hasNote ? IC.editNote : IC.addNote}</button>`;
 
     // ── Subtasks section ──
     const subtaskSearchHit = searchQuery && task.subtasks && task.subtasks.some(
@@ -7137,7 +7202,7 @@ function createTaskEl(task, showDlSide) {
         <div class="task-check-col">
             <button class="task-check${task.cycleChecked ? ' cycle-check' : ''}"
                     type="button"
-                    onclick="toggleCheck(${task.id})"
+                    data-act="toggleCheck"
                     role="checkbox"
                     aria-checked="${task.checked || task.cycleChecked ? 'true' : 'false'}"
                     aria-label="${escHtml(checkLabel)}"
@@ -7147,10 +7212,10 @@ function createTaskEl(task, showDlSide) {
         </div>
         <div class="task-content">
             <div class="task-head">
-                <span class="task-text" data-id="${task.id}" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startInlineEdit(event, ${task.id})">${displayText}</span>
+                <span class="task-text" data-id="${task.id}" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startInlineEdit">${displayText}</span>
                 <div class="task-actions">
-                    <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" onclick="togglePin(${task.id})" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
-                    <button class="btn-task-action btn-task-color" onclick="openTaskColorModal(${task.id})" title="Цветовая метка" style="${task.color ? `color:${taskInk}` : ''}">
+                    <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" data-act="togglePin" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
+                    <button class="btn-task-action btn-task-color" data-act="openTaskColorModal" title="Цветовая метка" style="${task.color ? `color:${taskInk}` : ''}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z" ${task.color ? `fill="${taskInk}" opacity="0.9"` : 'fill="none"'}/>
                             <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
@@ -7158,14 +7223,14 @@ function createTaskEl(task, showDlSide) {
                             ${task.color ? '' : '<circle cx="12" cy="10.5" r="1.3" fill="currentColor" stroke="none" opacity="0.55"/>'}
                         </svg>
                     </button>
-                    <button class="btn-task-action" onclick="openDeadlineModal(${task.id})" title="Дедлайн">${IC.window}</button>
-                    ${task.deadline ? `<button class="btn-task-action btn-snooze" onclick="openSnoozeMenu(event, ${task.id})" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
-                    <button class="btn-task-action" onclick="openRepeatModal(${task.id})" title="Повтор">${IC.ouroboros}</button>
-                    <button class="btn-task-action" onclick="openPrioModal(${task.id})" title="Приоритет">${IC.spires}</button>
+                    <button class="btn-task-action" data-act="openDeadlineModal" title="Дедлайн">${IC.window}</button>
+                    ${task.deadline ? `<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
+                    <button class="btn-task-action" data-act="openRepeatModal" title="Повтор">${IC.ouroboros}</button>
+                    <button class="btn-task-action" data-act="openPrioModal" title="Приоритет">${IC.spires}</button>
                     ${addNoteBtn}
-                    <button class="btn-task-action btn-task-more" onclick="openTaskMoreMenu(event, ${task.id})" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
-                    <button class="btn-task-action archive-btn" onclick="removeTask(${task.id})" title="В архив">${IC.archive}</button>
-                    <button class="btn-task-action danger" onclick="deleteTaskForever(${task.id})" title="Удалить навсегда">${IC.skull}</button>
+                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
+                    <button class="btn-task-action archive-btn" data-act="removeTask" title="В архив">${IC.archive}</button>
+                    <button class="btn-task-action danger" data-act="deleteTaskForever" title="Удалить навсегда">${IC.skull}</button>
                 </div>
             </div>
             <div class="task-meta">${deadlineHtml}${rptHtml}${cycleUntilHtml}${noteToggle}${subToggle}${subNotesAlwaysBtn}</div>
@@ -7174,13 +7239,13 @@ function createTaskEl(task, showDlSide) {
                     <div class="task-note-text" id="note-${task.id}"
                          spellcheck="false" data-placeholder="начертайте примечание…"
                          aria-label="Заметка задачи"
-                         ondblclick="_taskNoteEdit(this)"
-                         oninput="_taskNoteInput(this)"
-                         onkeydown="_taskNoteKeydown(event,this)"
-                         onblur="_taskNoteCommit(this)"
+                         data-actdbl="_taskNoteEdit"
+                         data-actinput="_taskNoteInput"
+                         data-actkey="_taskNoteKeydown"
+                         data-actblur="_taskNoteCommit"
                          title="Двойной клик — редактировать">${hasNote ? noteDisplayHTML(task.note) : ''}</div>
                 </div>
-                <button class="btn-note-delete" id="note-del-${task.id}" onclick="_taskNoteDelete(event, ${task.id})" title="Удалить заметку"${hasNote ? '' : ' style="display:none"'}>${IC.dagger}</button>
+                <button class="btn-note-delete" id="note-del-${task.id}" data-act="_taskNoteDelete" title="Удалить заметку"${hasNote ? '' : ' style="display:none"'}>${IC.dagger}</button>
             </div>
             ${subsHtml}
         </div>`;
@@ -7188,7 +7253,7 @@ function createTaskEl(task, showDlSide) {
     // FIX-3: In mainSelectMode, clicking free space (outside actions/check/drag) toggles selection
     if (mainSelectMode) {
         li.addEventListener('click', e => {
-            if (e.target.closest('.task-actions, .task-check-col, [contenteditable="true"], .inline-note-input, .btn-note-delete, .sub-check, .sub-prio-btn, .sub-actions')) return;
+            if (e.target.closest('.task-actions, .task-check-col, [contenteditable="true"], .inline-note-input, .btn-note-delete, .sub-check, .sub-prio-btn, .sub-actions, [data-act]')) return;
             toggleMainSelectTask(task.id);
         });
     }
