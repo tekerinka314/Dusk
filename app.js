@@ -1381,6 +1381,41 @@ Object.assign(ACT_KEY, {
 });
 Object.assign(ACT_PASTE, { plainTextPaste: (el, e) => plainTextPaste(e) });
 
+// 7c slice-3h — Grimoire list, crypt, and the body-portaled menus (history modal,
+// sort picker, colour filter, find bar, template + IO popovers). Note ids are
+// strings: the leaf reuses its own data-id; the rest carry their key on the button
+// (history timestamp, sort key, colour, crypt-month key, template id, export scope).
+// The sort trigger keeps its real stopPropagation through the event (its outside-close
+// is a dynamically-added listener, not a _gothicPicker). grimSetColorFilter rebuilds
+// its popover on pick → e.target detaches → the shared _gothicPickers contains-check
+// then closes it: that MATCHES the old inline (no stopPropagation), so a plain adapter
+// is faithful. grimDeleteTpl is the opposite — it had event.stopPropagation to KEEP
+// its popover open across deletes; with document-level delegation only
+// stopImmediatePropagation prevents the _gothicPickers sibling listener from closing it.
+Object.assign(ACT, {
+    grimNew:              () => grimNew(),
+    grimOpen:             el => grimOpen(el.dataset.id),
+    grimToggleSelectNote: el => grimToggleSelectNote(el.dataset.id),
+    grimToggleCryptMonth: el => grimToggleCryptMonth(el.dataset.key, el),
+    grimSetSort:          el => grimSetSort(el.dataset.k),
+    grimToggleSortMenu:   (el, e) => grimToggleSortMenu(e),
+    grimSetColorFilter:   el => grimSetColorFilter(el.dataset.color),
+    grimHistSelect:       el => grimHistSelect(+el.dataset.at),
+    grimHistRestore:      el => grimHistRestore(+el.dataset.at),
+    grimCloseHistory:     () => grimCloseHistory(),
+    grimFindPrev:         () => grimFindPrev(),
+    grimFindNext:         () => grimFindNext(),
+    grimFindClose:        () => grimFindClose(),
+    grimUseBuiltin:       el => grimUseBuiltin(el.dataset.key),
+    grimUseTpl:           el => grimUseTpl(el.dataset.id),
+    grimDeleteTpl:        (el, e) => { e.stopImmediatePropagation(); grimDeleteTpl(el.dataset.id, e); },
+    grimImportFiles:      () => grimImportFiles(),
+    grimExportFullBackup: el => grimExportFullBackup(el.dataset.scope),
+    grimExportBackup:     el => grimExportBackup(el.dataset.scope),
+    grimExportReading:    el => grimExportReading(el.dataset.scope),
+});
+Object.assign(ACT_KEY, { grimSortTriggerKey: (el, e) => grimSortTriggerKey(e) });
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
@@ -2044,7 +2079,7 @@ function _grimRenderHistory() {
             : isNow ? '<span class="grim-hist-tag now">сейчас</span>' : '';
         const title = (v.t || '').trim() || 'Без заглавия';
         const words = _grimPlain(v.b || '').trim().split(/\s+/).filter(Boolean).length;
-        return `<button type="button" class="${cls}" onclick="grimHistSelect(${v.at})">
+        return `<button type="button" class="${cls}" data-act="grimHistSelect" data-at="${v.at}">
             <span class="grim-hist-when">${_grimVerStamp(v.at)}${tag}</span>
             <span class="grim-hist-ttl">${escHtml(title)}</span>
             <span class="grim-hist-sub">${_grimAgo(v.at)} · ${words} сл.</span>
@@ -2062,7 +2097,7 @@ function _grimRenderHistory() {
         const title = (sel.t || '').trim() || 'Без заглавия';
         const action = isNow
             ? `<span class="grim-hist-cur">текущая версия</span>`
-            : `<button type="button" class="grim-hist-restore" onclick="grimHistRestore(${sel.at})">${GIC.restore}<span>Восстановить</span></button>`;
+            : `<button type="button" class="grim-hist-restore" data-act="grimHistRestore" data-at="${sel.at}">${GIC.restore}<span>Восстановить</span></button>`;
         preview = `<div class="grim-hist-pv-head">
             <span class="grim-hist-pv-when">${GIC.chronicle}<span>${_grimVerStamp(sel.at)}</span></span>
             ${action}
@@ -2081,7 +2116,7 @@ function _grimRenderHistory() {
     ov.innerHTML = `<div class="grim-hist-modal" role="dialog" aria-modal="true" aria-label="Летопись записи">
       <div class="grim-hist-bar">
         <span class="grim-hist-title">${GIC.chronicle}<span>Летопись</span></span>
-        <button type="button" class="grim-hist-x" onclick="grimCloseHistory()" title="Закрыть летопись" aria-label="Закрыть">${GIC.dismiss}</button>
+        <button type="button" class="grim-hist-x" data-act="grimCloseHistory" title="Закрыть летопись" aria-label="Закрыть">${GIC.dismiss}</button>
       </div>
       <div class="grim-hist-cols">
         <aside class="grim-hist-list">${list}</aside>
@@ -2319,7 +2354,7 @@ function _grimRefreshToc() {
         const gl = lvl(h) === 1 ? GIC.tocArch : '';
         nav += `<button type="button" class="grim-toc-item l${lvl(h)}" data-i="${i}"><span class="gtoc-gl">${gl}</span><span class="gtoc-tx">${escHtml((h.textContent || '').trim())}</span></button>`;
     });
-    panel.innerHTML = `<div class="grim-toc-inner"><div class="grim-toc-scroll"><div class="grim-toc-head">${GIC.toc}<span>Оглавление</span><button type="button" class="grim-toc-close" onclick="grimToggleToc()" title="Свернуть оглавление" aria-label="Свернуть оглавление">${GIC.tocClose}</button></div><nav class="grim-toc-nav">${nav}</nav></div></div>`;
+    panel.innerHTML = `<div class="grim-toc-inner"><div class="grim-toc-scroll"><div class="grim-toc-head">${GIC.toc}<span>Оглавление</span><button type="button" class="grim-toc-close" data-act="grimToggleToc" title="Свернуть оглавление" aria-label="Свернуть оглавление">${GIC.tocClose}</button></div><nav class="grim-toc-nav">${nav}</nav></div></div>`;
     panel.querySelectorAll('.grim-toc-item').forEach(b => b.addEventListener('click', () => _grimTocGo(parseInt(b.dataset.i, 10))));
     _grimTocHeads = heads;
     window.removeEventListener('scroll', _grimTocSpyScroll, true);
@@ -2372,7 +2407,7 @@ function _grimEmptyHTML() {
     return `<div class="grim-empty-ic">${GIC.tomeOpen}</div>
         <p>Гримуар пуст</p>
         <span class="grim-empty-sub">Ни одной записи ещё не начертано</span>
-        <button class="grim-new-btn grim-empty-btn" onclick="grimNew()">${GIC.quill}<span>Начертать первую</span></button>`;
+        <button class="grim-new-btn grim-empty-btn" data-act="grimNew">${GIC.quill}<span>Начертать первую</span></button>`;
 }
 
 // ── п.7: list sort order ──────────────────────────────────────────────────────────
@@ -2394,11 +2429,11 @@ function _grimSortControl() {
     const cur = state.notesSort || 'manual';
     const curLabel = (GRIM_SORTS.find(s => s.k === cur) || GRIM_SORTS[0]).label;
     const opts = GRIM_SORTS.map(s =>
-        `<div class="dl-month-option${s.k === cur ? ' active' : ''}" role="option" aria-selected="${s.k === cur}" data-k="${s.k}" onclick="grimSetSort('${s.k}')">${s.label}</div>`
+        `<div class="dl-month-option${s.k === cur ? ' active' : ''}" role="option" aria-selected="${s.k === cur}" data-k="${s.k}" data-act="grimSetSort">${s.label}</div>`
     ).join('');
     return `<div class="grim-sort dl-month-picker" id="grim-sort-picker">
         <button class="grim-sort-trigger" id="grim-sort-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"
-                title="Порядок записей" onclick="grimToggleSortMenu(event)" onkeydown="grimSortTriggerKey(event)">
+                title="Порядок записей" data-act="grimToggleSortMenu" data-actkey="grimSortTriggerKey">
             <span class="grim-sort-cur">${curLabel}</span>${GRIM_SORT_SWORD}
         </button>
         <div class="grim-sort-list dl-month-list" id="grim-sort-list" role="listbox" aria-hidden="true">${opts}</div>
@@ -2597,7 +2632,7 @@ function _grimLeafHTML(n, q, i, animate) {
     if (anim) styleVars.push(`--i:${Math.min(i, 12)}`);
     if (n.color) styleVars.push(_grimColorVars(n));   // п.9 colour glow
     const style = styleVars.length ? ` style="${styleVars.join(';')}"` : '';
-    const onclick = sel ? `grimToggleSelectNote('${n.id}')` : `grimOpen('${n.id}')`;
+    const leafAct = sel ? 'grimToggleSelectNote' : 'grimOpen';   // id rides on the leaf's own data-id
     const check = sel ? `<span class="grim-leaf-check">${isSel ? IC.selectChecked : IC.selectEmpty}</span>` : '';
     // Forged iron spike driven into the corner of a pinned record (same motif as tasks).
     const spike = isPinned && !sel ? `<span class="grim-leaf-spike" aria-hidden="true">${IC.pinSpike}</span>` : '';
@@ -2606,7 +2641,7 @@ function _grimLeafHTML(n, q, i, animate) {
     const fold = isOpen ? `<span class="grim-leaf-fold" aria-hidden="true"><span class="gf-open">${GIC.foldOpen}</span><span class="gf-closed">${GIC.foldClosed}</span></span>` : '';
     const titleAttr = isOpen ? ' title="Клик — свернуть/развернуть запись"' : '';
     // Crypt entries restore/destroy from the read-only detail footer (clean index).
-    return `<button class="${cls}"${style} data-id="${n.id}" onclick="${onclick}"${titleAttr}>
+    return `<button class="${cls}"${style} data-id="${n.id}" data-act="${leafAct}"${titleAttr}>
         ${spike}${check}<span class="grim-leaf-main">
             <span class="grim-leaf-t">${titleH}</span>
             ${snipH ? `<span class="grim-leaf-s">${snipH}</span>` : ''}
@@ -2639,7 +2674,7 @@ function _grimCryptMonthsHTML(notes, q, animate, filtering) {
         const isOpen = filtering || localStorage.getItem(colKey) !== '0';
         const leaves = g.items.map(n => _grimLeafHTML(n, q, i++, animate)).join('');
         return `<div class="grim-crypt-month${isOpen ? '' : ' collapsed'}" data-month-key="${g.key}">
-            <button class="grim-crypt-month-head" onclick="grimToggleCryptMonth('${g.key}', this)" aria-expanded="${isOpen}" title="Свернуть / развернуть месяц">
+            <button class="grim-crypt-month-head" data-act="grimToggleCryptMonth" data-key="${g.key}" aria-expanded="${isOpen}" title="Свернуть / развернуть месяц">
                 <span class="grim-crypt-month-name">${heading}</span>
                 <span class="grim-crypt-month-count">${g.items.length}</span>
                 <svg class="grim-crypt-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -3141,11 +3176,11 @@ function _grimBuildColorFilterPop() {
     const check = `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`;
     const swatches = colors.map(c => `
         <button class="color-filter-swatch${noteColorFilter === c ? ' active' : ''}" style="background:${c}"
-                onclick="grimSetColorFilter('${c}')" aria-label="Цвет ${c}" title="Цвет ${c}">
+                data-act="grimSetColorFilter" data-color="${escHtml(c)}" aria-label="Цвет ${c}" title="Цвет ${c}">
             ${noteColorFilter === c ? check : ''}
         </button>`).join('');
     const clearBtn = noteColorFilter ? `
-        <button class="color-filter-swatch color-filter-clear" onclick="grimSetColorFilter(noteColorFilter)" title="Снять фильтр по цвету">
+        <button class="color-filter-swatch color-filter-clear" data-act="grimSetColorFilter" data-color="${escHtml(noteColorFilter)}" title="Снять фильтр по цвету">
             ${IC.crossedSwords}
         </button>` : '';
     pop.innerHTML = swatches + clearBtn;
@@ -3234,11 +3269,11 @@ function _grimFindBar() {
         bar.id = 'grim-find'; bar.className = 'grim-find'; bar.setAttribute('role', 'toolbar');
         bar.setAttribute('aria-label', 'Поиск по записи');
         bar.innerHTML =
-            `<button class="gf-btn gf-prev" onclick="grimFindPrev()" title="Предыдущее (Shift+F3)" aria-label="Предыдущее совпадение">${IC.sword}</button>` +
-            `<button class="gf-btn gf-next" onclick="grimFindNext()" title="Следующее (F3)" aria-label="Следующее совпадение">${IC.sword}</button>` +
+            `<button class="gf-btn gf-prev" data-act="grimFindPrev" title="Предыдущее (Shift+F3)" aria-label="Предыдущее совпадение">${IC.sword}</button>` +
+            `<button class="gf-btn gf-next" data-act="grimFindNext" title="Следующее (F3)" aria-label="Следующее совпадение">${IC.sword}</button>` +
             `<span class="gf-cnt" id="grim-find-cnt"></span>` +
             `<span class="gf-sep"></span>` +
-            `<button class="gf-btn gf-close" onclick="grimFindClose()" title="Закрыть (Esc)" aria-label="Закрыть поиск">${IC.crossedSwords}</button>`;
+            `<button class="gf-btn gf-close" data-act="grimFindClose" title="Закрыть (Esc)" aria-label="Закрыть поиск">${IC.crossedSwords}</button>`;
         document.body.appendChild(bar);
     }
     return bar;
@@ -4986,8 +5021,8 @@ function _grimZipStore(files) {
 }
 
 // ── «Перенос» popover (main bar: import + export-all; select bar: export-sel) ──
-function _grimIoItem(icon, name, desc, onclick) {
-    return `<div class="grim-tpl-item" role="menuitem" onclick="${onclick}">
+function _grimIoItem(icon, name, desc, act, scope) {
+    return `<div class="grim-tpl-item" role="menuitem" data-act="${act}"${scope ? ` data-scope="${scope}"` : ''}>
         <span class="grim-tpl-ic">${icon}</span>
         <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(name)}</span><span class="grim-tpl-desc">${escHtml(desc)}</span></span>
     </div>`;
@@ -4996,18 +5031,18 @@ function _grimRenderIoMenu() {
     const pop = document.getElementById('grim-io-pop'); if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Перенос записей</div>'
         + '<div class="grim-tpl-sect">Импорт</div>'
-        + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md · .zip · .json · можно несколько', 'grimImportFiles()')
+        + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md · .zip · .json · можно несколько', 'grimImportFiles')
         + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Экспорт всего</div>'
-        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · все записи Гримуара + летопись', "grimExportFullBackup('all')")
-        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', "grimExportBackup('all')")
-        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', "grimExportReading('all')");
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · все записи Гримуара + летопись', 'grimExportFullBackup', 'all')
+        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', 'grimExportBackup', 'all')
+        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', 'grimExportReading', 'all');
 }
 function _grimRenderIoSelMenu() {
     const pop = document.getElementById('grim-io-sel-pop'); if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Экспорт выбранных</div>'
-        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · выбранные записи + летопись', "grimExportFullBackup('sel')")
-        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', "grimExportBackup('sel')")
-        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу', "grimExportReading('sel')");
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · выбранные записи + летопись', 'grimExportFullBackup', 'sel')
+        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', 'grimExportBackup', 'sel')
+        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу', 'grimExportReading', 'sel');
 }
 function _grimCloseIoMenu() {
     ['grim-io-split', 'grim-io-sel'].forEach(id => { const w = document.getElementById(id); if (w) w.classList.remove('open'); });
@@ -5556,7 +5591,7 @@ function _grimRenderTplMenu() {
     let html = '<div class="grim-tpl-head">Начертать из шаблона</div>';
     html += '<div class="grim-tpl-sect">Встроенные</div>';
     html += GRIM_BUILTIN_TPL.map(t => `
-        <div class="grim-tpl-item" role="menuitem" onclick="grimUseBuiltin('${t.key}')">
+        <div class="grim-tpl-item" role="menuitem" data-act="grimUseBuiltin" data-key="${t.key}">
             <span class="grim-tpl-ic">${t.icon}</span>
             <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(t.name)}</span><span class="grim-tpl-desc">${escHtml(t.desc)}</span></span>
         </div>`).join('');
@@ -5564,10 +5599,10 @@ function _grimRenderTplMenu() {
     if (mine.length) {
         html += '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Свои</div>';
         html += mine.map(t => `
-            <div class="grim-tpl-item user" role="menuitem" onclick="grimUseTpl('${t.id}')">
+            <div class="grim-tpl-item user" role="menuitem" data-act="grimUseTpl" data-id="${t.id}">
                 <span class="grim-tpl-ic">${GRIM_TPL_IC.save}</span>
                 <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(t.name || 'Шаблон')}</span><span class="grim-tpl-desc">своя заготовка</span></span>
-                <button class="grim-tpl-del" onclick="grimDeleteTpl('${t.id}', event)" title="Удалить шаблон">${GRIM_TPL_IC.del}</button>
+                <button class="grim-tpl-del" data-act="grimDeleteTpl" data-id="${t.id}" title="Удалить шаблон">${GRIM_TPL_IC.del}</button>
             </div>`).join('');
     }
     pop.innerHTML = html;
