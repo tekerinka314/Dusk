@@ -7321,7 +7321,13 @@ function buildSubtaskSection(task, forceOpen) {
 // renderSubList (incremental rebuild). Returns the markup + whether split-mode
 // markup was produced, so the caller can set the matching UL class.
 function _buildSubListContent(task) {
-    const subs   = sortSubtasks(task.subtasks || []);
+    let subs = sortSubtasks(task.subtasks || []);
+    // "Только невыполненные": the filter that hides finished TASKS must also hide
+    // finished SUBTASKS — in both the standard 2-column grid and the split
+    // active/done layout (under filter the done zone simply has nothing left).
+    // Counts/progress stay truthful: buildSubtaskSection + the row toggle compute
+    // sDone/sTotal straight from task.subtasks, not from this filtered view.
+    if (isFiltered) subs = subs.filter(s => !s.checked && !s.cycleChecked);
     const sTotal = subs.length;
 
     if (isGroupSplitMode && sTotal > 0) {
