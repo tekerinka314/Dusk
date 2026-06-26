@@ -1416,6 +1416,18 @@ Object.assign(ACT, {
 });
 Object.assign(ACT_KEY, { grimSortTriggerKey: (el, e) => grimSortTriggerKey(e) });
 
+// 7c slice-4 — index.html static handlers (migrated in small clusters). 4a: the
+// page-nav tabs (page in data-page). 4b: no-arg main-toolbar toggles.
+Object.assign(ACT, {
+    switchPage:               el => switchPage(el.dataset.page),
+    toggleTodayMode:          () => toggleTodayMode(),
+    toggleGroupSplitMode:     () => toggleGroupSplitMode(),
+    toggleCollapseAllGroups:  () => toggleCollapseAllGroups(),
+    toggleFilter:             () => toggleFilter(),
+    openColorFilterModal:     () => openColorFilterModal(),
+    toggleMainSelectMode:     () => toggleMainSelectMode(),
+});
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
