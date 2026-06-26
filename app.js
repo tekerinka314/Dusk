@@ -1240,6 +1240,17 @@ Object.assign(ACT, {
     deleteGroup:         el => deleteGroup(_gid(el)),
 });
 
+// 7c slice-3b — sort picker (toolbar + per-group) & colour filter. The sort list
+// is PORTALED to <body> while open, so the option can't rely on a .group-section
+// ancestor — it carries its own data-gid (absent → global toolbar sort). The sort
+// trigger keeps its real stopPropagation (mirrors the inline behaviour). Colour
+// swatches carry the colour in data-color (the clear button reuses the active one).
+Object.assign(ACT, {
+    toggleSortPicker: (el, e) => toggleSortPicker({ currentTarget: el, stopPropagation: () => e.stopPropagation() }),
+    sortOpt:          el => { const k = el.dataset.k; if (el.dataset.gid !== undefined) setGroupSort(+el.dataset.gid, k); else setTaskSort(k); },
+    setColorFilter:   el => setColorFilter(el.dataset.color),
+});
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
@@ -5862,9 +5873,10 @@ function _taskSortIcon(k)  { return IC[TASK_SORT_ICON[k] || 'sortPriority']; }
 function _taskSortLabel(k) { return (TASK_SORTS.find(s => s.k === k) || TASK_SORTS[0]).label; }
 // Option rows for a picker; `onclickFor(key)` returns the JS call string for each row.
 // Each row carries the mode's own glyph (richer + reads at a glance).
-function _taskSortOptions(curK, onclickFor) {
+function _taskSortOptions(curK, gid) {
+    const gidAttr = (gid != null) ? ` data-gid="${gid}"` : '';   // present → per-group override; absent → global toolbar
     return TASK_SORTS.map(s =>
-        `<div class="dl-month-option task-sort-opt${s.k === curK ? ' active' : ''}" role="option" aria-selected="${s.k === curK}" onclick="${onclickFor(s.k)}">`
+        `<div class="dl-month-option task-sort-opt${s.k === curK ? ' active' : ''}" role="option" aria-selected="${s.k === curK}" data-act="sortOpt" data-k="${s.k}"${gidAttr}>`
         + `<span class="tso-ic">${_taskSortIcon(s.k)}</span><span class="tso-label">${s.label}</span></div>`
     ).join('');
 }
@@ -5872,9 +5884,9 @@ function _taskSortOptions(curK, onclickFor) {
 function _groupSortPicker(groupId, curK, hasOverride) {
     return `<span class="task-sort grp-sort dl-month-picker">
         <button class="btn-group-action btn-group-sort${hasOverride ? ' sort-overridden' : ''}" type="button"
-                onclick="toggleSortPicker(event)" aria-haspopup="listbox" aria-expanded="false"
+                data-act="toggleSortPicker" aria-haspopup="listbox" aria-expanded="false"
                 title="Сортировка: ${_taskSortLabel(curK).toLowerCase()}">${_taskSortIcon(curK)}</button>
-        <div class="dl-month-list task-sort-list" role="listbox" aria-hidden="true">${_taskSortOptions(curK, k => `setGroupSort(${groupId},'${k}')`)}</div>
+        <div class="dl-month-list task-sort-list" role="listbox" aria-hidden="true">${_taskSortOptions(curK, groupId)}</div>
     </span>`;
 }
 // Refresh the global toolbar trigger (icon + title + active ring) and its option list.
@@ -5886,7 +5898,7 @@ function _renderTaskSortControl() {
         btn.classList.toggle('active', state.sortMode !== 'priority');   // priority = the default
     }
     const list = document.getElementById('task-sort-list');
-    if (list) list.innerHTML = _taskSortOptions(state.sortMode, k => `setTaskSort('${k}')`);
+    if (list) list.innerHTML = _taskSortOptions(state.sortMode, null);   // null gid → toolbar (global) sort
 }
 // One picker open at a time; outside-click closes. Works for the toolbar + every group.
 // The list is PORTALED to <body> while open so it can't be clipped or painted over by a
@@ -6247,7 +6259,7 @@ function _populateColorFilterModal() {
     const swatches = colors.map(c => `
         <button class="color-filter-swatch${colorFilter === c ? ' active' : ''}"
                 style="background:${c}"
-                onclick="setColorFilter('${c}')"
+                data-act="setColorFilter" data-color="${escHtml(c)}"
                 aria-label="Цвет ${c}"
                 title="Цвет ${c}">
             ${colorFilter === c
@@ -6258,7 +6270,7 @@ function _populateColorFilterModal() {
     // Gothic "extinguish" clear button — only shown when a filter is active
     const clearBtn = colorFilter ? `
         <button class="color-filter-swatch color-filter-clear"
-                onclick="setColorFilter(colorFilter)"
+                data-act="setColorFilter" data-color="${escHtml(colorFilter)}"
                 title="Снять фильтр по цвету">
             ${IC.crossedSwords}
         </button>` : '';
