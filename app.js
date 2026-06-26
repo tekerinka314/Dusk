@@ -1146,6 +1146,8 @@ const ACT_INPUT = {};   // input
 const ACT_BLUR  = {};   // focusout  (blur doesn't bubble; focusout does)
 const ACT_KEY   = {};   // keydown
 const _tid   = el => { const li = el && el.closest('.task-item'); return li ? +li.dataset.id : null; };
+const _sTid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.tid : null; };
+const _sSid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.sid : null; };
 const _synEv = (el, e) => ({ currentTarget: el, target: e.target, stopPropagation() {}, preventDefault() { e.preventDefault(); } });
 function _delegate(map, attr, e) {
     const t = e.target;
@@ -1194,6 +1196,30 @@ Object.assign(ACT_KEY, {
     // keyboard activation for role="button" pills: Enter/Space triggers the click action
     kactivate:        (el, e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const f = ACT[el.dataset.act]; if (f) f(el, e); } },
 });
+
+// 7c slice-2 — subtasks (item actions, split headers, subtask notes). taskId + subId
+// both live on the .subtask-item ancestor (data-tid / data-sid). startSubEdit reads
+// event.target as the editable span → feed it the delegated element directly.
+Object.assign(ACT, {
+    toggleSubtask:        el => toggleSubtask(_sTid(el), _sSid(el)),
+    cycleSubPriority:     el => cycleSubPriority(_sTid(el), _sSid(el)),
+    toggleSubNote:        el => toggleSubNote(_sTid(el), _sSid(el)),
+    promoteSubtask:       el => promoteSubtask(_sTid(el), _sSid(el)),
+    deleteSubtask:        el => deleteSubtask(_sTid(el), _sSid(el)),
+    openSubRepeatModal:   el => openSubRepeatModal(_sTid(el), _sSid(el)),
+    openSubDeadlineModal: el => openSubDeadlineModal(_sTid(el), _sSid(el)),
+    clearSubDeadline:     el => clearSubDeadline(_sTid(el), _sSid(el)),
+    toggleSubSplitActive: el => toggleSubSplitActive(el, el.dataset.splitkey),
+    toggleSubSplitDone:   el => toggleSubSplitDone(el, el.dataset.splitkey),
+    _noteDeleteClick:     (el, e) => _noteDeleteClick(e, el.parentElement.querySelector('.sub-note-text')),
+});
+Object.assign(ACT_DBL, {
+    startSubEdit: (el, e) => startSubEdit({ stopPropagation() {}, target: el }, _sTid(el), _sSid(el)),
+    _noteEdit:    el => _noteEdit(el),
+});
+Object.assign(ACT_INPUT, { _noteInput:  el => _noteInput(el) });
+Object.assign(ACT_BLUR,  { _noteCommit: el => _noteCommit(el) });
+Object.assign(ACT_KEY,   { _noteKeydown: (el, e) => _noteKeydown(e, el) });
 
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
@@ -7352,7 +7378,7 @@ function _buildSubListContent(task) {
 
         const activeSection = active.length > 0 ? `
             <li class="sub-split-active-header${activeCollapsed ? ' collapsed' : ''}"
-                onclick="toggleSubSplitActive(this,'${activeKey}')">
+                data-act="toggleSubSplitActive" data-splitkey="${activeKey}">
                 ${IC.sword}<span>Активные · ${active.length}</span>${chevronSvg}
             </li>
             <li class="sub-split-active-wrap${activeCollapsed ? ' collapsed' : ''}" style="list-style:none;padding:0;margin:0;">
@@ -7361,7 +7387,7 @@ function _buildSubListContent(task) {
 
         const doneSection = done.length > 0 ? `
             <li class="sub-split-done-header${doneCollapsed ? ' collapsed' : ''}"
-                onclick="toggleSubSplitDone(this,'${doneKey}')">
+                data-act="toggleSubSplitDone" data-splitkey="${doneKey}">
                 ${IC.sword}<span>Выполненные · ${done.length}</span>${chevronSvg}
             </li>
             <li class="sub-split-done-wrap${doneCollapsed ? ' collapsed' : ''}" style="list-style:none;padding:0;margin:0;">
@@ -7409,7 +7435,7 @@ function buildSubtaskItemHTML(taskId, s) {
     const subRepeatTitle = repeatSet
         ? `Повтор: ${repeatLabel(s.repeat)}${subAnchorLabel ? ` · ${subAnchorLabel}` : ''} — нажмите чтобы изменить`
         : 'Назначить повтор';
-    const subRepeatBtn = `<button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" onclick="openSubRepeatModal(${taskId},${s.id})" title="${subRepeatTitle}">${IC.ouroboros}</button>`;
+    const subRepeatBtn = `<button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" data-act="openSubRepeatModal" title="${subRepeatTitle}">${IC.ouroboros}</button>`;
     // Note wrapper: .has-note marks an existing note (hover/always-open reveal it);
     // .note-open is the live "expanded" state driven by the unified note system.
     const noteWrapClass = s.note ? 'has-note' : '';
@@ -7427,20 +7453,19 @@ function buildSubtaskItemHTML(taskId, s) {
     const subDlCd     = subDl ? formatDeadlineCountdown(subDl) : '';
     const subDlStatusCls = subDlStatus ? ` sub-dl-${subDlStatus}` : '';
     const subDlBadge = subDl
-        ? `<button type="button" class="sub-deadline-badge${subDlStatusCls}" onclick="openSubDeadlineModal(${taskId},${s.id})" title="${escHtml(subDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>`
+        ? `<button type="button" class="sub-deadline-badge${subDlStatusCls}" data-act="openSubDeadlineModal" title="${escHtml(subDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>`
         : '';
     const subDlSetBtn = subDl
         ? ''
-        : `<button type="button" class="btn-sub-action sub-deadline-btn" onclick="openSubDeadlineModal(${taskId},${s.id})" title="Назначить дедлайн">${IC.window}</button>`;
+        : `<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openSubDeadlineModal" title="Назначить дедлайн">${IC.window}</button>`;
     const subDlWrap = subDl
         ? `<div class="sub-deadline-wrapper${subDlStatusCls}" id="subdl-${taskId}-${s.id}">
             <div class="sub-deadline-inner">
                 <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить дедлайн"
-                      onclick="openSubDeadlineModal(${taskId},${s.id})"
-                      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSubDeadlineModal(${taskId},${s.id});}">
+                      data-act="openSubDeadlineModal" data-actkey="kactivate">
                     ${subDlCd ? `<span class="sub-dl-countdown">${subDlCd}</span><span class="sub-dl-sep">·</span>` : ''}
                     <span class="sub-dl-date">${escHtml(subDlAbs)}</span>
-                    <button type="button" class="sub-dl-clear" onclick="event.stopPropagation();clearSubDeadline(${taskId},${s.id})" title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
+                    <button type="button" class="sub-dl-clear" data-act="clearSubDeadline" title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
                 </span>
             </div>
         </div>`
@@ -7450,20 +7475,20 @@ function buildSubtaskItemHTML(taskId, s) {
         <div class="sub-main-row">
             <div class="sub-drag-handle" aria-hidden="true">${IC.drag}</div>
             <button type="button" class="sub-check"
-                    onclick="toggleSubtask(${taskId},${s.id})"
+                    data-act="toggleSubtask"
                     role="checkbox"
                     aria-checked="${(isChecked || isCycleChecked) ? 'true' : 'false'}"
                     aria-label="${escHtml(subCheckLabel)}"
                     >${subCheckIcon}</button>
-            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" ondblclick="startSubEdit(event,${taskId},${s.id})">${subDisplayText}</span>
+            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startSubEdit">${subDisplayText}</span>
             ${subDlBadge}
             <div class="sub-actions">
-                <button type="button" class="btn-sub-action sub-prio-btn" onclick="cycleSubPriority(${taskId},${s.id})" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
+                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleSubPriority" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
                 ${subRepeatBtn}
                 ${subDlSetBtn}
-                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" onpointerdown="event.preventDefault()" onclick="toggleSubNote(${taskId},${s.id})" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
-                <button type="button" class="btn-sub-action" onclick="promoteSubtask(${taskId},${s.id})" title="Сделать самостоятельной задачей">${IC.promote}</button>
-                <button type="button" class="btn-sub-action danger" onclick="deleteSubtask(${taskId},${s.id})" title="Удалить подпункт">${IC.skull}</button>
+                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleSubNote" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
+                <button type="button" class="btn-sub-action" data-act="promoteSubtask" title="Сделать самостоятельной задачей">${IC.promote}</button>
+                <button type="button" class="btn-sub-action danger" data-act="deleteSubtask" title="Удалить подпункт">${IC.skull}</button>
             </div>
         </div>
         ${subDlWrap}
@@ -7472,12 +7497,12 @@ function buildSubtaskItemHTML(taskId, s) {
                 <div class="sub-note-text" id="subnote-text-${taskId}-${s.id}"
                      spellcheck="false" data-placeholder="начертайте примечание…"
                      aria-label="Заметка подпункта"
-                     ondblclick="_noteEdit(this)"
-                     oninput="_noteInput(this)"
-                     onkeydown="_noteKeydown(event,this)"
-                     onblur="_noteCommit(this)"
+                     data-actdbl="_noteEdit"
+                     data-actinput="_noteInput"
+                     data-actkey="_noteKeydown"
+                     data-actblur="_noteCommit"
                     >${s.note ? noteDisplayHTML(s.note) : ''}</div>
-                ${s.note ? `<button type="button" class="btn-sub-note-delete" onclick="_noteDeleteClick(event,this.parentElement.querySelector('.sub-note-text'))" title="Удалить заметку">${IC.dagger}</button>` : ''}
+                ${s.note ? `<button type="button" class="btn-sub-note-delete" data-act="_noteDeleteClick" title="Удалить заметку">${IC.dagger}</button>` : ''}
             </div>
         </div>
     </li>`;
