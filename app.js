@@ -2,7 +2,13 @@
 //  DUSK — Task Journal  v5  (gothic + subtasks)
 // ============================================================
 
-const K_STATE  = 'duskState_v3';
+// Sync data-layer (Idea 8): v4 adds per-record uid + updatedAt + a tombstones
+// graveyard. v3 is kept FROZEN as a rollback fallback — loadState migrates v3→v4
+// once and never writes v3 again (rule #1: never lose data).
+const K_STATE_V3 = 'duskState_v3';
+const K_STATE_V4 = 'duskState_v4';
+const K_STATE    = K_STATE_V4;                  // active key — every save goes here
+const K_PREMIGRATION = 'dusk_premigration_v3';  // one-time raw v3 snapshot, taken before migrating
 const K_SOUND  = 'soundEnabled';
 const K_FILTER = 'isFiltered';
 const K_PAGE   = 'currentPage';
@@ -586,7 +592,8 @@ let state = {
     archive:          [],
     notes:            [],   // п11 Гримуар: {id:uuid, title, body, createdAt, updatedAt} — независимы от задач
     notesArchive:     [],   // п11 «Склеп»: архив заметок (ОТДЕЛЬНЫЙ от архива задач), +archivedAt
-    nextId:           1,
+    tombstones:       [],   // Idea 8: deletion graveyard {uid,type,parentUid,deletedAt} — for future per-uid sync merge
+    nextId:           1,    // Idea 8 (Design B): int id stays as the LOCAL DOM/onclick key; `uid` is the sync identity
     nextGroupId:      1,
     nextSubId:        1,
     sortMode:         'priority',  // 'priority' | 'order'  (global sort mode)
@@ -918,7 +925,8 @@ function playLoadAnimations() {
 //  PERSISTENCE
 // ============================================================
 function saveState() {
-    localStorage.setItem(K_STATE, JSON.stringify(state));
+    try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
+    localStorage.setItem(K_STATE, JSON.stringify(state));   // K_STATE === v4
     try { maybeBackup(); } catch (_) { /* backups must never break a save */ }
 }
 
@@ -972,23 +980,54 @@ function maybeBackup() {
 }
 
 function loadState() {
-    const raw = localStorage.getItem(K_STATE);
-    if (raw) {
+    // Idea 8: prefer the v4 key. If it's absent, do the one-time v3→v4 upgrade
+    // (which keeps v3 frozen as a fallback). Only if neither exists fall back to
+    // the legacy migrators.
+    const rawV4 = localStorage.getItem(K_STATE_V4);
+    if (rawV4) {
         try {
-            const loaded = JSON.parse(raw);
+            const loaded = JSON.parse(rawV4);
             state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...loaded };
             migrateTasks(state.tasks);
             migrateTasks(state.archive);
             normalizeState();
             saveState();   // persist note plain→HTML migration once
-        } catch(e) { migrateFromOld(); }
-    } else {
-        migrateFromOld();
+        } catch(e) { if (!_migrateV3toV4()) migrateFromOld(); }
+        return;
     }
+    if (_migrateV3toV4()) return;
+    migrateFromOld();
+}
+
+// Idea 8: one-time v3→v4 upgrade. Reads the FROZEN v3 key, snapshots its raw blob
+// ONCE (rule #1 — a pre-migration backup that survives even if v3 is later wiped),
+// assigns uid/updatedAt + the tombstones array via migrateTasks/normalizeState,
+// then writes v4. v3 itself is never modified. Returns true if a v3 state existed.
+function _migrateV3toV4() {
+    const rawV3 = localStorage.getItem(K_STATE_V3);
+    if (!rawV3) return false;
+    try {
+        if (!localStorage.getItem(K_PREMIGRATION)) {
+            try { localStorage.setItem(K_PREMIGRATION, rawV3); } catch (_) {}
+        }
+        const loaded = JSON.parse(rawV3);
+        state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...loaded };
+        migrateTasks(state.tasks);
+        migrateTasks(state.archive);
+        normalizeState();
+        saveState();   // writes v4; v3 stays untouched as a rollback fallback
+        return true;
+    } catch (e) { return false; }
 }
 
 function migrateTasks(arr) {
     arr.forEach(t => {
+        // Idea 8: stable sync identity + per-task timestamp (int `id` stays the DOM key).
+        // Idempotent backfill — only fills what's missing, so undo/redo snapshots
+        // (already carrying uids) pass through unchanged.
+        if (!t.uid)       t.uid = uid();
+        if (!t.updatedAt) t.updatedAt = nowTs();
+        if (!t.createdAt) t.createdAt = t.updatedAt;
         if (typeof t.deadline === 'string')
             t.deadline = { mode: 'date', value: t.deadline.slice(0,10) };
         if (t.deadline && t.deadline.mode === 'full')
@@ -1019,6 +1058,7 @@ function migrateTasks(arr) {
         }
         t.subtasks.forEach((s, i) => {
             if (!s.id)                   s.id = (state.nextSubId++);
+            if (!s.uid)                  s.uid = uid();   // Idea 8: subtasks get a uid (no own updatedAt — parent task is the merge atom)
             if (!s.priority)             s.priority = 'none';
             if (!s.note)                 s.note = '';
             if (s.order === undefined)   s.order = i;
@@ -1036,13 +1076,77 @@ function uid() {
     return 'n-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
 }
 
+// epoch-ms timestamp — matches the grimoire-notes format (createdAt/updatedAt are numbers).
+function nowTs() { return Date.now(); }
+
+// ── Idea 8: automatic per-record `updatedAt` ────────────────────────────────
+// "Merge per task" — the task is the merge atom; one updatedAt per task (a subtask
+// edit bumps the parent), groups carry their own. To avoid 30 hand-placed
+// touch() calls (one missed site = a stale timestamp = a future merge dropping a
+// real edit), updatedAt is maintained by diffing record CONTENT at save time, so
+// no mutation path can forget it. _recSig holds the last-saved content signature
+// per uid (timestamps excluded). primeRecSig() re-seeds WITHOUT bumping and runs
+// after every whole-state swap (load/undo/redo/import/restore) from normalizeState,
+// so restoring an old snapshot keeps its original timestamps instead of stamping
+// everything to "now".
+let _recSig = new Map();
+function _contentSig(rec) {
+    const { updatedAt, createdAt, ...rest } = rec;   // identity-neutral content only
+    return JSON.stringify(rest);
+}
+function _trackedRecords() {
+    const out = [];
+    if (Array.isArray(state.tasks))   for (const t of state.tasks)   out.push(t);
+    if (Array.isArray(state.archive)) for (const t of state.archive) out.push(t);
+    if (Array.isArray(state.groups))  for (const g of state.groups)  out.push(g);
+    return out;
+}
+function primeRecSig() {
+    _recSig = new Map();
+    for (const r of _trackedRecords()) if (r && r.uid) _recSig.set(r.uid, _contentSig(r));
+}
+function bumpUpdatedAt() {
+    const now = nowTs();
+    for (const r of _trackedRecords()) {
+        if (!r || !r.uid) continue;
+        const sig  = _contentSig(r);
+        const prev = _recSig.get(r.uid);
+        if (prev === undefined) { _recSig.set(r.uid, sig); continue; } // new / just-stamped → track, no bump
+        if (prev !== sig) { r.updatedAt = now; _recSig.set(r.uid, sig); }
+    }
+}
+
+// ── Idea 8: tombstones ──────────────────────────────────────────────────────
+// A permanent deletion records a lightweight {uid,type,parentUid,deletedAt} in
+// state.tombstones instead of just vanishing, so a future per-uid sync merge can
+// tell "deleted" apart from "never seen" (and a stale device can't resurrect it).
+// Live arrays stay clean (only live records) → render/search/sort/DnD are
+// untouched. Bodies remain recoverable via undo snapshots + the ring backups +
+// the frozen v3 key (rule #1). Archiving is NOT a deletion (the task lives on in
+// state.archive) so it never tombstones; only a *permanent* removal does.
+function addTombstone(recUid, type, parentUid) {
+    if (!recUid) return;
+    if (!Array.isArray(state.tombstones)) state.tombstones = [];
+    state.tombstones.push({ uid: recUid, type, parentUid: parentUid || null, deletedAt: nowTs() });
+}
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
     if (!Array.isArray(state.notes)) state.notes = [];
     if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
     if (!Array.isArray(state.noteTemplates)) state.noteTemplates = [];   // п.12: note templates
+    if (!Array.isArray(state.tombstones)) state.tombstones = [];         // Idea 8: deletion graveyard
+    // Idea 8: backfill uid/updatedAt on groups (tasks/subtasks are done in migrateTasks).
+    const gnow = nowTs();
+    (state.groups || []).forEach(g => {
+        if (!g) return;
+        if (!g.uid)       g.uid = uid();
+        if (!g.updatedAt) g.updatedAt = gnow;
+        if (!g.createdAt) g.createdAt = g.updatedAt;
+    });
     migrateNotes();   // plain-text bodies → HTML once (idempotent via note.fmt)
+    primeRecSig();    // Idea 8: re-seed content signatures after this (post-swap) state — no false updatedAt bump on the next save
 }
 
 function migrateFromOld() {
@@ -1071,7 +1175,8 @@ function migrateFromOld() {
         const textEl = li.querySelector('.task-text');
         if (!textEl) return;
         state.tasks.push({
-            id: state.nextId++, text: textEl.innerText || textEl.textContent,
+            id: state.nextId++, uid: uid(), createdAt: nowTs(), updatedAt: nowTs(),
+            text: textEl.innerText || textEl.textContent,
             checked: li.classList.contains('checked'), priority: 'none',
             groupId: null, deadline: null, note: '', noteOpen: false,
             order: state.tasks.length,
@@ -1079,6 +1184,7 @@ function migrateFromOld() {
             subtasks: [], subtasksOpen: false,
         });
     });
+    normalizeState();   // Idea 8: backfill group uids + tombstones for legacy-imported state
     saveState();
     localStorage.removeItem('data');
 }
@@ -6159,25 +6265,54 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         mergeBtn.onclick = () => {
             close();
             pushUndo();
-            const idOffset = state.nextId;
+            // Idea 8: merge by stable uid identity, not the fragile int-id offset.
+            // 1) Ensure incoming records carry uids (old exports without one get fresh
+            //    uids → treated as genuinely new, exactly like before).
+            const inGroups  = (loaded.groups  || []).map(sanitizeGroup);
+            const inTasks   = (loaded.tasks   || []).map(sanitizeTask);
+            const inArchive = (loaded.archive || []).map(sanitizeTask);
+            migrateTasks(inTasks);    // backfill uid/updatedAt on incoming (idempotent)
+            migrateTasks(inArchive);
+            const _gnow = nowTs();
+            inGroups.forEach(g => { if (!g.uid) g.uid = uid(); if (!g.updatedAt) g.updatedAt = _gnow; });
+
+            // 2) DEDUP by uid so re-importing the same backup no longer duplicates
+            //    everything (manual «Добавить» adds genuinely-new records; updating an
+            //    existing one is left to the sync stage with its «ask on conflict»).
+            const localTaskUids  = new Set([...state.tasks, ...state.archive].map(t => t.uid));
+            const localGroupUids = new Set(state.groups.map(g => g.uid));
+
+            const idOffset  = state.nextId;
             const gidOffset = state.nextGroupId;
             const sidOffset = state.nextSubId;
             const baseOrder = state.tasks.length;
-            // Remap IDs to avoid collisions
-            const newGroups = (loaded.groups || []).map(sanitizeGroup).map(g => ({
-                ...g, id: g.id + gidOffset,
-            }));
+            // The int-id offset is now ONLY a local DOM-key allocator (identity is the
+            // uid) — it can't corrupt identity even on collision. Map each incoming
+            // group's int id → its resolved LOCAL int id (the existing local group when
+            // the uid already lives here, else a fresh offset id) so a task whose group
+            // was deduped still points at the right local group instead of orphaning.
+            const gidMap = new Map();
+            const newGroups = [];
+            inGroups.forEach(g => {
+                if (localGroupUids.has(g.uid)) {
+                    const local = state.groups.find(lg => lg.uid === g.uid);
+                    gidMap.set(g.id, local ? local.id : null);
+                } else {
+                    gidMap.set(g.id, g.id + gidOffset);
+                    newGroups.push({ ...g, id: g.id + gidOffset });
+                }
+            });
             const remapTask = t => ({
                 ...t,
                 id:      t.id + idOffset,
-                groupId: t.groupId != null ? t.groupId + gidOffset : null,
+                groupId: t.groupId != null ? (gidMap.has(t.groupId) ? gidMap.get(t.groupId) : t.groupId + gidOffset) : null,
                 subtasks: (t.subtasks || []).map(s => ({ ...s, id: (s.id || 0) + sidOffset })),
                 // C3-3: guard missing order from older exports (was `t.order + len` → NaN).
                 order:   (t.order ?? 0) + baseOrder,
             });
-            const newTasks   = (loaded.tasks   || []).map(sanitizeTask).map(remapTask);
+            const newTasks   = inTasks.filter(t => !localTaskUids.has(t.uid)).map(remapTask);
             // C3-4: merge must also bring the imported archive (was silently dropped).
-            const newArchive = (loaded.archive || []).map(sanitizeTask).map(remapTask);
+            const newArchive = inArchive.filter(t => !localTaskUids.has(t.uid)).map(remapTask);
             state.groups.push(...newGroups);
             state.tasks.push(...newTasks);
             state.archive.push(...newArchive);
@@ -7581,7 +7716,7 @@ function addTask() {
     }
 
     const newSubtasks = formSubtasks.map((s, i) => ({
-        id: state.nextSubId++, text: s.text, checked: false,
+        id: state.nextSubId++, uid: uid(), text: s.text, checked: false,
         priority: s.priority || 'none',
         note: s.note || '',
         order: i,
@@ -7594,7 +7729,7 @@ function addTask() {
     }));
 
     state.tasks.push({
-        id: state.nextId++,
+        id: state.nextId++, uid: uid(), createdAt: nowTs(), updatedAt: nowTs(),
         text, checked: false,
         priority: effPriority,
         color: (effPriority && effPriority !== 'none') ? null : (selectedFormColor || null),
@@ -7897,6 +8032,7 @@ function clearAll() {
         localStorage.removeItem('groupSplit_done_' + g.id + '_dl');
         localStorage.removeItem('groupSplit_done_' + g.id + '_ndl');
     });
+    state.tasks.forEach(t => addTombstone(t.uid, 'task'));   // Idea 8: tombstone every wiped task
     state.tasks = [];
     saveState(); render();
     showToast('Все задачи удалены навсегда', { undo: true });
@@ -7931,6 +8067,10 @@ function deleteGroup(id) {
     // Whether the group actually contained tasks — controls the toast wording (P9).
     const hadTasks = state.tasks.some(t => t.groupId === id);
     // Deleting a group deletes the tasks (and their subtasks) inside it.
+    // Idea 8: tombstone the group AND each removed task before they leave the arrays.
+    const _grp = state.groups.find(g => g.id === id);
+    if (_grp) addTombstone(_grp.uid, 'group');
+    state.tasks.forEach(t => { if (t.groupId === id) addTombstone(t.uid, 'task'); });
     state.tasks = state.tasks.filter(t => t.groupId !== id);
     state.groups = state.groups.filter(g => g.id !== id);
     // Clean up orphaned localStorage keys for this group
@@ -7954,13 +8094,14 @@ function duplicateGroup(id) {
     pushUndo();
     const newId = state.nextGroupId++;
     const gidx  = state.groups.findIndex(g => g.id === id);
-    state.groups.splice(gidx + 1, 0, { id: newId, name: group.name + ' (копия)', color: group.color });
+    state.groups.splice(gidx + 1, 0, { id: newId, uid: uid(), createdAt: nowTs(), updatedAt: nowTs(), name: group.name + ' (копия)', color: group.color });
 
     const baseOrder = state.tasks.length;
     state.tasks.filter(t => t.groupId === id).forEach((t, i) => {
         const copy = {
             ...JSON.parse(JSON.stringify(t)),
             id:           state.nextId++,
+            uid:          uid(), createdAt: nowTs(), updatedAt: nowTs(),   // Idea 8: a copy is a NEW record (don't inherit the original's uid)
             groupId:      newId,
             order:        baseOrder + i,
             checked:      false,
@@ -7968,7 +8109,7 @@ function duplicateGroup(id) {
             nextReset:    null,
             noteOpen:     false,
             subtasks: (t.subtasks || []).map(s => ({
-                ...s, id: state.nextSubId++, checked: false, cycleChecked: false, nextReset: null,
+                ...s, id: state.nextSubId++, uid: uid(), checked: false, cycleChecked: false, nextReset: null,
             })),
         };
         state.tasks.push(copy);
@@ -8055,7 +8196,8 @@ function createTaskFromTemplate(tid) {
     pushUndo();
     const newId = state.nextId++;
     state.tasks.push({
-        id: newId, text: tpl.text, checked: false,
+        id: newId, uid: uid(), createdAt: nowTs(), updatedAt: nowTs(),
+        text: tpl.text, checked: false,
         priority: tpl.priority || 'none', color: tpl.color || null,
         groupId: null,
         deadline: tpl.deadline ? JSON.parse(JSON.stringify(tpl.deadline)) : null,
@@ -8067,7 +8209,7 @@ function createTaskFromTemplate(tid) {
         repeatAnchorMonthday: tpl.repeatAnchorMonthday || null,
         cycleChecked: false, nextReset: null,
         subtasks: (tpl.subtasks || []).map((s, i) => ({
-            id: state.nextSubId++, text: s.text, checked: false,
+            id: state.nextSubId++, uid: uid(), text: s.text, checked: false,
             priority: s.priority || 'none', note: s.note || '', order: i,
             repeat: s.repeat || 'none', repeatAnchorTime: s.repeatAnchorTime || null,
             repeatAnchorDay: s.repeatAnchorDay || null, repeatAnchorMonthday: s.repeatAnchorMonthday || null,
@@ -8514,6 +8656,8 @@ function deleteFromArchive(id) {
     // C3-5: a single permanent delete from the archive must be undoable like
     // every other destructive action (the archive is the last safety net).
     pushUndo();
+    const _arch = state.archive.find(a => a.id === id);
+    if (_arch) addTombstone(_arch.uid, 'task');   // Idea 8: permanent delete from archive → tombstone
     state.archive = state.archive.filter(a => a.id !== id);
     saveState(); renderArchive(); updateArchiveBadge();
     showToast('Удалено из архива', { undo: true });
@@ -8548,6 +8692,7 @@ function clearArchive() {
     selectMode = false; selectedArchiveIds.clear();
     const bar = document.getElementById('archive-select-bar');
     if (bar) bar.style.display = 'none';
+    state.archive.forEach(a => addTombstone(a.uid, 'task'));   // Idea 8: tombstone every wiped archive task
     state.archive = [];
     saveState(); renderArchive(); updateArchiveBadge();
     showToast('Архив очищен', { undo: true });
@@ -8666,7 +8811,7 @@ function addSubtask(taskId) {
     if (!text) { input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 400); return; }
 
     pushUndo();
-    const sub = { id: state.nextSubId++, text, checked: false, priority: 'none', note: '', order: task.subtasks.length, repeat: 'none', cycleChecked: false };
+    const sub = { id: state.nextSubId++, uid: uid(), text, checked: false, priority: 'none', note: '', order: task.subtasks.length, repeat: 'none', cycleChecked: false };
     task.subtasks.push(sub);
 
     // Problem 6: rebuild the whole list so the new item lands in the correct
@@ -8873,6 +9018,8 @@ function deleteSubtask(taskId, subId) {
     if (!task) return;
     const commit = () => {
         pushUndo();
+        const _sub = task.subtasks.find(s => s.id === subId);
+        if (_sub) addTombstone(_sub.uid, 'subtask', task.uid);   // Idea 8 (also bumps the parent task's updatedAt via the auto-diff)
         task.subtasks = task.subtasks.filter(s => s.id !== subId);
         // Rebuild so split-zone counts/layout stay correct (problem 6).
         renderSubList(taskId);
@@ -8897,7 +9044,8 @@ function promoteSubtask(taskId, subId) {
     pushUndo();
     const newId = state.nextId++;
     state.tasks.push({
-        id: newId, text: sub.text, checked: !!sub.checked,
+        id: newId, uid: uid(), createdAt: nowTs(), updatedAt: nowTs(),
+        text: sub.text, checked: !!sub.checked,
         priority: sub.priority || 'none', color: null,
         groupId: task.groupId,                 // inherit the parent's group
         deadline: sub.deadline ? JSON.parse(JSON.stringify(sub.deadline)) : null,  // P-E: carry the subtask's deadline up
@@ -9073,7 +9221,7 @@ function demoteTask(id, targetId, dropSubs) {
     const hadSubs = (task.subtasks || []).length > 0;
     const base = target.subtasks.length;
     target.subtasks.push({
-        id: state.nextSubId++, text: task.text, checked: !!task.checked,
+        id: state.nextSubId++, uid: uid(), text: task.text, checked: !!task.checked,
         priority: task.priority || 'none', note: task.note || '', order: base,
         deadline: task.deadline ? JSON.parse(JSON.stringify(task.deadline)) : null,  // P-E: carry the task's deadline down
         repeat: task.repeat || 'none',
@@ -9086,10 +9234,11 @@ function demoteTask(id, targetId, dropSubs) {
     // subtasks; otherwise flatten them alongside it under the target.
     if (!dropSubs) {
         (task.subtasks || []).forEach((s, i) => {
-            target.subtasks.push({ ...s, id: state.nextSubId++, order: base + 1 + i });
+            target.subtasks.push({ ...s, id: state.nextSubId++, uid: uid(), order: base + 1 + i });
         });
     }
     target.subtasksOpen = true;
+    addTombstone(task.uid, 'task');   // Idea 8: the demoted task entity is gone (became a subtask) — tombstone so a merge can't resurrect it
     state.tasks = state.tasks.filter(t => t.id !== id);
     saveState(); render();
     showToast(dropSubs && hadSubs ? 'Задача стала подпунктом · подпункты отброшены' : 'Задача стала подпунктом',
@@ -9943,6 +10092,8 @@ function deleteTaskForever(id) {
     // Task removed from state synchronously before animation starts.
     // A Ctrl+Z fired during the 280 ms collapse animation correctly
     // restores the full snapshot — animationend only cleans up DOM.
+    const _t = state.tasks.find(t => t.id === id);
+    if (_t) addTombstone(_t.uid, 'task');   // Idea 8: permanent delete → tombstone
     state.tasks = state.tasks.filter(t => t.id !== id);
     saveState();
     // ─────────────────────────────────────────────────────────────
@@ -10669,7 +10820,7 @@ function confirmAddGroup() {
     }
     pushUndo();
     const newId = state.nextGroupId++;
-    state.groups.push({ id: newId, name, color: selectedColor });
+    state.groups.push({ id: newId, uid: uid(), createdAt: nowTs(), updatedAt: nowTs(), name, color: selectedColor });
     saveState();
 
     // Handle pending selector BEFORE closing so taskGroupSelect gets the new id
@@ -13630,6 +13781,7 @@ function duplicateTask(id) {
     const copy = {
         ...JSON.parse(JSON.stringify(task)), // deep clone
         id:          state.nextId++,
+        uid:         uid(), createdAt: nowTs(), updatedAt: nowTs(),   // Idea 8: a copy is a NEW record
         order:       afterOrder,
         checked:     false,
         cycleChecked:false,
@@ -13640,6 +13792,7 @@ function duplicateTask(id) {
         subtasks:    (task.subtasks || []).map(s => ({
             ...s,
             id:          state.nextSubId++,
+            uid:         uid(),
             checked:     false,
             cycleChecked:false,   // W-3: don't inherit cycle state from original
             nextReset:   null,
@@ -13750,6 +13903,7 @@ function bulkDelete() {
 
     pushUndo();
     const count = selectedTaskIds.size;
+    state.tasks.forEach(t => { if (selectedTaskIds.has(t.id)) addTombstone(t.uid, 'task'); });   // Idea 8: bulk permanent delete → tombstones
     state.tasks = state.tasks.filter(t => !selectedTaskIds.has(t.id));
     selectedTaskIds.clear();
     mainSelectMode = false;
