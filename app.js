@@ -1251,6 +1251,27 @@ Object.assign(ACT, {
     setColorFilter:   el => setColorFilter(el.dataset.color),
 });
 
+// 7c slice-3c — body-level float menus (snooze, task «…», sub-check mode, demote,
+// export). These are appended to <body> so they have no row ancestor — every
+// variable (task id, target id, mode, drop-flag) rides on the button's own data-*
+// attributes. The triggers (openSnoozeMenu/openTaskMoreMenu already delegated in
+// slice 1; openSubAnyModeMenu/openExportMenu/openDemoteMenu stay inline until the
+// index.html slice) build these menus, so only the menu items move here.
+Object.assign(ACT, {
+    snoozeDeadline:    el => snoozeDeadline(+el.dataset.id, el.dataset.snz),
+    _snoozeUnitPick:   el => _snoozeUnitPick(el),
+    _snoozeCustomApply: el => _snoozeCustomApply(+el.dataset.id),
+    _taskMore:         el => _taskMore(el.dataset.more, +el.dataset.id),
+    setTaskSubMode:    el => setTaskSubMode(+el.dataset.id, el.dataset.mode),
+    setGlobalSubMode:  el => setGlobalSubMode(el.dataset.mode),
+    _pickDemoteTarget: el => _pickDemoteTarget(+el.dataset.id, +el.dataset.target),
+    demoteTask:        el => demoteTask(+el.dataset.id, +el.dataset.target, el.dataset.drop === '1'),
+    exportData:        el => { closeFloatMenu(); exportData(el.dataset.exp); },
+});
+Object.assign(ACT_KEY, {
+    snoozeCustomKey: (el, e) => { if (e.key === 'Enter') { e.preventDefault(); _snoozeCustomApply(+el.dataset.id); } },
+});
+
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
 function normalizeState() {
@@ -6142,18 +6163,18 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
 function openSnoozeMenu(event, id) {
     event.stopPropagation();
     _openFloatMenu(event.currentTarget, `
-        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, '1h')">${IC.snooze}<span>+1 час</span></button>
-        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'tomorrow')">${IC.moon}<span>До завтра</span></button>
-        <button type="button" role="menuitem" onclick="snoozeDeadline(${id}, 'week')">${IC.sundial}<span>+1 неделя</span></button>
+        <button type="button" role="menuitem" data-act="snoozeDeadline" data-id="${id}" data-snz="1h">${IC.snooze}<span>+1 час</span></button>
+        <button type="button" role="menuitem" data-act="snoozeDeadline" data-id="${id}" data-snz="tomorrow">${IC.moon}<span>До завтра</span></button>
+        <button type="button" role="menuitem" data-act="snoozeDeadline" data-id="${id}" data-snz="week">${IC.sundial}<span>+1 неделя</span></button>
         <div class="snooze-custom">
             <input type="number" class="snooze-custom-input" id="snooze-custom-n" min="1" max="999" placeholder="N"
-                   onkeydown="if(event.key==='Enter'){event.preventDefault();_snoozeCustomApply(${id})}">
+                   data-actkey="snoozeCustomKey" data-id="${id}">
             <div class="snooze-units">
-                <button type="button" class="snooze-unit active" data-u="h" onclick="_snoozeUnitPick(this)">ч</button>
-                <button type="button" class="snooze-unit" data-u="d" onclick="_snoozeUnitPick(this)">дн</button>
-                <button type="button" class="snooze-unit" data-u="w" onclick="_snoozeUnitPick(this)">нед</button>
+                <button type="button" class="snooze-unit active" data-u="h" data-act="_snoozeUnitPick">ч</button>
+                <button type="button" class="snooze-unit" data-u="d" data-act="_snoozeUnitPick">дн</button>
+                <button type="button" class="snooze-unit" data-u="w" data-act="_snoozeUnitPick">нед</button>
             </div>
-            <button type="button" class="snooze-custom-go" onclick="_snoozeCustomApply(${id})">ОК</button>
+            <button type="button" class="snooze-custom-go" data-act="_snoozeCustomApply" data-id="${id}">ОК</button>
         </div>`, 'snooze-with-custom');
 }
 
@@ -9209,13 +9230,13 @@ function openTaskMoreMenu(event, id) {
         const eff = task.subCheckMode === 'any' ? IC.g4any
                   : task.subCheckMode === 'all' ? IC.g4all
                   : (state.subAnyMode ? IC.g4any : IC.g4all);
-        subModeItem = `<button type="button" role="menuitem" onclick="_taskMore('submode', ${id})">${eff}<span>Чек по подпунктам</span></button>`;
+        subModeItem = `<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Чек по подпунктам</span></button>`;
     }
     _openFloatMenu(event.currentTarget, `
-        <button type="button" role="menuitem" onclick="_taskMore('tpl', ${id})">${IC.template}<span>Сохранить как шаблон</span></button>
-        <button type="button" role="menuitem" onclick="_taskMore('dup', ${id})">${IC.twinCoffin}<span>Дублировать задачу</span></button>
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="tpl" data-id="${id}">${IC.template}<span>Сохранить как шаблон</span></button>
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="dup" data-id="${id}">${IC.twinCoffin}<span>Дублировать задачу</span></button>
         ${subModeItem}
-        ${canDemote ? `<button type="button" role="menuitem" onclick="_taskMore('demote', ${id})">${IC.demote}<span>Сделать подпунктом</span></button>` : ''}`,
+        ${canDemote ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="demote" data-id="${id}">${IC.demote}<span>Сделать подпунктом</span></button>` : ''}`,
         'task-more-menu');
 }
 function _taskMore(act, id) {
@@ -9233,7 +9254,7 @@ function _openSubModeMenu(anchorEl, id) {
     if (!task) return;
     const cur = (task.subCheckMode === 'any' || task.subCheckMode === 'all') ? task.subCheckMode : 'inherit';
     const opt = (val, icon, label) =>
-        `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" onclick="setTaskSubMode(${id}, '${val}')">${icon}<span>${label}</span></button>`;
+        `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" data-act="setTaskSubMode" data-id="${id}" data-mode="${val}">${icon}<span>${label}</span></button>`;
     _openFloatMenu(anchorEl, `
         <div class="float-menu-head">Чек родителя по подпунктам</div>
         ${opt('inherit', IC.g4,    'Как везде')}
@@ -9256,7 +9277,7 @@ function openSubAnyModeMenu(event) {
     event.stopPropagation();
     const cur = state.subAnyMode ? 'any' : 'all';
     const opt = (val, icon, label) =>
-        `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" onclick="setGlobalSubMode('${val}')">${icon}<span>${label}</span></button>`;
+        `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" data-act="setGlobalSubMode" data-mode="${val}">${icon}<span>${label}</span></button>`;
     _openFloatMenu(event.currentTarget, `
         <div class="float-menu-head">Чек родителя по подпунктам</div>
         ${opt('all', IC.g4all, 'По всем подпунктам')}
@@ -9315,7 +9336,7 @@ function _openDemoteMenuAt(anchorEl, id) {
         if (showHeaders) html += `<div class="demote-group-head">${escHtml(sec.name)}</div>`;
         for (const t of sec.items) {
             if (shown >= 40) break;
-            html += `<button type="button" role="menuitem" onclick="_pickDemoteTarget(${id}, ${t.id})"><span class="float-menu-name">${escHtml(t.text)}</span></button>`;
+            html += `<button type="button" role="menuitem" data-act="_pickDemoteTarget" data-id="${id}" data-target="${t.id}"><span class="float-menu-name">${escHtml(t.text)}</span></button>`;
             shown++;
         }
     }
@@ -9331,8 +9352,8 @@ function _pickDemoteTarget(id, targetId) {
         closeFloatMenu();
         _openFloatMenu(anchor, `
             <div class="float-menu-head">Подпункты задачи…</div>
-            <button type="button" role="menuitem" onclick="demoteTask(${id}, ${targetId}, true)"><span>Отбросить</span></button>
-            <button type="button" role="menuitem" onclick="demoteTask(${id}, ${targetId}, false)"><span>Перенести рядом</span></button>`,
+            <button type="button" role="menuitem" data-act="demoteTask" data-id="${id}" data-target="${targetId}" data-drop="1"><span>Отбросить</span></button>
+            <button type="button" role="menuitem" data-act="demoteTask" data-id="${id}" data-target="${targetId}" data-drop="0"><span>Перенести рядом</span></button>`,
             'demote-subs-menu');
     } else {
         demoteTask(id, targetId, true);
@@ -13816,9 +13837,9 @@ const _EXPORT_MD_IC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 function openExportMenu(event) {
     event.stopPropagation();
     _openFloatMenu(event.currentTarget, `
-        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('tasks')">${_EXPORT_TASKS_IC}<span>Только задачи</span></button>
-        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('all')">${GRIM_IO_IC.full}<span>Всё — полный бэкап</span></button>
-        <button type="button" role="menuitem" onclick="closeFloatMenu();exportData('md')">${_EXPORT_MD_IC}<span>Задачи — markdown-чеклист</span></button>`,
+        <button type="button" role="menuitem" data-act="exportData" data-exp="tasks">${_EXPORT_TASKS_IC}<span>Только задачи</span></button>
+        <button type="button" role="menuitem" data-act="exportData" data-exp="all">${GRIM_IO_IC.full}<span>Всё — полный бэкап</span></button>
+        <button type="button" role="menuitem" data-act="exportData" data-exp="md">${_EXPORT_MD_IC}<span>Задачи — markdown-чеклист</span></button>`,
         'export-menu');
 }
 
