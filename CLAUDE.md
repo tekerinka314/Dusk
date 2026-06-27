@@ -164,15 +164,32 @@ expected. The real work is **sync**, not the platform wrappers.
 ## Sync — decided approach & hard requirements
 
 **Chosen design:** local-first data model + sync through the user's OWN cloud file.
-- **Data model:** per-record `updatedAt` timestamps + soft-delete **tombstones**,
-  merged **per task** (NOT whole-file last-write-wins, which loses data). First
-  concrete build step = this data-model refactor; it's platform-agnostic and done
-  in the current codebase.
+Full Phase-1 engineering spec lives in `SYNC-SPEC.md` (repo root) — code against it.
+- **Data model:** per-record `updatedAt` + soft-delete **tombstones** (Idea 8 done),
+  merged **3-way** against a stored `baseline` (last-synced snapshot). NOT whole-file
+  last-write-wins (loses data). Data-model refactor (Idea 8) is done; merge engine is
+  Phase 1.
+- **Merge granularity (DECIDED 2026-06-28):** **field-level** for tasks AND groups
+  (independent field edits both survive; same field clash → newer wins); subtasks
+  merged as a **set by uid** (two new subtasks both survive; same-subtask clash →
+  newer, so subtasks gain their own `updatedAt`); notes merged **whole-record, keep
+  BOTH copies** on conflict (no risky HTML text-merge). 3-way diff vs baseline is the
+  conflict DETECTOR; the clock is only the tiebreaker.
+- **Conflict resolution (DECIDED — supersedes the old "ASK the user"):** NO blocking
+  prompts. Auto-resolve into live state (same field → newer; **delete-vs-edit →
+  default DELETE**; note → keep both). The LOSING version is preserved in a synced
+  **quarantine journal** (append-only, immutable, uid-keyed, merged by union; "resolved"
+  flag by newer-wins). Pending entries persist **until the user chooses** (passive
+  unobtrusive unresolved-count badge, no modal). Journal is SYNCED so a losing edit is
+  recoverable on every device, incl. the one whose edit lost.
+- **Clock (DECIDED):** monotonic number now — `updatedAt = max(Date.now(), lastIssued+1)`
+  (cheap, keeps `updatedAt` a number, fixes clock-going-back / same-ms ties). Full HLC
+  deferred (drop-in later if real clock problems appear).
+- **Deferred (must do later):** tombstone GC **and** quarantine-journal GC (both grow
+  unbounded for now — plan cleanup in Phase 4).
 - **Sync channel:** a single small file in the user's **Google Drive**
   (`appDataFolder`). **Google Drive is the choice — Dropbox rejected (too many
   ads).** Each person uses their own Google account → independent data for free.
-- **Conflict handling:** default **last-write-wins**, but **ASK the user** on a
-  same-task conflict (include the prompt from the start).
 - Same sync client is reused by web, Android (Capacitor) and Windows (Tauri).
 - Keep the existing manual **export/import** as a no-login fallback.
 

@@ -1061,7 +1061,8 @@ function migrateTasks(arr) {
         }
         t.subtasks.forEach((s, i) => {
             if (!s.id)                   s.id = (state.nextSubId++);
-            if (!s.uid)                  s.uid = uid();   // Idea 8: subtasks get a uid (no own updatedAt — parent task is the merge atom)
+            if (!s.uid)                  s.uid = uid();   // Idea 8: subtasks get a uid (sync identity)
+            if (!s.updatedAt)            s.updatedAt = t.updatedAt || nowTs();   // sync (Phase 1): subtasks now carry their own updatedAt to tiebreak a same-subtask clash
             if (!s.priority)             s.priority = 'none';
             if (!s.note)                 s.note = '';
             if (s.order === undefined)   s.order = i;
@@ -1080,7 +1081,16 @@ function uid() {
 }
 
 // epoch-ms timestamp — matches the grimoire-notes format (createdAt/updatedAt are numbers).
-function nowTs() { return Date.now(); }
+// Sync (Phase 1): MONOTONIC — never returns a value <= the last one it issued. A device
+// clock that jumps backwards, or two stamps inside the same millisecond, can no longer make
+// a newer edit look older than an older one (that would make the 3-way merge drop a real
+// edit). updatedAt/createdAt/deletedAt stay plain numbers (comparable with `<`). In-memory
+// monotonic is enough for Phase 1 — full HLC (Hybrid Logical Clock) is deferred as a drop-in.
+let _lastTs = 0;
+function nowTs() {
+    _lastTs = Math.max(Date.now(), _lastTs + 1);
+    return _lastTs;
+}
 
 // ── Idea 8: automatic per-record `updatedAt` ────────────────────────────────
 // "Merge per task" — the task is the merge atom; one updatedAt per task (a subtask
@@ -1095,12 +1105,26 @@ function nowTs() { return Date.now(); }
 let _recSig = new Map();
 function _contentSig(rec) {
     const { updatedAt, createdAt, ...rest } = rec;   // identity-neutral content only
+    // Sync (Phase 1): subtasks are now their own merge records (each carries its own
+    // updatedAt). Strip nested subtask timestamps from the PARENT signature so a subtask's
+    // clock bump can't trigger a spurious parent bump — a subtask CONTENT change still
+    // mutates this signature (its text/priority/etc. live in `rest`), so "edit a subtask →
+    // bump the parent task too" still holds.
+    if (Array.isArray(rest.subtasks)) {
+        rest.subtasks = rest.subtasks.map(s => {
+            const { updatedAt, createdAt, ...srest } = s;
+            return srest;
+        });
+    }
     return JSON.stringify(rest);
 }
 function _trackedRecords() {
     const out = [];
-    if (Array.isArray(state.tasks))   for (const t of state.tasks)   out.push(t);
-    if (Array.isArray(state.archive)) for (const t of state.archive) out.push(t);
+    // Tasks + their subtasks (subtasks gained their own uid+updatedAt in Phase 1, so the
+    // content-diff auto-bump maintains them too — one missed manual touch() = a stale stamp
+    // = a future merge dropping a real edit, which the auto-diff prevents).
+    if (Array.isArray(state.tasks))   for (const t of state.tasks)   { out.push(t); if (Array.isArray(t.subtasks)) for (const s of t.subtasks) out.push(s); }
+    if (Array.isArray(state.archive)) for (const t of state.archive) { out.push(t); if (Array.isArray(t.subtasks)) for (const s of t.subtasks) out.push(s); }
     if (Array.isArray(state.groups))  for (const g of state.groups)  out.push(g);
     return out;
 }
@@ -1112,6 +1136,7 @@ function bumpUpdatedAt() {
     const now = nowTs();
     for (const r of _trackedRecords()) {
         if (!r || !r.uid) continue;
+        if (r.updatedAt == null) r.updatedAt = now;   // sync (Phase 1): a fresh record (e.g. a just-added subtask) must always carry a stamp
         const sig  = _contentSig(r);
         const prev = _recSig.get(r.uid);
         if (prev === undefined) { _recSig.set(r.uid, sig); continue; } // new / just-stamped → track, no bump
@@ -1571,7 +1596,9 @@ function normalizeState() {
     if (!Array.isArray(state.notes)) state.notes = [];
     if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
     if (!Array.isArray(state.noteTemplates)) state.noteTemplates = [];   // п.12: note templates
+    if (!Array.isArray(state.templates)) state.templates = [];           // task templates
     if (!Array.isArray(state.tombstones)) state.tombstones = [];         // Idea 8: deletion graveyard
+    if (!Array.isArray(state.syncJournal)) state.syncJournal = [];        // sync (Phase 1): quarantine journal lives INSIDE state (it is synced)
     // Idea 8: backfill uid/updatedAt on groups (tasks/subtasks are done in migrateTasks).
     const gnow = nowTs();
     (state.groups || []).forEach(g => {
@@ -1579,6 +1606,23 @@ function normalizeState() {
         if (!g.uid)       g.uid = uid();
         if (!g.updatedAt) g.updatedAt = gnow;
         if (!g.createdAt) g.createdAt = g.updatedAt;
+    });
+    // Sync (Phase 1): templates become synced records — backfill stable identity + timestamps.
+    // Task templates historically carried only a device-local int `id` (meaningless across
+    // devices) → give them a `uid` (sync identity) + timestamps. Note templates already carry
+    // a uuid `id` (used as their sync key) but lacked timestamps. Templates are create/use/
+    // delete only (never edited in place) → updatedAt == createdAt is fine; their merge is
+    // effectively union + tombstone.
+    (state.templates || []).forEach(t => {
+        if (!t) return;
+        if (!t.uid)       t.uid = uid();
+        if (!t.updatedAt) t.updatedAt = gnow;
+        if (!t.createdAt) t.createdAt = t.updatedAt;
+    });
+    (state.noteTemplates || []).forEach(t => {
+        if (!t) return;
+        if (!t.updatedAt) t.updatedAt = gnow;
+        if (!t.createdAt) t.createdAt = t.updatedAt;
     });
     migrateNotes();   // plain-text bodies → HTML once (idempotent via note.fmt)
     primeRecSig();    // Idea 8: re-seed content signatures after this (post-swap) state — no false updatedAt bump on the next save

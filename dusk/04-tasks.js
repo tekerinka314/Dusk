@@ -931,6 +931,7 @@ function removeTask(id) {
         ...task,
         subtasks: JSON.parse(JSON.stringify(task.subtasks || [])),
         archivedAt: Date.now(),
+        updatedAt: nowTs(),   // sync (Phase 1): archiving is a location change the content-diff can't see — stamp it so the merge knows which location is newer
         originalGroupName:  group ? group.name  : null,
         originalGroupColor: group ? group.color : null,
     });
@@ -1114,6 +1115,7 @@ function archiveAll() {
             ...t,
             subtasks: JSON.parse(JSON.stringify(t.subtasks || [])),
             archivedAt: now,
+            updatedAt: nowTs(),   // sync (Phase 1): stamp the archive (location) change
             originalGroupName:  g ? g.name  : null,
             originalGroupColor: g ? g.color : null,
         });
@@ -1265,6 +1267,7 @@ function saveTaskAsTemplate(id) {
     pushUndo();
     state.templates.push({
         id:        state.nextTemplateId++,
+        uid:       uid(), createdAt: nowTs(), updatedAt: nowTs(),   // sync identity + timestamp
         name:      (task.text || 'Шаблон').slice(0, 60),
         text:      task.text,
         priority:  task.priority || 'none',
@@ -1305,6 +1308,7 @@ function saveFormAsTemplate() {
     pushUndo();
     state.templates.push({
         id:        state.nextTemplateId++,
+        uid:       uid(), createdAt: nowTs(), updatedAt: nowTs(),   // sync identity + timestamp
         name:      text.slice(0, 60),
         text,
         priority:  effPriority || 'none',

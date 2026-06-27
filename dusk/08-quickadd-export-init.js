@@ -397,6 +397,7 @@ function bulkArchive() {
             // archived copy never shares a subtask array reference with live state.
             subtasks: JSON.parse(JSON.stringify(t.subtasks || [])),
             archivedAt: Date.now(),
+            updatedAt: nowTs(),   // sync (Phase 1): stamp the archive (location) change
             originalGroupName:  grp ? grp.name  : null,
             originalGroupColor: grp ? grp.color : null,
         });

@@ -498,7 +498,7 @@ function grimHistRestore(at) {
     saveGrimVersions();
     note.title = v.t;
     note.body = v.b;
-    note.updatedAt = Date.now();
+    note.updatedAt = nowTs();   // sync (Phase 1): monotonic record stamp
     delete note.ord;                  // edited → bubble to top
     saveState();
     renderNotes();                    // rebuilds the open detail with the restored body
@@ -1290,7 +1290,7 @@ function grimTitleInput(el) {
     if (!note) return;
     _grimGrowTitle(el);                         // wrap long titles, grow to fit
     note.title = el.value;
-    note.updatedAt = Date.now();
+    note.updatedAt = nowTs();   // sync (Phase 1): monotonic record stamp
     delete note.ord;                            // edited → bubble back to top on next sort
     _grimSyncActiveLeaf();                       // patch leaf in place (highlight-aware)
     clearTimeout(_grimSaveT);
@@ -1303,7 +1303,7 @@ function grimBodyInput(el) {
     const note = _grimCurrentNote();
     if (!note) return;
     note.body = _grimSanitize(el.innerHTML);   // body holds sanitized HTML
-    note.updatedAt = Date.now();
+    note.updatedAt = nowTs();   // sync (Phase 1): monotonic record stamp
     delete note.ord;                            // edited → bubble back to top on next sort
     _grimSyncActiveLeaf();    // live-refresh the list snippet (windowed excerpt + highlight)
     if (_grimFindActive) _grimFindRun(notesSearchQuery, false);   // recompute stale match ranges (no jump)
@@ -1376,6 +1376,7 @@ function grimDelete(id) {
     clearTimeout(_grimSaveT);
     pushUndo();
     state.notes.splice(idx, 1);
+    addTombstone(id, 'note');   // sync (Phase 1): permanent delete → tombstone (notes use `id` as their sync key) so a stale device can't resurrect it
     if (currentNoteId === id) currentNoteId = null;
     saveState();
     renderNotes();
@@ -1405,6 +1406,7 @@ function grimArchive(id) {
     pushUndo();
     const [note] = state.notes.splice(idx, 1);
     note.archivedAt = Date.now();
+    note.updatedAt = nowTs();   // sync (Phase 1): stamp the archive (location) change
     if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
     state.notesArchive.unshift(note);
     if (currentNoteId === id) currentNoteId = null;
@@ -1420,7 +1422,7 @@ function grimRestoreNote(id) {
     pushUndo();
     const [note] = state.notesArchive.splice(idx, 1);
     delete note.archivedAt;
-    note.updatedAt = Date.now();
+    note.updatedAt = nowTs();   // sync (Phase 1): stamp the restore (location) change
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(note);
     _newNoteIds.add(note.id);   // NA-5: animate the restored leaf only
@@ -1444,6 +1446,7 @@ function grimDeleteForever(id) {
     if (idx < 0) return;
     pushUndo();
     state.notesArchive.splice(idx, 1);
+    addTombstone(id, 'note');   // sync (Phase 1): permanent delete → tombstone so a stale device can't resurrect it
     if (currentNoteId === id) currentNoteId = null;
     saveState();
     renderNotes();
@@ -1724,7 +1727,7 @@ function grimBulkArchive() {
     pushUndo();
     const now = Date.now();
     const moved = (state.notes || []).filter(n => grimSelectedIds.has(n.id));
-    moved.forEach(n => { n.archivedAt = now; });
+    moved.forEach(n => { n.archivedAt = now; n.updatedAt = nowTs(); });   // sync (Phase 1): stamp the archive (location) change
     state.notes = (state.notes || []).filter(n => !grimSelectedIds.has(n.id));
     if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
     state.notesArchive.unshift(...moved);
@@ -1742,7 +1745,7 @@ function grimBulkRestore() {
     pushUndo();
     const now = Date.now();
     const moved = (state.notesArchive || []).filter(n => grimSelectedIds.has(n.id));
-    moved.forEach(n => { delete n.archivedAt; n.updatedAt = now; });
+    moved.forEach(n => { delete n.archivedAt; n.updatedAt = nowTs(); });   // sync (Phase 1): stamp the restore (location) change
     state.notesArchive = (state.notesArchive || []).filter(n => !grimSelectedIds.has(n.id));
     if (!Array.isArray(state.notes)) state.notes = [];
     state.notes.unshift(...moved);
@@ -1767,7 +1770,9 @@ function grimBulkDelete() {
     clearTimeout(_grimSaveT);
     pushUndo();
     const key = grimMode === 'archive' ? 'notesArchive' : 'notes';
-    const count = (state[key] || []).filter(n => grimSelectedIds.has(n.id)).length;
+    const doomed = (state[key] || []).filter(n => grimSelectedIds.has(n.id));
+    const count = doomed.length;
+    doomed.forEach(n => addTombstone(n.id, 'note'));   // sync (Phase 1): bulk permanent delete → tombstones
     state[key] = (state[key] || []).filter(n => !grimSelectedIds.has(n.id));
     currentNoteId = null;
     _grimExitSelect();
@@ -1935,7 +1940,7 @@ function _grimAfterEdit(bo) {
     const note = _grimCurrentNote();
     if (note) {
         note.body = _grimSanitize(bo.innerHTML);
-        note.updatedAt = Date.now();
+        note.updatedAt = nowTs();   // sync (Phase 1): monotonic record stamp
         clearTimeout(_grimSaveT);
         _grimSaveT = setTimeout(saveState, 400);
     }
@@ -3889,6 +3894,7 @@ function grimSaveAsTpl(id) {
     pushUndo();
     state.noteTemplates.push({
         id: uid(),
+        createdAt: nowTs(), updatedAt: nowTs(),   // sync timestamp (uuid `id` is the sync key)
         name: ((note.title || '').trim() || _grimPlain(note.body || '').trim() || 'Шаблон').slice(0, 60),
         title: note.title || '',
         body: note.body || '',

@@ -1955,6 +1955,7 @@ function taskFromArchive(item) {
     return {
         ...rest,
         groupId,
+        updatedAt:    nowTs(),   // sync (Phase 1): restoring is a location change — stamp it so the merge knows this (live) copy is newer
         checked:      false,
         cycleChecked: false,
         nextReset:    null,
