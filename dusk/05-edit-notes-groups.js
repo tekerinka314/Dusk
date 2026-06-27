@@ -324,6 +324,11 @@ function initSubSortable(taskId) {
         // the flag could be stuck at true, silently blocking the open guard.
         const noteWrap = item.querySelector('.sub-note-wrapper');
         if (noteWrap) noteWrap._noteOpen = false;
+        // Bug B: subtask rows now persist across renders (reconciliation), and this
+        // function re-runs every render — so bind the hover listeners ONCE per node or
+        // they stack up and fire _openNoteWrap N times per hover.
+        if (item._hoverBound) return;
+        item._hoverBound = true;
         item.addEventListener('mouseenter', () => {
             // notes-always-open mode: nothing to do, CSS handles visibility
             const sec = item.closest('.subtask-section');

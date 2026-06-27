@@ -14,7 +14,7 @@
 // toast when the bytes actually changed. sw.js itself only needs editing when the
 // caching strategy changes (which is what makes the browser reinstall the worker
 // and run the one-time activate cleanup that purges the old dusk-v* caches).
-const CACHE  = 'dusk-shell';
+const CACHE  = 'dusk-shell-v2';
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
 // CORE is cached atomically (addAll) — these MUST be present for a reliable offline
 // boot. The 2.3 MB background is the most likely fetch to stall/fail on a slow first

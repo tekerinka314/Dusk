@@ -34,30 +34,317 @@ function renderListOnly() {
     _syncCriticalPulse();
 }
 
+// In-place reconciliation: make `parent`'s element children exactly `desired` (an
+// array of nodes) in order, WITHOUT removing/re-inserting nodes already in place.
+// This kills the per-render repaint FLASH: the old render wiped the list with
+// innerHTML='' every time, so every card / group frame (and its backdrop-filter
+// blur) was torn down and re-inserted → a visible flicker on EVERY action. Now an
+// unchanged card or group is left physically untouched; only what actually changed
+// is replaced/moved/removed.
+function _reconcile(parent, desired) {
+    const want = new Set(desired);
+    for (let i = parent.childNodes.length - 1; i >= 0; i--) {
+        const n = parent.childNodes[i];
+        if (n.nodeType !== 1 || !want.has(n)) parent.removeChild(n);
+    }
+    for (let i = 0; i < desired.length; i++) {
+        const node = desired[i];
+        if (parent.children[i] !== node) parent.insertBefore(node, parent.children[i] || null);
+    }
+}
+
+// Inner HTML of a group header (everything inside .group-header, not the body UL).
+// Rebuilt in place on a reused section shell — the header has no backdrop-filter so
+// replacing its content does not flash, while the section frame itself stays put.
+function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride) {
+    return `
+                <div class="group-drag-handle" data-act="noop" title="Перетащить группу">${IC.drag}</div>
+                <div class="group-color-dot" style="background:${group.color}"></div>
+                <span class="group-title">${escHtml(group.name)}</span>
+                <span class="group-count">${done}/${total}</span>
+                <div class="group-actions" data-act="noop">
+                    <button class="btn-group-action${grpSched ? ' active-sched' : ''}"
+                            data-act="toggleScheduleMode" title="Сортировка по дедлайну">${IC.sundial}</button>
+                    ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
+                    <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
+                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
+                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
+                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
+                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>
+                </div>
+                <span class="group-chevron">${IC.sword}</span>`;
+}
+
+// Gothic zone glyphs (active = candle, done = coffin). Lifted verbatim from
+// appendSplitSection so the reconciling split renderer below draws the same headers.
+const _SPLIT_ACTIVE_ICON = `<svg viewBox="0 0 14 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.5C7 6.5 5 5 5 3.2C5 2 5.8 1.2 6.5 1C6.5 1 6 2.2 7 3C8 2 8.5 1 8.5 1C9.5 1.5 9 3 9 3.2C9 5 7 6.5 7 6.5Z" fill="currentColor" stroke="none" opacity="0.7"/><rect x="4.5" y="6.5" width="5" height="9" rx="0.7"/><line x1="3" y1="15.5" x2="11" y2="15.5" stroke-width="1.2"/><line x1="7" y1="6.5" x2="7" y2="7.5"/></svg>`;
+const _SPLIT_DONE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 H15.5 L18 10 L14.5 21 H9.5 L6 10 Z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9.5" y1="10.5" x2="14.5" y2="10.5"/></svg>`;
+
+// Ensure a split zone (header <li> + wrap <li> ▸ body <ul>) exists inside `container`,
+// reusing the LIVE nodes when present (keyed by data-zonekey). Returns {header,wrap,body};
+// the caller reconciles cards into `.body`. Bug B: this is what lets split mode keep its
+// card / subtask DOM across renders instead of the old innerHTML='' teardown.
+function _ensureSplitZone(container, spec) {
+    let header = container.querySelector(`:scope > [data-zonekey="${spec.zoneKey}"]`);
+    let wrap, body;
+    if (header) {
+        wrap = header.nextElementSibling;
+        body = wrap.querySelector('ul');
+        const lbl = header.querySelector('span');   // refresh count only — keep the SVGs
+        if (lbl) lbl.textContent = spec.label;
+    } else {
+        const ckey = spec.collapseKey;
+        header = document.createElement('li');
+        header.className = spec.headerClass;
+        header.dataset.zonekey = spec.zoneKey;
+        if (spec.headerAttr) header.setAttribute(spec.headerAttr[0], spec.headerAttr[1]);
+        header.innerHTML = `${spec.icon}<span>${spec.label}</span>${_PIN_HDR_CHEVRON}`;
+        wrap = document.createElement('li');
+        wrap.className = spec.wrapClass;
+        wrap.style.cssText = 'list-style:none;padding:0;margin:0;';
+        body = document.createElement('ul');
+        body.className = spec.bodyClass;
+        if (spec.bodyStyle) body.style.cssText = spec.bodyStyle;
+        wrap.appendChild(body);
+        const theWrap = wrap;
+        header.onclick = () => {
+            const c = header.classList.toggle('collapsed');
+            localStorage.setItem(ckey, c ? '1' : '0');
+            theWrap.classList.toggle('collapsed', c);
+        };
+    }
+    header.classList.toggle('collapsed', spec.collapsed);
+    wrap.classList.toggle('collapsed', spec.collapsed);
+    if (spec.bodyData) for (const k in spec.bodyData) body.dataset[k] = spec.bodyData[k];
+    return { header, wrap, body };
+}
+
+// Ensure a plain keyed element (a zone <ul> or a separator <li>) exists inside
+// `container`, reusing the live one when present so its card children survive across
+// renders — the schedule-mode analogue of _ensureSplitZone.
+function _ensureKeyed(container, key, tag) {
+    let el = container.querySelector(`:scope > [data-zonekey="${key}"]`);
+    if (!el) { el = document.createElement(tag); el.dataset.zonekey = key; }
+    return el;
+}
+
+// Pinned tasks for a context as reconcilable nodes. Mirrors appendPinnedBlock's branch:
+// split mode → a collapsible gothic "Закреплённые" zone (header+wrap, body reconciled);
+// otherwise plain cards. Returns the ordered nodes for the caller's _reconcile.
+function _pinnedNodes(container, pinned, gid, showDl) {
+    if (!pinned.length) return [];
+    if (!isGroupSplitMode) return pinned.map(t => createTaskEl(t, showDl && !!t.deadline));
+    const key = 'pinned_' + (gid != null ? gid : 'ung');
+    const z = _ensureSplitZone(container, {
+        zoneKey: key,
+        headerClass: 'split-zone-header split-pinned-header',
+        icon: IC.pin,
+        label: `Закреплённые · ${pinned.length}`,
+        wrapClass: 'split-pinned-wrap',
+        bodyClass: 'split-pinned-body',
+        bodyData: { sortableGroup: 'split_active', groupId: gid != null ? String(gid) : '', zonePinned: '1' },
+        collapseKey: 'groupSplit_' + key,
+        collapsed: localStorage.getItem('groupSplit_' + key) === '1',
+    });
+    _reconcile(z.body, pinned.map(t => createTaskEl(t, showDl && !!t.deadline)));
+    return [z.header, z.wrap];
+}
+
+// Active/done split zones for `tasks` inside `container`, reconciled in place. Returns
+// the ordered [header,wrap,...] nodes for the caller's own _reconcile. `splitKey` matches
+// appendSplitSection's collapse-state keys (may carry a _dl/_ndl suffix in combined mode).
+// The active-zone Sortable pool is isolated per deadline-zone when nested in a combined
+// sched-split-inner UL (matches appendSplitSection's isCombo branch).
+function _splitZoneNodes(container, tasks, splitKey, gid, showDl) {
+    const out = [];
+    const active = tasks.filter(t => !t.checked && !t.cycleChecked);
+    const done   = tasks.filter(t =>  t.checked ||  t.cycleChecked);
+    const activeGroup = container.dataset.zoneDl !== undefined
+        ? (container.dataset.zoneDl === '1' ? 'combo_active_dl' : 'combo_active_ndl')
+        : 'split_active';
+    if (active.length) {
+        const z = _ensureSplitZone(container, {
+            zoneKey: 'active_' + splitKey,
+            headerClass: 'split-zone-header split-active-header',
+            icon: _SPLIT_ACTIVE_ICON,
+            label: `Активные · ${active.length}`,
+            wrapClass: 'split-active-wrap',
+            bodyClass: 'split-active-body',
+            bodyData: { sortableGroup: activeGroup, groupId: gid != null ? String(gid) : '' },
+            collapseKey: 'groupSplit_active_' + splitKey,
+            collapsed: localStorage.getItem('groupSplit_active_' + splitKey) === '1',
+        });
+        _reconcile(z.body, active.map(t => createTaskEl(t, showDl && !!t.deadline)));
+        out.push(z.header, z.wrap);
+    }
+    if (done.length) {
+        const z = _ensureSplitZone(container, {
+            zoneKey: 'done_' + splitKey,
+            headerClass: 'split-zone-header split-done-header',
+            headerAttr: ['data-split-key', String(splitKey)],
+            icon: _SPLIT_DONE_ICON,
+            label: `Выполненные · ${done.length}`,
+            wrapClass: 'split-done-wrap',
+            bodyClass: 'split-done-body',
+            bodyStyle: 'list-style:none',
+            bodyData: { zoneDone: '1' },
+            collapseKey: 'groupSplit_done_' + splitKey,
+            collapsed: localStorage.getItem('groupSplit_done_' + splitKey) === '1',
+        });
+        _reconcile(z.body, done.map(t => createTaskEl(t, false)));
+        out.push(z.header, z.wrap);
+    }
+    return out;
+}
+
+// Pure-split body (pinned + active/done) — reconciled instead of appendSplitSection's
+// teardown. Only the toggled card migrates between zones; every other card / subtask /
+// Sortable is left physically in place.
+function _renderSplitBody(container, pinned, rest, gid, query) {
+    const showDl  = scheduleActive(gid);
+    const desired = _pinnedNodes(container, pinned, gid, showDl);
+    const sorted  = filterAndSort(rest, query, gid);
+    desired.push(..._splitZoneNodes(container, sorted, String(gid), gid, showDl));
+    _reconcile(container, desired);
+}
+
+// Schedule-only body (pinned + "С дедлайном"/"Без дедлайна" zones) — reconciled instead
+// of appendScheduleSection's teardown. Deadline cards still rebuild when their live
+// countdown ticks (correct), but unchanged cards and the zone scaffold persist.
+function _renderScheduleBody(container, pinned, rest, gid, query) {
+    const showDl  = scheduleActive(gid);
+    const desired = _pinnedNodes(container, pinned, gid, showDl);
+    const { withDl, noDl } = filterAndSortDeadline(rest, query);
+    const hasBoth = withDl.length > 0 && noDl.length > 0;
+    if (withDl.length) {
+        if (hasBoth) {
+            const sep = _ensureKeyed(container, 'sched_sep_dl_' + gid, 'li');
+            sep.className = 'dl-subgroup-header';
+            sep.innerHTML = `<span>${IC.sundial}<span>С дедлайном · ${withDl.length}</span></span>`;
+            desired.push(sep);
+        }
+        const dlUl = _ensureKeyed(container, 'sched_dl_' + gid, 'ul');
+        dlUl.className = 'sched-zone-ul';
+        dlUl.dataset.sortableGroup = 'sched_dl';
+        dlUl.dataset.zoneDl        = '1';
+        dlUl.dataset.groupId       = gid != null ? String(gid) : '';
+        _reconcile(dlUl, withDl.map(t => createTaskEl(t, true)));
+        desired.push(dlUl);
+    }
+    if (noDl.length) {
+        if (hasBoth) {
+            const sep2 = _ensureKeyed(container, 'sched_sep_ndl_' + gid, 'li');
+            sep2.className = 'dl-subgroup-header dl-subgroup-nodl';
+            sep2.innerHTML = `<span>${IC.moon}<span>Без дедлайна · ${noDl.length}</span></span>`;
+            desired.push(sep2);
+        }
+        const ndlUl = _ensureKeyed(container, 'sched_ndl_' + gid, 'ul');
+        ndlUl.className = 'sched-zone-ul';
+        ndlUl.dataset.sortableGroup = 'sched_ndl';
+        ndlUl.dataset.zoneDl        = '0';
+        ndlUl.dataset.groupId       = gid != null ? String(gid) : '';
+        _reconcile(ndlUl, noDl.map(t => createTaskEl(t, false)));
+        desired.push(ndlUl);
+    }
+    _reconcile(container, desired);
+}
+
+// Combined schedule+split body — reconciled instead of appendScheduleSplitSection's
+// teardown. With only one deadline class, the active/done zones sit directly in the body;
+// with both, each deadline class gets its own sched-split-inner UL holding its split zones.
+function _renderScheduleSplitBody(container, pinned, rest, gid) {
+    const showDl  = scheduleActive(gid);
+    const desired = _pinnedNodes(container, pinned, gid, showDl);
+    const { withDl, noDl } = filterAndSortDeadline(rest, '');
+    const hasBoth = withDl.length > 0 && noDl.length > 0;
+    if (!hasBoth) {
+        const all      = withDl.length ? withDl : noDl;
+        const splitKey = gid + (withDl.length ? '_dl' : '_ndl');
+        desired.push(..._splitZoneNodes(container, all, splitKey, gid, showDl));
+    } else {
+        const sepDl = _ensureKeyed(container, 'combo_sep_dl_' + gid, 'li');
+        sepDl.className = 'dl-subgroup-header';
+        sepDl.innerHTML = `<span>${IC.sundial}<span>С дедлайном · ${withDl.length}</span></span>`;
+        const innerDl = _ensureKeyed(container, 'combo_inner_dl_' + gid, 'ul');
+        innerDl.className = 'sched-split-inner';
+        innerDl.dataset.zoneDl  = '1';
+        innerDl.dataset.groupId = gid != null ? String(gid) : '';
+        _reconcile(innerDl, _splitZoneNodes(innerDl, withDl, gid + '_dl', gid, showDl));
+        desired.push(sepDl, innerDl);
+
+        const sepNdl = _ensureKeyed(container, 'combo_sep_ndl_' + gid, 'li');
+        sepNdl.className = 'dl-subgroup-header dl-subgroup-nodl';
+        sepNdl.innerHTML = `<span>${IC.moon}<span>Без дедлайна · ${noDl.length}</span></span>`;
+        const innerNdl = _ensureKeyed(container, 'combo_inner_ndl_' + gid, 'ul');
+        innerNdl.className = 'sched-split-inner';
+        innerNdl.dataset.zoneDl  = '0';
+        innerNdl.dataset.groupId = gid != null ? String(gid) : '';
+        _reconcile(innerNdl, _splitZoneNodes(innerNdl, noDl, gid + '_ndl', gid, showDl));
+        desired.push(sepNdl, innerNdl);
+    }
+    _reconcile(container, desired);
+}
+
+// Bug B: cross-render DOM reuse caches, set at the top of each renderTasks() pass
+// and read by createTaskEl. _liCache = whole task cards (an unchanged card is reused
+// in place); _subCache = subtask sections (reused inside a card that IS rebuilt).
+let _subCache = null;
+let _liCache  = null;
 function renderTasks() {
     // D-4: if a per-group sort picker is open, its <body>-portaled list would be
     // orphaned (left floating) when we wipe the list below. Close it first — while
     // the owning picker is still connected, so the list restores cleanly before the
     // rebuild. No-op when nothing is open.
     _closeSortPicker();
-    listContainer.innerHTML   = '';
-    groupsContainer.innerHTML = '';
+    // Bug B: harvest live .subtask-section nodes BEFORE wiping the list, keyed by task
+    // id. createTaskEl reuses the one whose data-derived HTML is unchanged instead of
+    // rebuilding it — so checking/unchecking a parent (which never touches subtasks)
+    // no longer rebuilds subtask DOM / Sortable / open note panels.
+    _subCache = new Map();
+    document.querySelectorAll('.subtask-section').forEach(sec => {
+        const m = sec.id && sec.id.match(/^sub-section-(\d+)$/);
+        if (m) _subCache.set(parseInt(m[1]), sec);
+    });
+    _liCache = new Map();
+    document.querySelectorAll('.task-item[data-id]').forEach(li => {
+        const id = parseInt(li.dataset.id);
+        if (!isNaN(id)) _liCache.set(id, li);
+    });
     const query = searchQuery.toLowerCase();
 
-    // Ungrouped tasks — only show if not focused on a specific group
+    // ── Ungrouped tasks ──────────────────────────────────────────────────────
+    // Shown only when not focused on a specific group. In NORMAL mode the cards are
+    // direct children of listContainer → reconcile them in place (no teardown → no
+    // flash). Schedule / split modes build nested zones, so they keep the simple
+    // rebuild — a rarer, deliberate toggle, identical behaviour to before.
     if (focusGroupId === null) {
         const ung = state.tasks.filter(t => !t.groupId);
         // Pinned float to the top of the "no group" context (above everything here).
         const { pinned, rest } = extractPinned(ung, query);
-        appendPinnedBlock(listContainer, pinned, null);
         if (scheduleActive(null)) {
-            const { withDl, noDl } = filterAndSortDeadline(rest, query);
-            appendScheduleSection(listContainer, withDl, noDl, null);
+            // Schedule mode — reconciled deadline zones (ungrouped never splits active/done).
+            _renderScheduleBody(listContainer, pinned, rest, null, query);
         } else {
-            filterAndSort(rest, query, null)
-                .forEach(t => listContainer.appendChild(createTaskEl(t, false)));
+            // Normal AND split modes reconcile in place. The ungrouped REST is a plain
+            // list either way (only the pinned block differs: split → gothic zone).
+            const desired = _pinnedNodes(listContainer, pinned, null, false);
+            filterAndSort(rest, query, null).forEach(t => desired.push(createTaskEl(t, false)));
+            _reconcile(listContainer, desired);
         }
+    } else {
+        listContainer.innerHTML = '';   // focus mode hides the ungrouped context
     }
+
+    // ── Groups ───────────────────────────────────────────────────────────────
+    // Reuse each group's SECTION shell across renders (keyed by groupId) so the
+    // blurred group frame is NEVER torn down — that teardown was the visible "whole
+    // group flickers" flash. Harvest the live sections first.
+    const _secCache = new Map();
+    Array.from(groupsContainer.children).forEach(sec => {
+        if (sec.classList && sec.classList.contains('group-section') && sec.dataset.groupId)
+            _secCache.set(parseInt(sec.dataset.groupId), sec);
+    });
+    const desiredSections = [];
 
     state.groups.forEach(group => {
         // Focus mode: skip groups that aren't the focused one
@@ -88,56 +375,67 @@ function renderTasks() {
         const grpSortMode = getEffectiveSortMode(group.id);
         const hasOverride = (state.sortModeOverrides || {})[String(group.id)] !== undefined;
 
-        const section = document.createElement('div');
+        // Reuse this group's section shell, or forge a fresh skeleton (header + body UL).
+        let section = _secCache.get(group.id);
+        if (section) {
+            _secCache.delete(group.id);
+        } else {
+            section = document.createElement('div');
+            section.dataset.groupId = group.id;
+            section.innerHTML =
+                `<div class="group-header" data-act="toggleGroupCollapse"></div>` +
+                `<ul class="task-list group-body" id="group-list-${group.id}"></ul>`;
+        }
         section.className = 'group-section' + (collapsed ? ' collapsed' : '') +
                             (focusGroupId === group.id ? ' group-focused' : '');
-        section.dataset.groupId = group.id;
-        section.innerHTML = `
-            <div class="group-header" data-act="toggleGroupCollapse">
-                <div class="group-drag-handle" data-act="noop" title="Перетащить группу">
-                    ${IC.drag}
-                </div>
-                <div class="group-color-dot" style="background:${group.color}"></div>
-                <span class="group-title">${escHtml(group.name)}</span>
-                <span class="group-count">${done}/${total}</span>
-                <div class="group-actions" data-act="noop">
-                    <button class="btn-group-action${grpSched ? ' active-sched' : ''}"
-                            data-act="toggleScheduleMode" title="Сортировка по дедлайну">${IC.sundial}</button>
-                    ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
-                    <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
-                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
-                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
-                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
-                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>
-                </div>
-                <span class="group-chevron">${IC.sword}</span>
-            </div>
-            <ul class="task-list group-body" id="group-list-${group.id}"></ul>`;
 
-        groupsContainer.appendChild(section);
-        const ul = section.querySelector(`#group-list-${group.id}`);
+        // Rebuild the header ONLY when its structure changed (name/colour/mode/sort),
+        // which avoids re-parsing its SVG icons on every render. The done/total count
+        // changes on each check, so update just that span surgically — no header churn.
+        const header    = section.querySelector('.group-header');
+        const _structSig = [group.name, group.color, grpSched, grpSortMode,
+                            hasOverride, focusGroupId === group.id].join('\x1f');
+        if (header._structSig !== _structSig) {
+            header.innerHTML  = _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride);
+            header._structSig = _structSig;
+        } else {
+            const countEl = header.querySelector('.group-count');
+            if (countEl) countEl.textContent = `${done}/${total}`;
+        }
+
+        const ul = section.querySelector('.group-body');
+        ul.id = 'group-list-' + group.id;   // idempotent on reuse, needed on a fresh skeleton
+        ul.style.maxHeight = '';            // drop any inline height left by a collapse animation
 
         // Pinned float to the top of THIS group, above its active/done/schedule zones.
         const { pinned, rest } = extractPinned(grouped, query);
-        appendPinnedBlock(ul, pinned, group.id);
 
+        // Every mode now reconciles IN PLACE (Bug B): the zone scaffold + card + subtask
+        // nodes survive across renders, so any action rebuilds only the touched card.
         if (effSched && isGroupSplitMode) {
-            const { withDl, noDl } = filterAndSortDeadline(rest, '');
-            appendScheduleSplitSection(ul, withDl, noDl, group.id);
+            _renderScheduleSplitBody(ul, pinned, rest, group.id);
         } else if (effSched) {
-            const { withDl, noDl } = filterAndSortDeadline(rest, '');
-            appendScheduleSection(ul, withDl, noDl, group.id);
+            _renderScheduleBody(ul, pinned, rest, group.id, '');
         } else if (isGroupSplitMode) {
-            const sorted = filterAndSort(rest, query, group.id);
-            appendSplitSection(ul, sorted, group.id, group.id);
+            _renderSplitBody(ul, pinned, rest, group.id, query);
         } else {
-            filterAndSort(rest, query, group.id).forEach(t => ul.appendChild(createTaskEl(t, false)));
+            // Normal mode: cards are direct children → reconcile in place.
+            const desired = _pinnedNodes(ul, pinned, group.id, false);
+            filterAndSort(rest, query, group.id).forEach(t => desired.push(createTaskEl(t, false)));
+            _reconcile(ul, desired);
         }
 
-        if (!collapsed) {
-            ul.classList.add('expanded', 'unlocked');
-        }
+        // Toggle ONLY the dynamic open/collapse classes (no wholesale className reset),
+        // so a group that stays open keeps max-height:none with no momentary collapse.
+        ul.classList.toggle('expanded', !collapsed);
+        ul.classList.toggle('unlocked', !collapsed);
+
+        desiredSections.push(section);
     }); // end state.groups.forEach
+
+    _reconcile(groupsContainer, desiredSections);
+    _subCache = null;   // Bug B: end of pass — drop refs to any unclaimed (detached) nodes
+    _liCache  = null;
 }
 
 // Append tasks in schedule-mode layout (with subgroup dividers) to a container.

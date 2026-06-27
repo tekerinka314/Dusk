@@ -111,7 +111,7 @@ function createTaskEl(task, showDlSide) {
     const pinSpike = (task.pinned && !task.checked && !task.cycleChecked)
         ? `<span class="pin-spike" aria-hidden="true">${IC.pinSpike}</span>` : '';
 
-    li.innerHTML = `
+    const _mainHTML = `
         ${pinSpike}
         ${dlSideHtml}
         ${mainSelectMode ? `<span class="task-select-checkbox${selectedTaskIds.has(task.id) ? ' selected' : ''}"
@@ -166,8 +166,52 @@ function createTaskEl(task, showDlSide) {
                 </div>
                 <button class="btn-note-delete" id="note-del-${task.id}" data-act="_taskNoteDelete" title="Удалить заметку"${hasNote ? '' : ' style="display:none"'}>${IC.dagger}</button>
             </div>
-            ${subsHtml}
         </div>`;
+
+    // Bug B (v2): whole-card reuse. Build the card's full signature (every li-level
+    // visual input) and, if an existing card with this id has an identical signature,
+    // reuse that LIVE <li> AS-IS — so checking/sorting ONE task leaves every OTHER
+    // card (its subtasks, open notes, focus, scroll) physically untouched: the list
+    // no longer redraws wholesale on each render. Correct by construction (identical
+    // signature ⟹ identical desired DOM). Deadline cards carry a live countdown →
+    // they differ each second and rebuild (fresh countdown); everything else reuses.
+    // Exclude one-shot animation classes (entering/reentering) from the signature —
+    // they're transient, not persistent state, and would force a needless rebuild on
+    // the render right after a card's entrance animation.
+    const _clsSig = cls.replace(/\s*\b(entering|reentering)\b/g, '');
+    const _liSig = _clsSig + '\x1f' + (task.priority || 'none') + '\x1f' + (task.deadline ? '1' : '0')
+                 + '\x1f' + (taskInk || '') + '\x1f' + _mainHTML + '\x1f' + subsHtml;
+    if (_liCache) {
+        const cachedLi = _liCache.get(task.id);
+        if (cachedLi && cachedLi._liSig === _liSig) {
+            _liCache.delete(task.id);
+            cachedLi.className = cls;     // normalize away transient anim classes (settling-in, …)
+            return cachedLi;
+        }
+    }
+    li.innerHTML = _mainHTML;
+    li._liSig = _liSig;
+
+    // Bug B: attach the subtask section as a SEPARATE node so an unchanged one can be
+    // REUSED from the previous render — preserving its DOM, open note panels & Sortable.
+    // Signature = the canonical section HTML built above (subsHtml); if it matches the
+    // cached live node the data didn't change (a parent check/uncheck never alters
+    // subtasks) → keep that node. Otherwise parse a fresh one. Net: no subtask flicker
+    // on check. Subtasks WITH a live deadline countdown differ each second → rebuild
+    // (correct, fresh countdown); the common no-deadline case reuses.
+    {
+        const content = li.querySelector('.task-content');
+        let secNode = _subCache ? _subCache.get(task.id) : null;
+        if (secNode && secNode._subSig === subsHtml) {
+            _subCache.delete(task.id);          // claimed — prevent any double-move
+        } else {
+            const tpl = document.createElement('template');
+            tpl.innerHTML = subsHtml.trim();
+            secNode = tpl.content.firstElementChild;
+            if (secNode) secNode._subSig = subsHtml;
+        }
+        if (content && secNode) content.appendChild(secNode);
+    }
 
     // FIX-3: In mainSelectMode, clicking free space (outside actions/check/drag) toggles selection
     if (mainSelectMode) {
@@ -293,17 +337,119 @@ function _buildSubListContent(task) {
     return { html: subs.map(s => buildSubtaskItemHTML(task.id, s)).join(''), splitMode: false };
 }
 
+// Cheap deterministic string hash (djb2) — used to stamp a reuse signature into each
+// subtask row's markup (data-sig) so a row built by EITHER path (initial buildSubtaskSection
+// or incremental renderSubList) compares identically.
+function _hashStr(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36);
+}
+
+// Build a subtask <li> node, reusing the cached LIVE row when its signature is unchanged
+// (Bug B): checking ONE subtask must leave its siblings' rows — open notes, deadline
+// pills, focus, hover state — physically untouched instead of rebuilding the whole grid.
+// The signature lives in the row's own data-sig (set by buildSubtaskItemHTML), so rows
+// from the first full render reuse too — not just rows a prior renderSubList created.
+function _subItemNode(taskId, s, cache) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = buildSubtaskItemHTML(taskId, s).trim();
+    const node = tpl.content.firstElementChild;
+    const cached = cache.get(s.id);
+    if (cached && node && cached.dataset.sig === node.dataset.sig) {
+        cache.delete(s.id);
+        return cached;   // unchanged → keep the live row, discard the throwaway parse
+    }
+    return node;
+}
+
+const _SUB_SPLIT_CHEVRON = `<svg class="sub-split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/><path d="M11 17L10 20H14L13 17"/><circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/></svg>`;
+
+// Ensure a subtask split zone (header <li> + wrap <li> ▸ inner <ul>) inside the subtask
+// UL, reusing the live nodes (keyed by data-zonekey). The header drives collapse via
+// data-act delegation (toggleSubSplitActive/Done), so we never re-bind a handler.
+function _ensureSubZone(ul, zoneKey, spec) {
+    let header = ul.querySelector(`:scope > [data-zonekey="${zoneKey}"]`);
+    let wrap, inner;
+    if (header) {
+        wrap  = header.nextElementSibling;
+        inner = wrap.querySelector('ul');
+        const lbl = header.querySelector('span');
+        if (lbl) lbl.textContent = spec.label;
+    } else {
+        header = document.createElement('li');
+        header.className = spec.headerClass;
+        header.dataset.zonekey  = zoneKey;
+        header.dataset.act      = spec.dataAct;
+        header.dataset.splitkey = spec.splitKey;
+        header.innerHTML = `${IC.sword}<span>${spec.label}</span>${_SUB_SPLIT_CHEVRON}`;
+        wrap = document.createElement('li');
+        wrap.className = spec.wrapClass;
+        wrap.style.cssText = 'list-style:none;padding:0;margin:0;';
+        inner = document.createElement('ul');
+        inner.className = 'sub-split-inner';
+        wrap.appendChild(inner);
+    }
+    header.classList.toggle('collapsed', spec.collapsed);
+    wrap.classList.toggle('collapsed', spec.collapsed);
+    return { header, wrap, inner };
+}
+
 // ── Rebuilds one task's subtask UL in place (problem 6) ───────────────────────
 // Works for BOTH normal (2-column grid) and split (active/done zones) modes,
 // keeping the surrounding section (progress bar, add-row, open state) intact.
-// Always re-inits the correct Sortable instances afterwards so DnD keeps working.
+// Bug B: RECONCILED in place — checking/editing one subtask reuses every unchanged
+// row node instead of wiping the grid, so siblings never flash. Always re-inits the
+// correct Sortable instances afterwards so DnD keeps working.
 function renderSubList(taskId) {
     const task = state.tasks.find(t => t.id === taskId);
     const ul   = document.getElementById(`sub-list-${taskId}`);
     if (!task || !ul) return;
-    const { html, splitMode } = _buildSubListContent(task);
-    ul.className = 'subtask-list' + (splitMode ? ' sub-split-mode' : '');
-    ul.innerHTML = html;
+
+    // Harvest existing rows (by sid) for in-place reuse.
+    const cache = new Map();
+    ul.querySelectorAll('.subtask-item[data-sid]').forEach(li => {
+        const sid = parseInt(li.dataset.sid);
+        if (!isNaN(sid)) cache.set(sid, li);
+    });
+
+    let subs = sortSubtasks(task.subtasks || []);
+    if (isFiltered) subs = subs.filter(s => !s.checked && !s.cycleChecked);
+
+    if (isGroupSplitMode && subs.length) {
+        ul.className = 'subtask-list sub-split-mode';
+        const active = subs.filter(s => !s.checked && !s.cycleChecked);
+        const done   = subs.filter(s =>  s.checked ||  s.cycleChecked);
+        const activeKey = 'subSplit_active_' + taskId;
+        const doneKey   = 'subSplit_done_'   + taskId;
+        const desired = [];
+        if (active.length) {
+            const z = _ensureSubZone(ul, 'sub_active_' + taskId, {
+                headerClass: 'sub-split-active-header',
+                dataAct: 'toggleSubSplitActive', splitKey: activeKey,
+                label: `Активные · ${active.length}`,
+                wrapClass: 'sub-split-active-wrap',
+                collapsed: localStorage.getItem(activeKey) === '1',
+            });
+            _reconcile(z.inner, active.map(s => _subItemNode(taskId, s, cache)));
+            desired.push(z.header, z.wrap);
+        }
+        if (done.length) {
+            const z = _ensureSubZone(ul, 'sub_done_' + taskId, {
+                headerClass: 'sub-split-done-header',
+                dataAct: 'toggleSubSplitDone', splitKey: doneKey,
+                label: `Выполненные · ${done.length}`,
+                wrapClass: 'sub-split-done-wrap',
+                collapsed: localStorage.getItem(doneKey) === '1',
+            });
+            _reconcile(z.inner, done.map(s => _subItemNode(taskId, s, cache)));
+            desired.push(z.header, z.wrap);
+        }
+        _reconcile(ul, desired);
+    } else {
+        ul.className = 'subtask-list';
+        _reconcile(ul, subs.map(s => _subItemNode(taskId, s, cache)));
+    }
     initSubSortable(taskId);
     updateSubProgressBar(taskId);
     updateSubToggleBtn(taskId);
@@ -363,7 +509,7 @@ function buildSubtaskItemHTML(taskId, s) {
             </div>
         </div>`
         : '';
-    return `<li class="subtask-item${isChecked ? ' checked' : ''}${isCycleChecked ? ' cycle-checked' : ''}"
+    const out = `<li class="subtask-item${isChecked ? ' checked' : ''}${isCycleChecked ? ' cycle-checked' : ''}"
                data-tid="${taskId}" data-sid="${s.id}" data-sprio="${s.priority || 'none'}">
         <div class="sub-main-row">
             <div class="sub-drag-handle" aria-hidden="true">${IC.drag}</div>
@@ -399,6 +545,9 @@ function buildSubtaskItemHTML(taskId, s) {
             </div>
         </div>
     </li>`;
+    // Bug B: stamp a reuse signature into the row so renderSubList can keep unchanged
+    // rows in place. Hash excludes the attr itself (computed over `out` before injection).
+    return out.replace('<li ', `<li data-sig="${_hashStr(out)}" `);
 }
 
 // ============================================================
