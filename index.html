@@ -1581,7 +1581,18 @@ if ('serviceWorker' in navigator) {
      templates, backup, bulk-group, import-choice), чтобы синхронный init() в конце app.js
      видел весь DOM. pen-asset.js ДОЛЖЕН идти ДО app.js (кладёт window.PEN_ASSET). -->
 <script src="pen-asset.js"></script>
-<script src="app.js"></script>
+<!-- 7c split A1: app.js (монолит ~15.4k строк) физически разбит на 8 файлов
+     по границам секций. Классические <script> делят глобальный scope → код
+     ВНУТРИ не менялся (порядок сохранён байт-в-байт). Грузятся СТРОГО по
+     порядку: core (стейт+диспетчер+ACT) → … → init() в последнем файле. -->
+<script src="dusk/01-core.js"></script>
+<script src="dusk/02-grimoire.js"></script>
+<script src="dusk/03-render.js"></script>
+<script src="dusk/04-tasks.js"></script>
+<script src="dusk/05-edit-notes-groups.js"></script>
+<script src="dusk/06-deadlines.js"></script>
+<script src="dusk/07-dnd-filter-progress.js"></script>
+<script src="dusk/08-quickadd-export-init.js"></script>
 
 </body>
 </html>
