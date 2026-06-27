@@ -35,6 +35,7 @@ const CORE_ASSETS = [
     './dusk/07-dnd-filter-progress.js',
     './dusk/08-quickadd-export-init.js',
     './dusk/09-sync.js',
+    './dusk/10-cloud.js',
     './manifest.json',
     './icon-192.svg',
     './icon-512.svg',
