@@ -979,13 +979,21 @@ function _penPlay(kind) {
 }
 
 // Is this element one of the "writing" fields where the quill should sound?
+// Rule (not a brittle whitelist): any prose text-entry surface sounds —
+//   • any contenteditable region (grim-body + its children, grim-title-in,
+//     inline task/subtask rename spans),
+//   • any <textarea> (note-modal-input, …),
+//   • <input> of a free-text type (text/search/url/email/tel/password).
+// Structured pickers stay SILENT: number / time / date / range / file / color /
+// hidden inputs, and the segmented time/date widgets (plain <span>s, not inputs).
 function _penIsField(el) {
     if (!el) return false;
-    if (el.id === 'grim-body' || (el.closest && el.closest('#grim-body'))) return true;
-    if (el.id === 'grim-title-in') return true;
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-        return el.id === 'input-box' || el.id === 'task-note' || el.id === 'note-modal-input'
-            || el.classList.contains('subtask-add-input') || el.classList.contains('note-input');
+    if (el.isContentEditable) return true;            // grim-body & children, grim-title-in, inline rename spans
+    const tag = el.tagName;
+    if (tag === 'TEXTAREA') return true;
+    if (tag === 'INPUT') {
+        const t = (el.getAttribute('type') || 'text').toLowerCase();
+        return t === 'text' || t === 'search' || t === 'url' || t === 'email' || t === 'tel' || t === 'password';
     }
     return false;
 }
