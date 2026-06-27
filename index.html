@@ -141,7 +141,7 @@
                                 <button class="form-color-swatch" data-color="#F56C6C" style="background:#F56C6C" title="Красный"></button>
                                 <button class="form-color-swatch" data-color="#F06CAE" style="background:#F06CAE" title="Розовый"></button>
                                 <button class="form-color-swatch" data-color="#B06CF5" style="background:#B06CF5" title="Фиолетовый"></button>
-                                <button type="button" class="form-color-custom" onclick="openFormColorModal()" title="Свой цвет — спектр">
+                                <button type="button" class="form-color-custom" data-act="openFormColorModal" title="Свой цвет — спектр">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
                                         <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
                                         <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.4"/>
@@ -182,7 +182,7 @@
                     <div class="extra-row">
                         <div class="field-group field-deadline">
                             <label class="field-label">Дедлайн</label>
-                            <button class="deadline-trigger" id="deadline-trigger" onclick="openDeadlineModal(null)">
+                            <button class="deadline-trigger" id="deadline-trigger" data-act="openFormDeadline">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M7 21V11C7 7.7 9.24 5 12 5C14.76 5 17 7.7 17 11V21"/>
                                     <line x1="5" y1="21" x2="19" y2="21"/>
@@ -192,7 +192,7 @@
                                     <line x1="12" y1="6.2" x2="12" y2="7" stroke-width="1.3" opacity="0.65"/>
                                 </svg>
                                 <span id="deadline-trigger-text">Установить дедлайн</span>
-                                <span class="deadline-clear-btn" id="deadline-clear-btn" onclick="clearFormDeadline(event)" style="display:none" title="Снять дедлайн"></span>
+                                <span class="deadline-clear-btn" id="deadline-clear-btn" data-act="clearFormDeadline" style="display:none" title="Снять дедлайн"></span>
                             </button>
                         </div>
                         <div class="field-group field-note">
@@ -245,7 +245,7 @@
                                     <span class="form-anchor-label">Число:</span>
                                     <div class="number-stepper-wrap form-anchor-stepper">
                                         <button class="stepper-btn" type="button"
-                                                onclick="const i=document.getElementById('form-repeat-anchor-monthday');i.value=Math.max(1,(parseInt(i.value)||1)-1);formRepeatAnchorMonthday=parseInt(i.value)||null">
+                                                data-act="formMonthdayStep" data-delta="-1">
                                             <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M11 18.5L5.5 12H16.5Z" fill="currentColor" stroke="none"/>
                                                 <line x1="11" y1="3.5" x2="11" y2="12"/>
@@ -253,9 +253,9 @@
                                         </button>
                                         <input type="number" id="form-repeat-anchor-monthday" class="form-anchor-number stepper-input"
                                                min="1" max="31" placeholder="1"
-                                               onchange="formRepeatAnchorMonthday=parseInt(this.value)||null">
+                                               data-actchange="formMonthdayInput">
                                         <button class="stepper-btn" type="button"
-                                                onclick="const i=document.getElementById('form-repeat-anchor-monthday');i.value=Math.min(31,(parseInt(i.value)||1)+1);formRepeatAnchorMonthday=parseInt(i.value)||null">
+                                                data-act="formMonthdayStep" data-delta="1">
                                             <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M11 3.5L5.5 10H16.5Z" fill="currentColor" stroke="none"/>
                                                 <line x1="11" y1="10" x2="11" y2="18.5"/>
@@ -278,8 +278,8 @@
                                     <input class="form-sub-input" id="form-sub-input"
                                         placeholder="Новый подпункт..."
                                         maxlength="200" autocomplete="off" spellcheck="false"
-                                        onkeydown="handleFormSubAdd(event)">
-                                    <button class="btn-form-sub-add" onclick="addFormSubtask()" title="Добавить подпункт">
+                                        data-actkey="formSubAddKey">
+                                    <button class="btn-form-sub-add" data-act="addFormSubtask" title="Добавить подпункт">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
                                             <line x1="12" y1="3" x2="12" y2="21"/>
                                             <line x1="5" y1="9" x2="19" y2="9"/>
@@ -295,7 +295,7 @@
                          NOT create a task). -->
                     <div class="extra-row form-action-row">
                         <button type="button" class="form-flag-toggle" id="form-pin-toggle"
-                                onclick="toggleFormPin()" aria-pressed="false"
+                                data-act="toggleFormPin" aria-pressed="false"
                                 title="Закрепить новую задачу вверху списка">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <line x1="12" y1="3" x2="12" y2="19"/>
@@ -305,7 +305,7 @@
                             </svg>
                             <span>Закрепить задачу</span>
                         </button>
-                        <button type="button" class="form-tpl-btn" onclick="saveFormAsTemplate()"
+                        <button type="button" class="form-tpl-btn" data-act="saveFormAsTemplate"
                                 title="Сохранить параметры формы как шаблон (без создания задачи)">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
@@ -360,12 +360,12 @@
                     <!-- NA-11: sort picker — icon → gothic popup (priority / order / alpha).
                          Icon + option list injected by JS (_renderTaskSortControl). -->
                     <span class="task-sort dl-month-picker" id="task-sort-picker">
-                        <button class="btn-tool" id="btn-sort-mode" type="button" onclick="toggleSortPicker(event)"
+                        <button class="btn-tool" id="btn-sort-mode" type="button" data-act="toggleSortPicker"
                                 aria-haspopup="listbox" aria-expanded="false" title="Сортировка"></button>
                         <div class="dl-month-list task-sort-list" id="task-sort-list" role="listbox" aria-hidden="true"></div>
                     </span>
                     <!-- Web Notifications bell (hidden if API unsupported) -->
-                    <button class="btn-tool" id="btn-notifications" onclick="requestNotificationPermission()" title="Уведомления о дедлайнах" style="display:none">
+                    <button class="btn-tool" id="btn-notifications" data-act="requestNotificationPermission" title="Уведомления о дедлайнах" style="display:none">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 3C9.5 3 7 6 6.5 10C6 13 5 15.5 4 18H20C19 15.5 18 13 17.5 10C17 6 14.5 3 12 3Z"/>
                             <line x1="4" y1="18" x2="20" y2="18"/>
@@ -374,7 +374,7 @@
                             <line x1="9.5" y1="2.2" x2="14.5" y2="2.2" stroke-width="1.2" opacity="0.5"/>
                         </svg>
                     </button>
-                    <button class="btn-tool" id="btn-schedule" onclick="toggleScheduleMode(null)" title="Сортировка по дедлайну">
+                    <button class="btn-tool" id="btn-schedule" data-act="toggleScheduleMode" title="Сортировка по дедлайну">
                         <!-- Gothic tower clock -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M7 22V11.5C7 7 9.2 4 12 4C14.8 4 17 7 17 11.5V22"/>
@@ -419,7 +419,7 @@
                         </svg>
                     </button>
                     <!-- Global "parent checks by subtasks" mode (по всем / по любому) -->
-                    <button class="btn-tool" id="btn-sub-anymode" onclick="openSubAnyModeMenu(event)" title="Чек родителя по подпунктам" aria-haspopup="menu"></button>
+                    <button class="btn-tool" id="btn-sub-anymode" data-act="openSubAnyModeMenu" title="Чек родителя по подпунктам" aria-haspopup="menu"></button>
                     </div><span class="toolbar-group-label">вид</span></div>
                     <div class="toolbar-group"><div class="toolbar-group-btns">
                     <button class="btn-tool" id="btn-filter" data-act="toggleFilter" title="Фильтр: только невыполненные">
@@ -464,7 +464,7 @@
                     </div><span class="toolbar-group-label">выбор</span></div>
                     <div class="toolbar-group"><div class="toolbar-group-btns">
                     <!-- Export data (gothic scroll leaving the vault) -->
-                    <button class="btn-tool" id="btn-export" onclick="openExportMenu(event)" title="Экспорт: только задачи / всё" aria-haspopup="menu">
+                    <button class="btn-tool" id="btn-export" data-act="openExportMenu" title="Экспорт: только задачи / всё" aria-haspopup="menu">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M7 2H17V16L12 20L7 16V2Z"/>
                             <path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/>
@@ -481,7 +481,7 @@
                             <path d="M9.5 9.5L12 6.5L14.5 9.5"/>
                         </svg>
                     </button>
-                    <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+                    <input type="file" id="import-file-input" accept=".json" style="display:none" data-actchange="importData">
                     <!-- Restore points (gothic hourglass — saved states in time) -->
                     <button class="btn-tool" data-act="openBackupModal" title="Точки восстановления">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -493,7 +493,7 @@
                         </svg>
                     </button>
                     <button class="btn-tool" id="btn-archive-all" data-act="archiveAll" title="Архивировать всё"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><use href="#icon-archive"/></svg></button>
-                    <button class="btn-tool btn-danger" onclick="clearAll()" title="Удалить всё навсегда">
+                    <button class="btn-tool btn-danger" data-act="clearAll" title="Удалить всё навсегда">
                         <!-- Skull icon inline -->
                         <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
                             <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
@@ -535,21 +535,21 @@
                 <div class="select-bar-actions">
                     <!-- Cluster 1 — bulk priority -->
                     <div class="select-bar-group">
-                        <button class="sb-btn prio-bulk-btn" onclick="bulkSetPriority('high')" title="Высокий приоритет"><span class="prio-dot prio-high"></span></button>
-                        <button class="sb-btn prio-bulk-btn" onclick="bulkSetPriority('medium')" title="Средний приоритет"><span class="prio-dot prio-medium"></span></button>
-                        <button class="sb-btn prio-bulk-btn" onclick="bulkSetPriority('low')" title="Низкий приоритет"><span class="prio-dot prio-low"></span></button>
-                        <button class="sb-btn prio-bulk-btn sb-prio-none" onclick="bulkSetPriority('none')" title="Без приоритета">—</button>
+                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="high" title="Высокий приоритет"><span class="prio-dot prio-high"></span></button>
+                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="medium" title="Средний приоритет"><span class="prio-dot prio-medium"></span></button>
+                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="low" title="Низкий приоритет"><span class="prio-dot prio-low"></span></button>
+                        <button class="sb-btn prio-bulk-btn sb-prio-none" data-act="bulkSetPriority" data-prio="none" title="Без приоритета">—</button>
                     </div>
                     <!-- Cluster 2 — group / colour / deadline -->
                     <div class="select-bar-group">
-                        <button class="sb-btn" onclick="openBulkGroupModal()" title="Переместить в группу">
+                        <button class="sb-btn" data-act="openBulkGroupModal" title="Переместить в группу">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 21V11C4 8 6 6 8 6C10 6 12 8 12 11V21"/>
                                 <path d="M12 21V11C12 8 14 6 16 6C18 6 20 8 20 11V21"/>
                                 <line x1="2" y1="21" x2="22" y2="21" stroke-width="1.4"/>
                             </svg>
                         </button>
-                        <button class="sb-btn" onclick="openBulkColorModal()" title="Цветовая метка">
+                        <button class="sb-btn" data-act="openBulkColorModal" title="Цветовая метка">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
                                 <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
@@ -557,7 +557,7 @@
                                 <circle cx="12" cy="10.5" r="1.3" fill="currentColor" stroke="none" opacity="0.55"/>
                             </svg>
                         </button>
-                        <button class="sb-btn" onclick="openBulkDeadlineModal()" title="Дедлайн">
+                        <button class="sb-btn" data-act="openBulkDeadlineModal" title="Дедлайн">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                                 <path d="M6 21V11.5C6 7.4 8.69 4 12 4C15.31 4 18 7.4 18 11.5V21"/>
                                 <line x1="3" y1="21" x2="21" y2="21"/>
@@ -567,10 +567,10 @@
                     </div>
                     <!-- Cluster 3 — archive / delete -->
                     <div class="select-bar-group">
-                        <button class="sb-btn sb-archive" id="btn-bulk-archive" onclick="bulkArchive()" disabled title="Архивировать отмеченные">
+                        <button class="sb-btn sb-archive" id="btn-bulk-archive" data-act="bulkArchive" disabled title="Архивировать отмеченные">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><use href="#icon-archive"/></svg>
                         </button>
-                        <button class="sb-btn sb-delete" id="btn-bulk-delete" onclick="bulkDelete()" disabled title="Удалить навсегда">
+                        <button class="sb-btn sb-delete" id="btn-bulk-delete" data-act="bulkDelete" disabled title="Удалить навсегда">
                             <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
                                 <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
                                 <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
@@ -624,14 +624,14 @@
                     </svg>
                     <input type="text" id="archive-search-box"
                            placeholder="Поиск в архиве..." autocomplete="off" spellcheck="false"
-                           oninput="archiveSearchQuery=this.value.trim();renderArchive()">
+                           data-actinput="archiveSearchInput">
                     <!-- #3 (порт NA-13): очистка архив-поиска — скрещённые кинжалы. -->
-                    <button type="button" class="search-x" tabindex="-1" onclick="clearArchiveSearch()" title="Очистить" aria-label="Очистить поиск">
+                    <button type="button" class="search-x" tabindex="-1" data-act="clearArchiveSearch" title="Очистить" aria-label="Очистить поиск">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
                     </button>
                 </div>
                 <div class="archive-btns" id="archive-btns" style="display:none">
-                    <button class="btn-archive-action" id="btn-restore-all" onclick="restoreAll()" title="Восстановить всё">
+                    <button class="btn-archive-action" id="btn-restore-all" data-act="restoreAll" title="Восстановить всё">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
                             <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
@@ -641,7 +641,7 @@
                         </svg>
                         Вернуть всё
                     </button>
-                    <button class="btn-archive-action btn-select-mode" id="btn-select-mode" onclick="toggleSelectMode()" title="Отметить для восстановления">
+                    <button class="btn-archive-action btn-select-mode" id="btn-select-mode" data-act="toggleSelectMode" title="Отметить для восстановления">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 3 L21 8.5 L21 15.5 L12 21 L3 15.5 L3 8.5 Z" opacity="0.7"/>
                             <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.4"/>
@@ -651,7 +651,7 @@
                         </svg>
                         Отметить
                     </button>
-                    <button class="btn-archive-action btn-clear-archive" id="btn-clear-archive" onclick="clearArchive()" style="display:none">
+                    <button class="btn-archive-action btn-clear-archive" id="btn-clear-archive" data-act="clearArchive" style="display:none">
                         <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
                             <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
                             <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
@@ -668,8 +668,8 @@
             <div class="archive-select-bar" id="archive-select-bar" style="display:none">
                 <span class="select-bar-count" id="select-bar-count">0 отмечено</span>
                 <div class="select-bar-actions">
-                    <button class="btn-select-bar-cancel" onclick="toggleSelectMode()">Отмена</button>
-                    <button class="btn-select-bar-restore" id="btn-restore-selected" onclick="restoreSelected()" disabled>
+                    <button class="btn-select-bar-cancel" data-act="toggleSelectMode">Отмена</button>
+                    <button class="btn-select-bar-restore" id="btn-restore-selected" data-act="restoreSelected" disabled>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
                             <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
@@ -693,38 +693,38 @@
         <div id="notes-page" style="display:none">
             <div class="grim-bar">
                 <div class="grim-segment" role="tablist" aria-label="Раздел гримуара">
-                    <button class="grim-seg active" id="grim-seg-active" role="tab" onclick="grimSetMode('active')">
+                    <button class="grim-seg active" id="grim-seg-active" role="tab" data-act="grimSetMode" data-mode="active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8 C9.5 6.3 6.2 6 3.5 7 V19.2 C6.2 18.2 9.5 18.4 12 20 C14.5 18.4 17.8 18.2 20.5 19.2 V7 C17.8 6 14.5 6.3 12 8 Z"/><path d="M12 8 V20" opacity="0.5"/><path d="M5.7 10.4 H9.2 M5.7 12.7 H9.2 M14.8 10.4 H18.3 M14.8 12.7 H18.3" stroke-width="1" opacity="0.4"/><path d="M12 2 L12.9 4.1 L15 5 L12.9 5.9 L12 8 L11.1 5.9 L9 5 L11.1 4.1 Z" fill="currentColor" stroke="none"/></svg>
                         <span>Записи</span>
                     </button>
-                    <button class="grim-seg" id="grim-seg-archive" role="tab" onclick="grimSetMode('archive')" title="Архив заметок">
+                    <button class="grim-seg" id="grim-seg-archive" role="tab" data-act="grimSetMode" data-mode="archive" title="Архив заметок">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/><path d="M12 8.4 V14.6 M9.8 10.9 H14.2" stroke-width="1.3"/></svg>
                         <span>Склеп</span>
                         <span class="grim-seg-count" id="grim-seg-count" style="display:none"></span>
                     </button>
                 </div>
                 <div class="grim-bar-acts">
-                    <button class="grim-ghost-btn" id="grim-select-btn" onclick="grimToggleSelectMode()" title="Выбрать несколько записей" style="display:none">
+                    <button class="grim-ghost-btn" id="grim-select-btn" data-act="grimToggleSelectMode" title="Выбрать несколько записей" style="display:none">
                         <svg viewBox="0 2 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11C5 7.5 7.24 5 10 5C12.76 5 15 7.5 15 11V19"/><line x1="3" y1="19" x2="17" y2="19"/></svg>
                         <span>Выбрать</span>
                     </button>
                     <div class="grim-io-split" id="grim-io-split">
-                        <button class="grim-ghost-btn grim-io-btn" id="grim-io" onclick="grimToggleIoMenu(event)" title="Импорт и экспорт записей" aria-haspopup="true" aria-expanded="false">
+                        <button class="grim-ghost-btn grim-io-btn" id="grim-io" data-act="grimToggleIoMenu" title="Импорт и экспорт записей" aria-haspopup="true" aria-expanded="false">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9.3 7.4q0-1.5 1.4-1.5h2.6q1.4 0 1.4 1.5v9.2q0 1.5-1.4 1.5h-2.6q-1.4 0-1.4-1.5Z"/><path d="M9.3 8.5h5.4M9.3 15.5h5.4" opacity=".5"/><path d="M10.7 10.4h3.2M10.7 12.2h3.2" opacity=".5"/><path d="M9.1 10.2q-3.3-1.2-6 .6 2.1.1 2.9 1-2.7.2-4.2 1.8 2.3-.4 3.3.4-1.7.7-2.2 2.1 2.7-1.5 5.2-1.2" opacity=".92"/><path d="M14.9 10.2q3.3-1.2 6 .6-2.1.1-2.9 1 2.7.2 4.2 1.8-2.3-.4-3.3.4 1.7.7 2.2 2.1-2.7-1.5-5.2-1.2" opacity=".92"/></svg>
                             <span>Перенос</span>
                         </button>
                         <div class="grim-tpl-pop grim-io-pop" id="grim-io-pop" role="menu"></div>
                     </div>
-                    <button class="grim-ghost-btn grim-danger-btn" id="grim-empty-crypt" onclick="grimEmptyCrypt(this)" title="Опустошить склеп — уничтожить все записи в нём" style="display:none">
+                    <button class="grim-ghost-btn grim-danger-btn" id="grim-empty-crypt" data-act="grimEmptyCrypt" title="Опустошить склеп — уничтожить все записи в нём" style="display:none">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.3 C8.1 3.3 5.7 6 5.7 9.4 C5.7 11.2 6.4 12.1 7 13 V15.2 C7 16 7.6 16.6 8.4 16.6 V18.7 H15.6 V16.6 C16.4 16.6 17 16 17 15.2 V13 C17.6 12.1 18.3 11.2 18.3 9.4 C18.3 6 15.9 3.3 12 3.3 Z"/><path d="M9.9 8.2 C8.8 8.2 8.4 9.3 8.9 10.4 C9.2 11.1 9.8 11.1 10.1 10.4 C10.6 9.3 11 8.2 9.9 8.2 Z"/><path d="M14.1 8.2 C15.2 8.2 15.6 9.3 15.1 10.4 C14.8 11.1 14.2 11.1 13.9 10.4 C13.4 9.3 13 8.2 14.1 8.2 Z"/><path d="M12 11.2 L11 13.1 H13 Z"/><path d="M10 18.7 V16.6 M12 18.7 V16.6 M14 18.7 V16.6" stroke-width="1"/></svg>
                         <span>Опустошить</span>
                     </button>
                     <div class="grim-new-split" id="grim-new-split">
-                        <button class="grim-new-btn" id="grim-new-btn" onclick="grimNew()" title="Начертать запись">
+                        <button class="grim-new-btn" id="grim-new-btn" data-act="grimNew" title="Начертать запись">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4 C13 5 8 9 5.5 15.5 L4 20 L8.5 18.5 C15 16 19 11 20 4 Z"/><path d="M9 15 L14 10" opacity="0.6"/></svg>
                             <span>Начертать</span>
                         </button>
-                        <button class="grim-tpl-trigger" id="grim-tpl-trigger" onclick="grimToggleTplMenu(event)" title="Начертать из шаблона" aria-haspopup="true" aria-expanded="false">
+                        <button class="grim-tpl-trigger" id="grim-tpl-trigger" data-act="grimToggleTplMenu" title="Начертать из шаблона" aria-haspopup="true" aria-expanded="false">
                             <span class="gt-ic gt-closed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3.7h9.9a1.4 1.4 0 0 1 1.4 1.4v13.8a1.4 1.4 0 0 1-1.4 1.4H6.6Z"/><path d="M9.3 3.7v16.6"/><path d="M6.6 7h2.7M6.6 17h2.7" opacity=".6"/><path d="M13.4 8v5.3M10.9 10.65h5"/><path d="M12.2 15.8h3.6" opacity=".5"/><path d="M17.9 9.9h1.3a.55.55 0 0 1 .55.55v2.6a.55.55 0 0 1-.55.55h-1.3"/></svg></span>
                             <span class="gt-ic gt-open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C9.7 5 6.3 5 4.2 6.1v12.6C6.3 17.7 9.7 17.7 12 19.2 14.3 17.7 17.7 17.7 19.8 18.7V6.1C17.7 5 14.3 5 12 6.5Z"/><path d="M12 6.5V19.2"/><path d="M6.2 9.6h3.4M6.2 12.1h3.4M6.2 14.6h2.4" opacity=".5"/><path d="M14.4 9.6h3.4M14.4 12.1h3.4M15.4 14.6h2.4" opacity=".5"/><path d="M12 19.2v2.6l1-.95 1 .95v-2.6"/></svg></span>
                         </button>
@@ -740,11 +740,11 @@
                     <line x1="14.5" y1="16" x2="21" y2="21"/>
                 </svg>
                 <input type="text" id="notes-search-box" placeholder="Искать в гримуаре…"
-                       autocomplete="off" spellcheck="false" oninput="grimSearch(this.value)">
+                       autocomplete="off" spellcheck="false" data-actinput="grimSearchInput">
                 <!-- NA-13: clear button — two crossed gothic daggers (GIC.dismiss); slides out
                      from inside the search pill (shares its background), shown only when typed in. -->
                 <button type="button" class="grim-search-x" tabindex="-1"
-                        onclick="grimClearSearch()" title="Очистить" aria-label="Очистить поиск">
+                        data-act="grimClearSearch" title="Очистить" aria-label="Очистить поиск">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
                 </button>
               </div>
@@ -752,7 +752,7 @@
                    as the tasks colour filter (consistent role), popover of swatches present. -->
               <div class="grim-cfilter" id="grim-cfilter">
                 <button type="button" class="grim-cfilter-btn" id="grim-cfilter-btn"
-                        onclick="grimToggleColorFilter(event)" aria-haspopup="true" aria-expanded="false"
+                        data-act="grimToggleColorFilter" aria-haspopup="true" aria-expanded="false"
                         title="Фильтр по цвету">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
@@ -771,26 +771,26 @@
                 <span class="select-bar-count" id="grim-select-count">0 отмечено</span>
                 <span class="select-bar-actions">
                     <span class="select-bar-group">
-                        <button class="sb-btn sb-archive" id="grim-bulk-archive" onclick="grimBulkArchive()" title="Отправить в склеп" disabled>
+                        <button class="sb-btn sb-archive" id="grim-bulk-archive" data-act="grimBulkArchive" title="Отправить в склеп" disabled>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/><path d="M12 8.4 V14.6 M9.8 10.9 H14.2" stroke-width="1.3"/></svg>
                         </button>
-                        <button class="sb-btn sb-archive" id="grim-bulk-restore" onclick="grimBulkRestore()" title="Вернуть в гримуар" disabled style="display:none">
+                        <button class="sb-btn sb-archive" id="grim-bulk-restore" data-act="grimBulkRestore" title="Вернуть в гримуар" disabled style="display:none">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V12C5 8 8 5 12 5C16 5 19 8 19 12V20"/><line x1="3" y1="20" x2="21" y2="20"/><path d="M12 4 L12 11" stroke-width="1.5"/><path d="M9 7 L12 4 L15 7" stroke-width="1.5"/></svg>
                         </button>
-                        <button class="sb-btn" id="grim-bulk-color" onclick="openGrimBulkColorModal()" title="Цвет выбранных" disabled>
+                        <button class="sb-btn" id="grim-bulk-color" data-act="openGrimBulkColorModal" title="Цвет выбранных" disabled>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg>
                         </button>
                         <span class="grim-io-sel" id="grim-io-sel">
-                            <button class="sb-btn" id="grim-bulk-export" onclick="grimToggleIoSelMenu(event)" title="Экспорт выбранных" aria-haspopup="true" aria-expanded="false" disabled>
+                            <button class="sb-btn" id="grim-bulk-export" data-act="grimToggleIoSelMenu" title="Экспорт выбранных" aria-haspopup="true" aria-expanded="false" disabled>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9.3 7.4q0-1.5 1.4-1.5h2.6q1.4 0 1.4 1.5v9.2q0 1.5-1.4 1.5h-2.6q-1.4 0-1.4-1.5Z"/><path d="M9.3 8.5h5.4M9.3 15.5h5.4" opacity=".5"/><path d="M10.7 10.4h3.2M10.7 12.2h3.2" opacity=".5"/><path d="M9.1 10.2q-3.3-1.2-6 .6 2.1.1 2.9 1-2.7.2-4.2 1.8 2.3-.4 3.3.4-1.7.7-2.2 2.1 2.7-1.5 5.2-1.2" opacity=".92"/><path d="M14.9 10.2q3.3-1.2 6 .6-2.1.1-2.9 1 2.7.2 4.2 1.8-2.3-.4-3.3.4 1.7.7 2.2 2.1-2.7-1.5-5.2-1.2" opacity=".92"/></svg>
                             </button>
                             <div class="grim-tpl-pop grim-io-pop grim-io-sel-pop" id="grim-io-sel-pop" role="menu"></div>
                         </span>
-                        <button class="sb-btn sb-delete" id="grim-bulk-delete" onclick="grimBulkDelete()" title="Удалить навсегда" disabled>
+                        <button class="sb-btn sb-delete" id="grim-bulk-delete" data-act="grimBulkDelete" title="Удалить навсегда" disabled>
                             <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/><rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/><ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/><ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/><line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/></svg>
                         </button>
                     </span>
-                    <button class="btn-select-bar-cancel" onclick="grimToggleSelectMode()">Отмена</button>
+                    <button class="btn-select-bar-cancel" data-act="grimToggleSelectMode">Отмена</button>
                 </span>
             </div>
             <div class="grim-layout" id="grim-layout">
@@ -841,7 +841,7 @@
                     <div class="grgb-thumb"></div>
                 </div>
                 <input type="range" class="grgb-hue" min="0" max="360" value="270"
-                       oninput="_grgbHue(this.value)" aria-label="Оттенок">
+                       data-actinput="grgbHue" aria-label="Оттенок">
                 <div class="grgb-foot">
                     <span class="grgb-preview" aria-hidden="true"></span>
                     <span class="grgb-hex">#6C8EF5</span>
@@ -849,8 +849,8 @@
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeGroupModal()">Отмена</button>
-            <button class="btn-modal-confirm" onclick="confirmAddGroup()">Создать</button>
+            <button class="btn-modal-cancel" data-act="closeGroupModal">Отмена</button>
+            <button class="btn-modal-confirm" data-act="confirmAddGroup">Создать</button>
         </div>
     </div>
 </div>
@@ -864,8 +864,8 @@
             <input type="text" id="rename-group-input" class="modal-input" placeholder="Новое название..." maxlength="40" autocomplete="off" spellcheck="false">
         </div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeRenameGroupModal()">Отмена</button>
-            <button class="btn-modal-confirm" onclick="confirmRenameGroup()">Сохранить</button>
+            <button class="btn-modal-cancel" data-act="closeRenameGroupModal">Отмена</button>
+            <button class="btn-modal-confirm" data-act="confirmRenameGroup">Сохранить</button>
         </div>
     </div>
 </div>
@@ -882,9 +882,9 @@
             <input type="text" id="grim-link-name" class="modal-input" placeholder="Имя ссылки (необязательно)…" autocomplete="off" spellcheck="false" maxlength="200">
         </div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" id="grim-link-remove" onclick="grimLinkRemove()" style="display:none">Расплести</button>
-            <button class="btn-modal-cancel" onclick="grimLinkClose()">Отмена</button>
-            <button class="btn-modal-confirm" onclick="grimLinkConfirm()">Вплести</button>
+            <button class="btn-modal-cancel" id="grim-link-remove" data-act="grimLinkRemove" style="display:none">Расплести</button>
+            <button class="btn-modal-cancel" data-act="grimLinkClose">Отмена</button>
+            <button class="btn-modal-confirm" data-act="grimLinkConfirm">Вплести</button>
         </div>
     </div>
 </div>
@@ -1057,7 +1057,7 @@
              daily, weektime = weekly, monthday = monthly). Default ON; off = a
              one-shot deadline. Label/sub are set per mode by _updateDlRepeatToggle. -->
         <button type="button" class="dl-repeat-toggle on" id="dl-repeat-toggle" hidden
-                role="switch" aria-checked="true" onclick="toggleDlAutoRepeat()"
+                role="switch" aria-checked="true" data-act="toggleDlAutoRepeat"
                 title="Авто-повтор дедлайна">
             <span class="dl-rt-glyph" aria-hidden="true">
                 <!-- Лунный круг — венец фаз луны вокруг полнолуния (мотив DUSK) -->
@@ -1139,11 +1139,11 @@
 
                 <!-- centered inputs: arch-step / number / arch-step / unit, dagger between -->
                 <div class="dl-dur-fields">
-                    <button type="button" class="dl-dur-step up" style="grid-area:1/1" onclick="_stepDlDuration('h',1)" aria-label="Прибавить час">
+                    <button type="button" class="dl-dur-step up" style="grid-area:1/1" data-act="stepDlDuration" data-unit="h" data-delta="1" aria-label="Прибавить час">
                         <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13.5 Q8 13 12 5 Q16 13 20.5 13.5"/><path d="M12 5.4 L13.5 3 L12 1 L10.5 3 Z" fill="currentColor" stroke="none"/></svg>
                     </button>
-                    <input type="number" class="dl-dur-num" style="grid-area:2/1" id="dl-dur-h" min="0" max="23" placeholder="0" aria-label="часов" inputmode="numeric" oninput="_clampDlDuration(this)">
-                    <button type="button" class="dl-dur-step down" style="grid-area:3/1" onclick="_stepDlDuration('h',-1)" aria-label="Убавить час">
+                    <input type="number" class="dl-dur-num" style="grid-area:2/1" id="dl-dur-h" min="0" max="23" placeholder="0" aria-label="часов" inputmode="numeric" data-actinput="clampDlDuration">
+                    <button type="button" class="dl-dur-step down" style="grid-area:3/1" data-act="stepDlDuration" data-unit="h" data-delta="-1" aria-label="Убавить час">
                         <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13.5 Q8 13 12 5 Q16 13 20.5 13.5"/><path d="M12 5.4 L13.5 3 L12 1 L10.5 3 Z" fill="currentColor" stroke="none"/></svg>
                     </button>
                     <span class="dl-dur-unit" style="grid-area:4/1">часы</span>
@@ -1157,11 +1157,11 @@
                         </svg>
                     </span>
 
-                    <button type="button" class="dl-dur-step up" style="grid-area:1/3" onclick="_stepDlDuration('m',5)" aria-label="Прибавить минуты">
+                    <button type="button" class="dl-dur-step up" style="grid-area:1/3" data-act="stepDlDuration" data-unit="m" data-delta="5" aria-label="Прибавить минуты">
                         <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13.5 Q8 13 12 5 Q16 13 20.5 13.5"/><path d="M12 5.4 L13.5 3 L12 1 L10.5 3 Z" fill="currentColor" stroke="none"/></svg>
                     </button>
-                    <input type="number" class="dl-dur-num" style="grid-area:2/3" id="dl-dur-m" min="0" max="59" placeholder="0" aria-label="минут" inputmode="numeric" oninput="_clampDlDuration(this)">
-                    <button type="button" class="dl-dur-step down" style="grid-area:3/3" onclick="_stepDlDuration('m',-5)" aria-label="Убавить минуты">
+                    <input type="number" class="dl-dur-num" style="grid-area:2/3" id="dl-dur-m" min="0" max="59" placeholder="0" aria-label="минут" inputmode="numeric" data-actinput="clampDlDuration">
+                    <button type="button" class="dl-dur-step down" style="grid-area:3/3" data-act="stepDlDuration" data-unit="m" data-delta="-5" aria-label="Убавить минуты">
                         <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13.5 Q8 13 12 5 Q16 13 20.5 13.5"/><path d="M12 5.4 L13.5 3 L12 1 L10.5 3 Z" fill="currentColor" stroke="none"/></svg>
                     </button>
                     <span class="dl-dur-unit" style="grid-area:4/3">минуты</span>
@@ -1196,9 +1196,9 @@
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeDeadlineModal()">Отмена</button>
-            <button class="btn-modal-danger" onclick="clearDeadlineModal()">Очистить</button>
-            <button class="btn-modal-confirm" onclick="confirmDeadline()">Сохранить</button>
+            <button class="btn-modal-cancel" data-act="closeDeadlineModal">Отмена</button>
+            <button class="btn-modal-danger" data-act="clearDeadlineModal">Очистить</button>
+            <button class="btn-modal-confirm" data-act="confirmDeadline">Сохранить</button>
         </div>
     </div>
 </div>
@@ -1215,7 +1215,7 @@
             <button class="prio-btn prio-high" data-prio="high"><span class="prio-dot"></span>Высокий</button>
         </div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closePrioModal()">Отмена</button>
+            <button class="btn-modal-cancel" data-act="closePrioModal">Отмена</button>
         </div>
     </div>
 </div>
@@ -1244,15 +1244,15 @@
                 <div class="grgb-thumb" id="grgb-thumb"></div>
             </div>
             <input type="range" class="grgb-hue" id="grgb-hue" min="0" max="360" value="270"
-                   oninput="_grgbHue(this.value)" aria-label="Оттенок">
+                   data-actinput="grgbHue" aria-label="Оттенок">
             <div class="grgb-foot">
                 <span class="grgb-preview" id="grgb-preview" aria-hidden="true"></span>
                 <span class="grgb-hex" id="grgb-hex">#A060FF</span>
-                <button class="grgb-apply" onclick="_grgbApply()">Применить</button>
+                <button class="grgb-apply" data-act="grgbApply">Применить</button>
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel btn-modal-clear" onclick="_commitColorChoice('')" title="Убрать метку">
+            <button class="btn-modal-cancel btn-modal-clear" data-act="commitColorClear" title="Убрать метку">
                 <!-- Struck gothic crystal — reuses the colour-label motif, negated -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/>
@@ -1260,7 +1260,7 @@
                 </svg>
                 Без цвета
             </button>
-            <button class="btn-modal-cancel" onclick="closeTaskColorModal()">Отмена</button>
+            <button class="btn-modal-cancel" data-act="closeTaskColorModal">Отмена</button>
         </div>
     </div>
 </div>
@@ -1403,7 +1403,7 @@
             <p class="dl-hint" id="repeat-anchor-hint">Задача перейдёт обратно в незавершённые в указанное время, а не от момента выполнения</p>
         </div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeRepeatModal()">Отмена</button>
+            <button class="btn-modal-cancel" data-act="closeRepeatModal">Отмена</button>
             <button class="btn-modal-confirm" id="btn-confirm-repeat">Применить</button>
         </div>
     </div>
@@ -1416,22 +1416,22 @@
         <h3 class="modal-title" id="note-modal-title">Добавить заметку</h3>
         <textarea class="modal-textarea" id="note-modal-input" placeholder="Введите заметку..." maxlength="500" rows="4" spellcheck="false"></textarea>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeNoteModal()">Отмена</button>
-            <button class="btn-modal-confirm" onclick="confirmNote()">Сохранить</button>
+            <button class="btn-modal-cancel" data-act="closeNoteModal">Отмена</button>
+            <button class="btn-modal-confirm" data-act="confirmNote">Сохранить</button>
         </div>
     </div>
 </div>
 
 <!-- Sound (SVGs injected by applySoundPref() on init via IC.soundOn / IC.soundOff) -->
 <button class="btn-sound" id="btn-sound" title="Звук"
-        aria-label="Звук" aria-pressed="false" onclick="toggleSound()"></button>
+        aria-label="Звук" aria-pressed="false" data-act="toggleSound"></button>
 
 <!-- п.17 Звук пера (UI + tooltips + click/drag wired in JS by _penBuildUI/applyPenSoundPref) -->
 <button class="btn-pen-sound off" id="btn-pen-sound" aria-pressed="false"></button>
 
 <!-- Shortcuts toggle button -->
 <button class="btn-shortcuts-toggle" id="btn-shortcuts-toggle"
-        onclick="toggleShortcutsHint()" title="Горячие клавиши"
+        data-act="toggleShortcutsHint" title="Горячие клавиши"
         aria-label="Горячие клавиши" aria-pressed="false">
     <!-- Gothic key: lancet-arch bow (pointed top), long shank, two wards.
          "Key" = access to hidden commands — direct metaphor for keyboard shortcuts. -->
@@ -1536,7 +1536,7 @@ if ('serviceWorker' in navigator) {
         <h3 class="modal-title" id="templates-modal-title">Шаблоны задач</h3>
         <div class="templates-list" id="templates-list"></div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeTemplatesModal()">Закрыть</button>
+            <button class="btn-modal-cancel" data-act="closeTemplatesModal">Закрыть</button>
         </div>
     </div>
 </div>
@@ -1548,7 +1548,7 @@ if ('serviceWorker' in navigator) {
         <p class="backups-desc">Автоснимки сохраняются по ходу работы. Выбери, чтобы откатиться — текущее состояние можно вернуть отменой.</p>
         <div class="backup-list" id="backup-list"></div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeBackupModal()">Закрыть</button>
+            <button class="btn-modal-cancel" data-act="closeBackupModal">Закрыть</button>
         </div>
     </div>
 </div>
@@ -1559,7 +1559,7 @@ if ('serviceWorker' in navigator) {
         <h3 class="modal-title" id="bulk-group-modal-title">Переместить в группу</h3>
         <div class="bulk-group-list" id="bulk-group-list"></div>
         <div class="modal-actions">
-            <button class="btn-modal-cancel" onclick="closeBulkGroupModal()">Отмена</button>
+            <button class="btn-modal-cancel" data-act="closeBulkGroupModal">Отмена</button>
         </div>
     </div>
 </div>

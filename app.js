@@ -683,7 +683,7 @@ const _newTaskIds = new Set();
 const _newNoteIds = new Set();
 let renamingGroupId  = null;
 let dlCurrentMode    = 'time'; // default — updated from localStorage on init
-let _dlAutoRepeat    = true;   // X-6: weektime → auto-weekly toggle (default ON; off is the non-standard one-shot mode)
+let _dlAutoRepeat    = false;  // auto-repeat toggle — default OFF in every mode; an existing recurring deadline re-opens reflecting its own state
 
 // ── Deadline mode persistence key
 const K_DL_MODE = 'dusk_lastDlMode';
@@ -1148,6 +1148,7 @@ const ACT_KEY   = {};   // keydown
 const ACT_OVER  = {};   // mouseover (hover affordances, e.g. quick-add typeahead)
 const ACT_OUT   = {};   // mouseout  (hover-leave, paired with ACT_OVER)
 const ACT_PASTE = {};   // paste     (Grimoire body plain-text paste)
+const ACT_CHANGE = {};  // change    (file <input>, number commit-on-change)
 const _tid   = el => { const li = el && el.closest('.task-item'); return li ? +li.dataset.id : null; };
 const _sTid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.tid : null; };
 const _sSid  = el => { const it = el && el.closest('.subtask-item'); return it ? +it.dataset.sid : null; };
@@ -1170,6 +1171,7 @@ document.addEventListener('keydown',   e => _delegate(ACT_KEY,   'data-actkey', 
 document.addEventListener('mouseover', e => _delegate(ACT_OVER,  'data-actover',  e));
 document.addEventListener('mouseout',  e => _delegate(ACT_OUT,   'data-actout',   e));
 document.addEventListener('paste',     e => _delegate(ACT_PASTE, 'data-actpaste', e));
+document.addEventListener('change',    e => _delegate(ACT_CHANGE, 'data-actchange', e));
 document.addEventListener('mousedown', e => { const t = e.target; if (t && typeof t.closest === 'function' && t.closest('[data-pd]')) e.preventDefault(); });  // focus-steal guard
 Object.assign(ACT, {
     toggleCheck:              el     => toggleCheck(_tid(el)),
@@ -1436,6 +1438,128 @@ Object.assign(ACT, {
     showAddGroupModal:        () => showAddGroupModal(),
     openTemplatesModal:       () => openTemplatesModal(),
     focusNewTaskInput:        () => focusNewTaskInput(),
+});
+
+// 7c slice-4d — task create/edit form modal (static markup in index.html). All
+// singletons (one form), so no id plumbing. openFormDeadline is distinct from the
+// row-level openDeadlineModal (that one reads _tid; the form opens with null). The
+// clear-deadline ✕ sits INSIDE the deadline trigger button — its own data-act wins
+// via closest() (nearest), so the trigger's open doesn't also fire (replaces the
+// old inline stopPropagation). The monthday stepper folds both ±buttons into one
+// adapter (delta in data-delta), clamped to 1..31, mirroring the old inline math.
+Object.assign(ACT, {
+    openFormColorModal:  () => openFormColorModal(),
+    openFormDeadline:    () => openDeadlineModal(null),
+    clearFormDeadline:   (el, e) => clearFormDeadline(e),
+    formMonthdayStep:    el => {
+        const i = document.getElementById('form-repeat-anchor-monthday');
+        if (!i) return;
+        i.value = Math.max(1, Math.min(31, (parseInt(i.value) || 1) + (+el.dataset.delta)));
+        formRepeatAnchorMonthday = parseInt(i.value) || null;
+    },
+    addFormSubtask:      () => addFormSubtask(),
+    toggleFormPin:       () => toggleFormPin(),
+    saveFormAsTemplate:  () => saveFormAsTemplate(),
+});
+Object.assign(ACT_CHANGE, {
+    formMonthdayInput: el => { formRepeatAnchorMonthday = parseInt(el.value) || null; },
+});
+Object.assign(ACT_KEY, { formSubAddKey: (el, e) => handleFormSubAdd(e) });
+
+// 7c slice-4e — main toolbar leftovers + the main-list bulk-select bar. The sort
+// trigger / schedule toggle reuse the already-registered slice-3b/3a adapters
+// (toggleSortPicker, toggleScheduleMode — _gid is null off any group → global).
+// openSubAnyModeMenu / openExportMenu are body float-menus anchored on currentTarget
+// → the slice-1 _synEv pattern (no-op stopPropagation is fine; float menus add their
+// outside-close on a later tick). bulkSetPriority carries the level in data-prio.
+Object.assign(ACT, {
+    requestNotificationPermission: () => requestNotificationPermission(),
+    openSubAnyModeMenu:  (el, e) => openSubAnyModeMenu(_synEv(el, e)),
+    openExportMenu:      (el, e) => openExportMenu(_synEv(el, e)),
+    clearAll:            () => clearAll(),
+    bulkSetPriority:     el => bulkSetPriority(el.dataset.prio),
+    openBulkGroupModal:  () => openBulkGroupModal(),
+    openBulkColorModal:  () => openBulkColorModal(),
+    openBulkDeadlineModal: () => openBulkDeadlineModal(),
+    bulkArchive:         () => bulkArchive(),
+    bulkDelete:          () => bulkDelete(),
+});
+Object.assign(ACT_CHANGE, { importData: (el, e) => importData(e) });
+
+// 7c slice-4f — archive page (search clear, restore/select/clear, restore-selected).
+// All no-arg singletons; the search box commits its query + re-renders on input.
+Object.assign(ACT, {
+    clearArchiveSearch: () => clearArchiveSearch(),
+    restoreAll:         () => restoreAll(),
+    toggleSelectMode:   () => toggleSelectMode(),
+    clearArchive:       () => clearArchive(),
+    restoreSelected:    () => restoreSelected(),
+});
+Object.assign(ACT_INPUT, {
+    archiveSearchInput: el => { archiveSearchQuery = el.value.trim(); renderArchive(); },
+});
+
+// 7c slice-4g — Grimoire toolbar (static markup): segment tabs, select toggle, the
+// IO / template / colour-filter popover triggers, empty-crypt, and the grim select
+// bar. Each popover TRIGGER lives INSIDE its registered _gothicPicker container
+// (#grim-io-split / #grim-new-split / #grim-io-sel), so the shared contains-check
+// keeps it open with no stopPropagation needed; grim-cfilter manages its own
+// outside-close listener (like grimToggleSortMenu). grimEmptyCrypt arms on its own
+// button element (two-step danger), so it takes the element. grimNew is already in
+// slice-3h. Segment mode rides in data-mode.
+Object.assign(ACT, {
+    grimSetMode:          el => grimSetMode(el.dataset.mode),
+    grimToggleSelectMode: () => grimToggleSelectMode(),
+    grimToggleIoMenu:     (el, e) => grimToggleIoMenu(e),
+    grimEmptyCrypt:       el => grimEmptyCrypt(el),
+    grimToggleTplMenu:    (el, e) => grimToggleTplMenu(e),
+    grimClearSearch:      () => grimClearSearch(),
+    grimToggleColorFilter:(el, e) => grimToggleColorFilter(e),
+    grimBulkArchive:      () => grimBulkArchive(),
+    grimBulkRestore:      () => grimBulkRestore(),
+    openGrimBulkColorModal: () => openGrimBulkColorModal(),
+    grimToggleIoSelMenu:  (el, e) => grimToggleIoSelMenu(e),
+    grimBulkDelete:       () => grimBulkDelete(),
+});
+Object.assign(ACT_INPUT, { grimSearchInput: el => grimSearch(el.value) });
+
+// 7c slice-4h — all remaining static modal controls (group / rename / link /
+// deadline / prio / task-colour / repeat / note / templates / backups / bulk-group)
+// plus the floating sound + shortcuts buttons. Every overlay backdrop close is the
+// pre-existing delegated U-1 handler; these are the in-modal cancel/confirm/clear/
+// danger buttons. The deadline duration steppers fold into one adapter (unit in
+// data-unit, signed step in data-delta); both number fields clamp on input. The two
+// RGB hue sliders (group + task-colour) share one input adapter. commitColorClear
+// is the "Без цвета" button (empty string → clears the label).
+Object.assign(ACT, {
+    closeGroupModal:        () => closeGroupModal(),
+    confirmAddGroup:        () => confirmAddGroup(),
+    closeRenameGroupModal:  () => closeRenameGroupModal(),
+    confirmRenameGroup:     () => confirmRenameGroup(),
+    grimLinkRemove:         () => grimLinkRemove(),
+    grimLinkClose:          () => grimLinkClose(),
+    grimLinkConfirm:        () => grimLinkConfirm(),
+    toggleDlAutoRepeat:     () => toggleDlAutoRepeat(),
+    stepDlDuration:         el => _stepDlDuration(el.dataset.unit, +el.dataset.delta),
+    closeDeadlineModal:     () => closeDeadlineModal(),
+    clearDeadlineModal:     () => clearDeadlineModal(),
+    confirmDeadline:        () => confirmDeadline(),
+    closePrioModal:         () => closePrioModal(),
+    grgbApply:              () => _grgbApply(),
+    commitColorClear:       () => _commitColorChoice(''),
+    closeTaskColorModal:    () => closeTaskColorModal(),
+    closeRepeatModal:       () => closeRepeatModal(),
+    closeNoteModal:         () => closeNoteModal(),
+    confirmNote:            () => confirmNote(),
+    toggleSound:            () => toggleSound(),
+    toggleShortcutsHint:    () => toggleShortcutsHint(),
+    closeTemplatesModal:    () => closeTemplatesModal(),
+    closeBackupModal:       () => closeBackupModal(),
+    closeBulkGroupModal:    () => closeBulkGroupModal(),
+});
+Object.assign(ACT_INPUT, {
+    grgbHue:         el => _grgbHue(el.value),
+    clampDlDuration: el => _clampDlDuration(el),
 });
 
 // Ensure optional collections exist after any whole-state replacement (load,
@@ -8310,7 +8434,7 @@ let _clearAllTimer = null;
 
 // "Удалить всё навсегда" — permanently destroys (two-step confirm)
 function clearAll() {
-    const btn = document.querySelector('.btn-tool.btn-danger[onclick="clearAll()"]');
+    const btn = document.querySelector('.btn-tool.btn-danger[data-act="clearAll"]');
 
     // I-6: if list is empty while armed, disarm cleanly and bail
     if (!state.tasks.length) {
@@ -11403,10 +11527,10 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
         }
     }
 
-    // X-6: weektime auto-weekly toggle. Default ON; but if this target already
-    // carries a weektime deadline whose repeat the user left non-recurring («none»),
-    // reflect that opt-out instead of silently re-enabling it on every re-edit.
-    let _arInit = true;
+    // Auto-repeat toggle. Default OFF for a new deadline in every mode; but if this
+    // target already carries a rhythmic deadline, reflect its actual repeat state
+    // (ON when recurring, OFF when the user left it «none») on re-edit.
+    let _arInit = false;
     if (existing && _AUTO_REPEAT_BY_MODE[existing.mode]) {
         const tgtRepeat = formSubIdx !== null
             ? (formSubtasks[formSubIdx] || {}).repeat
