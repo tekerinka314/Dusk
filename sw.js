@@ -22,7 +22,7 @@
 // (only `basic` same-origin + `cors`), and every cross-origin asset we DO want
 // offline (Google Fonts CSS, SortableJS) carries `crossorigin` so it comes back as
 // `cors`. v4 also re-purges the v3 cache that had re-accumulated font padding.
-const CACHE = 'dusk-shell-v4';
+const CACHE = 'dusk-shell-v5';
 const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
 
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
@@ -94,7 +94,16 @@ function _cacheable(resp) {
 async function networkFirst(request) {
     const cache = await caches.open(CACHE);
 
-    const networkPromise = fetch(request).then(resp => {
+    // ALWAYS revalidate the shell against the server (bypass the browser HTTP
+    // cache). GitHub Pages serves every file with `Cache-Control: max-age=600`,
+    // so a plain fetch would keep serving stale HTML/CSS from disk for up to 10
+    // min — even after version.json (fetched no-store) already announced a new
+    // build and the user clicked «Обновить». `cache:'no-cache'` forces an ETag
+    // revalidation: a cheap 304 when unchanged, the fresh bytes when changed, so
+    // a reload after a deploy always lands the new shell. (We fetch by URL rather
+    // than passing the Request: re-using a navigate-mode Request with an init
+    // throws TypeError.)
+    const networkPromise = fetch(request.url, { cache: 'no-cache' }).then(resp => {
         if (_cacheable(resp)) cache.put(request, resp.clone());
         return resp;
     });
