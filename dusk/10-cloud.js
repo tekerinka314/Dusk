@@ -13,11 +13,16 @@
 //
 // AUTH: Google Identity Services (GIS) browser TOKEN flow — no client_secret,
 // no redirect page, no server. Returns a short-lived (~1 h) access token; there
-// is NO refresh token in this flow, so we re-request when it expires (silent if
-// the user already consented this session, otherwise a popup). The token lives
-// in MEMORY ONLY (never localStorage, never a URL) — XSS hygiene, and it's
-// short-lived anyway. Only the `drive.appdata` scope is requested, so the app
-// can never see the user's other Drive files.
+// is NO refresh token in this flow (that needs a server-side code exchange), so
+// we re-request when it expires. The token is CACHED in localStorage with its
+// expiry (see _persistToken) so a page reload within its lifetime restores the
+// session instantly — without this the memory-only token vanished on every
+// reload, forcing a fresh OAuth round-trip (the flashing popup) that often
+// failed silent refresh → a manual re-login each time. Trade-off: the token sits
+// in localStorage (XSS exposure) — accepted because it is short-lived, scoped to
+// `drive.appdata` only (the app can never see other Drive files), and this is a
+// personal app where durability/UX outrank privacy (project rule). Re-auth is
+// still needed at most ~once/hour when the token expires.
 //
 // OFFLINE: when offline the GIS library fails to load → cloudIsConfigured()
 // returns false → the app stays fully local. Sync degrades gracefully; it is
@@ -33,12 +38,42 @@ const SYNC_CLIENT_ID = '493121023118-pln1rmhl37q3qi915jhbaqt57a7dkdtv.apps.googl
 const SYNC_SCOPE     = 'https://www.googleapis.com/auth/drive.appdata';
 const SYNC_FILENAME  = 'dusk-sync.json';        // single file in the appDataFolder special space
 const K_SYNC_DEVICE  = 'dusk_sync_device_v1';   // opaque per-device hint stamped into _meta (not a secret)
+const K_SYNC_TOKEN   = 'dusk_sync_token_v1';    // cached {t,e}: short-lived access token + expiry (see _persistToken)
 
 // ── In-memory auth state (never persisted) ───────────────────────────────────
 let _tokenClient = null;
 let _accessToken = null;
 let _tokenExp    = 0;          // ms epoch when the current token should be treated as dead (with 60 s safety margin)
 let _pendingAuth = null;       // {resolve, reject} of the in-flight cloudAuth() call
+
+// ── Token cache (survives reload; see the AUTH note in the header) ───────────
+// Persists the short-lived access token + its (margin-adjusted) expiry so a
+// reload restores the session with no OAuth UI. Cleared on sign-out / 401 /
+// expiry. No-op under node (no localStorage) → tests stay memory-only.
+function _persistToken() {
+    try {
+        if (typeof localStorage === 'undefined') return;
+        if (_accessToken && Date.now() < _tokenExp) {
+            localStorage.setItem(K_SYNC_TOKEN, JSON.stringify({ t: _accessToken, e: _tokenExp }));
+        } else {
+            localStorage.removeItem(K_SYNC_TOKEN);
+        }
+    } catch (_) { /* storage full / blocked → just stay memory-only */ }
+}
+function _restoreToken() {
+    try {
+        if (typeof localStorage === 'undefined') return;
+        const raw = localStorage.getItem(K_SYNC_TOKEN);
+        if (!raw) return;
+        const o = JSON.parse(raw);
+        if (o && o.t && typeof o.e === 'number' && Date.now() < o.e) {
+            _accessToken = o.t; _tokenExp = o.e;        // still valid → reuse, no popup
+        } else {
+            localStorage.removeItem(K_SYNC_TOKEN);      // expired/garbage → drop it
+        }
+    } catch (_) {}
+}
+_restoreToken();   // at module load, before any cloudStatus()/auto-open sync runs
 
 // Drive's per-file `version` is the optimistic-concurrency marker; a mismatch on
 // push means another device wrote in between → Phase 3 re-pulls, re-merges, retries.
@@ -68,6 +103,7 @@ function _ensureClient() {
                 // expires_in is seconds; keep a 60 s margin so we never use a token mid-expiry.
                 const ttl = (typeof resp.expires_in === 'number' ? resp.expires_in : 3600) * 1000;
                 _tokenExp  = Date.now() + ttl - 60000;
+                _persistToken();                        // survive reload (no re-login within the hour)
                 if (p) p.resolve({ ok: true, token: _accessToken });
             } else if (p) {
                 p.reject(new Error('OAuth: no access token in response'));
@@ -124,6 +160,7 @@ function cloudSignOut() {
     } catch (_) { /* best-effort */ }
     _accessToken = null;
     _tokenExp = 0;
+    _persistToken();   // clears the cached token from storage
 }
 
 // ── Internal: token + authenticated fetch ────────────────────────────────────
@@ -143,7 +180,7 @@ async function _driveFetch(url, opts, _retried) {
     const resp = await fetch(url, Object.assign({}, opts, { headers }));
     // 401 → token died early; drop it, try ONE silent refresh, retry once.
     if (resp.status === 401 && !_retried) {
-        _accessToken = null; _tokenExp = 0;
+        _accessToken = null; _tokenExp = 0; _persistToken();   // dead token → drop cache too
         try { await cloudAuth({ interactive: false }); } catch (_) { /* fall through → throws below */ }
         return _driveFetch(url, opts, true);
     }
