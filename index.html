@@ -34,6 +34,44 @@
         <!-- C-2: ambient breathing glow on its own layer (was a colliding .todo-app::after) -->
         <div class="app-glow" aria-hidden="true"></div>
 
+        <!-- Sync Phase 3: reptilian-eye status glyph (top-right corner, subtle — never
+             competes with the brand). data-sync drives the state mimicry (rest / syncing /
+             ok / pending / error / signed-out / offline); 11-sync-ui.js toggles it + opens
+             the sync panel. The vertical slit pupil + scaled lids distinguish it from the
+             round-pupil "filter eye" in the toolbar. -->
+        <button id="sync-glyph-btn" class="sync-glyph" type="button" data-act="openSyncPanel"
+                data-sync="offline" title="Синхронизация" aria-haspopup="dialog" aria-label="Синхронизация">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <g class="brow">
+                    <path d="M3.3 9.0 C6.4 3.9 17.6 3.9 20.7 9.0" stroke-width="1.7"/>
+                    <path d="M6.8 6.4 l.7 1.2" stroke-width="1.15" opacity=".55"/>
+                    <path d="M9.7 5.5 l.42 1.2" stroke-width="1.15" opacity=".55"/>
+                    <path d="M12 5.1 l0 1.35" stroke-width="1.2" opacity=".6"/>
+                    <path d="M14.3 5.5 l-.42 1.2" stroke-width="1.15" opacity=".55"/>
+                    <path d="M17.2 6.4 l-.7 1.2" stroke-width="1.15" opacity=".55"/>
+                </g>
+                <g class="lids">
+                    <path class="lid-up" d="M3 12 C6.2 6.6 17.8 6.6 21 12"/>
+                    <path class="lid-lo" d="M3 12 C6.2 17.4 17.8 17.4 21 12"/>
+                    <path d="M3 12 l-1.3 -1.05 M3 12 l-1.3 1.05" stroke-width="1.15" opacity=".5"/>
+                    <path d="M21 12 l1.3 -1.05 M21 12 l1.3 1.05" stroke-width="1.15" opacity=".5"/>
+                    <path class="tear" d="M5.6 12.7 C8.4 15.5 15.6 15.5 18.4 12.7" stroke-width="1.1" opacity=".42"/>
+                    <path d="M3.2 12 q1.0 .78 2.1 .55" stroke-width="1.0" opacity=".42"/>
+                </g>
+                <g class="ball">
+                    <circle class="iris" cx="12" cy="12" r="3.4" opacity=".46"/>
+                    <g class="iris-stria" stroke-width="1.1" opacity=".46">
+                        <path d="M12 8.7 v1.15"/><path d="M12 14.15 v1.15"/>
+                        <path d="M8.7 12 h1.15"/><path d="M14.15 12 h1.15"/>
+                        <path d="M9.55 9.55 l.8 .8"/><path d="M14.45 9.55 l-.8 .8"/>
+                        <path d="M9.55 14.45 l.8 -.8"/><path d="M14.45 14.45 l-.8 -.8"/>
+                    </g>
+                    <path class="pupil" d="M12 8.5 C12.95 10.3 12.95 13.7 12 15.5 C11.05 13.7 11.05 10.3 12 8.5 Z" fill="currentColor" stroke="none"/>
+                    <circle class="glint" cx="12.7" cy="9.7" r=".62" fill="#efe6ff" stroke="none"/>
+                </g>
+            </svg>
+        </button>
+
         <!-- Header -->
         <header class="app-header">
             <!-- Left coffin emblem — references shared <symbol id="coffin-emblem"> (audit C-2) -->
@@ -1604,6 +1642,9 @@ if ('serviceWorker' in navigator) {
 <script src="dusk/09-sync.js"></script>
 <script src="dusk/10-cloud.js"></script>
 <script src="dusk/08-quickadd-export-init.js"></script>
+<!-- Sync Phase 3: live loop + sync UI. Loads AFTER 08 so init() has run (state +
+     DOM ready); wires the eye glyph, panel, quarantine + the pull/merge/push loop. -->
+<script src="dusk/11-sync-ui.js"></script>
 
 <script>
 // ── In-app update detection ──────────────────────────────────────────────────

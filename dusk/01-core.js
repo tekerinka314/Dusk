@@ -931,6 +931,9 @@ function saveState() {
     try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
     localStorage.setItem(K_STATE, JSON.stringify(state));   // K_STATE === v4
     try { maybeBackup(); } catch (_) { /* backups must never break a save */ }
+    // Sync Phase 3: notify the sync layer (debounced push). Guarded — undefined until
+    // 11-sync-ui.js loads, and a no-op until sync is enabled + ready (never blocks a save).
+    try { if (typeof _afterSaveState === 'function') _afterSaveState(); } catch (_) {}
 }
 
 // ============================================================

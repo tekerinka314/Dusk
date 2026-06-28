@@ -7985,3 +7985,106 @@ kbd {
     .grim-stamps { justify-content: center; }
 }
 
+/* ============================================================
+   Sync Phase 3 — reptilian-eye status glyph + panel + quarantine
+   ============================================================ */
+.todo-app { position: relative; }   /* anchor for the corner glyph */
+
+.sync-glyph {
+    position: absolute; top: 14px; right: 14px; z-index: 6;
+    width: 30px; height: 30px; padding: 0; border: none; background: none; cursor: pointer;
+    color: var(--text-muted); opacity: .6;
+    transition: opacity var(--dur-quick) var(--ease-gothic), color var(--dur-quick) var(--ease-gothic);
+    -webkit-tap-highlight-color: transparent;
+}
+.sync-glyph:hover { opacity: 1; color: var(--text-secondary); }
+.sync-glyph svg { width: 100%; height: 100%; display: block; overflow: visible;
+    filter: drop-shadow(0 0 .5px currentColor); }   /* faint bloom softens small-size edges */
+.sync-glyph .lids, .sync-glyph .ball, .sync-glyph .brow, .sync-glyph .pupil {
+    transform-box: view-box; transform-origin: 12px 12px;
+    transition: transform .42s var(--ease-gothic); }
+.sync-glyph .lid-up { transition: transform .42s var(--ease-gothic); }
+.sync-glyph .iris, .sync-glyph .iris-stria, .sync-glyph .pupil, .sync-glyph .glint, .sync-glyph .tear { transition: opacity .4s; }
+.sync-glyph .glint { opacity: 0; }
+
+/* states — the eye mimics sync status (brow follows the upper lid per state) */
+.sync-glyph[data-sync="rest"] { opacity: .62; }
+.sync-glyph[data-sync="rest"] .lids, .sync-glyph[data-sync="rest"] .ball, .sync-glyph[data-sync="rest"] .brow { transform: scaleY(.9); }
+
+.sync-glyph[data-sync="ok"] { color: #9b86d6; opacity: .85; }
+.sync-glyph[data-sync="ok"] .lids, .sync-glyph[data-sync="ok"] .ball, .sync-glyph[data-sync="ok"] .brow { transform: scaleY(.82); }
+.sync-glyph[data-sync="ok"] .lid-up { transform: translateY(1.1px); }
+
+.sync-glyph[data-sync="syncing"] { color: var(--accent-hover); opacity: 1; }
+.sync-glyph[data-sync="syncing"] .glint { opacity: .9; }
+.sync-glyph[data-sync="syncing"] svg { filter: drop-shadow(0 0 2px var(--accent-glow)); }
+
+.sync-glyph[data-sync="pending"] { color: var(--accent); opacity: .92; }
+.sync-glyph[data-sync="pending"] .glint { opacity: .85; }
+.sync-glyph[data-sync="pending"] .lids, .sync-glyph[data-sync="pending"] .ball, .sync-glyph[data-sync="pending"] .brow { transform: scaleY(.92); }
+
+.sync-glyph[data-sync="error"] { color: var(--prio-high); opacity: 1; }
+.sync-glyph[data-sync="error"] .lids, .sync-glyph[data-sync="error"] .ball, .sync-glyph[data-sync="error"] .brow { transform: scaleY(.6); }
+.sync-glyph[data-sync="error"] .pupil { transform: scaleX(.4); }
+.sync-glyph[data-sync="error"] svg { filter: drop-shadow(0 0 2px var(--prio-high-border)); }
+
+.sync-glyph[data-sync="signed-out"] { opacity: .7; }
+.sync-glyph[data-sync="signed-out"] .lids, .sync-glyph[data-sync="signed-out"] .ball, .sync-glyph[data-sync="signed-out"] .brow { transform: scaleY(.48); }
+.sync-glyph[data-sync="signed-out"] .iris, .sync-glyph[data-sync="signed-out"] .iris-stria, .sync-glyph[data-sync="signed-out"] .pupil { opacity: 0; }
+.sync-glyph[data-sync="signed-out"] .glint { opacity: .9; }
+
+.sync-glyph[data-sync="offline"] { opacity: .42; }
+.sync-glyph[data-sync="offline"] .lids, .sync-glyph[data-sync="offline"] .ball, .sync-glyph[data-sync="offline"] .brow { transform: scaleY(.44); }
+.sync-glyph[data-sync="offline"] .iris, .sync-glyph[data-sync="offline"] .iris-stria, .sync-glyph[data-sync="offline"] .pupil, .sync-glyph[data-sync="offline"] .glint { opacity: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .sync-glyph[data-sync="syncing"] .pupil { animation: syncEyeScan 1.5s ease-in-out infinite; }
+    .sync-glyph[data-sync="syncing"] .ball, .sync-glyph[data-sync="syncing"] .lids { animation: syncEyeBlink 3s ease-in-out infinite; }
+    .sync-glyph[data-sync="syncing"] .tear { animation: syncEyeNictit 3s ease-in-out infinite; }
+}
+@keyframes syncEyeScan   { 0%,100% { transform: scaleX(1) scaleY(1); } 48% { transform: scaleX(1.85) scaleY(.82); } }
+@keyframes syncEyeBlink  { 0%,40%,54%,100% { transform: scaleY(1); } 47% { transform: scaleY(.08); } }
+@keyframes syncEyeNictit { 0%,60%,100% { opacity: 0; } 30% { opacity: .5; } }
+
+/* unresolved-conflict badge on the glyph */
+.sync-badge {
+    position: absolute; top: -3px; right: -4px; min-width: 14px; height: 14px; padding: 0 3px;
+    border-radius: 7px; background: var(--accent); color: #0a0414; font-size: 9px; font-weight: 700;
+    line-height: 14px; text-align: center; box-shadow: 0 0 0 2px var(--bg-app); pointer-events: none;
+}
+
+/* sync panel (reuses the .snooze-menu float-menu chrome) */
+.snooze-menu.sync-panel { min-width: 224px; }
+.sync-panel .sync-panel-status { display: flex; align-items: center; gap: 8px; padding: 8px 11px 9px;
+    font-size: 12.5px; color: var(--text-secondary); border-bottom: 1px solid var(--border); margin-bottom: 3px; }
+.sync-panel .sync-panel-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: 0 0 auto; }
+.sync-panel-status[data-sync="syncing"] .sync-panel-dot { background: var(--accent-hover); animation: dangerPulse 1.4s ease-in-out infinite; }
+.sync-panel-status[data-sync="ok"] .sync-panel-dot { background: #9b86d6; }
+.sync-panel-status[data-sync="error"] .sync-panel-dot { background: var(--prio-high); }
+.sync-panel-status[data-sync="pending"] .sync-panel-dot { background: var(--accent); }
+.sync-panel .sync-panel-quar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sync-panel .sync-panel-quar-n { background: var(--accent); color: #0a0414; font-size: 10px; font-weight: 700;
+    min-width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 8px; padding: 0 4px; }
+
+/* quarantine review overlay (reuses .modal-overlay/.modal) */
+.sync-quar-modal { max-width: 460px; width: 92vw; }
+.sync-quar-desc { font-size: 12px; color: var(--text-muted); margin: 4px 0 14px; line-height: 1.5; }
+.sync-quar-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow: auto; }
+.sync-quar-row { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between;
+    padding: 10px 11px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-item); }
+.sync-quar-what { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 4px; }
+.sync-quar-loser { font-size: 12px; color: var(--text-muted); word-break: break-word; line-height: 1.4; }
+.sync-quar-loser i { color: var(--text-muted); opacity: .7; }
+.sync-quar-acts { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.sync-quar-restore, .sync-quar-dismiss { font-size: 11.5px; padding: 5px 10px; border-radius: var(--radius-sm);
+    cursor: pointer; border: 1px solid var(--border-mid); background: var(--accent-soft); color: var(--text-primary);
+    white-space: nowrap; transition: background var(--dur-micro), border-color var(--dur-micro), color var(--dur-micro); }
+.sync-quar-restore:hover { border-color: var(--border-bright); background: var(--accent-dim); color: var(--text-primary); }
+.sync-quar-dismiss { background: transparent; color: var(--text-muted); }
+.sync-quar-dismiss:hover { color: var(--prio-high); border-color: var(--prio-high-border); }
+.sync-quar-empty { color: var(--text-muted); font-size: 12.5px; padding: 16px; text-align: center; }
+
+@media (max-width: 560px) {
+    .sync-glyph { top: 10px; right: 10px; width: 27px; height: 27px; }
+}
+

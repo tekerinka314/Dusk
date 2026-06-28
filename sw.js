@@ -46,6 +46,7 @@ const CORE_ASSETS = [
     './dusk/08-quickadd-export-init.js',
     './dusk/09-sync.js',
     './dusk/10-cloud.js',
+    './dusk/11-sync-ui.js',
     './manifest.json',
     './version.json',
     './icon-192.svg',
