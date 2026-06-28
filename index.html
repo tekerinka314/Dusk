@@ -34,43 +34,10 @@
         <!-- C-2: ambient breathing glow on its own layer (was a colliding .todo-app::after) -->
         <div class="app-glow" aria-hidden="true"></div>
 
-        <!-- Sync Phase 3: reptilian-eye status glyph (top-right corner, subtle — never
-             competes with the brand). data-sync drives the state mimicry (rest / syncing /
-             ok / pending / error / signed-out / offline); 11-sync-ui.js toggles it + opens
-             the sync panel. The vertical slit pupil + scaled lids distinguish it from the
-             round-pupil "filter eye" in the toolbar. -->
-        <button id="sync-glyph-btn" class="sync-glyph" type="button" data-act="openSyncPanel"
-                data-sync="offline" title="Синхронизация" aria-haspopup="dialog" aria-label="Синхронизация">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <g class="brow">
-                    <path d="M3.3 9.0 C6.4 3.9 17.6 3.9 20.7 9.0" stroke-width="1.7"/>
-                    <path d="M6.8 6.4 l.7 1.2" stroke-width="1.15" opacity=".55"/>
-                    <path d="M9.7 5.5 l.42 1.2" stroke-width="1.15" opacity=".55"/>
-                    <path d="M12 5.1 l0 1.35" stroke-width="1.2" opacity=".6"/>
-                    <path d="M14.3 5.5 l-.42 1.2" stroke-width="1.15" opacity=".55"/>
-                    <path d="M17.2 6.4 l-.7 1.2" stroke-width="1.15" opacity=".55"/>
-                </g>
-                <g class="lids">
-                    <path class="lid-up" d="M3 12 C6.2 6.6 17.8 6.6 21 12"/>
-                    <path class="lid-lo" d="M3 12 C6.2 17.4 17.8 17.4 21 12"/>
-                    <path d="M3 12 l-1.3 -1.05 M3 12 l-1.3 1.05" stroke-width="1.15" opacity=".5"/>
-                    <path d="M21 12 l1.3 -1.05 M21 12 l1.3 1.05" stroke-width="1.15" opacity=".5"/>
-                    <path class="tear" d="M5.6 12.7 C8.4 15.5 15.6 15.5 18.4 12.7" stroke-width="1.1" opacity=".42"/>
-                    <path d="M3.2 12 q1.0 .78 2.1 .55" stroke-width="1.0" opacity=".42"/>
-                </g>
-                <g class="ball">
-                    <circle class="iris" cx="12" cy="12" r="3.4" opacity=".46"/>
-                    <g class="iris-stria" stroke-width="1.1" opacity=".46">
-                        <path d="M12 8.7 v1.15"/><path d="M12 14.15 v1.15"/>
-                        <path d="M8.7 12 h1.15"/><path d="M14.15 12 h1.15"/>
-                        <path d="M9.55 9.55 l.8 .8"/><path d="M14.45 9.55 l-.8 .8"/>
-                        <path d="M9.55 14.45 l.8 -.8"/><path d="M14.45 14.45 l-.8 -.8"/>
-                    </g>
-                    <path class="pupil" d="M12 8.5 C12.95 10.3 12.95 13.7 12 15.5 C11.05 13.7 11.05 10.3 12 8.5 Z" fill="currentColor" stroke="none"/>
-                    <circle class="glint" cx="12.7" cy="9.7" r=".62" fill="#efe6ff" stroke="none"/>
-                </g>
-            </svg>
-        </button>
+        <!-- Sync Phase 3: the reptilian-eye sync sentinel is a position:fixed floating
+             button — it lives OUTSIDE .todo-app (near the pen-sound FAB at body level)
+             because .todo-app's backdrop-filter would otherwise become its containing
+             block and pin it to the card instead of the viewport. -->
 
         <!-- Header -->
         <header class="app-header">
@@ -1475,6 +1442,46 @@
 <!-- п.17 Звук пера (UI + tooltips + click/drag wired in JS by _penBuildUI/applyPenSoundPref) -->
 <button class="btn-pen-sound off" id="btn-pen-sound" aria-pressed="false"></button>
 
+<!-- Sync Phase 3: reptilian-eye sync sentinel — a floating FAB pinned to the bottom-LEFT
+     corner (position:fixed), mirroring the pen-sound «Сосуд» FAB at the bottom-right so the
+     two corners balance. Kept at body level (NOT inside .todo-app) so .todo-app's
+     backdrop-filter can't capture its fixed positioning. data-sync drives the state mimicry
+     (rest / syncing / ok / pending / error / signed-out / offline); 11-sync-ui.js toggles it
+     + opens the sync panel. The vertical slit pupil + scaled lids distinguish it from the
+     round-pupil "filter eye" in the toolbar. -->
+<button id="sync-glyph-btn" class="sync-glyph" type="button" data-act="openSyncPanel"
+        data-sync="offline" title="Синхронизация" aria-haspopup="dialog" aria-label="Синхронизация">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <g class="brow">
+            <path d="M3.3 9.0 C6.4 3.9 17.6 3.9 20.7 9.0" stroke-width="1.7"/>
+            <path d="M6.8 6.4 l.7 1.2" stroke-width="1.15" opacity=".55"/>
+            <path d="M9.7 5.5 l.42 1.2" stroke-width="1.15" opacity=".55"/>
+            <path d="M12 5.1 l0 1.35" stroke-width="1.2" opacity=".6"/>
+            <path d="M14.3 5.5 l-.42 1.2" stroke-width="1.15" opacity=".55"/>
+            <path d="M17.2 6.4 l-.7 1.2" stroke-width="1.15" opacity=".55"/>
+        </g>
+        <g class="lids">
+            <path class="lid-up" d="M3 12 C6.2 6.6 17.8 6.6 21 12"/>
+            <path class="lid-lo" d="M3 12 C6.2 17.4 17.8 17.4 21 12"/>
+            <path d="M3 12 l-1.3 -1.05 M3 12 l-1.3 1.05" stroke-width="1.15" opacity=".5"/>
+            <path d="M21 12 l1.3 -1.05 M21 12 l1.3 1.05" stroke-width="1.15" opacity=".5"/>
+            <path class="tear" d="M5.6 12.7 C8.4 15.5 15.6 15.5 18.4 12.7" stroke-width="1.1" opacity=".42"/>
+            <path d="M3.2 12 q1.0 .78 2.1 .55" stroke-width="1.0" opacity=".42"/>
+        </g>
+        <g class="ball">
+            <circle class="iris" cx="12" cy="12" r="3.4" opacity=".46"/>
+            <g class="iris-stria" stroke-width="1.1" opacity=".46">
+                <path d="M12 8.7 v1.15"/><path d="M12 14.15 v1.15"/>
+                <path d="M8.7 12 h1.15"/><path d="M14.15 12 h1.15"/>
+                <path d="M9.55 9.55 l.8 .8"/><path d="M14.45 9.55 l-.8 .8"/>
+                <path d="M9.55 14.45 l.8 -.8"/><path d="M14.45 14.45 l-.8 -.8"/>
+            </g>
+            <path class="pupil" d="M12 8.5 C12.95 10.3 12.95 13.7 12 15.5 C11.05 13.7 11.05 10.3 12 8.5 Z" fill="currentColor" stroke="none"/>
+            <circle class="glint" cx="12.7" cy="9.7" r=".62" fill="#efe6ff" stroke="none"/>
+        </g>
+    </svg>
+</button>
+
 <!-- Shortcuts toggle button -->
 <button class="btn-shortcuts-toggle" id="btn-shortcuts-toggle"
         data-act="toggleShortcutsHint" title="Горячие клавиши"
@@ -1654,9 +1661,10 @@ if ('serviceWorker' in navigator) {
 // (no auto-reload — never interrupt the user). Clicking it reloads (which applies
 // the update); after that reload a one-shot "установлено" toast confirms success.
 (function () {
-    var POLL_MS = 5 * 60 * 1000;     // re-check every 5 min + on tab refocus
+    var POLL_MS = 5000;              // re-check every 5s WHILE the tab is visible
     var bootBuild = null;            // version this page actually loaded with
     var promptedFor = null;          // build we've already prompted about (no nagging)
+    var timer = null;                // active poll interval (runs only while visible)
 
     function readBuild() {
         return fetch('./version.json', { cache: 'no-store' })
@@ -1686,6 +1694,19 @@ if ('serviceWorker' in navigator) {
         });
     }
 
+    // Poll only while the tab is VISIBLE: an instant check on becoming visible, then
+    // every POLL_MS. When hidden we stop entirely (zero network/battery in the
+    // background; hidden-tab timers are throttled to ≥1 min anyway). This makes a
+    // freshly-pushed build surface within ~5s while you're actually looking — no
+    // refocus required — yet costs nothing when you're not.
+    function startPolling() {
+        if (timer != null) return;
+        timer = setInterval(check, POLL_MS);
+    }
+    function stopPolling() {
+        if (timer != null) { clearInterval(timer); timer = null; }
+    }
+
     function start() {
         readBuild().then(function (b) {
             bootBuild = b;
@@ -1696,9 +1717,18 @@ if ('serviceWorker' in navigator) {
                 try { sessionStorage.removeItem('dusk_pending_update'); } catch (_) {}
                 if (typeof showToast === 'function') showToast('Обновление установлено');
             }
+            // begin watching once our own build is known (no false prompt mid-fetch)
+            if (!document.hidden) startPolling();
         });
-        setInterval(check, POLL_MS);
-        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        document.addEventListener('visibilitychange', function () {
+            // becoming visible → check NOW (catch a deploy that happened while hidden)
+            // then resume polling; going hidden → stop entirely.
+            if (document.hidden) stopPolling(); else { check(); startPolling(); }
+        });
+        // belt-and-braces: also re-check the moment the window regains focus or the
+        // network comes back, so detection never hinges on a single condition.
+        window.addEventListener('focus', check);
+        window.addEventListener('online', check);
     }
 
     if (document.readyState === 'complete' || document.readyState === 'interactive') start();

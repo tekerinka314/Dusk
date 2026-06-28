@@ -7988,18 +7988,33 @@ kbd {
 /* ============================================================
    Sync Phase 3 — reptilian-eye status glyph + panel + quarantine
    ============================================================ */
-.todo-app { position: relative; }   /* anchor for the corner glyph */
-
+/* Floating sentinel — bottom-LEFT, mirroring the pen-sound «Сосуд» FAB at the
+   bottom-right (same circular chrome: bg / hairline border / blur / soft shadow).
+   The eye keeps watch over the page; clicking opens the sync panel. The CHROME
+   stays at full opacity so the control is always readable over content; only the
+   EYE's stroke colour + opacity reflect the sync state (so "offline/asleep" dims
+   the eye inside a still-visible ring rather than fading the whole button out). */
 .sync-glyph {
-    position: absolute; top: 14px; right: 14px; z-index: 6;
-    width: 30px; height: 30px; padding: 0; border: none; background: none; cursor: pointer;
-    color: var(--text-muted); opacity: .6;
-    transition: opacity var(--dur-quick) var(--ease-gothic), color var(--dur-quick) var(--ease-gothic);
+    position: fixed; bottom: 22px; left: 22px; z-index: 50;
+    width: 52px; height: 52px; padding: 6px;          /* 52 − 2×6 ⇒ a 40px eye */
+    border-radius: 50%;
+    background: var(--bg-app);
+    border: 1px solid var(--border-mid);
+    color: var(--text-muted);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: color var(--dur-quick) var(--ease-gothic),
+                border-color var(--dur-quick) var(--ease-gothic),
+                box-shadow var(--dur-quick) var(--ease-gothic);
     -webkit-tap-highlight-color: transparent;
 }
-.sync-glyph:hover { opacity: 1; color: var(--text-secondary); }
-.sync-glyph svg { width: 100%; height: 100%; display: block; overflow: visible;
-    filter: drop-shadow(0 0 .5px currentColor); }   /* faint bloom softens small-size edges */
+.sync-glyph:hover { border-color: rgba(140, 60, 255, 0.55); box-shadow: var(--shadow-glow); }
+.sync-glyph:hover svg { opacity: 1; }
+.sync-glyph svg { width: 100%; height: 100%; display: block; overflow: visible; opacity: .72;
+    filter: drop-shadow(0 0 .5px currentColor);                /* faint bloom softens edges */
+    transition: opacity var(--dur-quick) var(--ease-gothic); }
 .sync-glyph .lids, .sync-glyph .ball, .sync-glyph .brow, .sync-glyph .pupil {
     transform-box: view-box; transform-origin: 12px 12px;
     transition: transform .42s var(--ease-gothic); }
@@ -8008,32 +8023,36 @@ kbd {
 .sync-glyph .glint { opacity: 0; }
 
 /* states — the eye mimics sync status (brow follows the upper lid per state) */
-.sync-glyph[data-sync="rest"] { opacity: .62; }
+/* per-state OPACITY rides on the inner <svg> (not the button) so the floating
+   chrome ring never fades — only the eye itself dims/brightens with the state. */
+.sync-glyph[data-sync="rest"] svg { opacity: .62; }
 .sync-glyph[data-sync="rest"] .lids, .sync-glyph[data-sync="rest"] .ball, .sync-glyph[data-sync="rest"] .brow { transform: scaleY(.9); }
 
-.sync-glyph[data-sync="ok"] { color: #9b86d6; opacity: .85; }
+.sync-glyph[data-sync="ok"] { color: #9b86d6; }
+.sync-glyph[data-sync="ok"] svg { opacity: .85; }
 .sync-glyph[data-sync="ok"] .lids, .sync-glyph[data-sync="ok"] .ball, .sync-glyph[data-sync="ok"] .brow { transform: scaleY(.82); }
 .sync-glyph[data-sync="ok"] .lid-up { transform: translateY(1.1px); }
 
-.sync-glyph[data-sync="syncing"] { color: var(--accent-hover); opacity: 1; }
+.sync-glyph[data-sync="syncing"] { color: var(--accent-hover); }
+.sync-glyph[data-sync="syncing"] svg { opacity: 1; filter: drop-shadow(0 0 2px var(--accent-glow)); }
 .sync-glyph[data-sync="syncing"] .glint { opacity: .9; }
-.sync-glyph[data-sync="syncing"] svg { filter: drop-shadow(0 0 2px var(--accent-glow)); }
 
-.sync-glyph[data-sync="pending"] { color: var(--accent); opacity: .92; }
+.sync-glyph[data-sync="pending"] { color: var(--accent); }
+.sync-glyph[data-sync="pending"] svg { opacity: .92; }
 .sync-glyph[data-sync="pending"] .glint { opacity: .85; }
 .sync-glyph[data-sync="pending"] .lids, .sync-glyph[data-sync="pending"] .ball, .sync-glyph[data-sync="pending"] .brow { transform: scaleY(.92); }
 
-.sync-glyph[data-sync="error"] { color: var(--prio-high); opacity: 1; }
+.sync-glyph[data-sync="error"] { color: var(--prio-high); }
+.sync-glyph[data-sync="error"] svg { opacity: 1; filter: drop-shadow(0 0 2px var(--prio-high-border)); }
 .sync-glyph[data-sync="error"] .lids, .sync-glyph[data-sync="error"] .ball, .sync-glyph[data-sync="error"] .brow { transform: scaleY(.6); }
 .sync-glyph[data-sync="error"] .pupil { transform: scaleX(.4); }
-.sync-glyph[data-sync="error"] svg { filter: drop-shadow(0 0 2px var(--prio-high-border)); }
 
-.sync-glyph[data-sync="signed-out"] { opacity: .7; }
+.sync-glyph[data-sync="signed-out"] svg { opacity: .7; }
 .sync-glyph[data-sync="signed-out"] .lids, .sync-glyph[data-sync="signed-out"] .ball, .sync-glyph[data-sync="signed-out"] .brow { transform: scaleY(.48); }
 .sync-glyph[data-sync="signed-out"] .iris, .sync-glyph[data-sync="signed-out"] .iris-stria, .sync-glyph[data-sync="signed-out"] .pupil { opacity: 0; }
 .sync-glyph[data-sync="signed-out"] .glint { opacity: .9; }
 
-.sync-glyph[data-sync="offline"] { opacity: .42; }
+.sync-glyph[data-sync="offline"] svg { opacity: .42; }
 .sync-glyph[data-sync="offline"] .lids, .sync-glyph[data-sync="offline"] .ball, .sync-glyph[data-sync="offline"] .brow { transform: scaleY(.44); }
 .sync-glyph[data-sync="offline"] .iris, .sync-glyph[data-sync="offline"] .iris-stria, .sync-glyph[data-sync="offline"] .pupil, .sync-glyph[data-sync="offline"] .glint { opacity: 0; }
 
@@ -8085,6 +8104,6 @@ kbd {
 .sync-quar-empty { color: var(--text-muted); font-size: 12.5px; padding: 16px; text-align: center; }
 
 @media (max-width: 560px) {
-    .sync-glyph { top: 10px; right: 10px; width: 27px; height: 27px; }
+    .sync-glyph { bottom: 18px; left: 16px; width: 50px; height: 50px; }
 }
 
