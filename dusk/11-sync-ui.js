@@ -29,8 +29,10 @@ let _lastError    = null;      // last sync error (for the 'error' status)
 let _syncEnabled  = false;     // user opted into sync (first interactive sign-in)
 let _debounceTimer = null;
 let _tokenRefreshTimer = null; // proactive silent token renewal (keeps an open session alive)
+let _periodicTimer = null;     // background pull cadence while a signed-in tab is visible
 
 const SYNC_DEBOUNCE_MS  = 4000;
+const SYNC_PERIODIC_MS  = 30000;   // two open devices converge within this while both are visible
 const MAX_CONFLICT_RETRY = 4;
 const K_SYNC_LASTOK  = 'dusk_sync_lastok_v1';
 const K_SYNC_ENABLED = 'dusk_sync_enabled_v1';
@@ -114,6 +116,41 @@ function refreshQuarantineBadge() {
     } else if (chip) { chip.remove(); }
 }
 
+// Order-insensitive deep-equal (sorts object keys) used to decide whether a push
+// is actually needed: if our merged subset already equals what's on Drive, the
+// sync was a pure pull → skip the write. Reload-safe (compares CONTENT, not the
+// in-memory _pendingPush flag, which resets on reload and would otherwise drop a
+// not-yet-pushed offline edit after a refresh).
+function _stableStringify(v) {
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (Array.isArray(v)) return '[' + v.map(_stableStringify).join(',') + ']';
+    return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + _stableStringify(v[k])).join(',') + '}';
+}
+function _subsetEqual(a, b) { return _stableStringify(a) === _stableStringify(b); }
+
+// Background pull cadence: while a signed-in tab is visible, re-sync every
+// SYNC_PERIODIC_MS so two devices left open converge without any user action.
+// Each tick is a cheap pull (the push is skipped when nothing local changed).
+function _startPeriodic() {
+    if (_periodicTimer != null) return;
+    _periodicTimer = setInterval(() => {
+        if (typeof document !== 'undefined' && document.hidden) return;
+        if (!_syncing && typeof cloudStatus === 'function' && cloudStatus().signedIn) syncNow({ interactive: false });
+    }, SYNC_PERIODIC_MS);
+}
+function _stopPeriodic() { if (_periodicTimer != null) { clearInterval(_periodicTimer); _periodicTimer = null; } }
+
+// Flush pending local edits immediately (cancel the debounce) — used when the tab
+// is hidden/closing so an edit made right before leaving isn't stuck in the 4 s
+// debounce. Best-effort on unload; baseline-safety means a missed flush just
+// re-syncs on next open.
+function _flushIfPending() {
+    if (_pendingPush && !_syncing && typeof cloudStatus === 'function' && cloudStatus().signedIn) {
+        clearTimeout(_debounceTimer);
+        syncNow({ interactive: false });
+    }
+}
+
 // ── the live loop ─────────────────────────────────────────────────────────────
 async function syncNow(opts) {
     opts = opts || {};
@@ -152,6 +189,14 @@ async function syncNow(opts) {
             saveState();                                            // local truth persisted (offline-safe)
             render();
 
+            // Push only when our merged result actually differs from Drive (or the
+            // file doesn't exist yet). A pure pull (open/refocus/periodic with no
+            // local change) skips the write → no needless Drive version churn.
+            if (!pulled.empty && _subsetEqual(out.merged, remote)) {
+                saveBaseline(out.merged);                           // Drive already current
+                _pendingPush = false;
+                break;
+            }
             try {
                 await cloudPush(out.merged, {
                     fileId: pulled.fileId || null,
@@ -217,6 +262,7 @@ async function syncSignIn() {
 function syncSignOut() {
     if (typeof closeFloatMenu === 'function') closeFloatMenu();
     clearTimeout(_tokenRefreshTimer);
+    _stopPeriodic();
     try { cloudSignOut(); } catch (_) {}
     _syncEnabled = false; _lastError = null;
     try { localStorage.removeItem(K_SYNC_ENABLED); } catch (_) {}
@@ -432,12 +478,20 @@ function _initSyncUI() {
     }
     // restored a cached token on load → start the silent-renew chain even before the
     // first sync finishes, so an idle-but-signed-in tab still stays authorized.
-    if (typeof cloudStatus === 'function' && cloudStatus().signedIn) _scheduleTokenRefresh();
+    if (typeof cloudStatus === 'function' && cloudStatus().signedIn) { _scheduleTokenRefresh(); _startPeriodic(); }
+
+    const _signedIn = () => typeof cloudStatus === 'function' && cloudStatus().signedIn;
+
     document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && _syncEnabled && typeof cloudStatus === 'function' && cloudStatus().signedIn) syncNow({ interactive: false });
+        if (document.hidden) { _flushIfPending(); _stopPeriodic(); return; }   // leaving → flush + idle
+        if (_syncEnabled && _signedIn()) { syncNow({ interactive: false }); _startPeriodic(); }   // returning → pull + resume
     });
-    window.addEventListener('online',  () => { refreshStatus(); if (_syncEnabled && cloudStatus().signedIn) syncNow({ interactive: false }); });
-    window.addEventListener('offline', () => { refreshStatus(); });
+    // edit-then-close: push pending edits before the page goes away (best-effort).
+    window.addEventListener('pagehide', _flushIfPending);
+    // window regained focus (alt-tab back to the app) → pull anything new.
+    window.addEventListener('focus', () => { if (_syncEnabled && _signedIn()) syncNow({ interactive: false }); });
+    window.addEventListener('online',  () => { refreshStatus(); if (_syncEnabled && _signedIn()) { syncNow({ interactive: false }); _startPeriodic(); } });
+    window.addEventListener('offline', () => { _stopPeriodic(); refreshStatus(); });
 }
 
 // 11 loads after 08 (init done) — DOM + state ready. Guard for the node test seam.
