@@ -28,6 +28,7 @@ let _lastSyncOk   = 0;         // ms epoch of the last successful sync
 let _lastError    = null;      // last sync error (for the 'error' status)
 let _syncEnabled  = false;     // user opted into sync (first interactive sign-in)
 let _debounceTimer = null;
+let _tokenRefreshTimer = null; // proactive silent token renewal (keeps an open session alive)
 
 const SYNC_DEBOUNCE_MS  = 4000;
 const MAX_CONFLICT_RETRY = 4;
@@ -73,6 +74,34 @@ function setSyncStatus(kind) {
     refreshQuarantineBadge();
 }
 function refreshStatus() { setSyncStatus(_syncing ? 'syncing' : _restState()); }
+
+// Proactive SILENT token renewal. The Drive token lives only ~1 h; left alone it
+// would expire and the next action would need a (possibly visible / failing)
+// refresh. Instead, while the app is open and signed in, we renew it just as the
+// cached copy lapses — silently (prompt:'none' → never pops a window) — and
+// reschedule on success. So a single sign-in keeps working for as long as the
+// Google session + grant live (weeks/months); we only fall to 'signed-out' if a
+// SILENT renewal genuinely fails (Google session reset / third-party cookies
+// blocked), where one click on the eye (or S) re-auths. This is what makes
+// "sign in once, stay signed in" hold past the first hour. (We fire at the cached
+// expiry — which already carries a 60 s safety margin, so the real token is still
+// alive while the silent request completes — because cloudAuth() early-returns
+// while the cached token is still valid and wouldn't actually renew earlier.)
+function _scheduleTokenRefresh() {
+    clearTimeout(_tokenRefreshTimer);
+    if (typeof cloudStatus !== 'function') return;
+    const st = cloudStatus();
+    if (!st.signedIn || !st.expiresAt) return;
+    let delay = st.expiresAt - Date.now();
+    if (delay < 3000) delay = 3000;                 // already lapsing → renew shortly
+    if (delay > 30 * 60000) delay = 30 * 60000;     // clamp a misbehaving clock
+    _tokenRefreshTimer = setTimeout(() => {
+        if (typeof cloudIsConfigured !== 'function' || !cloudIsConfigured()) { _scheduleTokenRefresh(); return; }  // offline → try again later
+        cloudAuth({ interactive: false })
+            .then(() => { refreshStatus(); _scheduleTokenRefresh(); })   // renewed silently → keep the chain alive
+            .catch(() => { setSyncStatus('signed-out'); });              // silent failed → wait for an explicit click
+    }, delay);
+}
 
 function refreshQuarantineBadge() {
     const el = _glyph();
@@ -139,6 +168,7 @@ async function syncNow(opts) {
         _lastSyncOk = Date.now();
         try { localStorage.setItem(K_SYNC_LASTOK, String(_lastSyncOk)); } catch (_) {}
         _syncing = false;
+        _scheduleTokenRefresh();                                // keep the session alive past 1 h
         refreshStatus();
         if (manual) _toastResult(stats, conflicts);
     } catch (e) {
@@ -186,6 +216,7 @@ async function syncSignIn() {
 }
 function syncSignOut() {
     if (typeof closeFloatMenu === 'function') closeFloatMenu();
+    clearTimeout(_tokenRefreshTimer);
     try { cloudSignOut(); } catch (_) {}
     _syncEnabled = false; _lastError = null;
     try { localStorage.removeItem(K_SYNC_ENABLED); } catch (_) {}
@@ -399,6 +430,9 @@ function _initSyncUI() {
     if (_syncEnabled && typeof cloudIsConfigured === 'function' && cloudIsConfigured()) {
         setTimeout(() => syncNow({ interactive: false }), 60);
     }
+    // restored a cached token on load → start the silent-renew chain even before the
+    // first sync finishes, so an idle-but-signed-in tab still stays authorized.
+    if (typeof cloudStatus === 'function' && cloudStatus().signedIn) _scheduleTokenRefresh();
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden && _syncEnabled && typeof cloudStatus === 'function' && cloudStatus().signedIn) syncNow({ interactive: false });
     });
