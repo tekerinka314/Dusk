@@ -993,11 +993,21 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
     const r  = btn.getBoundingClientRect();
     const mw = menu.offsetWidth || 160;
     const mh = menu.offsetHeight || 0;
-    // Default below the anchor; flip ABOVE when there isn't room below (e.g. the
-    // sync eye is pinned to the bottom corner) and there IS room above.
-    let top = r.bottom + 5;
-    if (top + mh > window.innerHeight - 8 && r.top - mh - 5 >= 8) top = r.top - mh - 5;
-    menu.style.top  = Math.round(top) + 'px';
+    const pad = 8;
+    const spaceBelow = window.innerHeight - r.bottom - pad;
+    const spaceAbove = r.top - pad;
+    // Open below by default; flip ABOVE when there's more room there (e.g. the sync
+    // eye is pinned to the bottom-left). When opening above, anchor by BOTTOM so the
+    // panel grows UPWARD — a <details>/log expanding then can't push it off-screen —
+    // and cap the height to the available space with internal scroll either way.
+    if (spaceBelow >= mh || spaceBelow >= spaceAbove) {
+        menu.style.top = Math.round(r.bottom + 5) + 'px';
+        menu.style.maxHeight = Math.round(Math.max(120, spaceBelow)) + 'px';
+    } else {
+        menu.style.bottom = Math.round(window.innerHeight - r.top + 5) + 'px';
+        menu.style.maxHeight = Math.round(Math.max(120, spaceAbove)) + 'px';
+    }
+    menu.style.overflowY = 'auto';
     menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
     _floatMenuEl = menu;
     _floatMenuAnchor = btn;

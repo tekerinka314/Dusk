@@ -8084,7 +8084,7 @@ kbd {
     list-style: none; user-select: none; }
 .sync-panel .sync-panel-log summary::-webkit-details-marker { display: none; }
 .sync-panel .sync-panel-log summary::before { content: '☰ '; opacity: .6; }
-.sync-panel .sync-log-list { max-height: 168px; overflow: auto; padding: 0 11px 8px; }
+.sync-panel .sync-log-list { padding: 0 11px 8px; }   /* the panel itself scrolls (max-height in _openFloatMenu) */
 .sync-panel .sync-log-row { font-size: 10.5px; line-height: 1.5; color: var(--text-secondary);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; }
 .sync-panel .sync-log-t { color: var(--text-muted); opacity: .7; margin-right: 6px; }
