@@ -1111,7 +1111,11 @@ function showToast(msg, opts = {}) {
     // Force reflow so removing classes takes effect before re-adding
     void toast.offsetWidth;
 
-    toast.classList.toggle('has-undo', !!opts.undo);
+    // opts.action = { label, html, onClick } renders a generic gothic action button
+    // (same styling as undo). opts.persist keeps the toast up (no auto-hide);
+    // opts.duration overrides the auto-hide delay.
+    const hasBtn = !!opts.undo || !!opts.action;
+    toast.classList.toggle('has-undo', hasBtn);
     toast.innerHTML = '';
     const span = document.createElement('span');
     span.className = 'toast-msg';
@@ -1125,6 +1129,13 @@ function showToast(msg, opts = {}) {
         btn.innerHTML = `${IC.restore}<span>Отменить</span>`;
         btn.addEventListener('click', () => { _hideToast(); undo(); });
         toast.appendChild(btn);
+    } else if (opts.action) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'toast-undo-btn';
+        btn.innerHTML = `${opts.action.html || ''}<span>${opts.action.label || ''}</span>`;
+        btn.addEventListener('click', () => { _hideToast(); try { opts.action.onClick(); } catch (_) {} });
+        toast.appendChild(btn);
     }
 
     toast.classList.add('show');
@@ -1132,8 +1143,10 @@ function showToast(msg, opts = {}) {
     // Mirror to screen-reader live region so assistive tech hears every toast
     announce(opts.undo ? `${msg}. Доступна отмена` : msg);
 
-    // After display time, trigger vanish animation then clean up
-    toastTimer = setTimeout(_hideToast, opts.undo ? 5000 : 2400);
+    // After display time, trigger vanish animation then clean up (persist = stays up).
+    if (!opts.persist) {
+        toastTimer = setTimeout(_hideToast, opts.duration || (hasBtn ? 5000 : 2400));
+    }
 }
 
 function shakeInput() {

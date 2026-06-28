@@ -142,8 +142,11 @@ refactor is its prerequisite and the first concrete step.
   working branch for all forward work — do NOT ask which branch). Tag
   `v1.86-stable-core` = the pre-refactor stable snapshot (rollback point). The old
   `fix/ui-repeat-meta-subtasks` is frozen history. Remote `origin` =
-  github.com/tekerinka314/Dusk. Commit (with the `Co-Authored-By` trailer) and
-  push only when asked. Branch off the default branch rather than committing to it.
+  github.com/tekerinka314/Dusk. **Commit + push AUTOMATICALLY after each finished
+  unit of work** (changed 2026-06-28 — updates reach the user only via push→GitHub
+  Pages, so don't wait to be asked), with the `Co-Authored-By` trailer. Bump
+  `version.js` (BUILD) as part of every deploy commit (drives the in-app "update
+  available" toast). Branch off the default branch rather than committing to it.
 - The user is a **beginner in backend/sync/infra** — explain in plain terms and
   ask clarifying questions rather than assuming.
 

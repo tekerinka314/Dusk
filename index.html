@@ -1497,16 +1497,17 @@
   </defs>
 </svg>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>
 <script>
 // Register service worker for offline support (PWA — audit G-4)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
-    // V-3: SW posts this when a shell file changed in the background (stale-while-
-    // revalidate). Show a gentle toast inviting a reload; guarded because app.js
-    // (which defines showToast) may not have finished loading yet.
+    // The SW is now network-first (updates arrive on the first reload), so it no
+    // longer posts 'dusk-update-ready'. This listener is kept harmless for the
+    // upgrade window — a still-active old (SWR) worker may post it once; if it
+    // does, show a gentle reload toast (guarded: showToast may not be defined yet).
     let _duskUpdateNotified = false;
     navigator.serviceWorker.addEventListener('message', e => {
         if (e.data && e.data.type === 'dusk-update-ready' && !_duskUpdateNotified) {
@@ -1599,6 +1600,66 @@ if ('serviceWorker' in navigator) {
 <script src="dusk/09-sync.js"></script>
 <script src="dusk/10-cloud.js"></script>
 <script src="dusk/08-quickadd-export-init.js"></script>
+
+<script>
+// ── In-app update detection ──────────────────────────────────────────────────
+// The SW is network-first, so a plain reload always loads the latest. This block
+// adds the "while you sit on the page" path: poll a tiny version marker; when a
+// newer build is deployed, show a gothic toast with a MANUAL «Обновить» button
+// (no auto-reload — never interrupt the user). Clicking it reloads (which applies
+// the update); after that reload a one-shot "установлено" toast confirms success.
+(function () {
+    var POLL_MS = 5 * 60 * 1000;     // re-check every 5 min + on tab refocus
+    var bootBuild = null;            // version this page actually loaded with
+    var promptedFor = null;          // build we've already prompted about (no nagging)
+
+    function readBuild() {
+        return fetch('./version.json', { cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { return j && j.build; })
+            .catch(function () { return null; });   // offline / error → no false prompt
+    }
+
+    function check() {
+        readBuild().then(function (b) {
+            if (!b || bootBuild == null || b === bootBuild || b === promptedFor) return;
+            if (typeof showToast !== 'function') return;
+            promptedFor = b;
+            showToast('Доступно обновление', {
+                duration: 10000,
+                action: {
+                    label: 'Обновить',
+                    // Reuse the ornate gothic ouroboros (cycle / renewal) — already the
+                    // app's "repeat/renew" motif, on-brand and instantly legible.
+                    html: (typeof IC === 'object' && IC.ouroboros) ? IC.ouroboros : '',
+                    onClick: function () {
+                        try { sessionStorage.setItem('dusk_pending_update', b); } catch (_) {}
+                        location.reload();
+                    },
+                },
+            });
+        });
+    }
+
+    function start() {
+        readBuild().then(function (b) {
+            bootBuild = b;
+            // If we just came back from an update reload, confirm it landed.
+            var pend = null;
+            try { pend = sessionStorage.getItem('dusk_pending_update'); } catch (_) {}
+            if (pend) {
+                try { sessionStorage.removeItem('dusk_pending_update'); } catch (_) {}
+                if (typeof showToast === 'function') showToast('Обновление установлено');
+            }
+        });
+        setInterval(check, POLL_MS);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') start();
+    else window.addEventListener('load', start);
+})();
+</script>
 
 </body>
 </html>

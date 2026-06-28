@@ -1,26 +1,28 @@
 // ============================================================
-//  DUSK — Service Worker  (offline-ready, auto-updating)
+//  DUSK — Service Worker  (offline-ready, fresh-on-first-reload)
 // ============================================================
-// V-3: strategy changed from pure cache-first (which required a MANUAL cache
-// version bump on every deploy or users got stuck on the old build) to
-// stale-while-revalidate for the app shell:
-//   • respond from cache instantly  → fully offline-capable, fast
-//   • revalidate from network in the background → cache always freshens
-//   • when a shell file actually changed, notify open clients so the app can
-//     show a non-intrusive "new version — reload" toast.
-// The CACHE name is now STABLE — no per-edit bump. Edits to app.js / style.css /
-// index.html propagate on their own: the SWR fetch handler re-fetches each shell
-// file on the next load, overwrites its cache entry, and fires the "new version"
-// toast when the bytes actually changed. sw.js itself only needs editing when the
-// caching strategy changes (which is what makes the browser reinstall the worker
-// and run the one-time activate cleanup that purges the old dusk-v* caches).
-const CACHE  = 'dusk-shell-v2';
+// Strategy (changed from stale-while-revalidate):
+//   • App shell (same-origin) → NETWORK-FIRST with a short timeout.
+//       - Online: always fetch the latest → updates land on the FIRST reload,
+//         no "new version" toast, no double-reload. Unchanged files come back as
+//         a tiny 304 (browser HTTP cache) so a normal reload is ~one fast RTT.
+//       - Network slow/down: after NET_TIMEOUT_MS we serve the cached copy
+//         instantly (the in-flight fetch keeps running to refresh the cache for
+//         next time). Fully offline → cache fallback. So offline always works.
+//   • SortableJS CDN (pinned, immutable) → CACHE-FIRST (never revalidated).
+//   • Google Fonts → network-first with cache fallback (unchanged).
+// The CACHE name is bumped on a strategy change so the browser reinstalls the
+// worker and the activate cleanup purges the old cache (which also clears any
+// opaque-response storage padding that had inflated the reported usage).
+const CACHE = 'dusk-shell-v3';
+const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
+
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
 // CORE is cached atomically (addAll) — these MUST be present for a reliable offline
 // boot. The 2.3 MB background is the most likely fetch to stall/fail on a slow first
 // load, and with addAll being all-or-nothing that would leave the app with NO offline
 // support at all. It's purely decorative, so it's cached best-effort instead and also
-// fills in lazily via the same-origin stale-while-revalidate path on first online view.
+// fills in lazily via the same-origin network-first path on first online view.
 const CORE_ASSETS = [
     './',
     './index.html',
@@ -37,6 +39,7 @@ const CORE_ASSETS = [
     './dusk/09-sync.js',
     './dusk/10-cloud.js',
     './manifest.json',
+    './version.json',
     './icon-192.svg',
     './icon-512.svg',
     'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',
@@ -56,7 +59,7 @@ self.addEventListener('install', e => {
     );
 });
 
-// Activate: remove old caches
+// Activate: remove old caches (purges the previous cache incl. its opaque padding).
 self.addEventListener('activate', e => {
     e.waitUntil(
         caches.keys().then(keys =>
@@ -65,64 +68,51 @@ self.addEventListener('activate', e => {
     );
 });
 
-// Tell every open client a shell file changed → app shows an update toast.
-function notifyClients() {
-    self.clients.matchAll({ includeUncontrolled: true }).then(cs =>
-        cs.forEach(c => c.postMessage({ type: 'dusk-update-ready' }))
-    );
-}
+const TIMEOUT = Symbol('timeout');   // race sentinels (never collide with a real Response)
+const NETFAIL = Symbol('netfail');
 
-// Only diff text shell assets worth a reload prompt (html/js/css).
-function isReloadableShell(url) {
-    return url.origin === self.location.origin &&
-           /(\/|\.html|\.js|\.css)$/.test(url.pathname);
-}
+// Network-first with a timeout, cache as the safety net.
+//   • network answers within NET_TIMEOUT_MS → serve it fresh (and refresh cache).
+//   • times out / errors → serve cache instantly; the fetch keeps running in the
+//     background to refresh the cache. No cache yet → await the network.
+async function networkFirst(request) {
+    const cache = await caches.open(CACHE);
 
-// G4-2: cheap change-detection from validators instead of reading the full body.
-// app.js (~390 KB) + style.css (~190 KB) were stringified and compared on EVERY
-// fetch. ETag/Last-Modified/Content-Length already capture "did this file change?"
-// for any normal server; we only fall back to a text diff when none are present.
-function shellSignature(resp) {
-    const h = resp.headers;
-    return [h.get('etag'), h.get('last-modified'), h.get('content-length')]
-        .map(v => v || '').join('|');
-}
-
-// Stale-while-revalidate for same-origin shell + the SortableJS CDN script.
-async function staleWhileRevalidate(request) {
-    const url    = new URL(request.url);
-    const cache  = await caches.open(CACHE);
-    const cached = await cache.match(request);
-
-    const network = fetch(request).then(async resp => {
-        // Cache successful same-origin responses and CORS-enabled CDN responses.
-        if (resp && (resp.status === 200 || resp.type === 'opaque')) {
-            const toStore = resp.clone();
-            // Notify only when a reloadable shell file actually changed.
-            if (cached && isReloadableShell(url)) {
-                const oldSig = shellSignature(cached);
-                const newSig = shellSignature(resp);
-                const haveValidators = oldSig !== '||' && newSig !== '||';
-                if (haveValidators) {
-                    if (oldSig !== newSig) notifyClients();
-                } else {
-                    // No ETag/Last-Modified/Content-Length (e.g. some dev servers) →
-                    // fall back to the full-text diff so updates aren't missed.
-                    try {
-                        const [oldText, newText] = await Promise.all([
-                            cached.clone().text(), resp.clone().text(),
-                        ]);
-                        if (oldText !== newText) notifyClients();
-                    } catch (_) { /* opaque/binary — skip diff */ }
-                }
-            }
-            cache.put(request, toStore);
+    const networkPromise = fetch(request).then(resp => {
+        if (resp && (resp.status === 200 || resp.type === 'opaque' || resp.type === 'cors')) {
+            cache.put(request, resp.clone());
         }
         return resp;
-    }).catch(() => null);
+    });
 
-    // Serve cache immediately if present; otherwise wait for the network.
-    return cached || network || fetch(request);
+    const timeoutPromise = new Promise(res => setTimeout(() => res(TIMEOUT), NET_TIMEOUT_MS));
+
+    let winner;
+    try {
+        winner = await Promise.race([networkPromise, timeoutPromise]);
+    } catch (_) {
+        winner = NETFAIL;                       // network rejected before timeout
+    }
+
+    if (winner !== TIMEOUT && winner !== NETFAIL) {
+        return winner;                          // fresh from network within the budget
+    }
+
+    const cached = await cache.match(request);
+    if (cached) return cached;                  // slow/offline → serve cache instantly
+    return networkPromise;                      // nothing cached → wait for the network
+}
+
+// Cache-first for an immutable pinned dependency (SortableJS @1.15.2 never changes).
+async function cacheFirst(request) {
+    const cache = await caches.open(CACHE);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    const resp = await fetch(request);
+    if (resp && (resp.status === 200 || resp.type === 'opaque' || resp.type === 'cors')) {
+        cache.put(request, resp.clone());
+    }
+    return resp;
 }
 
 self.addEventListener('fetch', e => {
@@ -140,10 +130,15 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // App shell + SortableJS CDN — stale-while-revalidate
-    if (url.origin === self.location.origin ||
-        url.hostname === 'cdn.jsdelivr.net') {
-        e.respondWith(staleWhileRevalidate(req));
+    // SortableJS CDN — pinned + immutable → cache-first (no revalidation cost).
+    if (url.hostname === 'cdn.jsdelivr.net') {
+        e.respondWith(cacheFirst(req));
+        return;
+    }
+
+    // App shell (same-origin) — network-first so updates land on the first reload.
+    if (url.origin === self.location.origin) {
+        e.respondWith(networkFirst(req));
         return;
     }
 
