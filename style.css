@@ -7996,7 +7996,7 @@ kbd {
    the eye inside a still-visible ring rather than fading the whole button out). */
 .sync-glyph {
     position: fixed; bottom: 22px; left: 22px; z-index: 50;
-    width: 52px; height: 52px; padding: 6px;          /* 52 − 2×6 ⇒ a 40px eye */
+    width: 46px; height: 46px; padding: 5px;          /* 46 − 2×5 ⇒ a 36px eye */
     border-radius: 50%;
     background: var(--bg-app);
     border: 1px solid var(--border-mid);
@@ -8104,6 +8104,6 @@ kbd {
 .sync-quar-empty { color: var(--text-muted); font-size: 12.5px; padding: 16px; text-align: center; }
 
 @media (max-width: 560px) {
-    .sync-glyph { bottom: 18px; left: 16px; width: 50px; height: 50px; }
+    .sync-glyph { bottom: 18px; left: 16px; width: 46px; height: 46px; }
 }
 

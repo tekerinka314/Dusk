@@ -961,7 +961,12 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
     document.body.appendChild(menu);
     const r  = btn.getBoundingClientRect();
     const mw = menu.offsetWidth || 160;
-    menu.style.top  = Math.round(r.bottom + 5) + 'px';
+    const mh = menu.offsetHeight || 0;
+    // Default below the anchor; flip ABOVE when there isn't room below (e.g. the
+    // sync eye is pinned to the bottom corner) and there IS room above.
+    let top = r.bottom + 5;
+    if (top + mh > window.innerHeight - 8 && r.top - mh - 5 >= 8) top = r.top - mh - 5;
+    menu.style.top  = Math.round(top) + 'px';
     menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
     _floatMenuEl = menu;
     _floatMenuAnchor = btn;
