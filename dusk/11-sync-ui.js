@@ -44,6 +44,15 @@ const K_SYNC_ENABLED = 'dusk_sync_enabled_v1';
 try { _lastSyncOk  = parseInt(localStorage.getItem(K_SYNC_LASTOK), 10) || 0; } catch (_) {}
 try { _syncEnabled = localStorage.getItem(K_SYNC_ENABLED) === '1'; } catch (_) {}
 
+// ── diagnostic log (shown in the sync panel; helps debug live two-device sync) ─
+const _syncLog = [];
+function _log(msg) {
+    let hhmmss = '';
+    try { const d = new Date(); const p = n => String(n).padStart(2, '0'); hhmmss = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()); } catch (_) {}
+    _syncLog.push({ t: hhmmss, msg: String(msg) });
+    if (_syncLog.length > 14) _syncLog.shift();
+}
+
 // ── status glyph (the reptilian eye) ─────────────────────────────────────────
 function _glyph() { return document.getElementById('sync-glyph-btn'); }
 
@@ -178,16 +187,19 @@ async function syncNow(opts) {
     if (!_syncEnabled) { _syncEnabled = true; try { localStorage.setItem(K_SYNC_ENABLED, '1'); } catch (_) {} }
 
     _syncing = true; _lastError = null; setSyncStatus('syncing');
+    _log('▶ ' + (opts.via || (manual ? 'ручной' : 'авто')) + (loadBaseline() ? '' : ' · нет baseline'));
     let stats = null, conflicts = null;
     try {
         let attempt = 0;
         while (true) {
             const pulled = await cloudPull();                       // {empty} | {subset,version,fileId}
             const remote = pulled.empty ? null : pulled.subset;
+            _log(pulled.empty ? 'pull: пусто (файла нет)' : 'pull: v' + pulled.version + ' · задач ' + ((remote && remote.tasks && remote.tasks.length) || 0));
 
             snapshotPreMerge(JSON.stringify(state));                // whole-state insurance
             const out = mergeStates(loadBaseline(), getSyncSubset(state), remote);
             stats = out.stats; conflicts = out.conflicts;
+            _log('merge: +' + stats.added + ' ~' + stats.updated + ' −' + stats.deleted + ' ⚠' + conflicts.length);
             applySyncSubset(state, out.merged);
             normalizeState();                                       // re-prime sigs → merged updatedAt preserved
             saveState();                                            // local truth persisted (offline-safe)
@@ -199,18 +211,20 @@ async function syncNow(opts) {
             if (!pulled.empty && _subsetEqual(out.merged, remote)) {
                 saveBaseline(out.merged);                           // Drive already current
                 _pendingPush = false;
+                _log('push: пропуск (Drive уже актуален)');
                 break;
             }
             try {
-                await cloudPush(out.merged, {
+                const pr = await cloudPush(out.merged, {
                     fileId: pulled.fileId || null,
                     expectedVersion: pulled.empty ? undefined : pulled.version,
                 });
                 saveBaseline(out.merged);                           // merged = new agreed baseline
                 _pendingPush = false;
+                _log('push: → v' + (pr && pr.version));
                 break;
             } catch (e) {
-                if (e instanceof ConflictError && attempt < MAX_CONFLICT_RETRY) { attempt++; continue; }
+                if (e instanceof ConflictError && attempt < MAX_CONFLICT_RETRY) { attempt++; _log('конфликт версий — повтор #' + attempt); continue; }
                 throw e;                                            // give up → caught below; local is safe
             }
         }
@@ -218,12 +232,14 @@ async function syncNow(opts) {
         try { localStorage.setItem(K_SYNC_LASTOK, String(_lastSyncOk)); } catch (_) {}
         _syncing = false;
         _retryCount = 0; clearTimeout(_retryTimer);             // healthy → reset the backoff
+        _log('✓ готово' + (conflicts && conflicts.length ? ' · ⚠' + conflicts.length + ' в карантин' : ''));
         _scheduleTokenRefresh();                                // keep the session alive past 1 h
         refreshStatus();
         if (manual) _toastResult(stats, conflicts);
     } catch (e) {
         _lastError = e; _syncing = false;
         setSyncStatus('error');
+        _log('✗ ошибка: ' + ((e && e.message) || e));
         // Transient failure (e.g. Wi-Fi just came back but the link isn't usable
         // yet, a flaky mobile connection, a 5xx) → auto-retry with backoff instead
         // of sitting in 'error' until the next manual/refocus trigger. Local data
@@ -316,11 +332,18 @@ function openSyncPanel(event) {
         ? `<div class="sync-panel-err">${_escHtml(String((_lastError && _lastError.message) || _lastError).slice(0, 160))}</div>`
         : '';
 
+    // recent sync events — diagnostic log so live two-device behaviour is visible
+    // (what pulled / merged / pushed) right on the device, no console needed.
+    const logRows = _syncLog.length
+        ? _syncLog.slice().reverse().map(e => `<div class="sync-log-row"><span class="sync-log-t">${_escHtml(e.t)}</span>${_escHtml(e.msg)}</div>`).join('')
+        : '<div class="sync-log-row" style="opacity:.6">— пока пусто —</div>';
+    const log = `<details class="sync-panel-log"><summary>Журнал</summary><div class="sync-log-list">${logRows}</div></details>`;
+
     _openFloatMenu(btn, `
         <div class="sync-panel-status" data-sync="${kind}">
             <span class="sync-panel-dot"></span><span>${_statusTitle(kind)}</span>
         </div>
-        ${errLine}${acct}${now}${quar}`, 'sync-panel');
+        ${errLine}${acct}${now}${quar}${log}`, 'sync-panel');
 }
 function _escHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
