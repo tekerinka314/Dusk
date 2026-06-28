@@ -632,6 +632,18 @@ document.addEventListener('keydown', e => {
         if (toolbar.style.display !== 'none') searchBox.focus();
         return;
     }
+    // S — sync now, or sign in to Google Drive if not yet connected. Global: fires on
+    // every tab (tasks / archive / grimoire), only when not typing in a field. Signing
+    // in is interactive, but it's the user pressing S → explicit, never an auto-auth.
+    if (_matchKey(e, 'S') && !inInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        try {
+            const st = (typeof cloudStatus === 'function') ? cloudStatus() : null;
+            if (st && st.signedIn) { if (typeof syncNowManual === 'function') syncNowManual(); }
+            else if (typeof syncSignIn === 'function') { syncSignIn(); }
+        } catch (_) {}
+        return;
+    }
 
     if (inInput) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return; // let browser handle Ctrl/Meta combos
@@ -802,13 +814,14 @@ let _taskHintHTML = null;   // the task-page (main) hint markup, captured once f
 const _NOTES_HINT_HTML =                       // notes · «Записи» (active grimoire)
     '<kbd>N</kbd> новая &nbsp;·&nbsp; <kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; ' +
     '<kbd>E</kbd> править &nbsp;·&nbsp; <kbd>Del</kbd> в склеп &nbsp;·&nbsp; <kbd>T</kbd> закрепить &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>F3</kbd> совпадение &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена';
+    '<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>F3</kbd> совпадение &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена &nbsp;·&nbsp; ' +
+    '<kbd>S</kbd> синхронизация';
 const _CRYPT_HINT_HTML =                        // notes · «Склеп» (read-only crypt: nav + search only)
     '<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новая запись &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> поиск';
+    '<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
 const _TASK_ARCHIVE_HINT_HTML =                 // tasks archive: nav + search + forge-new (jumps to Tasks)
     '<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новая задача &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> поиск';
+    '<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
 
 // Pick the hint markup for the CURRENT context (page + grimoire segment).
 function _shortcutsHintHTML() {
