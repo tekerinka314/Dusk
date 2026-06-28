@@ -129,17 +129,48 @@ function refreshQuarantineBadge() {
     } else if (chip) { chip.remove(); }
 }
 
-// Order-insensitive deep-equal (sorts object keys) used to decide whether a push
-// is actually needed: if our merged subset already equals what's on Drive, the
-// sync was a pure pull → skip the write. Reload-safe (compares CONTENT, not the
-// in-memory _pendingPush flag, which resets on reload and would otherwise drop a
-// not-yet-pushed offline edit after a refresh).
+// Decide whether a push is actually needed: only when the SYNCED CONTENT of our
+// merged subset differs from what's on Drive. Crucially this ignores noise that
+// legitimately differs per device but isn't real content:
+//   • array ORDER (the merge rebuilds arrays from a Set → order ≠ remote's),
+//   • device-local ints (`id`, `groupId`, subtask `id`) + the `_alloc` allocator,
+//   • `updatedAt`/`createdAt` timestamps (a pure bump isn't a content change).
+// Without this every open/refocus/periodic sync re-pushed (Drive version climbed
+// forever with merge stats +0~0−0), spamming Drive and burying real edits in the
+// log. Reload-safe: compares CONTENT, not the in-memory _pendingPush flag.
 function _stableStringify(v) {
     if (v === null || typeof v !== 'object') return JSON.stringify(v);
     if (Array.isArray(v)) return '[' + v.map(_stableStringify).join(',') + ']';
     return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + _stableStringify(v[k])).join(',') + '}';
 }
-function _subsetEqual(a, b) { return _stableStringify(a) === _stableStringify(b); }
+const _PUSH_DROP = { id: 1, groupId: 1, updatedAt: 1, createdAt: 1, _groupUid: 1 };
+function _recCanon(r) {
+    const o = {};
+    for (const k of Object.keys(r)) {
+        if (_PUSH_DROP[k]) continue;
+        if (k === 'subtasks' && Array.isArray(r.subtasks)) {
+            o.subtasks = r.subtasks.map(s => {
+                const c = {}; for (const sk of Object.keys(s)) if (sk !== 'id' && sk !== 'updatedAt' && sk !== 'createdAt') c[sk] = s[sk];
+                return c;
+            }).sort((a, b) => String(a.uid).localeCompare(String(b.uid)));
+        } else o[k] = r[k];
+    }
+    return o;
+}
+function _syncCanon(subset) {
+    if (!subset) return '∅';
+    const parts = [];
+    for (const [name, key] of [['tasks', 'uid'], ['groups', 'uid'], ['notes', 'id'], ['templates', 'uid'], ['noteTemplates', 'id']]) {
+        const list = (subset[name] || []).slice().sort((a, b) => String(a && a[key]).localeCompare(String(b && b[key])));
+        parts.push(name + '=' + _stableStringify(list.map(_recCanon)));
+    }
+    const tomb = (subset.tombstones || []).slice().sort((a, b) => String(a && a.uid).localeCompare(String(b && b.uid)));
+    parts.push('tomb=' + _stableStringify(tomb.map(t => ({ uid: t.uid, deletedAt: t.deletedAt }))));
+    const jr = (subset.syncJournal || []).map(e => ({ uid: e.uid, resolved: !!e.resolved })).sort((a, b) => String(a.uid).localeCompare(String(b.uid)));
+    parts.push('jr=' + _stableStringify(jr));
+    return parts.join('|');
+}
+function _pushNeeded(merged, remote) { return !remote || _syncCanon(merged) !== _syncCanon(remote); }
 
 // Background pull cadence: while a signed-in tab is visible, re-sync every
 // SYNC_PERIODIC_MS so two devices left open converge without any user action.
@@ -208,8 +239,8 @@ async function syncNow(opts) {
             // Push only when our merged result actually differs from Drive (or the
             // file doesn't exist yet). A pure pull (open/refocus/periodic with no
             // local change) skips the write → no needless Drive version churn.
-            if (!pulled.empty && _subsetEqual(out.merged, remote)) {
-                saveBaseline(out.merged);                           // Drive already current
+            if (!pulled.empty && !_pushNeeded(out.merged, remote)) {
+                saveBaseline(out.merged);                           // Drive already current (content-wise)
                 _pendingPush = false;
                 _log('push: пропуск (Drive уже актуален)');
                 break;
