@@ -602,7 +602,7 @@ let state = {
 };
 
 // ---- UI STATE ----
-let isFiltered       = true;
+let isFiltered       = false;
 let searchQuery      = '';
 let soundEnabled     = false;
 
@@ -1669,7 +1669,7 @@ function migrateFromOld() {
 }
 
 function loadUiState() {
-    isFiltered  = localStorage.getItem(K_FILTER) !== '0';
+    isFiltered  = localStorage.getItem(K_FILTER) === '1';
     searchQuery = localStorage.getItem(K_SEARCH) || '';
     expandOpen  = localStorage.getItem(K_EXPAND) === '1';
     currentPage = localStorage.getItem(K_PAGE)   || 'main';
