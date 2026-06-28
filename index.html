@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#03010a">
+    <!-- Standard PWA flag (Chrome). The apple-* one below is kept for older iOS Safari. -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DUSK">
@@ -15,7 +17,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Cinzel Decorative removed (CSS uses plain Cinzel); IM Fell English removed (unused) -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- crossorigin → CORS response (not opaque) so the SW caches it without Chrome's
+         opaque-response storage padding (which silently inflated reported cache usage). -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
     <!-- Sync Phase 2: Google Identity Services (token-flow OAuth). async + only
          needed when online — offline it simply fails to load and sync stays off

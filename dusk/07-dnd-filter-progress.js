@@ -697,7 +697,9 @@ let _emptyWasVisible = false;
 function updateVisibility() {
     const hasTasks = state.tasks.length > 0;
     progressSection.style.display = hasTasks ? 'flex'  : 'none';
-    toolbar.style.display         = hasTasks ? 'flex'  : 'none';
+    // Toolbar stays ALWAYS visible — export/import/restore-points are needed even with
+    // no tasks (e.g. importing a backup on a fresh device = the #1 portability case).
+    toolbar.style.display         = 'flex';
     groupsBar.style.display       = 'flex';
 
     const query     = searchQuery.toLowerCase();

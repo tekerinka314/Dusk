@@ -14,7 +14,15 @@
 // The CACHE name is bumped on a strategy change so the browser reinstalls the
 // worker and the activate cleanup purges the old cache (which also clears any
 // opaque-response storage padding that had inflated the reported usage).
-const CACHE = 'dusk-shell-v3';
+//
+// OPAQUE PADDING: a cross-origin response fetched WITHOUT cors (no `crossorigin`
+// attr) is "opaque" — its body/status are hidden and Chrome adds multi-MB storage
+// PADDING to the reported usage per opaque entry (a privacy measure). Caching one
+// opaque file can inflate the bucket by ~7 MB. So we NEVER store opaque responses
+// (only `basic` same-origin + `cors`), and every cross-origin asset we DO want
+// offline (Google Fonts CSS, SortableJS) carries `crossorigin` so it comes back as
+// `cors`. v4 also re-purges the v3 cache that had re-accumulated font padding.
+const CACHE = 'dusk-shell-v4';
 const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
 
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
@@ -71,6 +79,13 @@ self.addEventListener('activate', e => {
 const TIMEOUT = Symbol('timeout');   // race sentinels (never collide with a real Response)
 const NETFAIL = Symbol('netfail');
 
+// Store ONLY successful, non-opaque responses. `opaque` (cross-origin no-cors) is
+// excluded so Chrome's per-entry storage padding can never inflate the cache again.
+// `basic` (same-origin) and `cors` both report .ok; opaque reports status 0 / .ok=false.
+function _cacheable(resp) {
+    return !!resp && resp.ok && resp.type !== 'opaque' && resp.type !== 'opaqueredirect';
+}
+
 // Network-first with a timeout, cache as the safety net.
 //   • network answers within NET_TIMEOUT_MS → serve it fresh (and refresh cache).
 //   • times out / errors → serve cache instantly; the fetch keeps running in the
@@ -79,9 +94,7 @@ async function networkFirst(request) {
     const cache = await caches.open(CACHE);
 
     const networkPromise = fetch(request).then(resp => {
-        if (resp && (resp.status === 200 || resp.type === 'opaque' || resp.type === 'cors')) {
-            cache.put(request, resp.clone());
-        }
+        if (_cacheable(resp)) cache.put(request, resp.clone());
         return resp;
     });
 
@@ -109,9 +122,7 @@ async function cacheFirst(request) {
     const cached = await cache.match(request);
     if (cached) return cached;
     const resp = await fetch(request);
-    if (resp && (resp.status === 200 || resp.type === 'opaque' || resp.type === 'cors')) {
-        cache.put(request, resp.clone());
-    }
+    if (_cacheable(resp)) cache.put(request, resp.clone());
     return resp;
 }
 
@@ -124,7 +135,7 @@ self.addEventListener('fetch', e => {
     if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
         e.respondWith(
             fetch(req)
-                .then(r => { const clone = r.clone(); caches.open(CACHE).then(c => c.put(req, clone)); return r; })
+                .then(r => { if (_cacheable(r)) { const clone = r.clone(); caches.open(CACHE).then(c => c.put(req, clone)); } return r; })
                 .catch(() => caches.match(req))
         );
         return;
