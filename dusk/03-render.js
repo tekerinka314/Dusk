@@ -1,21 +1,37 @@
 // ============================================================
 //  RENDER
 // ============================================================
+// Re-entrancy guard. Tearing down a focused node during reconcile fires a
+// SYNCHRONOUS focusout/blur, whose delegated handler (e.g. an inline-edit commit)
+// can call render() again — a nested render mutating the very DOM the outer
+// reconcile is walking is what produced "node to be removed is no longer a child…
+// moved in a 'blur' event handler", and (when it happened mid-sync) a bogus sync
+// error. So a render requested WHILE one is running is coalesced into a single
+// follow-up render after the current one finishes, never run nested.
+let _rendering = false;
+let _renderQueued = false;
 function render() {
-    renderTasks();
-    renderGroupBar();
-    renderGroupSelect();
-    updateProgress();
-    updateVisibility();
-    updateArchiveBadge();
-    if (!prefersReducedMotion()) applyListStagger();
-    setupSortables();
-    attachPlainPasteHandlers();
-    positionDragHandles();
-    updateCollapseAllBtn();
-    renderTagCloud();
-    _syncCriticalPulse();
-    updateTemplatesBtn();
+    if (_rendering) { _renderQueued = true; return; }
+    _rendering = true;
+    try {
+        renderTasks();
+        renderGroupBar();
+        renderGroupSelect();
+        updateProgress();
+        updateVisibility();
+        updateArchiveBadge();
+        if (!prefersReducedMotion()) applyListStagger();
+        setupSortables();
+        attachPlainPasteHandlers();
+        positionDragHandles();
+        updateCollapseAllBtn();
+        renderTagCloud();
+        _syncCriticalPulse();
+        updateTemplatesBtn();
+    } finally {
+        _rendering = false;
+        if (_renderQueued) { _renderQueued = false; render(); }
+    }
 }
 
 // 7b: partial render for hot paths that change ONLY the task list (check, pin,
@@ -23,15 +39,22 @@ function render() {
 // updateArchiveBadge — those depend on data these ops never touch (group names,
 // task text/tags, archive), so rebuilding them every time was wasted work.
 function renderListOnly() {
-    renderTasks();
-    updateProgress();
-    updateVisibility();
-    if (!prefersReducedMotion()) applyListStagger();
-    setupSortables();
-    attachPlainPasteHandlers();
-    positionDragHandles();
-    updateCollapseAllBtn();
-    _syncCriticalPulse();
+    if (_rendering) { _renderQueued = true; return; }   // re-entrant → coalesce into a follow-up full render
+    _rendering = true;
+    try {
+        renderTasks();
+        updateProgress();
+        updateVisibility();
+        if (!prefersReducedMotion()) applyListStagger();
+        setupSortables();
+        attachPlainPasteHandlers();
+        positionDragHandles();
+        updateCollapseAllBtn();
+        _syncCriticalPulse();
+    } finally {
+        _rendering = false;
+        if (_renderQueued) { _renderQueued = false; render(); }
+    }
 }
 
 // In-place reconciliation: make `parent`'s element children exactly `desired` (an
@@ -43,9 +66,17 @@ function renderListOnly() {
 // is replaced/moved/removed.
 function _reconcile(parent, desired) {
     const want = new Set(desired);
-    for (let i = parent.childNodes.length - 1; i >= 0; i--) {
-        const n = parent.childNodes[i];
-        if (n.nodeType !== 1 || !want.has(n)) parent.removeChild(n);
+    // Snapshot the children first: removing a node that holds focus fires a
+    // SYNCHRONOUS blur handler (e.g. an inline-edit commit) that can mutate this
+    // same parent re-entrantly. Iterating the LIVE childNodes and calling
+    // removeChild blindly then threw "The node to be removed is no longer a child
+    // of this node. Perhaps it was moved in a 'blur' event handler?" — which, when
+    // it happened during a sync-triggered render, surfaced as a bogus sync error.
+    // The slice + parentNode guard make the teardown safe under that re-entrancy.
+    const current = Array.prototype.slice.call(parent.childNodes);
+    for (let i = 0; i < current.length; i++) {
+        const n = current[i];
+        if ((n.nodeType !== 1 || !want.has(n)) && n.parentNode === parent) parent.removeChild(n);
     }
     for (let i = 0; i < desired.length; i++) {
         const node = desired[i];

@@ -191,7 +191,7 @@ async function syncNow(opts) {
             applySyncSubset(state, out.merged);
             normalizeState();                                       // re-prime sigs → merged updatedAt preserved
             saveState();                                            // local truth persisted (offline-safe)
-            render();
+            try { render(); } catch (_) {}                          // a render glitch must NOT fail the sync (data already saved)
 
             // Push only when our merged result actually differs from Drive (or the
             // file doesn't exist yet). A pure pull (open/refocus/periodic with no
