@@ -30,9 +30,13 @@ let _syncEnabled  = false;     // user opted into sync (first interactive sign-i
 let _debounceTimer = null;
 let _tokenRefreshTimer = null; // proactive silent token renewal (keeps an open session alive)
 let _periodicTimer = null;     // background pull cadence while a signed-in tab is visible
+let _retryTimer = null;        // auto-retry after a transient (network) failure
+let _retryCount = 0;           // consecutive transient failures (drives the backoff)
 
 const SYNC_DEBOUNCE_MS  = 4000;
 const SYNC_PERIODIC_MS  = 30000;   // two open devices converge within this while both are visible
+const SYNC_ONLINE_SETTLE_MS = 1500;   // wait after 'online' so the (mobile) link is actually usable
+const SYNC_RETRY_DELAYS = [2000, 5000, 12000];   // backoff for transient sync failures, then give up to the next trigger
 const MAX_CONFLICT_RETRY = 4;
 const K_SYNC_LASTOK  = 'dusk_sync_lastok_v1';
 const K_SYNC_ENABLED = 'dusk_sync_enabled_v1';
@@ -213,14 +217,27 @@ async function syncNow(opts) {
         _lastSyncOk = Date.now();
         try { localStorage.setItem(K_SYNC_LASTOK, String(_lastSyncOk)); } catch (_) {}
         _syncing = false;
+        _retryCount = 0; clearTimeout(_retryTimer);             // healthy → reset the backoff
         _scheduleTokenRefresh();                                // keep the session alive past 1 h
         refreshStatus();
         if (manual) _toastResult(stats, conflicts);
     } catch (e) {
         _lastError = e; _syncing = false;
         setSyncStatus('error');
-        if (manual) _toastErr('Не удалось синхронизировать');
-        // baseline NOT advanced → the change is still pending; next online sync retries.
+        // Transient failure (e.g. Wi-Fi just came back but the link isn't usable
+        // yet, a flaky mobile connection, a 5xx) → auto-retry with backoff instead
+        // of sitting in 'error' until the next manual/refocus trigger. Local data
+        // is safe (baseline not advanced → the change stays pending).
+        if (_retryCount < SYNC_RETRY_DELAYS.length) {
+            const delay = SYNC_RETRY_DELAYS[_retryCount++];
+            clearTimeout(_retryTimer);
+            _retryTimer = setTimeout(() => {
+                if (typeof cloudIsConfigured === 'function' && cloudIsConfigured()) syncNow({ interactive: false });
+            }, delay);
+            if (manual) _toastErr('Сеть подводит — повторяю…');
+        } else if (manual) {
+            _toastErr('Не удалось синхронизировать');
+        }
     } finally {
         if (_syncQueued) { _syncQueued = false; setTimeout(() => syncNow({ interactive: false }), 0); }
     }
@@ -262,6 +279,7 @@ async function syncSignIn() {
 function syncSignOut() {
     if (typeof closeFloatMenu === 'function') closeFloatMenu();
     clearTimeout(_tokenRefreshTimer);
+    clearTimeout(_retryTimer); _retryCount = 0;
     _stopPeriodic();
     try { cloudSignOut(); } catch (_) {}
     _syncEnabled = false; _lastError = null;
@@ -292,11 +310,20 @@ function openSyncPanel(event) {
         ? `<button type="button" role="menuitem" class="sync-panel-quar" data-act="openQuarantine"><span>Разобрать конфликты</span><b class="sync-panel-quar-n">${n}</b></button>`
         : '';
 
+    // surface the actual failure reason when in error (so a sync problem is
+    // diagnosable on any device instead of a blank "не удалось").
+    const errLine = (kind === 'error' && _lastError)
+        ? `<div class="sync-panel-err">${_escHtml(String((_lastError && _lastError.message) || _lastError).slice(0, 160))}</div>`
+        : '';
+
     _openFloatMenu(btn, `
         <div class="sync-panel-status" data-sync="${kind}">
             <span class="sync-panel-dot"></span><span>${_statusTitle(kind)}</span>
         </div>
-        ${acct}${now}${quar}`, 'sync-panel');
+        ${errLine}${acct}${now}${quar}`, 'sync-panel');
+}
+function _escHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ── quarantine review (full panel: restore / dismiss each loser) ──────────────
@@ -490,8 +517,20 @@ function _initSyncUI() {
     window.addEventListener('pagehide', _flushIfPending);
     // window regained focus (alt-tab back to the app) → pull anything new.
     window.addEventListener('focus', () => { if (_syncEnabled && _signedIn()) syncNow({ interactive: false }); });
-    window.addEventListener('online',  () => { refreshStatus(); if (_syncEnabled && _signedIn()) { syncNow({ interactive: false }); _startPeriodic(); } });
-    window.addEventListener('offline', () => { _stopPeriodic(); refreshStatus(); });
+    window.addEventListener('online',  () => {
+        refreshStatus();
+        if (_syncEnabled && _signedIn()) {
+            _startPeriodic();
+            _retryCount = 0;                          // fresh link → fresh backoff budget
+            // wait a moment: 'online' fires when navigator flips, but the (mobile)
+            // connection often isn't usable for a beat → an immediate fetch errors.
+            clearTimeout(_retryTimer);
+            _retryTimer = setTimeout(() => {
+                if (typeof cloudIsConfigured === 'function' && cloudIsConfigured()) syncNow({ interactive: false });
+            }, SYNC_ONLINE_SETTLE_MS);
+        }
+    });
+    window.addEventListener('offline', () => { _stopPeriodic(); clearTimeout(_retryTimer); refreshStatus(); });
 }
 
 // 11 loads after 08 (init done) — DOM + state ready. Guard for the node test seam.

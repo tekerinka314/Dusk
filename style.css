@@ -8077,6 +8077,8 @@ kbd {
 .sync-panel .sync-panel-status { display: flex; align-items: center; gap: 8px; padding: 8px 11px 9px;
     font-size: 12.5px; color: var(--text-secondary); border-bottom: 1px solid var(--border); margin-bottom: 3px; }
 .sync-panel .sync-panel-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: 0 0 auto; }
+.sync-panel .sync-panel-err { padding: 6px 11px 8px; font-size: 11px; line-height: 1.4; color: var(--prio-high);
+    word-break: break-word; border-bottom: 1px solid var(--border); margin-bottom: 3px; opacity: .85; }
 .sync-panel-status[data-sync="syncing"] .sync-panel-dot { background: var(--accent-hover); animation: dangerPulse 1.4s ease-in-out infinite; }
 .sync-panel-status[data-sync="ok"] .sync-panel-dot { background: #9b86d6; }
 .sync-panel-status[data-sync="error"] .sync-panel-dot { background: var(--prio-high); }
