@@ -91,7 +91,7 @@ function setSyncStatus(kind) {
     el.setAttribute('title', _statusTitle(kind));
     refreshQuarantineBadge();
 }
-function refreshStatus() { setSyncStatus(_syncing ? 'syncing' : _restState()); }
+function refreshStatus() { setSyncStatus(_syncing ? 'syncing' : _restState()); _refreshSyncPanelIfOpen(); }
 
 // Proactive SILENT token renewal. The Drive token lives only ~1 h; left alone it
 // would expire and the next action would need a (possibly visible / failing)
@@ -117,7 +117,22 @@ function _scheduleTokenRefresh() {
         if (typeof cloudIsConfigured !== 'function' || !cloudIsConfigured()) { _scheduleTokenRefresh(); return; }  // offline → try again later
         cloudAuth({ interactive: false })
             .then(() => { refreshStatus(); _scheduleTokenRefresh(); })   // renewed silently → keep the chain alive
-            .catch(() => { setSyncStatus('signed-out'); });              // silent failed → wait for an explicit click
+            .catch(() => {
+                // A silent renewal can fail TRANSIENTLY (network blip, Worker cold
+                // start) right at the ~1 h expiry. Only declare 'signed-out' when the
+                // session is genuinely gone — i.e. the refresh token was revoked, which
+                // makes cloudStatus().signedIn flip false. While a refresh token is
+                // still held, keep retrying on a short cadence so ONE hiccup can't drop
+                // a live session for the rest of the session (the old bug: a single
+                // failure here stopped the chain and showed 'signed-out' until reload).
+                if (typeof cloudStatus === 'function' && cloudStatus().signedIn) {
+                    refreshStatus();
+                    clearTimeout(_tokenRefreshTimer);
+                    _tokenRefreshTimer = setTimeout(_scheduleTokenRefresh, 30000);
+                } else {
+                    setSyncStatus('signed-out');
+                }
+            });
     }, delay);
 }
 
@@ -332,11 +347,17 @@ function _toastErr(m) { if (typeof showToast === 'function') showToast(m); }
 // ── sign in / out / manual (panel actions) ───────────────────────────────────
 async function syncSignIn() {
     if (typeof closeFloatMenu === 'function') closeFloatMenu();
+    // Persist the opt-in BEFORE the (worker-mode) interactive auth — that auth is a
+    // full-page redirect to Google's consent screen and NEVER returns to the lines
+    // below. On the return load _initSyncUI must see _syncEnabled=true so the on-open
+    // sync runs and the eye doesn't sit at "выключено" until a manual sync. A stray
+    // flag (user cancels consent) is harmless: with no token the eye stays signed-out.
+    _syncEnabled = true;
+    try { localStorage.setItem(K_SYNC_ENABLED, '1'); } catch (_) {}
+    refreshStatus();
     try {
-        await cloudAuth({ interactive: true });
-        _syncEnabled = true;
-        try { localStorage.setItem(K_SYNC_ENABLED, '1'); } catch (_) {}
-        await syncNow({ interactive: false, manual: true });
+        await cloudAuth({ interactive: true });   // worker mode: navigates away → never resolves here
+        await syncNow({ interactive: false, manual: true });   // legacy GIS mode: control returns here
     } catch (e) {
         refreshStatus();
         _toastErr('Вход не выполнен');
@@ -360,10 +381,11 @@ function syncNowManual() {
 }
 
 // ── sync panel (body-portal popover, reuses _openFloatMenu) ───────────────────
-function openSyncPanel(event) {
-    if (event && event.stopPropagation) event.stopPropagation();
-    const btn = (event && event.currentTarget) || _glyph();
-    if (!btn) return;
+// The panel's inner markup is a SNAPSHOT of the current sync state. Extracted so
+// refreshStatus() can re-render an already-open panel in place (see
+// _refreshSyncPanelIfOpen) — otherwise the status line ("выключено" / "синхронизация…"
+// / "ок") only updated when the panel was closed and reopened.
+function _syncPanelHtml() {
     const signedIn   = (typeof cloudStatus === 'function') && cloudStatus().signedIn;
     const configured = (typeof cloudIsConfigured === 'function') && cloudIsConfigured();
     const n = (typeof unresolvedCount === 'function') ? unresolvedCount(state) : 0;
@@ -390,11 +412,28 @@ function openSyncPanel(event) {
         : '<div class="sync-log-row" style="opacity:.6">— пока пусто —</div>';
     const log = `<details class="sync-panel-log"><summary>Журнал</summary><div class="sync-log-list">${logRows}</div></details>`;
 
-    _openFloatMenu(btn, `
+    return `
         <div class="sync-panel-status" data-sync="${kind}">
             <span class="sync-panel-dot"></span><span>${_statusTitle(kind)}</span>
         </div>
-        ${errLine}${acct}${now}${quar}${log}`, 'sync-panel');
+        ${errLine}${acct}${now}${quar}${log}`;
+}
+function openSyncPanel(event) {
+    if (event && event.stopPropagation) event.stopPropagation();
+    const btn = (event && event.currentTarget) || _glyph();
+    if (!btn) return;
+    _openFloatMenu(btn, _syncPanelHtml(), 'sync-panel');
+}
+// Live-refresh the open sync panel (called from refreshStatus on every status
+// change). Re-renders in place on the SAME menu element (not via _openFloatMenu,
+// which would toggle it shut), preserving the popover position + the outside-click
+// handler. The <details> log's open state is carried across the swap.
+function _refreshSyncPanelIfOpen() {
+    if (typeof _floatMenuEl === 'undefined' || !_floatMenuEl) return;
+    if (!_floatMenuEl.classList || !_floatMenuEl.classList.contains('sync-panel')) return;
+    const wasLogOpen = !!_floatMenuEl.querySelector('.sync-panel-log[open]');
+    _floatMenuEl.innerHTML = _syncPanelHtml();
+    if (wasLogOpen) { const d = _floatMenuEl.querySelector('.sync-panel-log'); if (d) d.open = true; }
 }
 function _escHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -596,6 +635,25 @@ function _initSyncUI() {
     // restored a cached token on load → start the silent-renew chain even before the
     // first sync finishes, so an idle-but-signed-in tab still stays authorized.
     if (typeof cloudStatus === 'function' && cloudStatus().signedIn) { _scheduleTokenRefresh(); _startPeriodic(); }
+
+    // Worker mode: a fresh sign-in lands back here via redirect, and the ?code
+    // exchange (10-cloud `_exchangePromise`) resolves ASYNCHRONOUSLY — after the
+    // sync checks above already ran with no session yet. Also covers a plain reload
+    // where only the refresh token survived in storage (the access token expired →
+    // expiresAt was 0 → the renew chain never armed at init). Once the exchange
+    // settles into a live session, reflect it WITHOUT a manual click: enable, light
+    // the eye, arm the renew + periodic chains, and pull once. signedIn==false here
+    // (no token, or a signed-out user reloading) → just repaint the eye.
+    if (typeof _exchangePromise !== 'undefined' && _exchangePromise && typeof _exchangePromise.then === 'function') {
+        _exchangePromise.then(() => {
+            if (typeof cloudStatus !== 'function' || !cloudStatus().signedIn) { refreshStatus(); return; }
+            if (!_syncEnabled) { _syncEnabled = true; try { localStorage.setItem(K_SYNC_ENABLED, '1'); } catch (_) {} }
+            refreshStatus();
+            _scheduleTokenRefresh();
+            _startPeriodic();
+            syncNow({ interactive: false });   // single-flight: dedups with the on-open sync above
+        }).catch(() => {});
+    }
 
     const _signedIn = () => typeof cloudStatus === 'function' && cloudStatus().signedIn;
 
