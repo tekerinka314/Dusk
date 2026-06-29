@@ -33,7 +33,7 @@ let _periodicTimer = null;     // background pull cadence while a signed-in tab 
 let _retryTimer = null;        // auto-retry after a transient (network) failure
 let _retryCount = 0;           // consecutive transient failures (drives the backoff)
 
-const SYNC_DEBOUNCE_MS  = 4000;
+const SYNC_DEBOUNCE_MS  = 1500;   // edits settle, then push; a burst still collapses into one
 const SYNC_PERIODIC_MS  = 30000;   // two open devices converge within this while both are visible
 const SYNC_ONLINE_SETTLE_MS = 1500;   // wait after 'online' so the (mobile) link is actually usable
 const SYNC_RETRY_DELAYS = [2000, 5000, 12000];   // backoff for transient sync failures, then give up to the next trigger
@@ -299,8 +299,13 @@ async function syncNow(opts) {
 
 // Debounced push after edits (called from saveState via _afterSaveState).
 function scheduleSyncPush() {
-    if (_syncing) return;
     _pendingPush = true; refreshStatus();
+    // An edit made WHILE a sync is in flight must not be dropped: mark the run as
+    // queued so syncNow's finally re-runs once it finishes and picks up the new
+    // state. (Previously this returned early before even setting _pendingPush, so
+    // edits during a sync — common now that the wake makes syncs frequent — only
+    // went out on the next unrelated trigger.)
+    if (_syncing) { _syncQueued = true; return; }
     if (typeof cloudIsConfigured !== 'function' || !cloudIsConfigured() || !cloudStatus().signedIn) return; // stays pending; flushed on next open/online/manual
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => syncNow({ interactive: false }), SYNC_DEBOUNCE_MS);
