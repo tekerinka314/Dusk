@@ -24,6 +24,7 @@ let _syncing      = false;     // single-flight guard
 let _syncQueued   = false;     // a trigger fired mid-sync → run once more after
 let _syncReady    = false;     // set after init so load-time saveState() doesn't push
 let _pendingPush  = false;     // local edits not yet pushed (offline/queued)
+let _applyingMerge = false;    // true while syncNow writes the merged state → its own saveState must NOT re-queue a push
 let _lastSyncOk   = 0;         // ms epoch of the last successful sync
 let _lastError    = null;      // last sync error (for the 'error' status)
 let _syncEnabled  = false;     // user opted into sync (first interactive sign-in)
@@ -233,9 +234,12 @@ async function syncNow(opts) {
             const out = mergeStates(loadBaseline(), getSyncSubset(state), remote);
             stats = out.stats; conflicts = out.conflicts;
             _log('merge: +' + stats.added + ' ~' + stats.updated + ' −' + stats.deleted + ' ⚠' + conflicts.length);
-            applySyncSubset(state, out.merged);
-            normalizeState();                                       // re-prime sigs → merged updatedAt preserved
-            saveState();                                            // local truth persisted (offline-safe)
+            try {
+                _applyingMerge = true;                              // this saveState is the merge landing, not a user edit
+                applySyncSubset(state, out.merged);
+                normalizeState();                                   // re-prime sigs → merged updatedAt preserved
+                saveState();                                        // local truth persisted (offline-safe)
+            } finally { _applyingMerge = false; }
             try { render(); } catch (_) {}                          // a render glitch must NOT fail the sync (data already saved)
 
             // Push only when our merged result actually differs from Drive (or the
@@ -299,6 +303,7 @@ async function syncNow(opts) {
 
 // Debounced push after edits (called from saveState via _afterSaveState).
 function scheduleSyncPush() {
+    if (_applyingMerge) return;          // syncNow is landing the merged state — not a user edit, must not re-queue
     _pendingPush = true; refreshStatus();
     // An edit made WHILE a sync is in flight must not be dropped: mark the run as
     // queued so syncNow's finally re-runs once it finishes and picks up the new

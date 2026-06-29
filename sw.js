@@ -22,7 +22,7 @@
 // (only `basic` same-origin + `cors`), and every cross-origin asset we DO want
 // offline (Google Fonts CSS, SortableJS) carries `crossorigin` so it comes back as
 // `cors`. v4 also re-purges the v3 cache that had re-accumulated font padding.
-const CACHE = 'dusk-shell-v6';
+const CACHE = 'dusk-shell-v7';
 const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
 
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
@@ -155,6 +155,14 @@ self.addEventListener('fetch', e => {
     // SortableJS CDN — pinned + immutable → cache-first (no revalidation cost).
     if (url.hostname === 'cdn.jsdelivr.net') {
         e.respondWith(cacheFirst(req));
+        return;
+    }
+
+    // version.json — the update marker. NETWORK-ONLY (never serve/keep a cached copy)
+    // so the in-app update poll sees a fresh build the instant Pages publishes it,
+    // with zero SW staleness. Offline → fall back to the precached copy (no false prompt).
+    if (url.origin === self.location.origin && url.pathname.endsWith('version.json')) {
+        e.respondWith(fetch(req, { cache: 'no-store' }).catch(() => caches.match(req)));
         return;
     }
 
