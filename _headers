@@ -1,0 +1,7 @@
+# Cloudflare Pages cache rules (ignored by GitHub Pages — harmless on both).
+# The update marker + service worker must never be served stale, so a freshly
+# deployed build surfaces the in-app "update" toast within the poll window.
+/version.json
+  Cache-Control: no-store
+/sw.js
+  Cache-Control: no-cache

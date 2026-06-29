@@ -25,27 +25,36 @@
 
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
-function corsHeaders(env) {
+// ALLOWED_ORIGIN may be a COMMA-SEPARATED list (e.g. the GitHub Pages origin and the
+// Cloudflare Pages origin during a migration). CORS allows only ONE origin per response,
+// so we echo the request's Origin when it's in the allowlist, else fall back to the
+// first listed. `Vary: Origin` keeps caches from mixing the two.
+function corsHeaders(env, request) {
+    const allowed = String(env.ALLOWED_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
+    const origin = request && request.headers.get('Origin');
+    let acao = '*';
+    if (allowed.length) acao = (origin && allowed.includes(origin)) ? origin : allowed[0];
     return {
-        'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || '*',
+        'Access-Control-Allow-Origin': acao,
         'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Max-Age': '86400',
+        'Vary': 'Origin',
     };
 }
 
-function jsonResponse(obj, env, status) {
+function jsonResponse(obj, env, request, status) {
     return new Response(JSON.stringify(obj), {
         status: status || 200,
-        headers: Object.assign({ 'Content-Type': 'application/json' }, corsHeaders(env)),
+        headers: Object.assign({ 'Content-Type': 'application/json' }, corsHeaders(env, request)),
     });
 }
 
 // POST /exchange { code, redirect_uri, code_verifier? } → { access_token, refresh_token, expires_in }
 async function handleExchange(request, env) {
     let body;
-    try { body = await request.json(); } catch (_) { return jsonResponse({ error: 'bad_json' }, env, 400); }
-    if (!body.code || !body.redirect_uri) return jsonResponse({ error: 'missing_code_or_redirect' }, env, 400);
+    try { body = await request.json(); } catch (_) { return jsonResponse({ error: 'bad_json' }, env, request, 400); }
+    if (!body.code || !body.redirect_uri) return jsonResponse({ error: 'missing_code_or_redirect' }, env, request, 400);
     const params = new URLSearchParams({
         client_id: env.GOOGLE_CLIENT_ID,
         client_secret: env.GOOGLE_CLIENT_SECRET,
@@ -58,15 +67,15 @@ async function handleExchange(request, env) {
         method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params,
     });
     const j = await r.json();
-    if (!r.ok) return jsonResponse({ error: j.error || 'exchange_failed', detail: j.error_description }, env, r.status);
-    return jsonResponse({ access_token: j.access_token, refresh_token: j.refresh_token, expires_in: j.expires_in }, env);
+    if (!r.ok) return jsonResponse({ error: j.error || 'exchange_failed', detail: j.error_description }, env, request, r.status);
+    return jsonResponse({ access_token: j.access_token, refresh_token: j.refresh_token, expires_in: j.expires_in }, env, request);
 }
 
 // POST /refresh { refresh_token } → { access_token, expires_in }
 async function handleRefresh(request, env) {
     let body;
-    try { body = await request.json(); } catch (_) { return jsonResponse({ error: 'bad_json' }, env, 400); }
-    if (!body.refresh_token) return jsonResponse({ error: 'missing_refresh_token' }, env, 400);
+    try { body = await request.json(); } catch (_) { return jsonResponse({ error: 'bad_json' }, env, request, 400); }
+    if (!body.refresh_token) return jsonResponse({ error: 'missing_refresh_token' }, env, request, 400);
     const params = new URLSearchParams({
         client_id: env.GOOGLE_CLIENT_ID,
         client_secret: env.GOOGLE_CLIENT_SECRET,
@@ -79,14 +88,14 @@ async function handleRefresh(request, env) {
     const j = await r.json();
     // 400 invalid_grant ⇒ the refresh token was revoked/expired. Tell the client so
     // it can drop it and ask for a fresh interactive sign-in.
-    if (!r.ok) return jsonResponse({ error: j.error || 'refresh_failed', detail: j.error_description }, env, r.status);
-    return jsonResponse({ access_token: j.access_token, expires_in: j.expires_in }, env);
+    if (!r.ok) return jsonResponse({ error: j.error || 'refresh_failed', detail: j.error_description }, env, request, r.status);
+    return jsonResponse({ access_token: j.access_token, expires_in: j.expires_in }, env, request);
 }
 
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
-        if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(env) });
+        if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(env, request) });
 
         if (url.pathname === '/exchange' && request.method === 'POST') return handleExchange(request, env);
         if (url.pathname === '/refresh'  && request.method === 'POST') return handleRefresh(request, env);
@@ -97,9 +106,9 @@ export default {
             return env.SYNC_ROOM.get(id).fetch(request);
         }
         if (url.pathname === '/' || url.pathname === '/health') {
-            return new Response('dusk-sync ok', { headers: corsHeaders(env) });
+            return new Response('dusk-sync ok', { headers: corsHeaders(env, request) });
         }
-        return new Response('not found', { status: 404, headers: corsHeaders(env) });
+        return new Response('not found', { status: 404, headers: corsHeaders(env, request) });
     },
 };
 
