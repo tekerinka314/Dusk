@@ -51,7 +51,7 @@ const K_SYNC_REFRESH = 'dusk_sync_refresh_v1';  // long-lived REFRESH token (wor
 // (then pushed), the app switches to the auth-code + refresh-token flow → silent
 // re-auth for MONTHS, no popup. A test seam (window.__DUSK_WORKER_URL) lets the
 // headless harness point at a fake Worker; production reads the constant ('').
-const SYNC_WORKER_URL = (typeof window !== 'undefined' && window.__DUSK_WORKER_URL) || '';
+const SYNC_WORKER_URL = (typeof window !== 'undefined' && window.__DUSK_WORKER_URL) || 'https://dusk-sync.petrehundima.workers.dev';
 function _useWorker() { return !!SYNC_WORKER_URL; }
 
 // ── In-memory auth state ──────────────────────────────────────────────────────
