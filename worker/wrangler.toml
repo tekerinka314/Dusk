@@ -1,0 +1,23 @@
+# Cloudflare Worker config for the Dusk sync proxy.
+# Deploy with:  cd worker && wrangler deploy
+# The client_secret is NOT here — set it once with:
+#   wrangler secret put GOOGLE_CLIENT_SECRET
+name = "dusk-sync"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+# Non-secret vars. ALLOWED_ORIGIN locks /exchange + /refresh to the app's own
+# origin (CORS) so a random site can't use your Worker to mint tokens.
+[vars]
+ALLOWED_ORIGIN = "https://tekerinka314.github.io"
+GOOGLE_CLIENT_ID = "493121023118-pln1rmhl37q3qi915jhbaqt57a7dkdtv.apps.googleusercontent.com"
+
+# Durable Object that relays cross-device wake nudges over WebSocket.
+[[durable_objects.bindings]]
+name = "SYNC_ROOM"
+class_name = "SyncRoom"
+
+# SQLite-backed DO class — REQUIRED on the free plan (new_sqlite_classes, not new_classes).
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SyncRoom"]

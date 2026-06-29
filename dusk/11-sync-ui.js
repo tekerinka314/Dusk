@@ -220,11 +220,13 @@ async function syncNow(opts) {
     _syncing = true; _lastError = null; setSyncStatus('syncing');
     _log('▶ ' + (opts.via || (manual ? 'ручной' : 'авто')) + (loadBaseline() ? '' : ' · нет baseline'));
     let stats = null, conflicts = null;
+    let fileId = null, didPush = false;                         // for the cross-device wake (12-sync-wake)
     try {
         let attempt = 0;
         while (true) {
             const pulled = await cloudPull();                       // {empty} | {subset,version,fileId}
             const remote = pulled.empty ? null : pulled.subset;
+            if (pulled.fileId) fileId = pulled.fileId;
             _log(pulled.empty ? 'pull: пусто (файла нет)' : 'pull: v' + pulled.version + ' · задач ' + ((remote && remote.tasks && remote.tasks.length) || 0));
 
             snapshotPreMerge(JSON.stringify(state));                // whole-state insurance
@@ -252,6 +254,8 @@ async function syncNow(opts) {
                 });
                 saveBaseline(out.merged);                           // merged = new agreed baseline
                 _pendingPush = false;
+                if (pr && pr.fileId) fileId = pr.fileId;
+                didPush = true;
                 _log('push: → v' + (pr && pr.version));
                 break;
             } catch (e) {
@@ -261,6 +265,9 @@ async function syncNow(opts) {
         }
         _lastSyncOk = Date.now();
         try { localStorage.setItem(K_SYNC_LASTOK, String(_lastSyncOk)); } catch (_) {}
+        // cross-device wake (12-sync-wake): keep the room live; nudge peers on our push.
+        if (typeof syncWakeNote === 'function' && fileId) syncWakeNote(fileId);
+        if (didPush && typeof syncWakeNudge === 'function') syncWakeNudge();
         _syncing = false;
         _retryCount = 0; clearTimeout(_retryTimer);             // healthy → reset the backoff
         _log('✓ готово' + (conflicts && conflicts.length ? ' · ⚠' + conflicts.length + ' в карантин' : ''));
@@ -328,6 +335,7 @@ function syncSignOut() {
     clearTimeout(_tokenRefreshTimer);
     clearTimeout(_retryTimer); _retryCount = 0;
     _stopPeriodic();
+    if (typeof syncWakeStop === 'function') syncWakeStop();
     try { cloudSignOut(); } catch (_) {}
     _syncEnabled = false; _lastError = null;
     try { localStorage.removeItem(K_SYNC_ENABLED); } catch (_) {}

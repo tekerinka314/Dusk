@@ -22,7 +22,7 @@
 // (only `basic` same-origin + `cors`), and every cross-origin asset we DO want
 // offline (Google Fonts CSS, SortableJS) carries `crossorigin` so it comes back as
 // `cors`. v4 also re-purges the v3 cache that had re-accumulated font padding.
-const CACHE = 'dusk-shell-v5';
+const CACHE = 'dusk-shell-v6';
 const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
 
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
@@ -47,6 +47,7 @@ const CORE_ASSETS = [
     './dusk/09-sync.js',
     './dusk/10-cloud.js',
     './dusk/11-sync-ui.js',
+    './dusk/12-sync-wake.js',
     './manifest.json',
     './version.json',
     './icon-192.svg',

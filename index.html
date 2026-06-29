@@ -1653,6 +1653,8 @@ if ('serviceWorker' in navigator) {
 <!-- Sync Phase 3: live loop + sync UI. Loads AFTER 08 so init() has run (state +
      DOM ready); wires the eye glyph, panel, quarantine + the pull/merge/push loop. -->
 <script src="dusk/11-sync-ui.js"></script>
+<!-- Sync Phase 3.5: cross-device live wake over WebSocket (worker mode only). -->
+<script src="dusk/12-sync-wake.js"></script>
 
 <script>
 // ── In-app update detection ──────────────────────────────────────────────────
