@@ -1678,7 +1678,12 @@ if ('serviceWorker' in navigator) {
 
     function check() {
         readBuild().then(function (b) {
-            if (!b || bootBuild == null || b === bootBuild || b === promptedFor) return;
+            if (!b) return;
+            // Self-heal: if the boot-time read failed (e.g. mid OAuth redirect, SW not
+            // ready), bootBuild stayed null and the old code would NEVER prompt again.
+            // Adopt the first good build we see as the baseline instead.
+            if (bootBuild == null) { bootBuild = b; return; }
+            if (b === bootBuild || b === promptedFor) return;
             if (typeof showToast !== 'function') return;
             promptedFor = b;
             showToast('Доступно обновление', {
