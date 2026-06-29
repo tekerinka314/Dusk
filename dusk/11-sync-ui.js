@@ -435,9 +435,25 @@ function restoreQuarantineEntry(st, entry) {
     } else if (k === 'delete-vs-edit') {
         const arrs = _collArrays(st, entry.recType);
         if (arrs) {
-            const live = _subsetToLive(st, entry.loser, entry.recType);
-            const [main, arch] = arrs;
-            (entry.loser._arch && arch ? arch : main).push(live);
+            const existing = _findRec(st, entry.recType, entry.recUid);
+            if (existing) {
+                // The record is alive again (re-synced by the other device). Apply the
+                // losing copy's content ONTO it — never push a second copy with the same uid.
+                const { _arch, _groupUid, id, groupId, subtasks, ...content } = entry.loser;
+                Object.assign(existing, content);
+                if (entry.recType === 'tasks' && subtasks) {
+                    existing.subtasks = subtasks.map(s => {
+                        const c = Object.assign({}, s);
+                        if (c.id == null) c.id = _allocId(st, 'nextSubId');
+                        return c;
+                    });
+                }
+                existing.updatedAt = nowTs();
+            } else {
+                const live = _subsetToLive(st, entry.loser, entry.recType);
+                const [main, arch] = arrs;
+                (entry.loser._arch && arch ? arch : main).push(live);
+            }
             st.tombstones = (st.tombstones || []).filter(t => t.uid !== entry.recUid);   // un-delete
         }
     } else if (k === 'note-both') {
