@@ -142,11 +142,21 @@ refactor is its prerequisite and the first concrete step.
   working branch for all forward work — do NOT ask which branch). Tag
   `v1.86-stable-core` = the pre-refactor stable snapshot (rollback point). The old
   `fix/ui-repeat-meta-subtasks` is frozen history. Remote `origin` =
-  github.com/tekerinka314/Dusk. **Commit + push AUTOMATICALLY after each finished
-  unit of work** (changed 2026-06-28 — updates reach the user only via push→GitHub
-  Pages, so don't wait to be asked), with the `Co-Authored-By` trailer. Bump
-  `version.js` (BUILD) as part of every deploy commit (drives the in-app "update
-  available" toast). Branch off the default branch rather than committing to it.
+  github.com/tekerinka314/Dusk (**PRIVATE since 2026-06-29**). **Commit + push
+  AUTOMATICALLY after each finished unit of work** (changed 2026-06-28 — updates
+  reach the user only via push→hosting, so don't wait to be asked), with the
+  `Co-Authored-By` trailer. Bump `version.json` (BUILD) as part of every deploy
+  commit (drives the in-app "update available" toast). Branch off the default
+  branch rather than committing to it.
+- **Hosting (changed 2026-06-29):** the app is served from **Cloudflare Pages —
+  `https://dusk-du4.pages.dev`** (git-connected to this repo, production branch
+  `refactor/sync`; build none, output `/`). A push auto-deploys in ~15-20 s →
+  the update toast lands in ~10 s (vs minutes on GitHub Pages). The old GitHub
+  Pages (`tekerinka314.github.io/Dusk/`) is RETIRED (repo went private → free
+  GitHub Pages stopped). The sync OAuth/refresh proxy + cross-device WebSocket
+  wake run on a Cloudflare Worker (`dusk-sync.petrehundima.workers.dev`, source in
+  `worker/`); its `client_secret` lives only as a Worker secret. `ALLOWED_ORIGIN`
+  in `worker/wrangler.toml` must list the app origin (now just the pages.dev one).
 - The user is a **beginner in backend/sync/infra** — explain in plain terms and
   ask clarifying questions rather than assuming.
 

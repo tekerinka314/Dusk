@@ -7,11 +7,10 @@ main = "src/index.js"
 compatibility_date = "2025-06-01"
 
 # Non-secret vars. ALLOWED_ORIGIN locks /exchange + /refresh to the app's own
-# origin(s) (CORS) so a random site can't use your Worker to mint tokens. It is a
-# COMMA-SEPARATED list: GitHub Pages (legacy) + Cloudflare Pages (new) during the
-# migration. Drop the github.io one once fully moved to pages.dev.
+# origin (CORS) so a random site can't use your Worker to mint tokens. Comma-
+# separated if more than one. Migrated off GitHub Pages → now just Cloudflare Pages.
 [vars]
-ALLOWED_ORIGIN = "https://tekerinka314.github.io,https://dusk-du4.pages.dev"
+ALLOWED_ORIGIN = "https://dusk-du4.pages.dev"
 GOOGLE_CLIENT_ID = "493121023118-pln1rmhl37q3qi915jhbaqt57a7dkdtv.apps.googleusercontent.com"
 
 # Durable Object that relays cross-device wake nudges over WebSocket.
