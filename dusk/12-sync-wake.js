@@ -20,6 +20,7 @@ let _wsRoom = null;
 let _wsWantOpen = false;
 let _wsTimer = null;
 let _wsBackoff = 1000;          // reconnect backoff, capped at 30 s
+let _wsEverOpen = false;        // distinguishes a RE-connect (catch up) from the first connect
 
 function _wakeEnabled() {
     return typeof SYNC_WORKER_URL === 'string' && !!SYNC_WORKER_URL && typeof WebSocket !== 'undefined';
@@ -45,7 +46,16 @@ function _wsConnect() {
     let sock;
     try { sock = new WebSocket(_wakeUrl(_wsRoom)); } catch (_) { _wsReconnect(); return; }
     _ws = sock;
-    sock.onopen = () => { _wsBackoff = 1000; };
+    sock.onopen = () => {
+        _wsBackoff = 1000;
+        // A RE-connect (the socket had dropped) may have missed nudges while down →
+        // pull once to catch up. The very first connect needs no sync (we just synced
+        // — syncWakeNote is called right after a sync).
+        if (_wsEverOpen && typeof syncNow === 'function' && typeof cloudStatus === 'function' && cloudStatus().signedIn) {
+            syncNow({ interactive: false, via: 'переподключение' });
+        }
+        _wsEverOpen = true;
+    };
     sock.onmessage = () => {
         // A peer changed → pull. syncNow is single-flight, so a burst collapses.
         if (typeof syncNow === 'function' && typeof cloudStatus === 'function' && cloudStatus().signedIn) {

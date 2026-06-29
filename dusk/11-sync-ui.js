@@ -35,7 +35,9 @@ let _retryTimer = null;        // auto-retry after a transient (network) failure
 let _retryCount = 0;           // consecutive transient failures (drives the backoff)
 
 const SYNC_DEBOUNCE_MS  = 1500;   // edits settle, then push; a burst still collapses into one
-const SYNC_PERIODIC_MS  = 30000;   // two open devices converge within this while both are visible
+const SYNC_PERIODIC_MS  = 120000;  // SAFETY NET only — realtime convergence is the WebSocket wake's
+                                   // job (12-sync-wake); this just guarantees eventual catch-up if the
+                                   // socket silently died. Was 30s; slowed since the wake covers realtime.
 const SYNC_ONLINE_SETTLE_MS = 1500;   // wait after 'online' so the (mobile) link is actually usable
 const SYNC_RETRY_DELAYS = [2000, 5000, 12000];   // backoff for transient sync failures, then give up to the next trigger
 const MAX_CONFLICT_RETRY = 4;

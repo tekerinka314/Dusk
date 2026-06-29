@@ -1728,10 +1728,12 @@ if ('serviceWorker' in navigator) {
             // then resume polling; going hidden → stop entirely.
             if (document.hidden) stopPolling(); else { check(); startPolling(); }
         });
-        // belt-and-braces: also re-check the moment the window regains focus or the
-        // network comes back, so detection never hinges on a single condition.
+        // belt-and-braces: also re-check the moment the window regains focus, the
+        // network comes back, or the page is restored from the bfcache (where
+        // visibilitychange may not fire), so detection never hinges on one condition.
         window.addEventListener('focus', check);
         window.addEventListener('online', check);
+        window.addEventListener('pageshow', check);
     }
 
     if (document.readyState === 'complete' || document.readyState === 'interactive') start();
