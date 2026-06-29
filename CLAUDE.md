@@ -198,8 +198,14 @@ Full Phase-1 engineering spec lives in `SYNC-SPEC.md` (repo root) — code again
 - **Clock (DECIDED):** monotonic number now — `updatedAt = max(Date.now(), lastIssued+1)`
   (cheap, keeps `updatedAt` a number, fixes clock-going-back / same-ms ties). Full HLC
   deferred (drop-in later if real clock problems appear).
-- **Deferred (must do later):** tombstone GC **and** quarantine-journal GC (both grow
-  unbounded for now — plan cleanup in Phase 4).
+- **Phase 4 GC — DONE (2026-06-29):** age-based pruning inside `mergeStates` (gated by
+  `opts.gcNow` so the pure merge stays deterministic for tests). Tombstones older than
+  90 days are dropped; RESOLVED journal entries older than 90 days are collected
+  (UNRESOLVED kept forever until the user acts). Run on the merged OUTPUT every sync →
+  both devices converge (a peer re-adding a stale tombstone is re-pruned next merge).
+  `TOMBSTONE_TTL_MS`/`JOURNAL_TTL_MS` in `09-sync.js`; stats `gcTombstones`/`gcJournal`
+  logged in the sync panel. Accepted trade-off: a device offline > 90 days holding a
+  live copy of a since-deleted record could resurrect it.
 - **Sync channel:** a single small file in the user's **Google Drive**
   (`appDataFolder`). **Google Drive is the choice — Dropbox rejected (too many
   ads).** Each person uses their own Google account → independent data for free.

@@ -248,9 +248,10 @@ async function syncNow(opts) {
             _log(pulled.empty ? 'pull: пусто (файла нет)' : 'pull: v' + pulled.version + ' · задач ' + ((remote && remote.tasks && remote.tasks.length) || 0));
 
             snapshotPreMerge(JSON.stringify(state));                // whole-state insurance
-            const out = mergeStates(loadBaseline(), getSyncSubset(state), remote);
+            const out = mergeStates(loadBaseline(), getSyncSubset(state), remote, { gcNow: Date.now() });
             stats = out.stats; conflicts = out.conflicts;
             _log('merge: +' + stats.added + ' ~' + stats.updated + ' −' + stats.deleted + ' ⚠' + conflicts.length);
+            if (stats.gcTombstones || stats.gcJournal) _log('GC: −' + (stats.gcTombstones || 0) + ' надгробий, −' + (stats.gcJournal || 0) + ' журнал');
             try {
                 _applyingMerge = true;                              // this saveState is the merge landing, not a user edit
                 applySyncSubset(state, out.merged);

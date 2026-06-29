@@ -42,6 +42,16 @@ SYNC_COLLECTIONS.forEach(c => { _COLL_BY_NAME[c.name] = c; });
 const K_SYNC_BASELINE = 'dusk_sync_baseline_v1';   // last-synced subset (detector base)
 const K_SYNC_PREMERGE = 'dusk_sync_premerge_v1';   // whole-state snapshot taken just before applyMerged (bug insurance)
 
+// ── Phase 4 GC horizons ──────────────────────────────────────────────────────
+// Tombstones and the quarantine journal are append-only unions → they grow without
+// bound. GC them by AGE (see mergeStates). 90 days comfortably exceeds any realistic
+// offline gap, so pruning a tombstone can't lose a still-live edit from a normal
+// device (the only loss case is a device offline > the horizon that still holds a
+// live copy of a since-deleted record — accepted per SYNC-SPEC). Resolved journal
+// entries are collected past the horizon; UNRESOLVED ones are kept forever.
+const TOMBSTONE_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+const JOURNAL_TTL_MS   = 90 * 24 * 60 * 60 * 1000;
+
 // ── Small pure helpers ───────────────────────────────────────────────────────
 function _clone(x) { return x == null ? x : JSON.parse(JSON.stringify(x)); }
 
@@ -429,14 +439,19 @@ function _reindex(merged, local) {
 }
 
 // ── Public: the merge ────────────────────────────────────────────────────────
-function mergeStates(base, local, remote) {
+// opts.gcNow (a ms-epoch clock) enables Phase 4 GC of stale tombstones + resolved
+// journal entries. Omitted/null → GC OFF, so the merge stays a deterministic pure
+// function for the node tests. The live loop (Phase 3) passes Date.now().
+function mergeStates(base, local, remote, opts) {
+    opts = opts || {};
+    const gcNow = (typeof opts.gcNow === 'number') ? opts.gcNow : null;
     const B = _emptySubset(base);   // base===null (first sync) → empty maps → union semantics
     const L = _clone(local) || _emptySubset(null);
     const R = _clone(remote) || _emptySubset(null);
     _annotateGroupUids(B); _annotateGroupUids(L); _annotateGroupUids(R);
 
     const conflicts = [];
-    const stats = { added: 0, updated: 0, deleted: 0, kept: 0, conflicts: 0 };
+    const stats = { added: 0, updated: 0, deleted: 0, kept: 0, conflicts: 0, gcTombstones: 0, gcJournal: 0 };
     const merged = {};
 
     for (const coll of SYNC_COLLECTIONS) {
@@ -450,6 +465,19 @@ function mergeStates(base, local, remote) {
     merged.tombstones = [...tombMap.values()].filter(t => !present.has(t.uid));
 
     merged.syncJournal = _mergeJournal(B, L, R, conflicts);
+
+    // Phase 4 GC — applied to the merged OUTPUT (the union), so both devices converge:
+    // a stale tombstone re-added from a peer's union is pruned again on the next merge.
+    if (gcNow != null) {
+        const tBefore = merged.tombstones.length;
+        merged.tombstones = merged.tombstones.filter(t => (gcNow - (t.deletedAt || 0)) < TOMBSTONE_TTL_MS);
+        stats.gcTombstones = tBefore - merged.tombstones.length;
+
+        const jBefore = merged.syncJournal.length;
+        // keep UNRESOLVED forever; collect only the resolved tail past the horizon.
+        merged.syncJournal = merged.syncJournal.filter(e => !(e && e.resolved && (gcNow - (e.resolvedAt || 0)) >= JOURNAL_TTL_MS));
+        stats.gcJournal = jBefore - merged.syncJournal.length;
+    }
 
     merged._alloc = _reindex(merged, L);
     stats.conflicts = conflicts.length;
@@ -534,5 +562,6 @@ if (typeof module !== 'undefined' && module.exports) {
         mergeStates, getSyncSubset, applySyncSubset,
         loadBaseline, saveBaseline, snapshotPreMerge, unresolvedCount,
         SYNC_COLLECTIONS, K_SYNC_BASELINE, K_SYNC_PREMERGE,
+        TOMBSTONE_TTL_MS, JOURNAL_TTL_MS,
     };
 }
