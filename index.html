@@ -1547,7 +1547,8 @@
   </defs>
 </svg>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous"></script>
+<!-- Migration 2c: SortableJS переехал с CDN в npm-бандл (та же 1.15.2) —
+     см. src/sortable-global.js; офлайн больше не зависит от jsdelivr. -->
 <script>
 // Register service worker for offline support (PWA — audit G-4)
 if ('serviceWorker' in navigator) {
@@ -1640,26 +1641,13 @@ if ('serviceWorker' in navigator) {
      по границам секций. Классические <script> делят глобальный scope → код
      ВНУТРИ не менялся (порядок сохранён байт-в-байт). Грузятся СТРОГО по
      порядку: core (стейт+диспетчер+ACT) → … → init() в последнем файле. -->
-<!-- Migration 2a: классические скрипты → ES-модули (type="module"). Семантика
-     общего scope сохранена мостами globalThis.* внутри файлов; порядок исполнения
-     module-скриптов гарантированно совпадает с порядком тегов. Inline-скрипты ниже
-     остаются классическими и исполняются РАНЬШЕ модулей — они обращаются к
-     глобалам только асинхронно (poll/listeners), к тому моменту мосты подняты. -->
-<script type="module" src="dusk/01-core.js"></script>
-<script type="module" src="dusk/02-grimoire.js"></script>
-<script type="module" src="dusk/03-render.js"></script>
-<script type="module" src="dusk/04-tasks.js"></script>
-<script type="module" src="dusk/05-edit-notes-groups.js"></script>
-<script type="module" src="dusk/06-deadlines.js"></script>
-<script type="module" src="dusk/07-dnd-filter-progress.js"></script>
-<script type="module" src="dusk/09-sync.js"></script>
-<script type="module" src="dusk/10-cloud.js"></script>
-<script type="module" src="dusk/08-quickadd-export-init.js"></script>
-<!-- Sync Phase 3: live loop + sync UI. Loads AFTER 08 so init() has run (state +
-     DOM ready); wires the eye glyph, panel, quarantine + the pull/merge/push loop. -->
-<script type="module" src="dusk/11-sync-ui.js"></script>
-<!-- Sync Phase 3.5: cross-device live wake over WebSocket (worker mode only). -->
-<script type="module" src="dusk/12-sync-wake.js"></script>
+<!-- Migration 2a+2c: классические скрипты → ES-модули (2a, мосты globalThis.*
+     внутри dusk-файлов) → единая точка входа Vite (2c). Порядок исполнения
+     задаётся src/main.js и байт-в-байт повторяет старый порядок тегов.
+     Inline-скрипты выше/ниже остаются классическими и исполняются РАНЬШЕ
+     модулей — они трогают глобалы только асинхронно (poll/listeners), к тому
+     моменту мосты подняты. -->
+<script type="module" src="./src/main.js"></script>
 
 <script>
 // ── In-app update detection ──────────────────────────────────────────────────

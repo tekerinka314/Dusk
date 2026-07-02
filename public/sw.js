@@ -9,8 +9,9 @@
 //       - Network slow/down: after NET_TIMEOUT_MS we serve the cached copy
 //         instantly (the in-flight fetch keeps running to refresh the cache for
 //         next time). Fully offline → cache fallback. So offline always works.
-//   • SortableJS CDN (pinned, immutable) → CACHE-FIRST (never revalidated).
 //   • Google Fonts → network-first with cache fallback (unchanged).
+//   • SortableJS: since v8 (Vite build) bundled into app.js from npm — the CDN
+//     cache-first branch is gone; offline no longer depends on jsdelivr.
 // The CACHE name is bumped on a strategy change so the browser reinstalls the
 // worker and the activate cleanup purges the old cache (which also clears any
 // opaque-response storage padding that had inflated the reported usage).
@@ -22,7 +23,7 @@
 // (only `basic` same-origin + `cors`), and every cross-origin asset we DO want
 // offline (Google Fonts CSS, SortableJS) carries `crossorigin` so it comes back as
 // `cors`. v4 also re-purges the v3 cache that had re-accumulated font padding.
-const CACHE = 'dusk-shell-v7';
+const CACHE = 'dusk-shell-v8';   // v8: Vite build — single app.js bundle, no CDN dep
 const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
 
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
@@ -35,24 +36,13 @@ const CORE_ASSETS = [
     './',
     './index.html',
     './style.css',
-    // 7c split A1: app.js разбит на 8 файлов — все нужны для оффлайн-загрузки.
-    './dusk/01-core.js',
-    './dusk/02-grimoire.js',
-    './dusk/03-render.js',
-    './dusk/04-tasks.js',
-    './dusk/05-edit-notes-groups.js',
-    './dusk/06-deadlines.js',
-    './dusk/07-dnd-filter-progress.js',
-    './dusk/08-quickadd-export-init.js',
-    './dusk/09-sync.js',
-    './dusk/10-cloud.js',
-    './dusk/11-sync-ui.js',
-    './dusk/12-sync-wake.js',
+    // 2c: Vite собирает все 12 dusk-модулей (+SortableJS из npm) в один app.js
+    // со СТАБИЛЬНЫМ именем (без хэша) — список не меняется от деплоя к деплою.
+    './app.js',
     './manifest.json',
     './version.json',
     './icon-192.svg',
     './icon-512.svg',
-    'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',
 ];
 const OPTIONAL_ASSETS = [
     './bg-gothic.jpg',
@@ -127,16 +117,6 @@ async function networkFirst(request) {
     return networkPromise;                      // nothing cached → wait for the network
 }
 
-// Cache-first for an immutable pinned dependency (SortableJS @1.15.2 never changes).
-async function cacheFirst(request) {
-    const cache = await caches.open(CACHE);
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    const resp = await fetch(request);
-    if (_cacheable(resp)) cache.put(request, resp.clone());
-    return resp;
-}
-
 self.addEventListener('fetch', e => {
     const req = e.request;
     if (req.method !== 'GET') return;                 // never cache mutations
@@ -149,12 +129,6 @@ self.addEventListener('fetch', e => {
                 .then(r => { if (_cacheable(r)) { const clone = r.clone(); caches.open(CACHE).then(c => c.put(req, clone)); } return r; })
                 .catch(() => caches.match(req))
         );
-        return;
-    }
-
-    // SortableJS CDN — pinned + immutable → cache-first (no revalidation cost).
-    if (url.hostname === 'cdn.jsdelivr.net') {
-        e.respondWith(cacheFirst(req));
         return;
     }
 
