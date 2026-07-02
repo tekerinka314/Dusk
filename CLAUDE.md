@@ -1,17 +1,40 @@
 # DUSK — task journal
 
-A single-page, offline-first gothic task manager (PWA). Plain vanilla JS — no
-framework, no build step. Source files:
+A single-page, offline-first gothic task manager (PWA). Vanilla JS built with
+**Vite** (migration Этап 2 done 2026-07-02; TypeScript = Этап 3, next). Layout:
 
 - `index.html` — markup, all modals, inline SVG icons, SVG `<symbol>` defs.
-- `app.js` — all logic (state, rendering, repeats/cycles, drag-and-drop via
-  SortableJS, deadlines, archive, import/export). ~14.3k lines. State persists to
-  `localStorage` under `duskState_v3`.
-- `style.css` — all styling and animations.
-- `pen-asset.js` — the «Звук пера» base64 audio sample, extracted from `app.js`
-  (D-3). MUST load via its own `<script>` **before** `app.js` (sets
-  `window.PEN_ASSET`). Decoded in-memory via `atob` (no `fetch`), so the pen
-  sound works fully offline from a `file://` page with no server.
+  Vite entry; loads `src/main.js` as the only module script.
+- `src/main.js` — entry: side-effect imports of the 12 dusk modules in the
+  EXACT legacy order (order is the load-bearing contract). `src/sortable-global.js`
+  publishes npm `sortablejs@1.15.2` as the `Sortable` global BEFORE dusk modules.
+- `dusk/01-core.js … 12-sync-wake.js` — all logic, split by section (7c). ES
+  modules that share state via **globalThis bridges** (migration 2a): top-level
+  `let/var` are written as `globalThis.*` (single slot, no split brain);
+  functions are re-exposed on globalThis at file TOP (classic hoisting
+  semantics), consts/classes at file END (TDZ). The modules do NOT import each
+  other. 09/10 keep a `module.exports` footer → requireable by node tests.
+  State persists to `localStorage` under `duskState_v4` (v3 kept frozen).
+- `style.css` — all styling and animations (bundled by Vite, emitted unhashed
+  as `style.css`; bg-gothic.jpg is 284 KB, resolved from public/ at runtime).
+- `public/` — runtime-fetched statics copied verbatim to dist: `sw.js`,
+  `version.json`, `manifest.json`, icons, `bg-gothic.jpg`, `pen-asset.js`,
+  `_headers`.
+- `public/pen-asset.js` — the «Звук пера» base64 audio sample. Classic script
+  tag BEFORE the module entry (sets `window.PEN_ASSET`); decoded via `atob`.
+- `tests/` — vitest: `npm test` = 4 ported node harnesses (sync merge 39, GC 13,
+  cloud transport 24, worker OAuth 17) + Drive wire-format pin (fixtures —
+  breaking the sync JSON shape fails here, not silently in the cloud).
+- `scripts/build-portable.mjs` — `npm run build:portable` → `dist/dusk-portable.html`
+  (~1.4 MB, fully inlined single file, runs from disk via file:// — the
+  no-server fallback; its data lives in the file:// origin's own localStorage).
+- `worker/` — Cloudflare Worker (OAuth exchange/refresh + WebSocket wake). Not
+  part of the Vite build; deployed separately with wrangler. Don't touch it in
+  the migration.
+
+Commands: `npm test` (vitest), `npm run dev` (Vite dev server), `npm run build`
+(→ dist/, stable names `app.js`/`style.css` — the hand-rolled network-first
+`sw.js` precaches by exact name, CACHE `dusk-shell-v8`), `npm run preview`.
 
 ## Design & UX — gothic aesthetic is MANDATORY
 
@@ -148,9 +171,15 @@ refactor is its prerequisite and the first concrete step.
   `Co-Authored-By` trailer. Bump `version.json` (BUILD) as part of every deploy
   commit (drives the in-app "update available" toast). Branch off the default
   branch rather than committing to it.
-- **Hosting (changed 2026-06-29):** the app is served from **Cloudflare Pages —
-  `https://dusk-du4.pages.dev`** (git-connected to this repo, production branch
-  `refactor/sync`; build none, output `/`). A push auto-deploys in ~15-20 s →
+- **Hosting (changed 2026-06-29; build settings changed 2026-07-02):** the app
+  is served from **Cloudflare Pages — `https://dusk-du4.pages.dev`**
+  (git-connected to this repo, production branch `refactor/sync`; **build
+  command `npm ci && npm run build`, output `dist`** — flipped for the Vite
+  migration; a FAILED build keeps the last successful deploy live, so broken
+  pushes never take the site down). Non-production branches get preview URLs
+  (`<branch>.dusk-du4.pages.dev`); sync OAuth does NOT work on preview origins
+  (Google redirect URI + worker ALLOWED_ORIGIN list only the prod origin). A
+  push auto-deploys in ~20-30 s →
   the update toast lands in ~10 s (vs minutes on GitHub Pages). The old GitHub
   Pages (`tekerinka314.github.io/Dusk/`) is RETIRED (repo went private → free
   GitHub Pages stopped). The sync OAuth/refresh proxy + cross-device WebSocket
@@ -160,15 +189,32 @@ refactor is its prerequisite and the first concrete step.
 - The user is a **beginner in backend/sync/infra** — explain in plain terms and
   ask clarifying questions rather than assuming.
 
-## Roadmap & future direction (discussed, NOT started)
+## Roadmap — migration IN PROGRESS (plan agreed 2026-07-02, see memory `migration-ts-vite-plan`)
 
-Three future goals, best treated as ONE project with a shared web core:
-1. Migrate to a modern stack (TypeScript + a light reactive framework like
-   Svelte + Vite + IndexedDB). **Optional** — justified by maintainability, not
-   speed. Only worth doing as the foundation for #2/#3, and migrate once.
-2. **Android app** via **Capacitor** (reuse web code). **Sideload APK is enough
-   — no Google Play account/release needed.**
-3. **Windows 11 app** via **Tauri** (tiny native binary, reuse web code).
+Locked stack decisions (do NOT re-ask): **TypeScript + Vite + Vitest. Solid
+REJECTED** (the hand-rolled render layer stays — rewriting it is max regression
+risk for zero user value; a framework island only IF the optional calendar ever
+happens). **Dexie REJECTED → `idb-keyval`** (state stays ONE blob — the sync
+engine/undo/baseline operate on whole state; IndexedDB is for capacity +
+Grimoire images later). Rollback tag: `v2.2-pre-migration`.
+
+- **Этап 1 DONE** — vitest + node harnesses in `tests/` + Drive-format pin.
+- **Этап 2 DONE (2026-07-02, user-verified on prod)** — 2a ES modules with
+  globalThis bridges; 2c Vite build pipeline (npm Sortable, public/, stable
+  names, sw v8); 2d portable single-file fallback.
+- **Этап 3 NEXT — TypeScript, incremental.** Step 0: port the harness `.cjs`
+  scripts to native vitest imports FIRST (plain-node `require` can't load `.ts`
+  — renaming 09/10 to .ts would break the spawned harnesses). Then tsconfig
+  (loose → ratchet), `src/types.ts` per SYNC-SPEC §4, rename order:
+  09-sync → 10-cloud → 12 → 11 → 01-core → rest; `tsc --noEmit` + vitest +
+  build green per file, one commit per file. Don't touch worker/.
+- **Этап 4** — localStorage → IndexedDB blob via `idb-keyval` (dual-write, LS
+  copy never deleted, pre-migration snapshot, `navigator.storage.persist()`).
+- **Этап 5** — Playwright smoke in-repo (replaces the external D:\tmp\pw
+  harnesses; note `_swtest` asserts the OLD design — CDN Sortable + cache v7 —
+  its 2 fails vs dist are expected).
+- Then (separate "go"): **Android via Capacitor**, **Windows via Tauri** (both
+  have official Vite templates; sideload APK is enough).
 
 Context/scope: personal use; maybe a couple of friends test it; **maybe** a
 public GitHub repo later (mostly for résumé) — public users not seriously
@@ -233,4 +279,4 @@ one-time (free) Google Cloud Console OAuth-client setup.
 
 Conversations persist on disk. Run `claude` from the project folder, then
 `claude --continue` (latest) or `claude --resume` (pick from a list). Transcripts
-live in `C:\Users\serge\.claude\projects\D--VSCode-projects-DUSK-1-86\`.
+live in `C:\Users\serge\.claude\projects\D--VSCode-projects-DUSK-v2-0\`.
