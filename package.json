@@ -1,0 +1,13 @@
+{
+  "name": "dusk",
+  "private": true,
+  "version": "2.0.0",
+  "description": "DUSK — offline-first gothic task journal (PWA)",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.9"
+  }
+}
