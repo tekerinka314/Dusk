@@ -1,3 +1,13 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    _clone, _stable, _eq, _ts, _byKey, _tombSet, _sideState, _canon,
+    _canonSub, _sameContent, _changed, _entry, _mergeSubtasks, _takeSub, _mergeFields, _minDef,
+    _resolveBoth, _mergeCollection, _annotateGroupUids, _unionTombstones, _mergeJournal, _reindex, mergeStates, _emptySubset,
+    getSyncSubset, applySyncSubset, loadBaseline, saveBaseline, snapshotPreMerge, unresolvedCount,
+});
+
 // ============================================================
 //  09-sync.js — Sync Phase 1: the pure 3-way merge engine
 // ============================================================
@@ -565,3 +575,10 @@ if (typeof module !== 'undefined' && module.exports) {
         TOMBSTONE_TTL_MS, JOURNAL_TTL_MS,
     };
 }
+
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    SYNC_COLLECTIONS, _COLL_BY_NAME, K_SYNC_BASELINE, K_SYNC_PREMERGE, TOMBSTONE_TTL_MS, JOURNAL_TTL_MS,
+});

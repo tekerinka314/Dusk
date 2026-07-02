@@ -1,3 +1,20 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    render, renderListOnly, _reconcile, _groupHeaderHTML, _ensureSplitZone, _ensureKeyed, _pinnedNodes, _splitZoneNodes,
+    _renderSplitBody, _renderScheduleBody, _renderScheduleSplitBody, renderTasks, appendScheduleSection, _visibleUnderFilter, extractPinned, appendPinnedBlock,
+    getEffectiveSortMode, isDueTodayOrOverdue, filterAndSort, filterAndSortDeadline, scheduleActive, _taskSortIcon, _taskSortLabel, _taskSortOptions,
+    _groupSortPicker, _renderTaskSortControl, toggleSortPicker, _sortPickerOutside, _closeSortPicker, setTaskSort, setGroupSort, toggleSortMode,
+    toggleGroupSortMode, toggleFocusGroup, clearTaskRepeat, clearTaskDeadline, _deadlineTimeOfDay, snoozeDeadline, closeFloatMenu, _floatMenuOutside,
+    _openFloatMenu, openSnoozeMenu, _snoozeUnitPick, _snoozeCustomApply, snoozeByRelative, _labelColorSwatches, _syncListboxActive, _syncColorFilterUI,
+    setColorFilter, openColorFilterModal, closeColorFilterModal, _populateColorFilterModal, _applyArchiveSearch, importData, _showImportChoiceModal, requestNotificationPermission,
+    _checkDeadlineNotifications, initGroupDnD, _requireSelection, bulkSetPriority, bulkSetGroup, bulkSetColor, bulkSetDeadline, openBulkColorModal,
+    openBulkDeadlineModal, openBulkGroupModal, closeBulkGroupModal, _renderBulkGroupList, renderGroupBar, renderGroupSelect, renderGroupChips, selectGroupChip,
+    registerGothicPicker, initGroupPicker, renderArchive, toggleSelectMode, toggleArchiveSelection, updateSelectBar, restoreSelected, restoreAll,
+    updateArchiveBadge, getGroupColor, taskFromArchive,
+});
+
 // ============================================================
 //  RENDER
 // ============================================================
@@ -8,8 +25,8 @@
 // moved in a 'blur' event handler", and (when it happened mid-sync) a bogus sync
 // error. So a render requested WHILE one is running is coalesced into a single
 // follow-up render after the current one finishes, never run nested.
-let _rendering = false;
-let _renderQueued = false;
+globalThis._rendering = false;
+globalThis._renderQueued = false;
 function render() {
     if (_rendering) { _renderQueued = true; return; }
     _rendering = true;
@@ -319,8 +336,8 @@ function _renderScheduleSplitBody(container, pinned, rest, gid) {
 // Bug B: cross-render DOM reuse caches, set at the top of each renderTasks() pass
 // and read by createTaskEl. _liCache = whole task cards (an unchanged card is reused
 // in place); _subCache = subtask sections (reused inside a card that IS rebuilt).
-let _subCache = null;
-let _liCache  = null;
+globalThis._subCache = null;
+globalThis._liCache = null;
 function renderTasks() {
     // D-4: if a per-group sort picker is open, its <body>-portaled list would be
     // orphaned (left floating) when we wipe the list below. Close it first — while
@@ -765,8 +782,8 @@ function _renderTaskSortControl() {
 // One picker open at a time; outside-click closes. Works for the toolbar + every group.
 // The list is PORTALED to <body> while open so it can't be clipped or painted over by a
 // transformed ancestor / overflow / stacking context; closing restores it into the picker.
-let _openSortPicker = null;
-let _portaledList = null;   // { el, parent } — the list moved to <body>, and where it came from
+globalThis._openSortPicker = null;
+globalThis._portaledList = null;// { el, parent } — the list moved to <body>, and where it came from
 function toggleSortPicker(e) {
     if (e) e.stopPropagation();
     const picker = e.currentTarget.closest('.dl-month-picker');
@@ -947,10 +964,10 @@ function snoozeDeadline(id, preset) {
 }
 
 // ── Shared floating popup-menu (used by snooze + demote parent-picker) ───────
-let _floatMenuEl = null;
-let _floatMenuAnchor = null;          // the trigger button the open menu belongs to
-let _suppressReopenAnchor = null;     // set on a toggle-close so the trailing click doesn't reopen
-let _suppressReopenAt = 0;
+globalThis._floatMenuEl = null;
+globalThis._floatMenuAnchor = null;// the trigger button the open menu belongs to
+globalThis._suppressReopenAnchor = null;// set on a toggle-close so the trailing click doesn't reopen
+globalThis._suppressReopenAt = 0;
 function closeFloatMenu() {
     const m = _floatMenuEl;
     _floatMenuEl = null;            // clear refs first so an immediate reopen makes a fresh element
@@ -1439,8 +1456,8 @@ function _checkDeadlineNotifications() {
 }
 
 // ---- Group DnD ----
-let sortableGroupsList    = null;
-let sortableGroupSections = null;
+globalThis.sortableGroupsList = null;
+globalThis.sortableGroupSections = null;
 
 function initGroupDnD() {
     // Pill bar — drag to reorder via pill wrap
@@ -1529,9 +1546,9 @@ function bulkSetPriority(priority) {
 }
 
 // ── P-D: bulk group / colour / deadline (parity with bulkSetPriority) ────────
-let bulkColorActive    = false;   // task-color modal is acting on the whole selection
-let bulkDeadlineActive = false;   // deadline modal is acting on the whole selection
-let formColorActive    = false;   // task-color modal opened from the creation form (writes selectedFormColor)
+globalThis.bulkColorActive = false;// task-color modal is acting on the whole selection
+globalThis.bulkDeadlineActive = false;// deadline modal is acting on the whole selection
+globalThis.formColorActive = false;// task-color modal opened from the creation form (writes selectedFormColor)
 
 function bulkSetGroup(groupId) {
     if (!selectedTaskIds.size) return;
@@ -1744,11 +1761,11 @@ function initGroupPicker() {
 
 // ---- Archive ----
 // ---- Selection state ----
-let selectMode = false;
+globalThis.selectMode = false;
 const selectedArchiveIds = new Set();
 
 // Main list bulk-select state (mirrors archive selectMode)
-let mainSelectMode = false;
+globalThis.mainSelectMode = false;
 const selectedTaskIds = new Set();
 
 function renderArchive() {
@@ -2014,3 +2031,10 @@ function taskFromArchive(item) {
     };
 }
 
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    _SPLIT_ACTIVE_ICON, _SPLIT_DONE_ICON, _PIN_HDR_CHEVRON, TASK_SORTS, TASK_SORT_ICON, _pad2, _ymd, _gothicPickers,
+    selectedArchiveIds, selectedTaskIds,
+});

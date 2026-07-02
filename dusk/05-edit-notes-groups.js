@@ -1,3 +1,19 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    linkifyNote, noteDisplayHTML, _noteCtx, _openNoteWrap, _closeNoteWrap, _noteEdit, _noteInput, _noteCounter,
+    _noteKeydown, _noteCommit, _notePersist, _noteDeleteClick, _noteToggle, toggleSubNote, updateSubNotesAlwaysBtn, updateSubProgressBar,
+    updateSubToggleBtn, refreshSubtaskList, initSubSortable, onSubDragEnd, startInlineEdit, toggleTaskNote, _taskNoteCtx, _taskNoteEdit,
+    _taskNoteInput, _taskNoteCounter, _taskNoteKeydown, _taskNoteCommit, _taskNotePersist, openNoteModal, openEditNoteModal, closeNoteModal,
+    confirmNote, _taskNoteDelete, plainTextPaste, attachPlainPasteHandlers, deleteTaskForever, _setTaskPriority, _setTaskColor, openPrioModal,
+    closePrioModal, openGrimColorModal, openGrimBulkColorModal, openTaskColorModal, openFormColorModal, closeTaskColorModal, _commitColorChoice, _hsvToRgb,
+    _rgbToHex, _hexToHsv, _grgbHex, _grgbEls, _grgbRender, _groupColorFromSpectrum, _grgbSyncFromColor, _grgbHue,
+    _grgbApply, _populateRepeatAnchor, openRepeatModal, closeRepeatModal, announce, openModalWithFocus, closeModalWithAnim, dismissModalById,
+    showAddGroupModal, _setGroupColor, closeGroupModal, confirmAddGroup, toggleGroupCollapse, toggleCollapseAllGroups, updateCollapseAllBtn, openRenameGroupModal,
+    closeRenameGroupModal, confirmRenameGroup,
+});
+
 // ============================================================
 //  UNIFIED INLINE NOTE SYSTEM (subtask + form subtask)
 //  Context is resolved from the closest .subtask-item:
@@ -796,9 +812,9 @@ document.getElementById('modal-prio-selector').addEventListener('click', e => {
 // ─── Task color modal ────────────────────────────────────────────────────────
 // п.9: a grimoire note reuses the very same colour modal (presets + RGB spectrum +
 // "без цвета"). This flag routes _commitColorChoice / close back to the note.
-let noteColorActive = false;
-let grimBulkColorActive = false;   // cross-app #7: task-color-modal acting on the whole note selection
-let editingNoteColorId = null;
+globalThis.noteColorActive = false;
+globalThis.grimBulkColorActive = false;// cross-app #7: task-color-modal acting on the whole note selection
+globalThis.editingNoteColorId = null;
 function openGrimColorModal(id) {
     const note = (state.notes || []).find(n => n.id === id);
     if (!note) return;
@@ -911,10 +927,10 @@ document.getElementById('task-color-picker').addEventListener('click', e => {
 
 // ─── Gothic custom-colour spectrum (RGB picker) ──────────────────────────────
 // A 2D saturation/value pad + a hue band. State is HSV; converted to/from hex.
-let _grgbH = 270, _grgbS = 0.62, _grgbV = 0.92; // default: gothic violet ≈ #A060FF
+globalThis._grgbH = 270; globalThis._grgbS = 0.62; globalThis._grgbV = 0.92;// default: gothic violet ≈ #A060FF
 // P-fix#2: the spectrum lives in two modals (colour-label + group). _grgbScope picks
 // which one the engine reads/writes; both copies share the same class names (no dup ids).
-let _grgbScope = 'task'; // 'task' (colour-label modal) | 'group' (group modal, live binding)
+globalThis._grgbScope = 'task';// 'task' (colour-label modal) | 'group' (group modal, live binding)
 
 function _hsvToRgb(h, s, v) {
     const c = v * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = v - c;
@@ -1271,7 +1287,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 
 /** Announce a message to screen readers via the live region. */
-let _announceRafId = null;
+globalThis._announceRafId = null;
 function announce(msg) {
     const lr = document.getElementById('live-region');
     if (!lr) return;
@@ -1634,3 +1650,9 @@ groupNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirm
 
 // group selector is now handled by chip buttons (selectGroupChip)
 
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    NOTE_MAX, TASK_NOTE_MAX, FOCUSABLE, MODAL_CLOSERS,
+});

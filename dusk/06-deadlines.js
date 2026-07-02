@@ -1,3 +1,14 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    openDeadlineModal, closeDeadlineModal, setDeadlineMode, _focusDeadlineModeInput, updateRepeatAvailability, clearDeadlineModal, _setDlAutoRepeat, toggleDlAutoRepeat,
+    _readDlDuration, _setDlDurationFields, _clampDlDuration, _stepDlDuration, _updateDlRepeatToggle, _applyAutoRepeatToTarget, confirmDeadline, applyDeadline,
+    updateFormDeadlineDisplay, clearFormDeadline, clearFormDeadlineState, setupMonthdayStepper, setupYearStepper, stepYear, stepMonthday, _updateRepeatMonthdayHint,
+    setupRepeatMonthdayStepper, monthdayNoteText, updateMonthdayMax, deadlineWindow, getDeadlineTimestamp, calDayDiff, weektimeDayDiff, deadlineStatus,
+    formatDeadlineCountdown, formatDeadlineAbsolute, formatDeadlineForm, startDeadlineTimer, updateCycleUntilLabels, _syncCriticalPulse, updateDeadlineBadges,
+});
+
 // ============================================================
 //  DEADLINE MODAL
 // ============================================================
@@ -1243,3 +1254,9 @@ function updateDeadlineBadges() {
     _syncCriticalPulse(); // 6e: re-align any newly-critical badges to the shared phase
 }
 
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    _AUTO_REPEAT_BY_MODE, _DL_REPEAT_LABELS, getYearMin, YEAR_MAX, _PULSE_EPOCH, _PULSE_MS,
+});

@@ -1,3 +1,14 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    parseQuickInput, _parseQuickDate, _qaDetect, _qaSuggest, _qaUpdate, _qaRenderMenu, _qaHover, _qaMove,
+    _qaAccept, _qaClose, _qaKeydown, openExportMenu, exportData, _tasksToMarkdown, _exportTasksMarkdown, triggerImport,
+    duplicateTask, togglePin, toggleMainSelectMode, toggleMainSelectTask, _updateMainSelectBar, bulkArchive, bulkDelete, _visibleTaskEls,
+    getVisibleTaskIds, _matchKey, highlightFocusedTask, _visibleArchiveIds, _highlightFocusedArchive, setupEventListeners, _shortcutsHintHTML, _refreshShortcutsHint,
+    toggleShortcutsHint, initMonthPicker, initWeekdayPicker, initSegmentedInputs, initFormWeekdayPicker,
+});
+
 // ============================================================
 //  Idea 4: QUICK-ADD — inline syntax  *tag  %date  !priority
 //  + an interactive typeahead dropdown (keyboard + mouse).
@@ -67,8 +78,8 @@ function _parseQuickDate(tok) {
 }
 
 // ── Typeahead dropdown ───────────────────────────────────────────────────────
-let _qaState  = null;   // { type, query, start, end, items, active }
-let _qaMenuEl = null;
+globalThis._qaState = null;// { type, query, start, end, items, active }
+globalThis._qaMenuEl = null;
 
 function _qaDetect() {
     const val = inputBox.value;
@@ -446,9 +457,9 @@ function bulkDelete() {
     saveState(); render();
     showToast(`Удалено: ${count}`, { undo: true });
 }
-let _focusedTaskId = null;
-let _focusedByKeyboard = false; // UX-2: true only when task was selected via J/K, not just hovered
-let _focusedArchiveId = null;   // archive-page J/K focus ring (crypt cards)
+globalThis._focusedTaskId = null;
+globalThis._focusedByKeyboard = false;// UX-2: true only when task was selected via J/K, not just hovered
+globalThis._focusedArchiveId = null;// archive-page J/K focus ring (crypt cards)
 
 /** Return visible tasks in DOM render order — covers all render modes. */
 // V-3: single source of truth for "visible task cards" across every render mode
@@ -807,8 +818,8 @@ function setupEventListeners() {
 // ============================================================
 // UX-3: replaced auto-show-on-load with an always-accessible ? button.
 
-let _shortcutsHintOpen = false;
-let _taskHintHTML = null;   // the task-page (main) hint markup, captured once from the DOM
+globalThis._shortcutsHintOpen = false;
+globalThis._taskHintHTML = null;// the task-page (main) hint markup, captured once from the DOM
 // cross-app #5: each context has its OWN key set. The crypt/archive have few or none —
 // показывать task-клавиши там было бы ложью. &nbsp; keeps each pair from wrapping mid-token.
 const _NOTES_HINT_HTML =                       // notes · «Записи» (active grimoire)
@@ -1491,3 +1502,10 @@ function initFormWeekdayPicker() {
 
 
 init();
+
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    _EXPORT_TASKS_IC, _EXPORT_MD_IC, _NOTES_HINT_HTML, _CRYPT_HINT_HTML, _TASK_ARCHIVE_HINT_HTML, segInputs, SegmentedInput,
+});

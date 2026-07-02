@@ -1,3 +1,15 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    setupSortables, inferNeighbourPriority, applyPriorityInheritance, onDragAdd, onDragEnd, reorderList, updateGroupCounts, toggleFilter,
+    toggleScheduleMode, toggleTodayMode, toggleGroupSplitMode, appendScheduleSplitSection, appendSplitSection, clearMainSearch, clearArchiveSearch, focusNewTaskInput,
+    _syncFormColorPickerState, _setFormColor, setFormRepeat, toggleExpand, updateProgress, updateVisibility, showAllDone, getAudioCtx,
+    playSound, vibrate, toggleSound, applySoundPref, _penLoad, _penPlay, _penIsField, _penSetVolFromEvent,
+    _penBuildUI, _penSyncBtn, togglePenSound, applyPenSoundPref, _hideToast, showToast, shakeInput, highlightHashtags,
+    extractTags, _zadachi, renderTagCloud, filterByTag, highlightSearch, escHtml,
+});
+
 // ============================================================
 //  DRAG & DROP
 // ============================================================
@@ -425,7 +437,7 @@ function appendSplitSection(ul, tasks, splitKey, realGroupId) {
     }
 }
 
-let _searchDebounce = null;
+globalThis._searchDebounce = null;
 searchBox.addEventListener('input', () => {
     searchQuery = searchBox.value.trim();
     saveUiState();
@@ -532,9 +544,9 @@ document.querySelectorAll('#repeat-selector .repeat-btn').forEach(btn => {
 });
 
 // Form-level repeat anchor state
-let formRepeatAnchorTime     = null;
-let formRepeatAnchorDay      = null;
-let formRepeatAnchorMonthday = null;
+globalThis.formRepeatAnchorTime = null;
+globalThis.formRepeatAnchorDay = null;
+globalThis.formRepeatAnchorMonthday = null;
 
 function setFormRepeat(repeat) {
     selectedRepeat = repeat;
@@ -607,7 +619,7 @@ function toggleExpand() {
 // ============================================================
 // IMP-10: persist milestone across reloads so we don't fire on first render.
 // Seed from localStorage; fallback -1 if never set or keys missing.
-let _lastProgressMilestone = parseInt(localStorage.getItem('dusk_milestone') || '-1');
+globalThis._lastProgressMilestone = parseInt(localStorage.getItem('dusk_milestone') || '-1');
 
 function updateProgress() {
     const total = state.tasks.length;
@@ -692,7 +704,7 @@ function updateProgress() {
 }
 
 // Track whether empty-state was previously hidden so we only animate on transition
-let _emptyWasVisible = false;
+globalThis._emptyWasVisible = false;
 
 function updateVisibility() {
     const hasTasks = state.tasks.length > 0;
@@ -786,7 +798,7 @@ function updateVisibility() {
 }
 
 // Cathedral-flash cleanup controller — ensures we never accumulate multiple listeners
-let _cathedralFlashAbort = null;
+globalThis._cathedralFlashAbort = null;
 
 function showAllDone() {
     allDone.style.display       = 'flex';
@@ -835,7 +847,7 @@ function showAllDone() {
 //    allDone   — ascending minor chord arpeggio with reverb tail
 //    add       — (no sound — silent action)
 // ============================================================
-let audioCtx = null;
+globalThis.audioCtx = null;
 function getAudioCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     return audioCtx;
@@ -1015,7 +1027,7 @@ document.addEventListener('keydown', e => {
 // Build the button's inner UI once: the morphing body holds a volume channel
 // (revealed on hover when sound is on) + the quill icon pinned in the round base.
 // Dragging inside the channel sets the master volume; clicking the icon toggles.
-let _penUIWired = false;
+globalThis._penUIWired = false;
 function _penSetVolFromEvent(e) {
     const b = _penBtn(); if (!b) return;
     const ch = b.querySelector('.pen-chan'); if (!ch) return;
@@ -1092,8 +1104,8 @@ function applyPenSoundPref() {
 // ============================================================
 //  TOAST
 // ============================================================
-let toastTimer  = null;
-let toastHideTimer = null;
+globalThis.toastTimer = null;
+globalThis.toastHideTimer = null;
 
 // Idea 7: showToast(msg, { undo: true }) appends an "Отменить" action that calls
 // undo() — a safety net for destructive/mutating actions (archive, delete, …),
@@ -1248,3 +1260,9 @@ function escHtml(str) {
         .replace(/'/g,'&#39;');
 }
 
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    _penBtn, PEN_TIP_ON, PEN_TIP_OFF,
+});

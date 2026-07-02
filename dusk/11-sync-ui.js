@@ -1,3 +1,15 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    _log, _glyph, _restState, _hhmm, _statusTitle, setSyncStatus, refreshStatus, _scheduleTokenRefresh,
+    refreshQuarantineBadge, _stableStringify, _recCanon, _syncCanon, _pushNeeded, _startPeriodic, _stopPeriodic, _flushIfPending,
+    syncNow, scheduleSyncPush, _afterSaveState, _toastResult, _toastErr, syncSignIn, syncSignOut, syncNowManual,
+    _syncPanelHtml, openSyncPanel, _refreshSyncPanelIfOpen, _escHtml, _collArrays, _findRec, _findTask, _allocId,
+    _subsetToLive, restoreQuarantineEntry, _resolveEntry, _entryWhat, _entryLoserPreview, _trim, _esc, openQuarantine,
+    _refreshQuarOverlay, closeQuarantine, _initSyncUI,
+});
+
 // ============================================================
 //  11-sync-ui.js — Sync Phase 3: live loop + gothic UI + quarantine review
 // ============================================================
@@ -20,19 +32,19 @@
 // first interactive sign-in is an explicit click).
 
 // ── module state (in-memory; only _lastSyncOk + the enabled flag persist) ─────
-let _syncing      = false;     // single-flight guard
-let _syncQueued   = false;     // a trigger fired mid-sync → run once more after
-let _syncReady    = false;     // set after init so load-time saveState() doesn't push
-let _pendingPush  = false;     // local edits not yet pushed (offline/queued)
-let _applyingMerge = false;    // true while syncNow writes the merged state → its own saveState must NOT re-queue a push
-let _lastSyncOk   = 0;         // ms epoch of the last successful sync
-let _lastError    = null;      // last sync error (for the 'error' status)
-let _syncEnabled  = false;     // user opted into sync (first interactive sign-in)
-let _debounceTimer = null;
-let _tokenRefreshTimer = null; // proactive silent token renewal (keeps an open session alive)
-let _periodicTimer = null;     // background pull cadence while a signed-in tab is visible
-let _retryTimer = null;        // auto-retry after a transient (network) failure
-let _retryCount = 0;           // consecutive transient failures (drives the backoff)
+globalThis._syncing = false;// single-flight guard
+globalThis._syncQueued = false;// a trigger fired mid-sync → run once more after
+globalThis._syncReady = false;// set after init so load-time saveState() doesn't push
+globalThis._pendingPush = false;// local edits not yet pushed (offline/queued)
+globalThis._applyingMerge = false;// true while syncNow writes the merged state → its own saveState must NOT re-queue a push
+globalThis._lastSyncOk = 0;// ms epoch of the last successful sync
+globalThis._lastError = null;// last sync error (for the 'error' status)
+globalThis._syncEnabled = false;// user opted into sync (first interactive sign-in)
+globalThis._debounceTimer = null;
+globalThis._tokenRefreshTimer = null;// proactive silent token renewal (keeps an open session alive)
+globalThis._periodicTimer = null;// background pull cadence while a signed-in tab is visible
+globalThis._retryTimer = null;// auto-retry after a transient (network) failure
+globalThis._retryCount = 0;// consecutive transient failures (drives the backoff)
 
 const SYNC_DEBOUNCE_MS  = 1500;   // edits settle, then push; a burst still collapses into one
 const SYNC_PERIODIC_MS  = 120000;  // SAFETY NET only — realtime convergence is the WebSocket wake's
@@ -565,7 +577,7 @@ function _entryLoserPreview(e) {
 function _trim(s) { s = String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(); return s.length > 40 ? s.slice(0, 38) + '…' : s; }
 function _esc(s) { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
 
-let _quarOverlay = null;
+globalThis._quarOverlay = null;
 function openQuarantine() {
     if (typeof closeFloatMenu === 'function') closeFloatMenu();
     closeQuarantine();
@@ -691,3 +703,11 @@ if (typeof document !== 'undefined' && document.getElementById) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { restoreQuarantineEntry, _restState: () => _restState };
 }
+
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    SYNC_DEBOUNCE_MS, SYNC_PERIODIC_MS, SYNC_ONLINE_SETTLE_MS, SYNC_RETRY_DELAYS, MAX_CONFLICT_RETRY, K_SYNC_LASTOK, K_SYNC_ENABLED, _syncLog,
+    _PUSH_DROP, _COLL_KEY,
+});

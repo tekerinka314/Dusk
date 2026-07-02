@@ -1,7 +1,40 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    _renderPage, _updatePageTabs, _initPage, switchPage, grimDate, _grimList, _grimCurrentNote, loadGrimVersions,
+    saveGrimVersions, _grimVersionsOf, _grimMigrateVersions, _grimRestoreVersions, _grimSnapshot, _grimThinVersions, _grimVersionTick, _grimSnapshotCurrent,
+    _grimScheduleVersion, _grimHistNote, _grimVerStamp, _grimAgo, grimOpenHistory, grimCloseHistory, grimHistSelect, _grimRenderHistory,
+    grimHistRestore, renderNotes, _grimApplyFocus, grimToggleCollapse, grimToggleFocus, grimToggleBar, _grimApplyBarMode, grimToggleToc,
+    _grimRefreshToc, _grimTocDetach, _grimTocSpyScroll, _grimTocSpy, _grimTocGo, _grimEmptyHTML, _grimSortControl, grimToggleSortMenu,
+    _grimSortOutside, grimCloseSortMenu, grimSortTriggerKey, grimSetSort, renderGrimList, _grimInitListSortable, _grimPersistOrder, _grimInk,
+    _grimColorVars, _grimLeafHTML, _grimCryptMonthsHTML, grimToggleCryptMonth, renderGrimDetail, _grimGrowTitle, grimSetMode, grimOpen,
+    grimNew, grimBack, grimTitleKey, grimTitleInput, grimBodyInput, grimCommit, _grimSyncActiveLeaf, grimDelete,
+    grimTogglePin, grimArchive, grimRestoreNote, grimDeleteForever, _disarmEmptyCrypt, grimEmptyCrypt, grimSearch, grimClearSearch,
+    grimToggleColorFilter, _grimColorFilterOutside, grimCloseColorFilter, _grimBuildColorFilterPop, grimSetColorFilter, _grimFindSupported, _grimFindRun, _grimFindPaint,
+    _grimFindClearPaint, _grimFindGoto, grimFindNext, grimFindPrev, grimFindClose, _grimFindBar, _grimFindShowBar, _grimFindHideBar,
+    _grimFindUpdateBar, _armDanger, _grimExitSelect, grimToggleSelectMode, grimToggleSelectNote, _updateGrimSelectBar, grimBulkArchive, grimBulkRestore,
+    grimBulkDelete, grimBulkColor, _grimPlain, _grimCollapse, _grimFlattenSnippet, _grimSnipGlyph, _grimSnippetHTML, _grimPlainToHtml,
+    migrateNotes, _grimSanitize, _grimAfterEdit, grimFmt, _grimCurrentBlock, _grimEmphasis, _grimToggleBlock, _grimQuote,
+    grimHeading, grimChecklist, _grimLineType, _grimSelectedLines, _grimPlaceMarker, _grimRestoreMarker, _grimSameListKind, _grimMergeAdjacentLists,
+    _grimConvertLine, _grimSetListType, _grimInsertHr, grimInlineCode, _grimClosestPre, grimCodeBlock, _grimCodeFenceEnter, _grimPreEnter,
+    _grimPreTab, grimLink, _grimRestoreLinkSel, grimLinkConfirm, grimLinkRemove, grimLinkClose, grimBodyClick, grimBodyKey,
+    _grimCaretToStart, _grimExitOnEnter, _grimBackspaceCallout, _grimBackspaceOutdent, _grimSyncToolbar, grimTableMenu, grimInsertTable, _grimClosestCallout,
+    grimCalloutMenu, grimCallout, _grimCellCtx, _grimObserveBody, _grimApplySealVis, _grimTctl, _grimScheduleTableUI, _grimLayoutTableUI,
+    _grimReflowOverlay, _grimWireBarFollow, _grimCloseTableMenu, _grimToggleTableMenu, _grimDismissTableUI, _grimHideTableUI, grimTableAppend, _grimColInsert,
+    _grimColDelete, _grimColAlign, _grimColGetAlign, _grimRowInsert, _grimRowDelete, _grimRemoveTable, _grimTableTab, _grimToolbarHTML,
+    _grimDownload, _grimSlug, _grimInlineMd, _grimHtmlToMd, _grimTableToMd, _grimNoteToMd, grimExportNote, _grimDownloadBlob,
+    _grimScopeNotes, _grimNoteToBackupMd, grimExportBackup, grimExportReading, grimExportFullBackup, _grimCrc32, _grimZipStore, _grimIoItem,
+    _grimRenderIoMenu, _grimRenderIoSelMenu, _grimCloseIoMenu, _grimCloseIoSplit, _grimCloseIoSel, grimToggleIoMenu, grimToggleIoSelMenu, _grimMdInline,
+    _grimMdTable, _grimMdToHtml, _grimSplitTitleBody, _grimUnquote, _grimFmLooks, _grimParseBackup, _grimPushNote, _grimImportDocs,
+    _grimFullImport, _grimApplyFullBackup, _grimInflate, _grimUnzip, grimImportFiles, _grimSpawnSeeded, grimSaveAsTpl, grimUseBuiltin,
+    grimUseTpl, grimDeleteTpl, grimToggleTplMenu, _grimCloseTplMenu, _grimRenderTplMenu,
+});
+
 // ============================================================
 //  PAGE NAVIGATION
 // ============================================================
-let _pageTransitioning = false; // IMP-8: guard against rapid double-click
+globalThis._pageTransitioning = false;// IMP-8: guard against rapid double-click
 
 // Page registry — generalised from the old binary main/archive switch so the
 // grimoire (notes) is a first-class third page. Add a page here + a nav button
@@ -890,7 +923,7 @@ function renderGrimList(animate) {
 // Manual reorder of grimoire entries (DnD). Active grimoire only — disabled in the
 // crypt, under search, in multi-select, and under the computed orders (created/title,
 // where `ord` is ignored). Enabled in the hybrid «По правке». List head is a fixed anchor.
-let _grimListSortable = null;
+globalThis._grimListSortable = null;
 function _grimInitListSortable() {
     if (_grimListSortable) { _grimListSortable.destroy(); _grimListSortable = null; }
     const listEl = document.getElementById('grim-list');
@@ -1159,7 +1192,7 @@ function renderGrimDetail() {
 }
 
 // Auto-grow the title <textarea> to fit wrapped lines (no inner scrollbar).
-let _grimGrowRAF = 0;
+globalThis._grimGrowRAF = 0;
 function _grimGrowTitle(el) {
     if (!el) return;
     // NA-12: coalesce the auto-grow into a single rAF. The title's ResizeObserver
@@ -2307,7 +2340,7 @@ function _grimPreTab(e) {
 
 // Link is set via a gothic modal (no native prompt). Selection is captured
 // before the modal steals focus, then restored on confirm.
-let _grimLinkRange = null, _grimLinkAnchor = null;
+globalThis._grimLinkRange = null; globalThis._grimLinkAnchor = null;
 function grimLink() {
     const bo = document.getElementById('grim-body');
     if (!bo) return;
@@ -2745,13 +2778,13 @@ function _grimCellCtx() {
 // be deleted). Clicking a gutter opens a small floating menu (add before / delete
 // / add after). The caret never triggers any of this, so clicking a cell to edit
 // its text stays quiet.
-let _grimEditTbl = null;    // table currently in structure-edit mode (or null)
-let _grimMenu = null;       // { el, gutter, kind } of the open floating menu (or null)
-let _grimTblRAF = 0;
-let _grimRO = null;         // ResizeObserver re-gluing the overlay when the body reflows
-let _grimTitleRO = null;    // ResizeObserver re-growing the title <textarea> when its width changes
-let _grimHoverTbl = null;   // table the pointer is currently over (seal shows on hover)
-let _grimHoverSeal = null;  // table whose seal the pointer is over (keeps it visible)
+globalThis._grimEditTbl = null;// table currently in structure-edit mode (or null)
+globalThis._grimMenu = null;// { el, gutter, kind } of the open floating menu (or null)
+globalThis._grimTblRAF = 0;
+globalThis._grimRO = null;// ResizeObserver re-gluing the overlay when the body reflows
+globalThis._grimTitleRO = null;// ResizeObserver re-growing the title <textarea> when its width changes
+globalThis._grimHoverTbl = null;// table the pointer is currently over (seal shows on hover)
+globalThis._grimHoverSeal = null;// table whose seal the pointer is over (keeps it visible)
 
 // Relayout whenever the editor body changes size — covers webfont swap, container
 // reveal, and content reflow, all of which move table geometry after first paint.
@@ -3995,3 +4028,11 @@ window.addEventListener('focus', () => { if (document.getElementById('grim-body'
 window.addEventListener('pageshow', () => { if (document.getElementById('grim-body')) _grimScheduleTableUI(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('grim-body')) _grimScheduleTableUI(); });
 
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    PAGE_EL, PAGE_TAB, GIC, GRIM_FOCUS_TITLE, GRIM_BAR_TITLE, GRIM_TOC_TITLE, GRIM_VER_IDLE, GRIM_VER_MAX,
+    GRIM_VER_BACKUPS, GRIM_SORTS, GRIM_SORT_SWORD, _CRYPT_MONTHS, _GRIM_SENT, GRIM_TAGS, GRIM_TBL_MAX, GRIM_CO,
+    FIC, GRIM_IO_IC, _GRIM_CRC, GRIM_TPL_IC, _GRIM_MONTHS, GRIM_BUILTIN_TPL,
+});

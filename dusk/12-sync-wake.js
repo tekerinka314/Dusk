@@ -1,3 +1,10 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    _wakeEnabled, _wakeUrl, _roomFor, _wsConnect, _wsReconnect, syncWakeNote, syncWakeNudge, syncWakeStop,
+});
+
 // ============================================================
 //  12-sync-wake.js — Sync Phase 3.5: cross-device live wake (WebSocket)
 // ============================================================
@@ -15,12 +22,12 @@
 // in, and closed when hidden (the visibility/online triggers cover catch-up on
 // return) so an idle background tab holds nothing open.
 
-let _ws = null;
-let _wsRoom = null;
-let _wsWantOpen = false;
-let _wsTimer = null;
-let _wsBackoff = 1000;          // reconnect backoff, capped at 30 s
-let _wsEverOpen = false;        // distinguishes a RE-connect (catch up) from the first connect
+globalThis._ws = null;
+globalThis._wsRoom = null;
+globalThis._wsWantOpen = false;
+globalThis._wsTimer = null;
+globalThis._wsBackoff = 1000;// reconnect backoff, capped at 30 s
+globalThis._wsEverOpen = false;// distinguishes a RE-connect (catch up) from the first connect
 
 function _wakeEnabled() {
     return typeof SYNC_WORKER_URL === 'string' && !!SYNC_WORKER_URL && typeof WebSocket !== 'undefined';

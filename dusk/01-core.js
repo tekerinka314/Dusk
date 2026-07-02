@@ -1,3 +1,14 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    coffinSVG, cycleCoffinSVG, subCoffinSVG, hexToRgb, prefersReducedMotion, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
+    _resetDragHandle, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
+    loadState, _migrateV3toV4, migrateTasks, uid, nowTs, _contentSig, _trackedRecords, primeRecSig,
+    bumpUpdatedAt, addTombstone, _delegate, normalizeState, migrateFromOld, loadUiState, saveUiState, pushUndo,
+    pushUndoSnapshot, undo, redo,
+});
+
 // ============================================================
 //  DUSK — Task Journal  v5  (gothic + subtasks)
 // ============================================================
@@ -498,7 +509,7 @@ const CHECK_COL_NATURAL_H = 43;
 const DRAG_HANDLE_H       = 13;
 const DRAG_HANDLE_MIN_GAP = 5;
 
-let _dragHandleObserver = null;
+globalThis._dragHandleObserver = null;
 
 function _positionOneHandle(item) {
     const col     = item.querySelector('.task-check-col');
@@ -586,7 +597,7 @@ function applyListStagger() {
 // ============================================================
 //  STATE
 // ============================================================
-let state = {
+globalThis.state = {
     tasks:            [],   // {id,text,checked,priority,groupId,deadline,note,noteOpen,order,repeat,cycleChecked,nextReset,subtasks,subtasksOpen,subNotesAlwaysOpen}
     groups:           [],
     archive:          [],
@@ -602,67 +613,67 @@ let state = {
 };
 
 // ---- UI STATE ----
-let isFiltered       = false;
-let searchQuery      = '';
-let soundEnabled     = false;
+globalThis.isFiltered = false;
+globalThis.searchQuery = '';
+globalThis.soundEnabled = false;
 
 // п.17 «Звук пера»: writing sound from a real quill recording (assets/quill-sound.mp3).
 // Default OFF. Grains baked into one compact file; offsets below (built offline).
 const K_PEN_SOUND  = 'dusk_pen_sound';
 // D-3: PEN_ASSET (data:audio/mpeg base64, ~155 КБ) вынесен в pen-asset.js (грузится <script>-ом до app.js, кладётся в window.PEN_ASSET). _penLoad() декодирует его in-memory через atob — оффлайн-safe.
-let penSoundEnabled = false;
+globalThis.penSoundEnabled = false;
 const K_PEN_VOL = 'dusk_pen_vol';
-let penVolume = 1;                                 // master 0..1, scales pen+hand together
-let _penAC = null, _penBuf = null, _penLoading = null, _penVoices = 0, _penLastL = -1;
+globalThis.penVolume = 1;// master 0..1, scales pen+hand together
+globalThis._penAC = null; globalThis._penBuf = null; globalThis._penLoading = null; globalThis._penVoices = 0; globalThis._penLastL = -1;
 const PEN_GRAINS = {"letters":[{"s":0,"d":0.146},{"s":0.146,"d":0.156},{"s":0.302,"d":0.186},{"s":0.488,"d":0.136},{"s":0.624,"d":0.136},{"s":0.76,"d":0.136},{"s":0.896,"d":0.191},{"s":1.087,"d":0.171},{"s":1.258,"d":0.141},{"s":1.399,"d":0.131},{"s":1.53,"d":0.171},{"s":1.701,"d":0.181},{"s":1.882,"d":0.136},{"s":2.018,"d":0.206},{"s":2.224,"d":0.161},{"s":2.385,"d":0.186},{"s":2.571,"d":0.176},{"s":2.747,"d":0.201},{"s":2.948,"d":0.151},{"s":3.099,"d":0.216},{"s":3.315,"d":0.216},{"s":3.531,"d":0.176},{"s":3.707,"d":0.186},{"s":3.893,"d":0.146},{"s":4.039,"d":0.146},{"s":4.185,"d":0.171},{"s":4.356,"d":0.201},{"s":4.557,"d":0.171},{"s":4.728,"d":0.151},{"s":4.879,"d":0.141},{"s":5.02,"d":0.171},{"s":5.191,"d":0.191},{"s":5.382,"d":0.131},{"s":5.513,"d":0.141},{"s":5.654,"d":0.146},{"s":5.8,"d":0.136},{"s":5.936,"d":0.156},{"s":6.092,"d":0.196},{"s":6.288,"d":0.201},{"s":6.489,"d":0.181},{"s":6.67,"d":0.131},{"s":6.801,"d":0.146},{"s":6.947,"d":0.166},{"s":7.113,"d":0.151},{"s":7.264,"d":0.176},{"s":7.44,"d":0.171},{"s":7.611,"d":0.156},{"s":7.767,"d":0.166},{"s":7.933,"d":0.151},{"s":8.084,"d":0.146},{"s":8.23,"d":0.131}],"hand":{"s":8.361,"d":0.5}};
-let expandOpen       = false;
-let currentPage      = 'main';
-let currentNoteId    = null;   // п11: open grimoire note id (uuid) or null
-let notesSearchQuery = '';     // п11: grimoire search filter
-let _grimVisibleIds  = [];     // NA-9: ids of notes currently shown (order for J/K nav)
-let grimMode         = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
-let grimFocus        = 0;      // п11: focus level 0=both · 1=list rail · 2=list hidden (note full)
-let grimNoteCollapsed = false; // п11: transient — open note's pane folded away, full-width list (click open entry to toggle)
-let grimBarMode      = 'auto'; // п11: toolbar reveal — 'auto'(hover) | 'open'(pinned) | 'closed'(hidden)
-let grimTocOpen      = false;  // п.14: table-of-contents rail shown (only takes effect on notes with ≥3 headings)
-let _grimTocHeads    = null;   // п.14: live H1-3 elements backing the TOC items
-let _grimTocSpyRAF   = 0;      // п.14: rAF throttle for the scroll-spy
-let _grimVerT        = 0;      // п.15: debounced idle timer → auto version snapshot
-let _grimHistId      = null;   // п.15: note id whose Летопись modal is open (or null)
-let _grimHistSel     = null;   // п.15: index (into the rendered list) of the previewed version
+globalThis.expandOpen = false;
+globalThis.currentPage = 'main';
+globalThis.currentNoteId = null;// п11: open grimoire note id (uuid) or null
+globalThis.notesSearchQuery = '';// п11: grimoire search filter
+globalThis._grimVisibleIds = [];// NA-9: ids of notes currently shown (order for J/K nav)
+globalThis.grimMode = 'active';// п11: 'active' (Записи) | 'archive' (Склеп)
+globalThis.grimFocus = 0;// п11: focus level 0=both · 1=list rail · 2=list hidden (note full)
+globalThis.grimNoteCollapsed = false;// п11: transient — open note's pane folded away, full-width list (click open entry to toggle)
+globalThis.grimBarMode = 'auto';// п11: toolbar reveal — 'auto'(hover) | 'open'(pinned) | 'closed'(hidden)
+globalThis.grimTocOpen = false;// п.14: table-of-contents rail shown (only takes effect on notes with ≥3 headings)
+globalThis._grimTocHeads = null;// п.14: live H1-3 elements backing the TOC items
+globalThis._grimTocSpyRAF = 0;// п.14: rAF throttle for the scroll-spy
+globalThis._grimVerT = 0;// п.15: debounced idle timer → auto version snapshot
+globalThis._grimHistId = null;// п.15: note id whose Летопись modal is open (or null)
+globalThis._grimHistSel = null;// п.15: index (into the rendered list) of the previewed version
 // п.15: version history lives in its OWN localStorage key, NOT inside `state`.
 // Keeping full HTML body copies out of `state` is critical for perf — `state` is
 // re-stringified (and ring-backed-up) on every keystroke-save, so bloating it with
 // history would make typing lag. Versions are saved only when they actually change.
 const K_NOTE_VERSIONS = 'dusk_note_versions_v1';
-let grimVersions     = {};     // { [noteId]: [{at, t, b, kind}] }
-let _grimSaveT       = null;   // п11: debounced note-save timer
-let _grimSwapT       = null;   // п11: note→note crossfade timer (fade old page out, then render new)
-let grimSelectMode   = false;  // п11/1b: multi-select notes in the current segment
-let grimSelectedIds  = new Set();// п11/1b: ids of notes ticked in select mode
-let _grimFindRanges  = [];     // п11/A: in-note find — match Ranges in the open body
-let _grimFindIdx     = 0;      // п11/A: current match index
-let _grimFindActive  = false;  // п11/A: find bar shown + highlights painted
-let undoStack        = [];
-let redoStack        = [];   // P-A: populated by undo(), cleared by any new pushUndo()
-let deadlineTimer    = null;
-let selectedColor    = '#6C8EF5';  // group color picker
-let selectedPriority = 'none';
-let selectedFormColor = null;       // task creation color (null = no color label)
-let selectedRepeat   = 'none';
-let formDeadline     = null;
-let editingTaskId    = null;
-let editingSubId     = null;   // for subtask repeat modal
+globalThis.grimVersions = {};// { [noteId]: [{at, t, b, kind}] }
+globalThis._grimSaveT = null;// п11: debounced note-save timer
+globalThis._grimSwapT = null;// п11: note→note crossfade timer (fade old page out, then render new)
+globalThis.grimSelectMode = false;// п11/1b: multi-select notes in the current segment
+globalThis.grimSelectedIds = new Set();// п11/1b: ids of notes ticked in select mode
+globalThis._grimFindRanges = [];// п11/A: in-note find — match Ranges in the open body
+globalThis._grimFindIdx = 0;// п11/A: current match index
+globalThis._grimFindActive = false;// п11/A: find bar shown + highlights painted
+globalThis.undoStack = [];
+globalThis.redoStack = [];// P-A: populated by undo(), cleared by any new pushUndo()
+globalThis.deadlineTimer = null;
+globalThis.selectedColor = '#6C8EF5';// group color picker
+globalThis.selectedPriority = 'none';
+globalThis.selectedFormColor = null;// task creation color (null = no color label)
+globalThis.selectedRepeat = 'none';
+globalThis.formDeadline = null;
+globalThis.editingTaskId = null;
+globalThis.editingSubId = null;// for subtask repeat modal
 
 // Feature: color filter
-let colorFilter      = null;   // null | CSS color string — filter tasks by label color
-let noteColorFilter  = null;   // NA-10: null | CSS color string — filter grimoire records by colour
+globalThis.colorFilter = null;// null | CSS color string — filter tasks by label color
+globalThis.noteColorFilter = null;// NA-10: null | CSS color string — filter grimoire records by colour
 
 // Feature: focus mode — show only one group at a time
-let focusGroupId     = null;   // null | number
+globalThis.focusGroupId = null;// null | number
 
 // Feature: archive search
-let archiveSearchQuery = '';
+globalThis.archiveSearchQuery = '';
 
 // Feature: notifications tracking (prevent duplicate notifications per task per deadline).
 // V-2: a Map<taskId, deadlineSignature> hydrated from localStorage, so a reload no longer
@@ -681,20 +692,20 @@ const _newTaskIds = new Set();
 // stagger; pin/colour/archive/delete must not re-animate the whole list. Consumed
 // in _grimLeafHTML, seeded at the note-entry points + once at init (first view).
 const _newNoteIds = new Set();
-let renamingGroupId  = null;
-let dlCurrentMode    = 'time'; // default — updated from localStorage on init
-let _dlAutoRepeat    = false;  // auto-repeat toggle — default OFF in every mode; an existing recurring deadline re-opens reflecting its own state
+globalThis.renamingGroupId = null;
+globalThis.dlCurrentMode = 'time';// default — updated from localStorage on init
+globalThis._dlAutoRepeat = false;// auto-repeat toggle — default OFF in every mode; an existing recurring deadline re-opens reflecting its own state
 
 // ── Deadline mode persistence key
 const K_DL_MODE = 'dusk_lastDlMode';
-let pendingGroupForSelector = false;
+globalThis.pendingGroupForSelector = false;
 // Schedule sort mode
-let isScheduleMode   = false;       // global
+globalThis.isScheduleMode = false;// global
 const scheduleModeGroups = new Set(); // per-group overrides (groupId numbers)
 // P7: Split groups mode — shows active/done as two collapsible zones inside each group
-let isGroupSplitMode = false;
+globalThis.isGroupSplitMode = false;
 // P-B: "Today" view — show only tasks due today or overdue, ordered by deadline.
-let isTodayMode = false;
+globalThis.isTodayMode = false;
 
 // ---- DOM REFS ----
 const inputBox        = document.getElementById('input-box');
@@ -728,11 +739,11 @@ const archiveEmpty    = document.getElementById('archive-empty');
 const archiveBadge    = document.getElementById('archive-badge');
 
 // ---- SORTABLE ----
-let sortableMain = null;
+globalThis.sortableMain = null;
 const sortableGroups = {};
 const sortableSubs   = {};
 const sortableZones  = {}; // keyed inner uls for schedule+split combined mode
-let _setupRaf = null;   // FIX: track pending rAF so we cancel stale queued inits
+globalThis._setupRaf = null;// FIX: track pending rAF so we cancel stale queued inits
 
 const SORTABLE_OPTS = {
     animation: 200,
@@ -1089,7 +1100,7 @@ function uid() {
 // a newer edit look older than an older one (that would make the 3-way merge drop a real
 // edit). updatedAt/createdAt/deletedAt stay plain numbers (comparable with `<`). In-memory
 // monotonic is enough for Phase 1 — full HLC (Hybrid Logical Clock) is deferred as a drop-in.
-let _lastTs = 0;
+globalThis._lastTs = 0;
 function nowTs() {
     _lastTs = Math.max(Date.now(), _lastTs + 1);
     return _lastTs;
@@ -1105,7 +1116,7 @@ function nowTs() {
 // after every whole-state swap (load/undo/redo/import/restore) from normalizeState,
 // so restoring an old snapshot keeps its original timestamps instead of stamping
 // everything to "now".
-let _recSig = new Map();
+globalThis._recSig = new Map();
 function _contentSig(rec) {
     const { updatedAt, createdAt, ...rest } = rec;   // identity-neutral content only
     // Sync (Phase 1): subtasks are now their own merge records (each carries its own
@@ -1838,3 +1849,18 @@ function redo() {
     showToast('Повторено');
 }
 
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    K_STATE_V3, K_STATE_V4, K_STATE, K_PREMIGRATION, K_SOUND, K_FILTER, K_PAGE, K_SEARCH,
+    K_EXPAND, IC, CHECK_COL_NATURAL_H, DRAG_HANDLE_H, DRAG_HANDLE_MIN_GAP, STAGGER_MAX, STAGGER_STEP, K_PEN_SOUND,
+    K_PEN_VOL, PEN_GRAINS, K_NOTE_VERSIONS, _notifiedDeadlines, _newTaskIds, _newNoteIds, K_DL_MODE, scheduleModeGroups,
+    inputBox, listContainer, groupsContainer, progressBar, progressSection, doneCount, quantityCount, toolbar,
+    groupsBar, emptyState, allDone, toast, groupModal, groupNameInput, groupsList, taskGroupSelect,
+    taskNote, btnExpand, extraFields, searchBox, btnFilter, btnSound, colorPicker, mainPage,
+    archivePage, notesPage, archiveList, archiveEmpty, archiveBadge, sortableGroups, sortableSubs, sortableZones,
+    SORTABLE_OPTS, K_BACKUPS, BACKUP_RING_SIZE, BACKUP_THROTTLE_MS, ACT, ACT_DBL, ACT_INPUT, ACT_BLUR,
+    ACT_KEY, ACT_OVER, ACT_OUT, ACT_PASTE, ACT_CHANGE, _tid, _sTid, _sSid,
+    _synEv, _gid, _fsi, _GRIM_FMT,
+});

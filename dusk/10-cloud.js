@@ -1,3 +1,13 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    _useWorker, _persistToken, _restoreToken, _b64url, _pkce, _redirectUri, _applyTokens, _startAuthCode,
+    _maybeHandleRedirect, _refreshViaWorker, _gisReady, _ensureClient, cloudIsConfigured, cloudStatus, cloudAuth, cloudSignOut,
+    _token, _driveFetch, _driveError, _findFile, _downloadContent, _getVersion, _createFile, _updateFile,
+    _deviceId, cloudPull, cloudPush, __setAccessTokenForTest,
+});
+
 // ============================================================
 //  10-cloud.js — Sync Phase 2: Google Drive client (auth + transport)
 // ============================================================
@@ -463,3 +473,11 @@ if (typeof module !== 'undefined' && module.exports) {
         SYNC_CLIENT_ID, SYNC_SCOPE, SYNC_FILENAME,
     };
 }
+
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    SYNC_CLIENT_ID, SYNC_SCOPE, SYNC_FILENAME, K_SYNC_DEVICE, K_SYNC_TOKEN, K_SYNC_REFRESH, SYNC_WORKER_URL, _exchangePromise,
+    ConflictError,
+});

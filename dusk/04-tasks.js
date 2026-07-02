@@ -1,3 +1,20 @@
+// ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
+// Classic scripts hoisted these into the shared global scope before any code
+// ran; publish them first so load-time cross-module calls keep working.
+Object.assign(globalThis, {
+    createTaskEl, sortSubtasks, buildSubtaskSection, _buildSubListContent, _hashStr, _subItemNode, _ensureSubZone, renderSubList,
+    buildSubtaskItemHTML, toggleFormPin, _resetFormPin, addFormSubtask, removeFormSubtask, clearFormSubtasks, renderFormSubtasks, startFormSubEdit,
+    toggleFormSubNote, initFormSubSortable, onFormSubDragEnd, handleFormSubAdd, cycleFormSubPriority, openFormSubRepeat, openFormSubDeadline, clearFormSubDeadline,
+    addTask, removeTask, _animClassSelf, _cycleSettle, _leaveTaskThenRender, toggleCheck, archiveAll, clearAll,
+    deleteGroup, duplicateGroup, saveTaskAsTemplate, saveFormAsTemplate, createTaskFromTemplate, deleteTemplate, updateTemplatesBtn, openTemplatesModal,
+    closeTemplatesModal, _renderTemplatesList, _formatBackupAge, _formatBackupStamp, openBackupModal, closeBackupModal, _renderBackupList, restoreBackup,
+    getRepeatAnchorLabel, getNextResetTimestamp, shiftDeadline, checkCycleResets, repeatLabel, formatCycleUntil, restoreTask, deleteFromArchive,
+    clearArchive, onMaxHeightEnd, toggleSubtasksSection, toggleSubNotesAlwaysOpen, addSubtask, handleSubAdd, _subCheckMode, _syncParentDone,
+    toggleSubtask, _animateSubCycleThenRefresh, _animateSubThenRefresh, deleteSubtask, promoteSubtask, openTaskMoreMenu, _taskMore, _openSubModeMenu,
+    setTaskSubMode, openSubAnyModeMenu, setGlobalSubMode, updateSubAnyModeBtn, openDemoteMenu, _openDemoteMenuAt, _pickDemoteTarget, demoteTask,
+    cycleSubPriority, toggleSubSplitDone, toggleSubSplitActive, openSubRepeatModal, openSubDeadlineModal, clearSubDeadline, deleteSubNote, startSubEdit,
+});
+
 // ============================================================
 //  TASK ELEMENT FACTORY
 // ============================================================
@@ -553,10 +570,10 @@ function buildSubtaskItemHTML(taskId, s) {
 // ============================================================
 //  FORM SUBTASKS (subtasks added before task is created)
 // ============================================================
-let formSubtasks = []; // [{text, priority, note, repeat, repeatAnchorTime, repeatAnchorDay, repeatAnchorMonthday}]
+globalThis.formSubtasks = [];// [{text, priority, note, repeat, repeatAnchorTime, repeatAnchorDay, repeatAnchorMonthday}]
 
 // P5: form-level "pin the new task" flag — applied to the task created by addTask().
-let formPinned = false;
+globalThis.formPinned = false;
 function toggleFormPin() {
     formPinned = !formPinned;
     const btn = document.getElementById('form-pin-toggle');
@@ -725,7 +742,7 @@ function toggleFormSubNote(i) {
 }
 
 // P12: drag-to-reorder for the form's subtask list (parity with in-task subtasks).
-let _formSubSortable = null;
+globalThis._formSubSortable = null;
 function initFormSubSortable() {
     const list = document.getElementById('form-sub-list');
     if (!list || typeof Sortable === 'undefined') return;
@@ -767,7 +784,7 @@ function cycleFormSubPriority(idx) {
 }
 
 // Opens the shared repeat modal for a form-subtask (problem 3/4)
-let _formSubRepeatIdx = null;
+globalThis._formSubRepeatIdx = null;
 function openFormSubRepeat(idx) {
     const s = formSubtasks[idx];
     if (!s) return;
@@ -787,7 +804,7 @@ function openFormSubRepeat(idx) {
 // P-E: deadline for a FORM subtask (added before the task exists). Mirrors
 // openFormSubRepeat — index-based, intercepted in confirmDeadline/applyDeadline via
 // the _formSubDeadlineIdx flag (set inside openDeadlineModal's 4th param).
-let _formSubDeadlineIdx = null;
+globalThis._formSubDeadlineIdx = null;
 function openFormSubDeadline(idx) {
     if (!formSubtasks[idx]) return;
     openDeadlineModal(null, false, null, idx);
@@ -801,7 +818,7 @@ function clearFormSubDeadline(idx) {
 
 // UX-4: snapshot of the form state captured just before addTask() commits,
 // so Ctrl+Z can restore the text the user just submitted.
-let _undoFormSnapshot = null;
+globalThis._undoFormSnapshot = null;
 
 // ============================================================
 //  TASK CRUD
@@ -1128,8 +1145,8 @@ function archiveAll() {
 // ── Two-step confirm helpers ──────────────────────────────────────────────────
 // First click: button enters "armed" state (danger colour, new label).
 // Second click within 3 s: action fires.  Timeout or outside click: disarm.
-let _clearAllArmed = false;
-let _clearAllTimer = null;
+globalThis._clearAllArmed = false;
+globalThis._clearAllTimer = null;
 
 // "Удалить всё навсегда" — permanently destroys (two-step confirm)
 function clearAll() {
@@ -1805,8 +1822,8 @@ function deleteFromArchive(id) {
 }
 
 // C3-1: two-step confirm for wiping the whole archive — mirrors clearAll().
-let _clearArchiveArmed = false;
-let _clearArchiveTimer = null;
+globalThis._clearArchiveArmed = false;
+globalThis._clearArchiveTimer = null;
 
 function clearArchive() {
     if (!state.archive.length) return;
@@ -2208,7 +2225,7 @@ function promoteSubtask(taskId, subId) {
 // ── Idea 3: demote a task into a subtask of another task ─────────────────────
 // Overflow «…» on a task row — declutters the action row by holding the rarely
 // used actions (template / duplicate / demote) behind one gothic trigger.
-let _taskMoreAnchor = null;
+globalThis._taskMoreAnchor = null;
 function openTaskMoreMenu(event, id) {
     event.stopPropagation();
     _taskMoreAnchor = event.currentTarget;
@@ -2303,7 +2320,7 @@ function openDemoteMenu(event, id) {
     event.stopPropagation();
     _openDemoteMenuAt(event.currentTarget, id);
 }
-let _demoteAnchor = null;
+globalThis._demoteAnchor = null;
 // Anchored variant so the "…" overflow menu can re-open it on its own trigger.
 // Candidates are bucketed by group (incl. «Без группы»); a section header renders
 // only for a group that actually holds a candidate, and only when ≥2 buckets exist
@@ -2506,3 +2523,9 @@ function startSubEdit(event, taskId, subId) {
     span.addEventListener('keydown', onKey);
 }
 
+// ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
+// (mutable top-level let/var declarations were converted to globalThis.* so
+//  every module reads AND writes the same slot — no stale copies).
+Object.assign(globalThis, {
+    SUB_PRIO, _SUB_SPLIT_CHEVRON, _deleteGroupArmed,
+});
