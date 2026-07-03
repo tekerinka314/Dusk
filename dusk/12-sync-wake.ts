@@ -30,7 +30,6 @@ declare var _wsWantOpen: boolean;
 declare var _wsTimer: any;          // setTimeout id
 declare var _wsBackoff: number;
 declare var _wsEverOpen: boolean;
-declare var syncNow: any;           // defined in 11-sync-ui.js — remove this line at ITS rename
 
 globalThis._ws = null;
 globalThis._wsRoom = null;

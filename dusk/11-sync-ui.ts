@@ -22,8 +22,7 @@ Object.assign(globalThis, {
 // Loaded as a classic <script> AFTER 08 (so init() has already run: state is
 // loaded, the DOM is built, first render done). Shares the global scope — calls
 // mergeStates/getSyncSubset/cloudPull/state/saveState/render/showToast/
-// _openFloatMenu/nowTs/uid by bare name. The module.exports footer is a no-op in
-// the browser; it lets node import the pure helpers (restoreQuarantineEntry).
+// _openFloatMenu/nowTs/uid by bare name.
 //
 // Design decisions (SYNC-SPEC-PHASE3.md): sync on open + on refocus + debounced
 // push after edits + manual "Sync now"; QUIET (background silent, toast only on a
@@ -32,6 +31,23 @@ Object.assign(globalThis, {
 // first interactive sign-in is an explicit click).
 
 // ── module state (in-memory; only _lastSyncOk + the enabled flag persist) ─────
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var _syncing: boolean;
+declare var _syncQueued: boolean;
+declare var _syncReady: boolean;
+declare var _pendingPush: boolean;
+declare var _applyingMerge: boolean;
+declare var _lastSyncOk: number;
+declare var _lastError: any;
+declare var _syncEnabled: boolean;
+declare var _debounceTimer: any;
+declare var _tokenRefreshTimer: any;
+declare var _periodicTimer: any;
+declare var _retryTimer: any;
+declare var _retryCount: number;
+declare var _quarOverlay: any;
+
 globalThis._syncing = false;// single-flight guard
 globalThis._syncQueued = false;// a trigger fired mid-sync → run once more after
 globalThis._syncReady = false;// set after init so load-time saveState() doesn't push
@@ -175,7 +191,7 @@ function _stableStringify(v) {
 }
 const _PUSH_DROP = { id: 1, groupId: 1, updatedAt: 1, createdAt: 1, _groupUid: 1 };
 function _recCanon(r) {
-    const o = {};
+    const o: Record<string, any> = {};
     for (const k of Object.keys(r)) {
         if (_PUSH_DROP[k]) continue;
         if (k === 'subtasks' && Array.isArray(r.subtasks)) {
@@ -612,10 +628,10 @@ function openQuarantine() {
     _quarOverlay = overlay;
 
     overlay.addEventListener('click', (ev) => {
-        const t = ev.target;
+        const t = ev.target as HTMLElement;
         if (t === overlay || t.closest('.sync-quar-close')) { closeQuarantine(); return; }
-        const rb = t.closest('.sync-quar-restore'); if (rb) { _resolveEntry(rb.dataset.uid, 'restore'); _refreshQuarOverlay(); return; }
-        const db = t.closest('.sync-quar-dismiss'); if (db) { _resolveEntry(db.dataset.uid, 'dismiss'); _refreshQuarOverlay(); return; }
+        const rb = t.closest('.sync-quar-restore') as HTMLElement; if (rb) { _resolveEntry(rb.dataset.uid, 'restore'); _refreshQuarOverlay(); return; }
+        const db = t.closest('.sync-quar-dismiss') as HTMLElement; if (db) { _resolveEntry(db.dataset.uid, 'dismiss'); _refreshQuarOverlay(); return; }
     });
 }
 function _refreshQuarOverlay() {
@@ -699,10 +715,7 @@ if (typeof document !== 'undefined' && document.getElementById) {
     try { _initSyncUI(); } catch (_) {}
 }
 
-// node test seam (no-op in the browser)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { restoreQuarantineEntry, _restState: () => _restState };
-}
+// (the old module.exports footer is gone — nothing require()s this file)
 
 // ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
 // (mutable top-level let/var declarations were converted to globalThis.* so
