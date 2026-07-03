@@ -1,3 +1,62 @@
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var _dragHandleObserver: any;
+declare var state: any;
+declare var isFiltered: any;
+declare var searchQuery: any;
+declare var soundEnabled: any;
+declare var penSoundEnabled: any;
+declare var penVolume: any;
+declare var _penLastL: any;
+declare var expandOpen: any;
+declare var currentPage: any;
+declare var currentNoteId: any;
+declare var notesSearchQuery: any;
+declare var _grimVisibleIds: any;
+declare var grimMode: any;
+declare var grimFocus: any;
+declare var grimNoteCollapsed: any;
+declare var grimBarMode: any;
+declare var grimTocOpen: any;
+declare var _grimTocHeads: any;
+declare var _grimTocSpyRAF: any;
+declare var _grimVerT: any;
+declare var _grimHistId: any;
+declare var _grimHistSel: any;
+declare var grimVersions: any;
+declare var _grimSaveT: any;
+declare var _grimSwapT: any;
+declare var grimSelectMode: any;
+declare var grimSelectedIds: any;
+declare var _grimFindRanges: any;
+declare var _grimFindIdx: any;
+declare var _grimFindActive: any;
+declare var undoStack: any;
+declare var redoStack: any;
+declare var deadlineTimer: any;
+declare var selectedColor: any;
+declare var selectedPriority: any;
+declare var selectedFormColor: any;
+declare var selectedRepeat: any;
+declare var formDeadline: any;
+declare var editingTaskId: any;
+declare var editingSubId: any;
+declare var colorFilter: any;
+declare var noteColorFilter: any;
+declare var focusGroupId: any;
+declare var archiveSearchQuery: any;
+declare var renamingGroupId: any;
+declare var dlCurrentMode: any;
+declare var _dlAutoRepeat: any;
+declare var pendingGroupForSelector: any;
+declare var isScheduleMode: any;
+declare var isGroupSplitMode: any;
+declare var isTodayMode: any;
+declare var sortableMain: any;
+declare var _setupRaf: any;
+declare var _lastTs: any;
+declare var _recSig: any;
+
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
@@ -577,7 +636,7 @@ function applyListStagger() {
     // Non-entering items have no animation, so setting animationDelay on them is a no-op
     // but adding animationend listeners to hundreds of items every render was wasteful.
     const items = Array.from(
-        document.querySelectorAll(
+        document.querySelectorAll<HTMLElement>(
             '#list-container > .task-item.entering, .group-body > .task-item.entering'
         )
     );
@@ -708,14 +767,14 @@ globalThis.isGroupSplitMode = false;
 globalThis.isTodayMode = false;
 
 // ---- DOM REFS ----
-const inputBox        = document.getElementById('input-box');
+const inputBox        = document.getElementById('input-box') as HTMLInputElement;
 const listContainer   = document.getElementById('list-container');
 const groupsContainer = document.getElementById('groups-container');
 const progressBar     = document.getElementById('progress-bar');
 const progressSection = document.getElementById('progress-section');
 const doneCount       = document.getElementById('done-count');
 const quantityCount   = document.getElementById('quantity-count');
-const toolbar         = document.getElementById('toolbar');
+const toolbarEl       = document.getElementById('toolbar');   // 'toolbar' clashes with lib.dom window.toolbar (BarProp); bridged under the old name
 const groupsBar       = document.getElementById('groups-bar');
 const emptyState      = document.getElementById('empty-state');
 const allDone         = document.getElementById('all-done');
@@ -723,11 +782,11 @@ const toast           = document.getElementById('toast');
 const groupModal      = document.getElementById('group-modal');
 const groupNameInput  = document.getElementById('group-name-input');
 const groupsList      = document.getElementById('groups-list');
-const taskGroupSelect = document.getElementById('task-group-select');
-const taskNote        = document.getElementById('task-note');
+const taskGroupSelect = document.getElementById('task-group-select') as HTMLSelectElement;
+const taskNote        = document.getElementById('task-note') as HTMLInputElement;
 const btnExpand       = document.getElementById('btn-expand');
 const extraFields     = document.getElementById('extra-fields');
-const searchBox       = document.getElementById('search-box');
+const searchBox       = document.getElementById('search-box') as HTMLInputElement;
 const btnFilter       = document.getElementById('btn-filter');
 const btnSound        = document.getElementById('btn-sound');
 const colorPicker     = document.getElementById('group-color-picker');
@@ -1214,7 +1273,7 @@ document.addEventListener('mouseover', e => _delegate(ACT_OVER,  'data-actover',
 document.addEventListener('mouseout',  e => _delegate(ACT_OUT,   'data-actout',   e));
 document.addEventListener('paste',     e => _delegate(ACT_PASTE, 'data-actpaste', e));
 document.addEventListener('change',    e => _delegate(ACT_CHANGE, 'data-actchange', e));
-document.addEventListener('mousedown', e => { const t = e.target; if (t && typeof t.closest === 'function' && t.closest('[data-pd]')) e.preventDefault(); });  // focus-steal guard
+document.addEventListener('mousedown', e => { const t = e.target as any; if (t && typeof t.closest === 'function' && t.closest('[data-pd]')) e.preventDefault(); });  // focus-steal guard
 Object.assign(ACT, {
     toggleCheck:              el     => toggleCheck(_tid(el)),
     togglePin:                el     => togglePin(_tid(el)),
@@ -1494,17 +1553,17 @@ Object.assign(ACT, {
     openFormDeadline:    () => openDeadlineModal(null),
     clearFormDeadline:   (el, e) => clearFormDeadline(e),
     formMonthdayStep:    el => {
-        const i = document.getElementById('form-repeat-anchor-monthday');
+        const i = document.getElementById('form-repeat-anchor-monthday') as HTMLInputElement;
         if (!i) return;
-        i.value = Math.max(1, Math.min(31, (parseInt(i.value) || 1) + (+el.dataset.delta)));
-        formRepeatAnchorMonthday = parseInt(i.value) || null;
+        i.value = String(Math.max(1, Math.min(31, (parseInt(i.value) || 1) + (+el.dataset.delta))));
+        globalThis.formRepeatAnchorMonthday = parseInt(i.value) || null;
     },
     addFormSubtask:      () => addFormSubtask(),
     toggleFormPin:       () => toggleFormPin(),
     saveFormAsTemplate:  () => saveFormAsTemplate(),
 });
 Object.assign(ACT_CHANGE, {
-    formMonthdayInput: el => { formRepeatAnchorMonthday = parseInt(el.value) || null; },
+    formMonthdayInput: el => { globalThis.formRepeatAnchorMonthday = parseInt(el.value) || null; },
 });
 Object.assign(ACT_KEY, { formSubAddKey: (el, e) => handleFormSubAdd(e) });
 
@@ -1665,7 +1724,7 @@ function migrateFromOld() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(oldHtml, 'text/html');
     doc.querySelectorAll('li').forEach(li => {
-        const textEl = li.querySelector('.task-text');
+        const textEl = li.querySelector('.task-text') as HTMLElement;
         if (!textEl) return;
         state.tasks.push({
             id: state.nextId++, uid: uid(), createdAt: nowTs(), updatedAt: nowTs(),
@@ -1781,14 +1840,14 @@ function undo() {
     // repeat, deadline, group, subtasks) so the user can re-submit immediately.
     if (_undoFormSnapshot) {
         const snap = _undoFormSnapshot;
-        _undoFormSnapshot = null;
+        globalThis._undoFormSnapshot = null;
 
         inputBox.value = snap.text;
         if (taskNote) taskNote.value = snap.note;
 
         // Priority
         selectedPriority = snap.priority || 'none';
-        document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
+        document.querySelectorAll<HTMLElement>('#priority-selector .prio-grid-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.prio === selectedPriority));
 
         // Color (reflects presets + the custom crystal button)
@@ -1809,11 +1868,11 @@ function undo() {
         }
 
         // Subtasks
-        formSubtasks = snap.subtasks || [];
+        globalThis.formSubtasks = snap.subtasks || [];
         renderFormSubtasks();
 
         // Pin flag (P5)
-        formPinned = !!snap.pinned;
+        globalThis.formPinned = !!snap.pinned;
         const _pinBtn = document.getElementById('form-pin-toggle');
         if (_pinBtn) {
             _pinBtn.classList.toggle('active', formPinned);
@@ -1856,7 +1915,7 @@ Object.assign(globalThis, {
     K_STATE_V3, K_STATE_V4, K_STATE, K_PREMIGRATION, K_SOUND, K_FILTER, K_PAGE, K_SEARCH,
     K_EXPAND, IC, CHECK_COL_NATURAL_H, DRAG_HANDLE_H, DRAG_HANDLE_MIN_GAP, STAGGER_MAX, STAGGER_STEP, K_PEN_SOUND,
     K_PEN_VOL, PEN_GRAINS, K_NOTE_VERSIONS, _notifiedDeadlines, _newTaskIds, _newNoteIds, K_DL_MODE, scheduleModeGroups,
-    inputBox, listContainer, groupsContainer, progressBar, progressSection, doneCount, quantityCount, toolbar,
+    inputBox, listContainer, groupsContainer, progressBar, progressSection, doneCount, quantityCount, toolbar: toolbarEl,
     groupsBar, emptyState, allDone, toast, groupModal, groupNameInput, groupsList, taskGroupSelect,
     taskNote, btnExpand, extraFields, searchBox, btnFilter, btnSound, colorPicker, mainPage,
     archivePage, notesPage, archiveList, archiveEmpty, archiveBadge, sortableGroups, sortableSubs, sortableZones,
