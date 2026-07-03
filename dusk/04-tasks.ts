@@ -1,3 +1,18 @@
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var formSubtasks: any;
+declare var formPinned: any;
+declare var _formSubSortable: any;
+declare var _formSubRepeatIdx: any;
+declare var _formSubDeadlineIdx: any;
+declare var _undoFormSnapshot: any;
+declare var _clearAllArmed: any;
+declare var _clearAllTimer: any;
+declare var _clearArchiveArmed: any;
+declare var _clearArchiveTimer: any;
+declare var _taskMoreAnchor: any;
+declare var _demoteAnchor: any;
+
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
@@ -207,7 +222,7 @@ function createTaskEl(task, showDlSide) {
         }
     }
     li.innerHTML = _mainHTML;
-    li._liSig = _liSig;
+    (li as any)._liSig = _liSig;
 
     // Bug B: attach the subtask section as a SEPARATE node so an unchanged one can be
     // REUSED from the previous render — preserving its DOM, open note panels & Sortable.
@@ -233,7 +248,7 @@ function createTaskEl(task, showDlSide) {
     // FIX-3: In mainSelectMode, clicking free space (outside actions/check/drag) toggles selection
     if (mainSelectMode) {
         li.addEventListener('click', e => {
-            if (e.target.closest('.task-actions, .task-check-col, [contenteditable="true"], .inline-note-input, .btn-note-delete, .sub-check, .sub-prio-btn, .sub-actions, [data-act]')) return;
+            if ((e.target as any).closest('.task-actions, .task-check-col, [contenteditable="true"], .inline-note-input, .btn-note-delete, .sub-check, .sub-prio-btn, .sub-actions, [data-act]')) return;
             toggleMainSelectTask(task.id);
         });
     }
@@ -373,7 +388,7 @@ function _subItemNode(taskId, s, cache) {
     tpl.innerHTML = buildSubtaskItemHTML(taskId, s).trim();
     const node = tpl.content.firstElementChild;
     const cached = cache.get(s.id);
-    if (cached && node && cached.dataset.sig === node.dataset.sig) {
+    if (cached && node && (cached as any).dataset.sig === (node as any).dataset.sig) {
         cache.delete(s.id);
         return cached;   // unchanged → keep the live row, discard the throwaway parse
     }
@@ -425,7 +440,7 @@ function renderSubList(taskId) {
 
     // Harvest existing rows (by sid) for in-place reuse.
     const cache = new Map();
-    ul.querySelectorAll('.subtask-item[data-sid]').forEach(li => {
+    ul.querySelectorAll('.subtask-item[data-sid]').forEach((li: any) => {
         const sid = parseInt(li.dataset.sid);
         if (!isNaN(sid)) cache.set(sid, li);
     });
@@ -589,7 +604,7 @@ function _resetFormPin() {
 }
 
 function addFormSubtask() {
-    const input = document.getElementById('form-sub-input');
+    const input = document.getElementById('form-sub-input') as HTMLInputElement;
     if (!input) return;
     const text = input.value.trim();
     if (!text) { input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 400); return; }
@@ -767,7 +782,7 @@ function onFormSubDragEnd() {
     if (!list) return;
     // Read the new DOM order via each item's original index, then rebuild the array.
     const order = Array.from(list.querySelectorAll('.subtask-item'))
-        .map(el => parseInt(el.dataset.formSubIdx));
+        .map((el: any) => parseInt(el.dataset.formSubIdx));
     const reordered = order.map(i => formSubtasks[i]).filter(Boolean);
     if (reordered.length === formSubtasks.length) formSubtasks = reordered;
     renderFormSubtasks();
@@ -792,7 +807,7 @@ function openFormSubRepeat(idx) {
     editingTaskId = null;
     editingSubId  = null;
     const cur = s.repeat || 'none';
-    document.querySelectorAll('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
+    document.querySelectorAll<HTMLElement>('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.repeat === cur)
     );
     _populateRepeatAnchor(cur, s.repeatAnchorTime || '', parseInt(s.repeatAnchorDay) || 0, parseInt(s.repeatAnchorMonthday) || 0);
@@ -914,11 +929,11 @@ function addTask() {
     // Reset form weekday picker label
     const fwdLabel = document.getElementById('form-wd-label');
     if (fwdLabel) fwdLabel.textContent = 'Любой день';
-    document.getElementById('form-repeat-anchor-day') && (document.getElementById('form-repeat-anchor-day').value = '');
-    document.querySelectorAll('#repeat-selector .repeat-btn').forEach(b => { b.disabled = false; });
+    document.getElementById('form-repeat-anchor-day') && ((document.getElementById('form-repeat-anchor-day') as HTMLInputElement).value = '');
+    document.querySelectorAll<HTMLButtonElement>('#repeat-selector .repeat-btn').forEach(b => { b.disabled = false; });
     // Reset priority to none
     selectedPriority = 'none';
-    document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
+    document.querySelectorAll<HTMLElement>('#priority-selector .prio-grid-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.prio === 'none'));
     // Reset form color to none (also clears the custom crystal button)
     _setFormColor(null);
@@ -957,7 +972,7 @@ function removeTask(id) {
     updateArchiveBadge();
     // ─────────────────────────────────────────────────────────────
 
-    const li = document.querySelector(`.task-item[data-id="${id}"]`);
+    const li: any = document.querySelector(`.task-item[data-id="${id}"]`);
     if (li) {
         li.style.setProperty('--row-h', li.scrollHeight + 'px'); // S1-1: real height for exit anim
         li.classList.add('removing');
@@ -989,13 +1004,13 @@ function _animClassSelf(el, cls) {
 // on the rebuilt cycle-checked row. Removed on animationend so it re-fires each cycle.
 function _cycleSettle(id) {
     if (prefersReducedMotion()) return;
-    const li = document.querySelector(`.task-item[data-id="${id}"]`);
+    const li: any = document.querySelector(`.task-item[data-id="${id}"]`);
     if (!li) return;
     li.classList.add('cycle-settling');
     li.addEventListener('animationend', () => li.classList.remove('cycle-settling'), { once: true });
 }
 
-function _leaveTaskThenRender(id, opts = {}) {
+function _leaveTaskThenRender(id, opts: any = {}) {
     const li      = document.querySelector(`.task-item[data-id="${id}"]`);
     const checkEl = li && li.querySelector('.task-check');
     const reduced = prefersReducedMotion();
@@ -1023,7 +1038,7 @@ function _leaveTaskThenRender(id, opts = {}) {
     li.classList.add('task-leaving');
     let done = false;
     const finish = () => { if (done) return; done = true; renderListOnly(); afterRender(); };
-    li.addEventListener('animationend', e => {
+    li.addEventListener('animationend', (e: any) => {
         if (e.target === li && e.animationName === 'taskLeave') finish();
     });
     setTimeout(finish, 320); // safety net if animationend never fires
@@ -1150,7 +1165,7 @@ globalThis._clearAllTimer = null;
 
 // "Удалить всё навсегда" — permanently destroys (two-step confirm)
 function clearAll() {
-    const btn = document.querySelector('.btn-tool.btn-danger[data-act="clearAll"]');
+    const btn = document.querySelector<HTMLElement>('.btn-tool.btn-danger[data-act="clearAll"]');
 
     // I-6: if list is empty while armed, disarm cleanly and bail
     if (!state.tasks.length) {
@@ -1401,7 +1416,7 @@ function openTemplatesModal() {
     _renderTemplatesList();
     openModalWithFocus('templates-modal');
 }
-function closeTemplatesModal(event) {
+function closeTemplatesModal(event?) {
     if (!event || event.target === document.getElementById('templates-modal')) {
         closeModalWithAnim('templates-modal');
     }
@@ -1452,7 +1467,7 @@ function openBackupModal() {
     _renderBackupList();
     openModalWithFocus('backup-modal');
 }
-function closeBackupModal(event) {
+function closeBackupModal(event?) {
     if (!event || event.target === document.getElementById('backup-modal')) {
         closeModalWithAnim('backup-modal');
     }
@@ -1771,7 +1786,7 @@ function restoreTask(id) {
     // Problem 1: animate the archive item sliding LEFT before removing it.
     // State mutation + saveState happen immediately; render/switchPage deferred
     // until animationend so the animation actually plays (same pattern as removeTask).
-    const li = document.querySelector(`.archive-item[data-id="${id}"]`);
+    const li: any = document.querySelector(`.archive-item[data-id="${id}"]`);
 
     // Mutate state immediately
     pushUndo();
@@ -1886,7 +1901,7 @@ function toggleSubtasksSection(taskId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
     task.subtasksOpen = !task.subtasksOpen;
-    const sec = document.getElementById(`sub-section-${taskId}`);
+    const sec = document.getElementById(`sub-section-${taskId}`) as any;
     const btn = document.querySelector(`.btn-subtask-toggle[data-tid="${taskId}"]`);
     if (sec) {
         // S1-5: cancel any in-flight finisher before starting a new animation.
@@ -1943,7 +1958,7 @@ function toggleSubNotesAlwaysOpen(taskId) {
     if (sec) sec.classList.toggle('notes-always-open', task.subNotesAlwaysOpen);
     // Open or close all has-note wrappers immediately via inline-style animation
     if (sec) {
-        sec.querySelectorAll('.sub-note-wrapper.has-note').forEach(wrap => {
+        sec.querySelectorAll('.sub-note-wrapper.has-note').forEach((wrap: any) => {
             if (task.subNotesAlwaysOpen) {
                 wrap._dismissed = false;
                 _openNoteWrap(wrap);
@@ -1953,7 +1968,7 @@ function toggleSubNotesAlwaysOpen(taskId) {
             }
         });
     }
-    const btn = document.querySelector(`.btn-sub-notes-always[data-tid="${taskId}"]`);
+    const btn = document.querySelector(`.btn-sub-notes-always[data-tid="${taskId}"]`) as any;
     if (btn) {
         btn.classList.toggle('active', task.subNotesAlwaysOpen);
         btn.title = task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов';
@@ -1963,7 +1978,7 @@ function toggleSubNotesAlwaysOpen(taskId) {
 
 function addSubtask(taskId) {
     const task  = state.tasks.find(t => t.id === taskId);
-    const input = document.getElementById(`sub-input-${taskId}`);
+    const input = document.getElementById(`sub-input-${taskId}`) as HTMLInputElement;
     if (!task || !input) return;
     const text = input.value.trim();
     if (!text) { input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 400); return; }
@@ -2008,7 +2023,7 @@ function _subCheckMode(task) {
 //   allowAutoCheck:false → uncheck-direction only (used by cycle resets so a
 //   subtask returning to active never *re-checks* the parent or fights its own repeat).
 // Returns 1 (auto-checked), -1 (auto-unchecked) or 0 (no change).
-function _syncParentDone(task, { allowAutoCheck, subNowChecked }) {
+function _syncParentDone(task, { allowAutoCheck, subNowChecked }: any = {}) {
     const subs = task.subtasks || [];
     if (!subs.length) return 0;
     const mode        = _subCheckMode(task);
@@ -2446,7 +2461,7 @@ function openSubRepeatModal(taskId, subId) {
     editingTaskId = taskId;
     editingSubId  = subId;
     const cur = sub.repeat || 'none';
-    document.querySelectorAll('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
+    document.querySelectorAll<HTMLElement>('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.repeat === cur)
     );
     _populateRepeatAnchor(cur, sub.repeatAnchorTime || '', parseInt(sub.repeatAnchorDay) || 0, parseInt(sub.repeatAnchorMonthday) || 0);
