@@ -15,4 +15,4 @@ import '../dusk/09-sync.ts';
 import '../dusk/10-cloud.ts';
 import '../dusk/08-quickadd-export-init.js';
 import '../dusk/11-sync-ui.js';
-import '../dusk/12-sync-wake.js';
+import '../dusk/12-sync-wake.ts';

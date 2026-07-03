@@ -22,6 +22,16 @@ Object.assign(globalThis, {
 // in, and closed when hidden (the visibility/online triggers cover catch-up on
 // return) so an idle background tab holds nothing open.
 
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var _ws: any;               // WebSocket | null
+declare var _wsRoom: string | null;
+declare var _wsWantOpen: boolean;
+declare var _wsTimer: any;          // setTimeout id
+declare var _wsBackoff: number;
+declare var _wsEverOpen: boolean;
+declare var syncNow: any;           // defined in 11-sync-ui.js — remove this line at ITS rename
+
 globalThis._ws = null;
 globalThis._wsRoom = null;
 globalThis._wsWantOpen = false;
@@ -113,6 +123,4 @@ if (typeof document !== 'undefined') {
     });
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { syncWakeNote, syncWakeNudge, syncWakeStop };
-}
+// (the old module.exports footer is gone — nothing require()s this file)
