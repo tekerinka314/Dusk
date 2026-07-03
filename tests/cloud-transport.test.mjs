@@ -1,12 +1,15 @@
-// Phase 2 transport test — mock global.fetch, no real OAuth/network.
-// Run: node "tests/harness/_cloudtest.cjs"
-const C = require('../../dusk/10-cloud.js');
+// Sync Phase 2 — Drive transport (dusk/10-cloud.js), mocked fetch, 24 cases.
+// Ported node harness (was tests/harness/cloud-transport.cjs; body kept verbatim).
+// Side-effect import + globalThis bridges → survives the .ts rename (Этап 3).
+import { it, expect } from 'vitest';
+import '../dusk/10-cloud.js';
+const C = globalThis;
 
-let pass = 0, fail = 0;
-function ok(name, cond) { if (cond) { pass++; } else { fail++; console.log('  FAIL:', name); } }
+let pass = 0; const failures = [];
+function ok(name, cond) { if (cond) pass++; else failures.push(name); }
 async function throws(name, fn, pred) {
-    try { await fn(); fail++; console.log('  FAIL (no throw):', name); }
-    catch (e) { if (!pred || pred(e)) pass++; else { fail++; console.log('  FAIL (wrong err):', name, e.message); } }
+    try { await fn(); failures.push(name + ' (no throw)'); }
+    catch (e) { if (!pred || pred(e)) pass++; else failures.push(name + ' (wrong err: ' + e.message + ')'); }
 }
 
 // ── mock fetch router ────────────────────────────────────────────────────────
@@ -24,7 +27,7 @@ global.fetch = function (url, opts) {
     throw new Error('UNEXPECTED FETCH: ' + m + ' ' + url);
 };
 
-(async () => {
+it('cloud transport (Phase 2) — 24 cases', async () => {
     // sanity: worker mode is the default (SYNC_WORKER_URL filled) → auth is a
     // redirect+fetch, no GIS lib needed → configured even in node. Not signed in yet.
     ok('cloudIsConfigured true in worker mode (node)', C.cloudIsConfigured() === true);
@@ -123,6 +126,6 @@ global.fetch = function (url, opts) {
     await throws('G 401 → throws (no loop)', () => C.cloudPull(), () => true);
     ok('G 401 retried at most twice', calls <= 2);
 
-    console.log(`\n${pass} passed, ${fail} failed`);
-    process.exit(fail ? 1 : 0);
-})();
+    expect(failures).toEqual([]);
+    expect(pass).toBe(24);
+});

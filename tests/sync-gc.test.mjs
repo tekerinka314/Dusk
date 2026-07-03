@@ -1,11 +1,12 @@
-// Phase 4 GC: age-based pruning of tombstones + resolved journal entries inside
-// mergeStates (dusk/09-sync.js). GC runs ONLY when opts.gcNow is passed (so the
-// merge stays a deterministic pure fn for the other tests). Run:
-//   node "tests/harness/_syncgc_test.cjs"
-const S = require('../../dusk/09-sync.js');
-let pass = 0, fail = 0;
-const rec = (n, c, d) => { if (c) pass++; else { fail++; console.log('  FAIL:', n, d != null ? '· ' + JSON.stringify(d) : ''); } };
+// Sync Phase 4 — age-based GC inside mergeStates (dusk/09-sync.js), 13 cases.
+// Ported node harness (was tests/harness/sync-gc.cjs; body kept verbatim).
+// Side-effect import + globalThis bridges → survives the .ts rename (Этап 3).
+import { it, expect } from 'vitest';
+import '../dusk/09-sync.js';
+const S = globalThis;
 
+let pass = 0; const failures = [];
+const rec = (n, c, d) => { if (c) pass++; else failures.push(n + (d != null ? ' · ' + JSON.stringify(d) : '')); };
 const DAY = 86400000;
 const NOW = 1900000000000;                 // fixed clock (≈2030) — no Date.now() in the test
 const old = NOW - 100 * DAY;               // past the 90-day horizon
@@ -62,5 +63,7 @@ let live = S.mergeStates(null, {
 }, null, { gcNow: NOW });
 rec('live record with old createdAt is NOT pruned', (live.merged.tasks || []).some(t => t.uid === 'T1'), (live.merged.tasks || []).map(t => t.uid));
 
-console.log(`\nPhase 4 GC test: ${pass} passed, ${fail} failed  (total ${pass + fail})`);
-process.exit(fail ? 1 : 0);
+it('sync GC (Phase 4) — 13 cases', () => {
+    expect(failures).toEqual([]);
+    expect(pass).toBe(13);
+});

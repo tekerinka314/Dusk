@@ -1,11 +1,11 @@
-// Node test for the Cloudflare Worker OAuth handlers (worker/src/index.js).
-// Mocks global fetch → asserts the request shaping (params, secret usage, grant
-// type) and the response/error mapping. No network. Response/URLSearchParams are
-// node globals (18+).
-import { handleExchange, handleRefresh } from '../../worker/src/index.js';
+// Cloudflare Worker OAuth handlers (worker/src/index.js), mocked fetch, 17 cases.
+// Ported node harness (was tests/harness/worker-oauth.mjs; body kept verbatim).
+// worker/ stays plain JS (deployed by wrangler, NOT part of the TS migration).
+import { it, expect } from 'vitest';
+import { handleExchange, handleRefresh } from '../worker/src/index.js';
 
-let pass=0, fail=0;
-const rec=(n,c,d)=>{ if(c)pass++; else { fail++; console.log('  FAIL:',n,d!=null?'· '+JSON.stringify(d):''); } };
+let pass = 0; const failures = [];
+const rec = (n, c, d) => { if (c) pass++; else failures.push(n + (d != null ? ' · ' + JSON.stringify(d) : '')); };
 const env = { GOOGLE_CLIENT_ID:'CID', GOOGLE_CLIENT_SECRET:'SECRET', ALLOWED_ORIGIN:'https://app.example' };
 
 let lastCall = null;
@@ -19,7 +19,7 @@ function mockFetch(respObj, ok=true, status=200) {
 const req = (body) => new Request('https://worker/x', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
 const reqO = (body, origin) => new Request('https://worker/x', { method:'POST', headers:{'Content-Type':'application/json','Origin':origin}, body: JSON.stringify(body) });
 
-(async()=>{
+it('worker OAuth handlers — 17 cases', async () => {
   // 1. exchange: happy path
   mockFetch({ access_token:'AT', refresh_token:'RT', expires_in:3600 });
   let r = await handleExchange(req({ code:'CODE', redirect_uri:'https://app.example/Dusk/', code_verifier:'VER' }), env);
@@ -66,6 +66,6 @@ const reqO = (body, origin) => new Request('https://worker/x', { method:'POST', 
   rr = await handleExchange(reqO({ code:'C', redirect_uri:'x' }, 'https://evil.example'), env2);
   rec('CORS: non-listed Origin → falls back to first (not echoed)', rr.headers.get('Access-Control-Allow-Origin')==='https://a.example', rr.headers.get('Access-Control-Allow-Origin'));
 
-  console.log(`\nworker OAuth handler test: ${pass} passed, ${fail} failed  (total ${pass+fail})`);
-  process.exit(fail?1:0);
-})().catch(e=>{ console.error('CRASH', e); process.exit(2); });
+    expect(failures).toEqual([]);
+    expect(pass).toBe(17);
+});

@@ -1,10 +1,13 @@
-// Sync Phase 1 — pure node test harness for dusk/09-sync.js (no browser, no network).
-// Run: node "tests/harness/_synctest.cjs"
-const SYNC = require('../../dusk/09-sync.js');
-const { mergeStates, getSyncSubset, applySyncSubset, loadBaseline, saveBaseline, snapshotPreMerge, unresolvedCount } = SYNC;
+// Sync Phase 1 — the pure 3-way merge engine (dusk/09-sync.js), 39 cases.
+// Ported node harness (was tests/harness/sync-merge.cjs; body kept verbatim).
+// The module is loaded as a side-effect import — its 2a globalThis bridges
+// publish the API — so this test survives the 09-sync.js → .ts rename (Этап 3).
+import { it, expect } from 'vitest';
+import '../dusk/09-sync.js';
+const { mergeStates, getSyncSubset, applySyncSubset, loadBaseline, saveBaseline, snapshotPreMerge, unresolvedCount } = globalThis;
 
-let pass = 0, fail = 0;
-function ok(cond, name) { if (cond) { pass++; } else { fail++; console.log('  ✗ FAIL: ' + name); } }
+let pass = 0; const failures = [];
+function ok(cond, name) { if (cond) pass++; else failures.push(name); }
 function clone(x) { return JSON.parse(JSON.stringify(x)); }
 function stable(v) {
     if (v === null || typeof v !== 'object') return JSON.stringify(v) ?? 'null';
@@ -288,5 +291,7 @@ function TOMB(uid, over = {}) { return Object.assign({ uid, type: 'task', parent
     delete global.localStorage;
 }
 
-console.log(`\nSYNC Phase 1 tests: ${pass} passed, ${fail} failed  (total ${pass + fail})`);
-process.exit(fail ? 1 : 0);
+it('sync merge engine (Phase 1) — 39 cases', () => {
+    expect(failures).toEqual([]);
+    expect(pass).toBe(39);
+});

@@ -22,9 +22,11 @@ A single-page, offline-first gothic task manager (PWA). Vanilla JS built with
   `_headers`.
 - `public/pen-asset.js` — the «Звук пера» base64 audio sample. Classic script
   tag BEFORE the module entry (sets `window.PEN_ASSET`); decoded via `atob`.
-- `tests/` — vitest: `npm test` = 4 ported node harnesses (sync merge 39, GC 13,
-  cloud transport 24, worker OAuth 17) + Drive wire-format pin (fixtures —
-  breaking the sync JSON shape fails here, not silently in the cloud).
+- `tests/` — vitest: `npm test` = native vitest tests (sync merge 39, GC 13,
+  cloud transport 24, worker OAuth 17 — dusk modules loaded via side-effect
+  import + globalThis bridges, so they survive the `.ts` rename) + Drive
+  wire-format pin (fixtures — breaking the sync JSON shape fails here, not
+  silently in the cloud).
 - `scripts/build-portable.mjs` — `npm run build:portable` → `dist/dusk-portable.html`
   (~1.4 MB, fully inlined single file, runs from disk via file:// — the
   no-server fallback; its data lives in the file:// origin's own localStorage).
@@ -202,9 +204,8 @@ Grimoire images later). Rollback tag: `v2.2-pre-migration`.
 - **Этап 2 DONE (2026-07-02, user-verified on prod)** — 2a ES modules with
   globalThis bridges; 2c Vite build pipeline (npm Sortable, public/, stable
   names, sw v8); 2d portable single-file fallback.
-- **Этап 3 NEXT — TypeScript, incremental.** Step 0: port the harness `.cjs`
-  scripts to native vitest imports FIRST (plain-node `require` can't load `.ts`
-  — renaming 09/10 to .ts would break the spawned harnesses). Then tsconfig
+- **Этап 3 IN PROGRESS — TypeScript, incremental.** Step 0 DONE (harnesses are
+  native vitest tests; nothing spawns plain node anymore). Then tsconfig
   (loose → ratchet), `src/types.ts` per SYNC-SPEC §4, rename order:
   09-sync → 10-cloud → 12 → 11 → 01-core → rest; `tsc --noEmit` + vitest +
   build green per file, one commit per file. Don't touch worker/.

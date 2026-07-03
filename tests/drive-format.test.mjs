@@ -10,9 +10,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+// 09-sync is loaded as a side-effect import — its 2a globalThis bridges publish
+// the API — so this test survives the 09-sync.js → .ts rename (Этап 3).
+import '../dusk/09-sync.js';
+const SYNC = globalThis;
 
 const require = createRequire(import.meta.url);
-const SYNC = require('../dusk/09-sync.js');
 const sampleState = require('./fixtures/sample-state.cjs');
 
 const FIX = p => JSON.parse(readFileSync(
