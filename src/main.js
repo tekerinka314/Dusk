@@ -13,6 +13,6 @@ import '../dusk/06-deadlines.ts';
 import '../dusk/07-dnd-filter-progress.ts';
 import '../dusk/09-sync.ts';
 import '../dusk/10-cloud.ts';
-import '../dusk/08-quickadd-export-init.js';
+import '../dusk/08-quickadd-export-init.ts';
 import '../dusk/11-sync-ui.ts';
 import '../dusk/12-sync-wake.ts';

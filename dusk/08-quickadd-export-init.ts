@@ -1,3 +1,13 @@
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var _qaState: any;
+declare var _qaMenuEl: any;
+declare var _focusedTaskId: any;
+declare var _focusedByKeyboard: any;
+declare var _focusedArchiveId: any;
+declare var _shortcutsHintOpen: any;
+declare var _taskHintHTML: any;
+
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
@@ -106,13 +116,13 @@ function _qaSuggest(type, query) {
         ].filter(o => !q || o.label.toLowerCase().includes(q) || o.insert.slice(1).startsWith(q));
     }
     if (type === 'tag') {
-        const tags = new Set();
+        const tags = new Set<any>();
         state.tasks.forEach(t => {
             extractTags(t.text).forEach(tg => tags.add(tg));
             (t.subtasks || []).forEach(s => extractTags(s.text).forEach(tg => tags.add(tg)));
         });
         const arr = [...tags].map(tg => tg.replace(/^\*/, '')).filter(tg => !q || tg.includes(q)).sort();
-        const items = arr.slice(0, 8).map(tg => ({ label:'*'+tg, insert:'*'+tg }));
+        const items: any[] = arr.slice(0, 8).map(tg => ({ label:'*'+tg, insert:'*'+tg }));
         if (q && !arr.includes(q)) items.unshift({ label:'*'+query, insert:'*'+query, hint:'новый тег' });
         // Always show something so the dropdown appears (discoverability) even when
         // there are no tags yet and nothing has been typed after the "*".
@@ -121,7 +131,7 @@ function _qaSuggest(type, query) {
     }
     if (type === 'date') {
         const parsed = query ? _parseQuickDate(query) : null;
-        const out = parsed ? [{ label: formatDeadlineForm(parsed), insert:'%'+query, hint:'распознано' }] : [];
+        const out: any[] = parsed ? [{ label: formatDeadlineForm(parsed), insert:'%'+query, hint:'распознано' }] : [];
         const presets = [
             { label:'Сегодня',      insert:'%сегодня' },
             { label:'Завтра',       insert:'%завтра'  },
@@ -360,10 +370,10 @@ function togglePin(id) {
 //  MAIN LIST BULK SELECTION
 // ============================================================
 function toggleMainSelectMode() {
-    mainSelectMode = !mainSelectMode;
+    globalThis.mainSelectMode = !mainSelectMode;
     selectedTaskIds.clear();
-    const btn = document.getElementById('btn-main-select');
-    const bar = document.getElementById('main-select-bar');
+    const btn = document.getElementById('btn-main-select') as any;
+    const bar = document.getElementById('main-select-bar') as any;
     if (btn) btn.classList.toggle('active', mainSelectMode);
     if (bar) bar.style.display = mainSelectMode ? 'flex' : 'none';
     _updateMainSelectBar(); // reset "0 отмечено" + disable bulk buttons on (re)open after the clear above
@@ -379,7 +389,7 @@ function toggleMainSelectTask(id) {
     if (li) {
         li.classList.toggle('select-mode-selected', selectedTaskIds.has(id));
         // Problem 2: update the checkbox button icon in-place (no full render needed)
-        const btn = li.querySelector('.task-select-checkbox');
+        const btn = li.querySelector<HTMLElement>('.task-select-checkbox');
         if (btn) {
             btn.classList.toggle('selected', selectedTaskIds.has(id));
             btn.innerHTML = selectedTaskIds.has(id) ? IC.selectChecked : IC.selectEmpty;
@@ -389,9 +399,9 @@ function toggleMainSelectTask(id) {
 
 function _updateMainSelectBar() {
     const count   = selectedTaskIds.size;
-    const countEl = document.getElementById('main-select-bar-count');
-    const archBtn = document.getElementById('btn-bulk-archive');
-    const delBtn  = document.getElementById('btn-bulk-delete');
+    const countEl = document.getElementById('main-select-bar-count') as any;
+    const archBtn = document.getElementById('btn-bulk-archive') as any;
+    const delBtn = document.getElementById('btn-bulk-delete') as any;
     if (countEl) countEl.textContent = `${count} отмечено`;
     if (archBtn) archBtn.disabled = count === 0;
     if (delBtn)  delBtn.disabled  = count === 0;
@@ -416,9 +426,9 @@ function bulkArchive() {
     const count = selectedTaskIds.size;
     state.tasks = state.tasks.filter(t => !selectedTaskIds.has(t.id));
     selectedTaskIds.clear();
-    mainSelectMode = false;
-    const btn = document.getElementById('btn-main-select');
-    const bar = document.getElementById('main-select-bar');
+    globalThis.mainSelectMode = false;
+    const btn = document.getElementById('btn-main-select') as any;
+    const bar = document.getElementById('main-select-bar') as any;
     if (btn) btn.classList.remove('active');
     if (bar) bar.style.display = 'none';
     saveState(); render();
@@ -428,7 +438,7 @@ function bulkArchive() {
 function bulkDelete() {
     if (!selectedTaskIds.size) return;
     // Two-step confirmation reuses the existing _clearAllArmed pattern
-    const btn = document.getElementById('btn-bulk-delete');
+    const btn = document.getElementById('btn-bulk-delete') as any;
     if (!btn._armed) {
         btn._armed = true;
         btn.classList.add('confirm-armed');
@@ -449,9 +459,9 @@ function bulkDelete() {
     state.tasks.forEach(t => { if (selectedTaskIds.has(t.id)) addTombstone(t.uid, 'task'); });   // Idea 8: bulk permanent delete → tombstones
     state.tasks = state.tasks.filter(t => !selectedTaskIds.has(t.id));
     selectedTaskIds.clear();
-    mainSelectMode = false;
-    const mainBtn = document.getElementById('btn-main-select');
-    const bar     = document.getElementById('main-select-bar');
+    globalThis.mainSelectMode = false;
+    const mainBtn = document.getElementById('btn-main-select') as any;
+    const bar = document.getElementById('main-select-bar') as any;
     if (mainBtn) mainBtn.classList.remove('active');
     if (bar) bar.style.display = 'none';
     saveState(); render();
@@ -469,7 +479,7 @@ globalThis._focusedArchiveId = null;// archive-page J/K focus ring (crypt cards)
 // split/pinned zones, so counts and keyboard nav diverged and pinned cards in split
 // mode were unreachable by J/K).
 function _visibleTaskEls() {
-    return [...document.querySelectorAll(
+    return [...document.querySelectorAll<HTMLElement>(
         '#list-container > .task-item, .group-body > .task-item, ' +
         '.sched-zone-ul > .task-item, .split-active-body > .task-item, ' +
         '.split-pinned-body > .task-item')];
@@ -481,7 +491,7 @@ function getVisibleTaskIds() {
 
 // ── P15a: hover sets focused task (works alongside J/K navigation) ───────
 document.addEventListener('mouseover', e => {
-    const li = e.target.closest('.task-item[data-id]');
+    const li = (e.target as any).closest('.task-item[data-id]');
     if (!li || li.classList.contains('archive-item')) return;
     const id = parseInt(li.dataset.id);
     if (id !== _focusedTaskId) {
@@ -493,10 +503,10 @@ document.addEventListener('mouseover', e => {
 
 // ── P15b: clicking outside a task clears kb-focus ring ───────────────────
 document.addEventListener('click', e => {
-    if (!e.target.closest('.task-item')) {
+    if (!(e.target as any).closest('.task-item')) {
         _focusedTaskId = null;
         _focusedByKeyboard = false;
-        document.querySelectorAll('.task-item.kb-focused')
+        document.querySelectorAll<HTMLElement>('.task-item.kb-focused')
             .forEach(el => el.classList.remove('kb-focused'));
     }
 });
@@ -531,13 +541,13 @@ document.addEventListener('keydown', e => {
     // in-note find input (one query drives both the list filter and body highlight).
     if ((e.ctrlKey || e.metaKey) && e.code === 'KeyF' && currentPage === 'notes') {
         e.preventDefault();
-        const sb = document.getElementById('notes-search-box');
+        const sb = document.getElementById('notes-search-box') as any;
         if (sb) { sb.focus(); sb.select(); }
         return;
     }
     // Tasks archive: Ctrl/Cmd+F focuses the crypt search (mirror of the notes one).
     if ((e.ctrlKey || e.metaKey) && e.code === 'KeyF' && currentPage === 'archive') {
-        const sb = document.getElementById('archive-search-box');
+        const sb = document.getElementById('archive-search-box') as any;
         if (sb && sb.offsetParent !== null) { e.preventDefault(); sb.focus(); sb.select(); return; }
     }
     // п11/A: F3 / Shift+F3 step through body matches from ANYWHERE — including while the
@@ -556,7 +566,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         // S1-4: close the top-most OPEN modal — the old hard-coded list missed
         // color-filter / templates / import-choice. Generic so future modals work too.
-        const openModals = [...document.querySelectorAll('.modal-overlay')]
+        const openModals = [...document.querySelectorAll<HTMLElement>('.modal-overlay')]
             .filter(m => m.style.display !== 'none' && !m.classList.contains('closing'));
         if (openModals.length) {
             // U-1: route through the cleanup-aware closer (import-choice falls back to a
@@ -569,14 +579,14 @@ document.addEventListener('keydown', e => {
         // No modal open → clear the keyboard-focus ring (tasks + archive both use .task-item).
         _focusedTaskId = null;
         _focusedArchiveId = null;
-        document.querySelectorAll('.task-item.kb-focused')
+        document.querySelectorAll<HTMLElement>('.task-item.kb-focused')
             .forEach(el => el.classList.remove('kb-focused'));
         return;
     }
 
     const tag = document.activeElement?.tagName;
     const inInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
-                    document.activeElement?.contentEditable === 'true';
+                    (document.activeElement as any)?.contentEditable === 'true';
 
     // NA-9: notes-page keyboard parity — N forges a new record, J/K walk the list.
     // Placed before the task shortcuts so the same keys mean "notes" on the notes page.
@@ -602,7 +612,7 @@ document.addEventListener('keydown', e => {
             if (_matchKey(e, 'E')) {                                                                // E  → править тело
                 e.preventDefault();
                 if (grimNoteCollapsed) { grimToggleCollapse(); return; }   // folded → expand (re-expand focuses body)
-                const bo = document.getElementById('grim-body');
+                const bo = document.getElementById('grim-body') as any;
                 if (bo) {
                     bo.focus();
                     const r = document.createRange(); r.selectNodeContents(bo); r.collapse(false);
@@ -640,7 +650,7 @@ document.addEventListener('keydown', e => {
     if (_matchKey(e, 'N') && !inInput && !e.ctrlKey && !e.metaKey) { e.preventDefault(); inputBox.focus(); return; }
     if ((e.code === 'Slash' || e.code === 'NumpadDivide') && !inInput) {
         e.preventDefault();
-        if (toolbar.style.display !== 'none') searchBox.focus();
+        if ((toolbar as any).style.display !== 'none') searchBox.focus();
         return;
     }
     // S — sync now, or sign in to Google Drive if not yet connected. Global: fires on
@@ -750,7 +760,7 @@ document.addEventListener('keydown', e => {
 
 /** Show keyboard-focus ring on the given task. */
 function highlightFocusedTask(id) {
-    document.querySelectorAll('.task-item.kb-focused').forEach(el => el.classList.remove('kb-focused'));
+    document.querySelectorAll<HTMLElement>('.task-item.kb-focused').forEach(el => el.classList.remove('kb-focused'));
     const el = document.querySelector(`.task-item[data-id="${id}"]`);
     if (el) {
         el.classList.add('kb-focused');
@@ -761,12 +771,12 @@ function highlightFocusedTask(id) {
 // Archive J/K navigation: ids of crypt cards that are actually on screen — excludes
 // search-hidden items (display:none) and any card inside a collapsed month section.
 function _visibleArchiveIds() {
-    return [...document.querySelectorAll('#archive-list .archive-item')]
+    return [...document.querySelectorAll<HTMLElement>('#archive-list .archive-item')]
         .filter(el => el.style.display !== 'none' && !el.closest('.archive-month-section.collapsed'))
         .map(el => el.dataset.id);
 }
 function _highlightFocusedArchive(id) {
-    document.querySelectorAll('#archive-list .archive-item.kb-focused').forEach(el => el.classList.remove('kb-focused'));
+    document.querySelectorAll<HTMLElement>('#archive-list .archive-item.kb-focused').forEach(el => el.classList.remove('kb-focused'));
     const el = document.querySelector(`#archive-list .archive-item[data-id="${id}"]`);
     if (el) { el.classList.add('kb-focused'); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
 }
@@ -781,11 +791,11 @@ function setupEventListeners() {
     });
     inputBox.addEventListener('input', _qaUpdate);
     inputBox.addEventListener('focus', () => {
-        const h = document.getElementById('qa-syntax-hint'); if (h) h.classList.add('show');
+        const h = document.getElementById('qa-syntax-hint') as any; if (h) h.classList.add('show');
     });
     inputBox.addEventListener('blur', () => {
         setTimeout(_qaClose, 150); // allow a typeahead item click to land first
-        const h = document.getElementById('qa-syntax-hint'); if (h) h.classList.remove('show');
+        const h = document.getElementById('qa-syntax-hint') as any; if (h) h.classList.remove('show');
     });
     document.getElementById('note-modal-input').addEventListener('keydown', e => {
         if (e.key === 'Enter' && e.ctrlKey) confirmNote();
@@ -836,7 +846,7 @@ const _TASK_ARCHIVE_HINT_HTML =                 // tasks archive: nav + search +
 
 // Pick the hint markup for the CURRENT context (page + grimoire segment).
 function _shortcutsHintHTML() {
-    const hint = document.getElementById('shortcuts-hint');
+    const hint = document.getElementById('shortcuts-hint') as any;
     if (_taskHintHTML === null && hint) _taskHintHTML = hint.innerHTML;   // snapshot the task set once
     if (currentPage === 'notes')   return grimMode === 'archive' ? _CRYPT_HINT_HTML : _NOTES_HINT_HTML;
     if (currentPage === 'archive')  return _TASK_ARCHIVE_HINT_HTML;
@@ -846,13 +856,13 @@ function _shortcutsHintHTML() {
 // Live-sync the open hint with the active tab/segment so a stale set never lingers.
 function _refreshShortcutsHint() {
     if (!_shortcutsHintOpen) return;
-    const hint = document.getElementById('shortcuts-hint');
+    const hint = document.getElementById('shortcuts-hint') as any;
     if (hint) hint.innerHTML = _shortcutsHintHTML();
 }
 
 function toggleShortcutsHint() {
-    const hint = document.getElementById('shortcuts-hint');
-    const btn  = document.getElementById('btn-shortcuts-toggle');
+    const hint = document.getElementById('shortcuts-hint') as any;
+    const btn = document.getElementById('btn-shortcuts-toggle') as any;
     if (!hint) return;
     if (_taskHintHTML === null) _taskHintHTML = hint.innerHTML;   // snapshot the task set once
     _shortcutsHintOpen = !_shortcutsHintOpen;
@@ -885,6 +895,7 @@ function toggleShortcutsHint() {
 const segInputs = {}; // { inputId: SegmentedInput }
 
 class SegmentedInput {
+    input: any; type: any; activeIdx: any; _pending: any; _todayMin: any; defs: any; segs: any; el: any;
     constructor(inputId, type) {
         this.input = document.getElementById(inputId);
         if (!this.input) return;
@@ -939,7 +950,7 @@ class SegmentedInput {
         this.el = wrap;
 
         wrap.addEventListener('mousedown', e => {
-            const target = e.target.closest('.seg');
+            const target = (e.target as any).closest('.seg');
             e.preventDefault(); // prevent blur on wrap
             const idx = target ? parseInt(target.dataset.idx ?? this.segs.indexOf(this.segs.find(s => s.el === target))) : -1;
             this._focus(idx >= 0 ? idx : (this.activeIdx >= 0 ? this.activeIdx : 0));
@@ -949,7 +960,7 @@ class SegmentedInput {
         });
         wrap.addEventListener('blur', e => {
             // Only deactivate if focus truly left this widget
-            if (!wrap.contains(e.relatedTarget)) this._deactivate();
+            if (!wrap.contains(e.relatedTarget as any)) this._deactivate();
         });
         wrap.addEventListener('keydown', e => this._onKey(e));
 
@@ -1229,11 +1240,11 @@ function initMonthPicker() {
         [9,'Сентябрь'],[10,'Октябрь'],[11,'Ноябрь'],[12,'Декабрь']
     ];
 
-    const picker  = document.getElementById('dl-month-picker');
-    const trigger = document.getElementById('dl-month-trigger');
-    const label   = document.getElementById('dl-month-label');
-    const list    = document.getElementById('dl-month-list');
-    const select  = document.getElementById('dl-month');
+    const picker = document.getElementById('dl-month-picker') as any;
+    const trigger = document.getElementById('dl-month-trigger') as any;
+    const label = document.getElementById('dl-month-label') as any;
+    const list = document.getElementById('dl-month-list') as any;
+    const select = document.getElementById('dl-month') as any;
     if (!picker || !trigger || !list || !select) return;
 
     let isOpen = false;
@@ -1314,8 +1325,8 @@ function initMonthPicker() {
     registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
 
     // Expose sync helpers for openDeadlineModal / clearDeadlineModal
-    window._monthPickerSet   = setMonth;
-    window._monthPickerClose = closePicker;
+    (window as any)._monthPickerSet   = setMonth;
+    (window as any)._monthPickerClose = closePicker;
 
     setMonth(1); // default
 }
@@ -1333,11 +1344,11 @@ function initWeekdayPicker() {
         [5,'Пятница'],[6,'Суббота'],[7,'Воскресенье']
     ];
 
-    const picker  = document.getElementById('dl-weekday-picker');
-    const trigger = document.getElementById('dl-weekday-trigger');
-    const label   = document.getElementById('dl-weekday-label');
-    const list    = document.getElementById('dl-weekday-list');
-    const select  = document.getElementById('dl-weekday');
+    const picker = document.getElementById('dl-weekday-picker') as any;
+    const trigger = document.getElementById('dl-weekday-trigger') as any;
+    const label = document.getElementById('dl-weekday-label') as any;
+    const list = document.getElementById('dl-weekday-list') as any;
+    const select = document.getElementById('dl-weekday') as any;
     if (!picker || !trigger || !list || !select) return;
 
     let isOpen = false;
@@ -1411,8 +1422,8 @@ function initWeekdayPicker() {
     registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
 
     // Expose sync helpers for openDeadlineModal / clearDeadlineModal
-    window._weekdayPickerSet   = setDay;
-    window._weekdayPickerClose = closePicker;
+    (window as any)._weekdayPickerSet   = setDay;
+    (window as any)._weekdayPickerClose = closePicker;
 
     setDay(1); // default: Monday
 }
@@ -1436,11 +1447,11 @@ function initFormWeekdayPicker() {
         [1,'Понедельник'],[2,'Вторник'],[3,'Среда'],[4,'Четверг'],
         [5,'Пятница'],[6,'Суббота'],[7,'Воскресенье']
     ];
-    const picker  = document.getElementById('form-wd-picker');
-    const trigger = document.getElementById('form-wd-trigger');
-    const label   = document.getElementById('form-wd-label');
-    const list    = document.getElementById('form-wd-list');
-    const hidden  = document.getElementById('form-repeat-anchor-day');
+    const picker = document.getElementById('form-wd-picker') as any;
+    const trigger = document.getElementById('form-wd-trigger') as any;
+    const label = document.getElementById('form-wd-label') as any;
+    const list = document.getElementById('form-wd-list') as any;
+    const hidden = document.getElementById('form-repeat-anchor-day') as any;
     if (!picker || !trigger || !list || !hidden) return;
 
     let isOpen = false;
@@ -1464,7 +1475,7 @@ function initFormWeekdayPicker() {
     // were unreachable). While the picker is open we let the panel overflow so
     // the full list is visible/scrollable, and open upward when near the
     // viewport bottom (mirrors the modal weekday picker).
-    const extraFields = document.getElementById('extra-fields');
+    const extraFields = document.getElementById('extra-fields') as any;
     function openPicker() {
         if (isOpen) return;
         isOpen = true;
@@ -1497,7 +1508,7 @@ function initFormWeekdayPicker() {
     registerGothicPicker(picker, closePicker);   // G4-6: unified outside-click
     // X-6: expose the day-setter so confirmDeadline's form-creation path can fill the
     // weekly anchor day when a weektime deadline auto-enables weekly repeat.
-    window._formWdPickerSet = setDay;
+    (window as any)._formWdPickerSet = setDay;
 }
 
 

@@ -1229,7 +1229,7 @@ function bumpUpdatedAt() {
 // untouched. Bodies remain recoverable via undo snapshots + the ring backups +
 // the frozen v3 key (rule #1). Archiving is NOT a deletion (the task lives on in
 // state.archive) so it never tombstones; only a *permanent* removal does.
-function addTombstone(recUid, type, parentUid) {
+function addTombstone(recUid, type, parentUid?) {
     if (!recUid) return;
     if (!Array.isArray(state.tombstones)) state.tombstones = [];
     state.tombstones.push({ uid: recUid, type, parentUid: parentUid || null, deletedAt: nowTs() });
