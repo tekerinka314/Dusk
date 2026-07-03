@@ -1,3 +1,18 @@
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var _pageTransitioning: any;
+declare var _grimListSortable: any;
+declare var _grimGrowRAF: any;
+declare var _grimLinkRange: any;
+declare var _grimLinkAnchor: any;
+declare var _grimEditTbl: any;
+declare var _grimMenu: any;
+declare var _grimTblRAF: any;
+declare var _grimRO: any;
+declare var _grimTitleRO: any;
+declare var _grimHoverTbl: any;
+declare var _grimHoverSeal: any;
+
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
@@ -70,17 +85,17 @@ function switchPage(page) {
     // Reset select mode when leaving archive
     if (page !== 'archive' && selectMode) {
         selectMode = false; selectedArchiveIds.clear();
-        const bar = document.getElementById('archive-select-bar');
+        const bar = document.getElementById('archive-select-bar') as any;
         if (bar) bar.style.display = 'none';
-        const btn = document.getElementById('btn-select-mode');
+        const btn = document.getElementById('btn-select-mode') as any;
         if (btn) btn.classList.remove('active');
     }
     // Also reset main-list select mode when leaving main page
     if (page !== 'main' && mainSelectMode) {
         mainSelectMode = false; selectedTaskIds.clear();
-        const bar = document.getElementById('main-select-bar');
+        const bar = document.getElementById('main-select-bar') as any;
         if (bar) bar.style.display = 'none';
-        const btn = document.getElementById('btn-main-select');
+        const btn = document.getElementById('btn-main-select') as any;
         if (btn) btn.classList.remove('active');
     }
     // п11/1b: reset grimoire select mode when leaving the notes page
@@ -410,47 +425,47 @@ function grimOpenHistory(id) {
     }
     // NA-8: a11y parity with the standard modal controller (U-1/U-2) — remember the
     // trigger to restore focus on close, move focus inside, and trap Tab within the dialog.
-    ov._returnFocus = document.activeElement;
-    if (!ov._trap) {
+    (ov as any)._returnFocus = document.activeElement;
+    if (!(ov as any)._trap) {
         // NA-8 (fix): the trap listens on DOCUMENT in capture, not on `ov`. The modal
         // rebuilds its innerHTML on every version preview (_grimRenderHistory), which
         // destroys the focused button → activeElement drops to <body>, OUTSIDE `ov`. A
         // listener bound to `ov` then never sees the next Tab (it no longer bubbles through
         // ov) and focus escapes to the page behind. A document-capture listener always
         // fires; when focus has left the dialog we pull it back in.
-        ov._trap = (e) => {
+        (ov as any)._trap = (e) => {
             if (e.key !== 'Tab') return;
-            const els = Array.from(ov.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
+            const els = (Array.from(ov.querySelectorAll(FOCUSABLE)) as any[]).filter(el => el.offsetParent !== null);
             if (!els.length) return;
             const first = els[0], last = els[els.length - 1];
             if (!ov.contains(document.activeElement)) { e.preventDefault(); first.focus(); return; }
             if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
             else            { if (document.activeElement === last)  { e.preventDefault(); first.focus(); } }
         };
-        document.addEventListener('keydown', ov._trap, true);
+        document.addEventListener('keydown', (ov as any)._trap, true);
     }
     _grimRenderHistory();
     requestAnimationFrame(() => requestAnimationFrame(() => {
         ov.classList.add('open');
-        const focusable = Array.from(ov.querySelectorAll(FOCUSABLE));
+        const focusable = (Array.from(ov.querySelectorAll(FOCUSABLE)) as any[]);
         if (focusable.length) focusable[0].focus();
     }));
 }
 function grimCloseHistory() {
-    const ov = document.getElementById('grim-hist-ov');
+    const ov = document.getElementById('grim-hist-ov') as any;
     _grimHistId = null; _grimHistSel = null;
     if (!ov) return;
-    if (ov._trap) { document.removeEventListener('keydown', ov._trap, true); ov._trap = null; }
+    if ((ov as any)._trap) { document.removeEventListener('keydown', (ov as any)._trap, true); (ov as any)._trap = null; }
     // Return focus to the control that opened the Летопись (NA-8).
-    const rf = ov._returnFocus; ov._returnFocus = null;
+    const rf = (ov as any)._returnFocus; (ov as any)._returnFocus = null;
     if (rf && typeof rf.focus === 'function') rf.focus();
     ov.classList.remove('open');
-    setTimeout(() => { const o = document.getElementById('grim-hist-ov'); if (o && !o.classList.contains('open')) o.remove(); }, 340);
+    setTimeout(() => { const o = document.getElementById('grim-hist-ov') as any; if (o && !o.classList.contains('open')) o.remove(); }, 340);
 }
 function grimHistSelect(at) { _grimHistSel = at; _grimRenderHistory(); }
 
 function _grimRenderHistory() {
-    const ov = document.getElementById('grim-hist-ov');
+    const ov = document.getElementById('grim-hist-ov') as any;
     if (!ov) return;
     const note = _grimHistNote();
     if (!note) { grimCloseHistory(); return; }
@@ -543,31 +558,31 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && _grimHistI
 // Top-level: sync the toolbar (segment + new btn), then show either the big
 // empty state or the master–detail layout and (re)draw both panes.
 function renderNotes() {
-    const page = document.getElementById('notes-page');
+    const page = document.getElementById('notes-page') as any;
     if (!page) return;
     _grimHideTableUI();   // drop any floating table picker/tools on (re)render
-    const segA = document.getElementById('grim-seg-active');
-    const segR = document.getElementById('grim-seg-archive');
+    const segA = document.getElementById('grim-seg-active') as any;
+    const segR = document.getElementById('grim-seg-archive') as any;
     if (segA) segA.classList.toggle('active', grimMode === 'active');
     if (segR) segR.classList.toggle('active', grimMode === 'archive');
     _refreshShortcutsHint();   // keep an open hint in sync with the «Записи»/«Склеп» segment
-    const segRc = document.getElementById('grim-seg-count');
+    const segRc = document.getElementById('grim-seg-count') as any;
     if (segRc) { const n = (state.notesArchive || []).length; segRc.textContent = n || ''; segRc.style.display = n ? '' : 'none'; }
-    const newSplit = document.getElementById('grim-new-split');
+    const newSplit = document.getElementById('grim-new-split') as any;
     if (newSplit) {
         const showNew = (grimMode === 'active' && !grimSelectMode);
         newSplit.style.display = showNew ? '' : 'none';
         if (!showNew) _grimCloseTplMenu();   // never leave the templates popover open when hidden
     }
     // п.13: «Перенос» (import+export) — active mode, outside select; valid even with zero notes.
-    const ioSplit = document.getElementById('grim-io-split');
+    const ioSplit = document.getElementById('grim-io-split') as any;
     if (ioSplit) {
         const showIo = (grimMode === 'active' && !grimSelectMode);
         ioSplit.style.display = showIo ? '' : 'none';
         if (!showIo) _grimCloseIoMenu();
     }
     // п.6: «Опустошить склеп» — only in the crypt, when it holds records, outside select mode.
-    const emptyBtn = document.getElementById('grim-empty-crypt');
+    const emptyBtn = document.getElementById('grim-empty-crypt') as any;
     if (emptyBtn) {
         const show = grimMode === 'archive' && !grimSelectMode && (state.notesArchive || []).length;
         emptyBtn.style.display = show ? '' : 'none';
@@ -575,21 +590,21 @@ function renderNotes() {
     }
     // п11/1b: select toggle (only when the current segment has records) + the bulk bar.
     const hasList = !!_grimList().length;
-    const selBtn = document.getElementById('grim-select-btn');
+    const selBtn = document.getElementById('grim-select-btn') as any;
     if (selBtn) { selBtn.style.display = (hasList && !grimSelectMode) ? '' : 'none'; }
-    const selBar = document.getElementById('grim-select-bar');
+    const selBar = document.getElementById('grim-select-bar') as any;
     if (selBar) selBar.style.display = grimSelectMode ? 'flex' : 'none';
     if (grimSelectMode) {
         // archive→склеп only in Записи; вернуть only in Склеп; delete in both.
-        const ba = document.getElementById('grim-bulk-archive');
-        const br = document.getElementById('grim-bulk-restore');
+        const ba = document.getElementById('grim-bulk-archive') as any;
+        const br = document.getElementById('grim-bulk-restore') as any;
         if (ba) ba.style.display = grimMode === 'active'  ? '' : 'none';
         if (br) br.style.display = grimMode === 'archive' ? '' : 'none';
         _updateGrimSelectBar();
     }
 
-    const layoutEl = document.getElementById('grim-layout');
-    const emptyEl  = document.getElementById('grim-empty');
+    const layoutEl = document.getElementById('grim-layout') as any;
+    const emptyEl = document.getElementById('grim-empty') as any;
     if (!layoutEl || !emptyEl) return;
     if (!_grimList().length) {
         layoutEl.style.display = 'none';
@@ -623,8 +638,8 @@ function grimToggleCollapse() {
     if (!currentNoteId) return;
     clearTimeout(_grimSaveT); saveState();   // flush pending edits before folding the editor away
     grimNoteCollapsed = !grimNoteCollapsed;
-    const layoutEl = document.getElementById('grim-layout');
-    const detailEl = document.getElementById('grim-detail');
+    const layoutEl = document.getElementById('grim-layout') as any;
+    const detailEl = document.getElementById('grim-detail') as any;
     const pageEl   = detailEl && detailEl.querySelector('.grim-page');
     const desktop  = !window.matchMedia || window.matchMedia('(min-width: 641px)').matches;
     // NA-4 (option 3): pin the page's pixel width before the note pane folds to zero.
@@ -640,7 +655,7 @@ function grimToggleCollapse() {
     }
     _grimApplyFocus(layoutEl);
     if (!grimNoteCollapsed) {                // re-expanded → restore editing + re-glue table overlay
-        if (grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
+        if (grimMode === 'active') { const bo = document.getElementById('grim-body') as any; if (bo) bo.focus(); }
         requestAnimationFrame(_grimReflowOverlay);
         // The pane widens as the list grows back — re-glue the overlay once it settles.
         if (layoutEl) {
@@ -676,7 +691,7 @@ function grimToggleFocus() {
     grimFocus = (grimFocus + 1) % 3;
     localStorage.setItem('grimFocus', String(grimFocus));   // persist across notes/segments/reload
     _grimApplyFocus(document.getElementById('grim-layout'));
-    const btn = document.querySelector('.grim-focus-toggle');
+    const btn = document.querySelector<HTMLElement>('.grim-focus-toggle');
     if (btn) {
         btn.innerHTML = GIC.focusLvl[grimFocus];
         btn.classList.toggle('on', grimFocus > 0);
@@ -692,7 +707,7 @@ function grimToggleBar() {
     grimBarMode = grimBarMode === 'auto' ? 'open' : grimBarMode === 'open' ? 'closed' : 'auto';
     localStorage.setItem('grimBarMode', grimBarMode);
     _grimApplyBarMode();
-    const btn = document.querySelector('.grim-bar-toggle');
+    const btn = document.querySelector<HTMLElement>('.grim-bar-toggle');
     if (btn) {
         btn.innerHTML = GIC.barLvl[grimBarMode];
         btn.classList.toggle('on', grimBarMode === 'open');
@@ -704,7 +719,7 @@ function grimToggleBar() {
 
 // Reflect grimBarMode on the open page; the toolbar reveal is otherwise pure CSS.
 function _grimApplyBarMode() {
-    const page = document.querySelector('#grim-detail .grim-page');
+    const page = document.querySelector<HTMLElement>('#grim-detail .grim-page');
     if (!page) return;
     page.classList.toggle('bar-open', grimBarMode === 'open');
     page.classList.toggle('bar-closed', grimBarMode === 'closed');
@@ -725,9 +740,9 @@ function grimToggleToc() {
 
 // (Re)build the rail from the live headings and gate its visibility on ≥3 of them.
 function _grimRefreshToc() {
-    const page = document.querySelector('#grim-detail .grim-page');
-    const bo = document.querySelector('#grim-detail .grim-body');   // active OR read-only crypt body
-    const panel = document.getElementById('grim-toc');
+    const page = document.querySelector<HTMLElement>('#grim-detail .grim-page');
+    const bo = document.querySelector<HTMLElement>('#grim-detail .grim-body');   // active OR read-only crypt body
+    const panel = document.getElementById('grim-toc') as any;
     if (!page || !bo || !panel) { _grimTocDetach(); return; }
     const heads = [...bo.querySelectorAll('h1, h2, h3')].filter(h => (h.textContent || '').trim());
     const avail = heads.length >= 3;
@@ -765,7 +780,7 @@ function _grimTocSpyScroll() {
 
 // Light the TOC item whose heading is the last one to have crossed the top line.
 function _grimTocSpy() {
-    const panel = document.getElementById('grim-toc');
+    const panel = document.getElementById('grim-toc') as any;
     if (!panel || !_grimTocHeads || !_grimTocHeads.length) return;
     const items = panel.querySelectorAll('.grim-toc-item');
     if (!items.length) return;
@@ -783,7 +798,7 @@ function _grimTocGo(i) {
     h.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     h.classList.remove('grim-toc-flash'); void h.offsetWidth; h.classList.add('grim-toc-flash');
     setTimeout(() => h.classList.remove('grim-toc-flash'), 1200);
-    const panel = document.getElementById('grim-toc');
+    const panel = document.getElementById('grim-toc') as any;
     if (panel) panel.querySelectorAll('.grim-toc-item').forEach((it, j) => it.classList.toggle('active', j === i));
 }
 
@@ -830,25 +845,25 @@ function _grimSortControl() {
 }
 function grimToggleSortMenu(e) {
     if (e) e.stopPropagation();
-    const p = document.getElementById('grim-sort-picker');
+    const p = document.getElementById('grim-sort-picker') as any;
     if (!p) return;
     const open = !p.classList.contains('open');
     p.classList.toggle('open', open);
-    const tr = document.getElementById('grim-sort-trigger');
+    const tr = document.getElementById('grim-sort-trigger') as any;
     if (tr) tr.setAttribute('aria-expanded', open ? 'true' : 'false');
-    const lst = document.getElementById('grim-sort-list');
+    const lst = document.getElementById('grim-sort-list') as any;
     if (lst) lst.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) document.addEventListener('click', _grimSortOutside);
     else document.removeEventListener('click', _grimSortOutside);
 }
 function _grimSortOutside(e) {
-    const p = document.getElementById('grim-sort-picker');
+    const p = document.getElementById('grim-sort-picker') as any;
     if (p && !p.contains(e.target)) grimCloseSortMenu();
 }
 function grimCloseSortMenu() {
-    const p = document.getElementById('grim-sort-picker');
+    const p = document.getElementById('grim-sort-picker') as any;
     if (p) p.classList.remove('open');
-    const tr = document.getElementById('grim-sort-trigger');
+    const tr = document.getElementById('grim-sort-trigger') as any;
     if (tr) tr.setAttribute('aria-expanded', 'false');
     document.removeEventListener('click', _grimSortOutside);
 }
@@ -865,7 +880,7 @@ function grimSetSort(k) {
 }
 
 function renderGrimList(animate) {
-    const listEl = document.getElementById('grim-list');
+    const listEl = document.getElementById('grim-list') as any;
     if (!listEl) return;
     // п.7: chosen sort for the active grimoire (crypt is always archived-recent first).
     if (state.notesSort === 'manual') state.notesSort = 'edited';   // legacy mode folded into the hybrid
@@ -902,7 +917,7 @@ function renderGrimList(animate) {
     const filtering = !!(q || noteColorFilter);   // either narrows the set → show the found count
     // NA-10: keep the colour-filter trigger in sync — active ring + the crystal tinted to
     // the chosen colour (via _grimInk so a near-black pick stays legible on the dark bg).
-    const cfb = document.getElementById('grim-cfilter-btn');
+    const cfb = document.getElementById('grim-cfilter-btn') as any;
     if (cfb) {
         cfb.classList.toggle('active', !!noteColorFilter);
         const ink = noteColorFilter ? _grimInk(noteColorFilter) : '';
@@ -926,7 +941,7 @@ function renderGrimList(animate) {
 globalThis._grimListSortable = null;
 function _grimInitListSortable() {
     if (_grimListSortable) { _grimListSortable.destroy(); _grimListSortable = null; }
-    const listEl = document.getElementById('grim-list');
+    const listEl = document.getElementById('grim-list') as any;
     if (!listEl) return;
     if (grimMode !== 'active' || grimSelectMode || notesSearchQuery.trim() || noteColorFilter) return;
     const effSort = state.notesSort === 'manual' ? 'edited' : (state.notesSort || 'edited');
@@ -953,7 +968,7 @@ function _grimInitListSortable() {
 // as updatedAt (top = highest, spaced 1s) so a subsequently edited note — which
 // drops its ord and falls back to a fresh, larger updatedAt — sorts above these.
 function _grimPersistOrder() {
-    const listEl = document.getElementById('grim-list');
+    const listEl = document.getElementById('grim-list') as any;
     if (!listEl) return;
     const ids = [...listEl.querySelectorAll('.grim-leaf')].map(b => b.dataset.id);
     if (!ids.length) return;
@@ -1084,7 +1099,7 @@ function grimToggleCryptMonth(key, btn) {
 }
 
 function renderGrimDetail() {
-    const detailEl = document.getElementById('grim-detail');
+    const detailEl = document.getElementById('grim-detail') as any;
     if (!detailEl) return;
     _grimTocDetach();                       // п.14: drop the old scroll-spy before the page is rebuilt
     const note = _grimCurrentNote();
@@ -1161,14 +1176,14 @@ function renderGrimDetail() {
       <aside class="grim-toc" id="grim-toc" contenteditable="false" aria-label="Оглавление"></aside>
     </div>`;
     // Set field contents as properties (avoids attribute-escaping pitfalls).
-    const ti = document.getElementById('grim-title-in');
-    const bo = document.getElementById('grim-body');
+    const ti = document.getElementById('grim-title-in') as any;
+    const bo = document.getElementById('grim-body') as any;
     if (ti) {
         ti.value = note.title || ''; _grimGrowTitle(ti);
         // Re-grow the title when its width changes (focus mode switches the list rail
         // in/out, window resize) so wrapped 2+ line titles aren't clipped.
         if ('ResizeObserver' in window) {
-            if (!_grimTitleRO) _grimTitleRO = new ResizeObserver(() => { const t = document.getElementById('grim-title-in'); if (t) _grimGrowTitle(t); });
+            if (!_grimTitleRO) _grimTitleRO = new ResizeObserver(() => { const t = document.getElementById('grim-title-in') as any; if (t) _grimGrowTitle(t); });
             _grimTitleRO.disconnect();
             _grimTitleRO.observe(ti);
         }
@@ -1193,7 +1208,7 @@ function renderGrimDetail() {
 
 // Auto-grow the title <textarea> to fit wrapped lines (no inner scrollbar).
 globalThis._grimGrowRAF = 0;
-function _grimGrowTitle(el) {
+function _grimGrowTitle(el: any) {
     if (!el) return;
     // NA-12: coalesce the auto-grow into a single rAF. The title's ResizeObserver
     // calls this on every layout pass, and the height write can itself re-trigger
@@ -1217,13 +1232,13 @@ function grimSetMode(mode) {
     grimMode = mode;
     currentNoteId = null;
     notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box');
+    const sb = document.getElementById('notes-search-box') as any;
     if (sb) sb.value = '';
     // NA-10: drop the colour filter on segment switch — a colour present in Записи may
     // be absent in Склеп, which would otherwise show a confusing empty list.
     grimCloseColorFilter();
     if (noteColorFilter) { noteColorFilter = null; localStorage.removeItem('dusk_noteColorFilter'); }
-    const layoutEl = document.getElementById('grim-layout');
+    const layoutEl = document.getElementById('grim-layout') as any;
     if (layoutEl) layoutEl.classList.remove('show-detail');
     renderNotes();
 }
@@ -1231,7 +1246,7 @@ function grimSetMode(mode) {
 // Open a record in the detail pane (persist pending edits of the previous one first).
 // opts.fromKb (NA-9): keyboard J/K browsing — keep focus on the list leaf so the next
 // J/K is received (the editor would otherwise swallow it), and scroll it into view.
-function grimOpen(id, opts) {
+function grimOpen(id, opts?) {
     const fromKb = !!(opts && opts.fromKb);
     if (id === currentNoteId) { if (!fromKb) grimToggleCollapse(); return; }   // re-click the open entry → fold/unfold its pane
     grimNoteCollapsed = false;                                    // opening a different record always expands
@@ -1242,22 +1257,22 @@ function grimOpen(id, opts) {
     // switch can defer it behind a brief fade-out of the outgoing page.
     const showNew = () => {
         renderGrimDetail();                       // new .grim-page → grimPageIn plays it in
-        const layoutEl = document.getElementById('grim-layout');
+        const layoutEl = document.getElementById('grim-layout') as any;
         if (layoutEl) {
             layoutEl.classList.add('show-detail');
             _grimApplyFocus(layoutEl);            // honour persisted focus on open
         }
         // Only a manual open drops the caret into the editor; keyboard browsing keeps
         // focus on the list (see the leaf .focus() below) so J/K stay repeatable.
-        if (!fromKb && grimMode === 'active') { const bo = document.getElementById('grim-body'); if (bo) bo.focus(); }
+        if (!fromKb && grimMode === 'active') { const bo = document.getElementById('grim-body') as any; if (bo) bo.focus(); }
     };
 
-    const detailEl = document.getElementById('grim-detail');
+    const detailEl = document.getElementById('grim-detail') as any;
     const oldPage = detailEl && detailEl.querySelector('.grim-page');
     currentNoteId = id;
     renderGrimList(false);                        // instant active-highlight feedback
     if (fromKb) {
-        const leaf = document.querySelector(`.grim-leaf[data-id="${id}"]`);
+        const leaf: any = document.querySelector(`.grim-leaf[data-id="${id}"]`);
         if (leaf) { leaf.focus({ preventScroll: true }); leaf.scrollIntoView({ block: 'nearest' }); }
     }
 
@@ -1284,15 +1299,15 @@ function grimNew() {
     currentNoteId = note.id;
     grimNoteCollapsed = false;
     notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box');
+    const sb = document.getElementById('notes-search-box') as any;
     if (sb) sb.value = '';
     saveState();
     renderNotes();
-    const layoutEl = document.getElementById('grim-layout');
+    const layoutEl = document.getElementById('grim-layout') as any;
     if (layoutEl) layoutEl.classList.add('show-detail');
     // Focus synchronously — the title input exists right after renderNotes(),
     // so no rAF race that would swallow the first keystrokes.
-    const ti = document.getElementById('grim-title-in');
+    const ti = document.getElementById('grim-title-in') as any;
     if (ti) ti.focus();
 }
 
@@ -1302,7 +1317,7 @@ function grimBack() {
     grimFindClose();
     currentNoteId = null;
     grimNoteCollapsed = false;
-    const layoutEl = document.getElementById('grim-layout');
+    const layoutEl = document.getElementById('grim-layout') as any;
     if (layoutEl) layoutEl.classList.remove('show-detail', 'grim-note-collapsed');
     renderGrimList(false);
     renderGrimDetail();
@@ -1312,13 +1327,13 @@ function grimBack() {
 function grimTitleKey(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
-        const bo = document.getElementById('grim-body');
+        const bo = document.getElementById('grim-body') as any;
         if (bo) bo.focus();
     }
 }
 
 // Live title edit: update model synchronously, patch the list leaf, debounce save.
-function grimTitleInput(el) {
+function grimTitleInput(el: any) {
     const note = _grimCurrentNote();
     if (!note) return;
     _grimGrowTitle(el);                         // wrap long titles, grow to fit
@@ -1332,7 +1347,7 @@ function grimTitleInput(el) {
 }
 
 // Live body edit: update model synchronously, debounce save.
-function grimBodyInput(el) {
+function grimBodyInput(el: any) {
     const note = _grimCurrentNote();
     if (!note) return;
     note.body = _grimSanitize(el.innerHTML);   // body holds sanitized HTML
@@ -1353,7 +1368,7 @@ function grimCommit(e) {
     // window blur) take a version snapshot. Transient blurs that stay inside the
     // editor (clicking a toolbar button) keep focus in .grim-page-main → no snapshot.
     const _rt = e && e.relatedTarget;
-    const _main = document.querySelector('#grim-detail .grim-page-main');
+    const _main = document.querySelector<HTMLElement>('#grim-detail .grim-page-main');
     if (!_rt || !(_main && _main.contains(_rt))) _grimSnapshotCurrent();
     saveState();
     // If this blur was caused by clicking ANY list entry, a full rebuild would replace
@@ -1369,7 +1384,7 @@ function grimCommit(e) {
     // Body blur (e.g. switching windows) must NOT tear down the table overlay —
     // only drop the transient floaters; the seal/edit state survives the round-trip.
     _grimCloseTableMenu();
-    const pk = document.getElementById('grim-table-pop'); if (pk) pk.remove();
+    const pk = document.getElementById('grim-table-pop') as any; if (pk) pk.remove();
     _grimScheduleTableUI();
 }
 
@@ -1380,7 +1395,7 @@ function grimCommit(e) {
 function _grimSyncActiveLeaf() {
     const note = _grimCurrentNote();
     if (!note) return;
-    const leaf = document.querySelector(`#grim-list .grim-leaf[data-id="${note.id}"]`);
+    const leaf: any = document.querySelector(`#grim-list .grim-leaf[data-id="${note.id}"]`);
     if (!leaf) return;
     const q = notesSearchQuery.toLowerCase();
     const titleRaw = (note.title || '').trim();
@@ -1402,7 +1417,7 @@ function _grimSyncActiveLeaf() {
 
 // Active note → permanent delete (two-step confirm, undoable).
 function grimDelete(id) {
-    const btn = document.querySelector('#grim-detail .grim-act.danger');
+    const btn = document.querySelector<HTMLElement>('#grim-detail .grim-act.danger');
     if (!_armDanger(btn, 'Нажмите ещё раз, чтобы удалить запись')) return;
     const idx = (state.notes || []).findIndex(n => n.id === id);
     if (idx < 0) return;
@@ -1462,9 +1477,9 @@ function grimRestoreNote(id) {
     currentNoteId = null;
     grimMode = 'active';                 // auto-return to «Записи» after restoring
     notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box');
+    const sb = document.getElementById('notes-search-box') as any;
     if (sb) sb.value = '';
-    const layoutEl = document.getElementById('grim-layout');
+    const layoutEl = document.getElementById('grim-layout') as any;
     if (layoutEl) layoutEl.classList.remove('show-detail');
     saveState();
     renderNotes();
@@ -1473,7 +1488,7 @@ function grimRestoreNote(id) {
 
 // Склеп → permanent delete (two-step confirm, undoable).
 function grimDeleteForever(id) {
-    const btn = document.querySelector('#grim-detail .grim-act.danger');
+    const btn = document.querySelector<HTMLElement>('#grim-detail .grim-act.danger');
     if (!_armDanger(btn, 'Нажмите ещё раз — запись будет уничтожена')) return;
     const idx = (state.notesArchive || []).findIndex(n => n.id === id);
     if (idx < 0) return;
@@ -1524,7 +1539,7 @@ function grimSearch(v) {
 // NA-13: the crossed-daggers button empties the search and runs an empty query
 // (drops the list filter + in-note highlight), then returns focus to the field.
 function grimClearSearch() {
-    const sb = document.getElementById('notes-search-box');
+    const sb = document.getElementById('notes-search-box') as any;
     if (sb) sb.value = '';
     grimSearch('');
     if (sb) sb.focus();
@@ -1533,32 +1548,32 @@ function grimClearSearch() {
 // ── NA-10: colour filter for grimoire records (crystal button + swatch popover) ──
 function grimToggleColorFilter(e) {
     if (e) e.stopPropagation();
-    const p = document.getElementById('grim-cfilter');
+    const p = document.getElementById('grim-cfilter') as any;
     if (!p) return;
     const open = !p.classList.contains('open');
     if (open) _grimBuildColorFilterPop();
     p.classList.toggle('open', open);
-    const btn = document.getElementById('grim-cfilter-btn');
+    const btn = document.getElementById('grim-cfilter-btn') as any;
     if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    const pop = document.getElementById('grim-cfilter-pop');
+    const pop = document.getElementById('grim-cfilter-pop') as any;
     if (pop) pop.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) document.addEventListener('click', _grimColorFilterOutside);
     else document.removeEventListener('click', _grimColorFilterOutside);
 }
 function _grimColorFilterOutside(e) {
-    const p = document.getElementById('grim-cfilter');
+    const p = document.getElementById('grim-cfilter') as any;
     if (p && !p.contains(e.target)) grimCloseColorFilter();
 }
 function grimCloseColorFilter() {
-    const p = document.getElementById('grim-cfilter');
+    const p = document.getElementById('grim-cfilter') as any;
     if (p) p.classList.remove('open');
-    const btn = document.getElementById('grim-cfilter-btn');
+    const btn = document.getElementById('grim-cfilter-btn') as any;
     if (btn) btn.setAttribute('aria-expanded', 'false');
     document.removeEventListener('click', _grimColorFilterOutside);
 }
 // Build the swatch popover from the colours actually present in the current segment.
 function _grimBuildColorFilterPop() {
-    const pop = document.getElementById('grim-cfilter-pop');
+    const pop = document.getElementById('grim-cfilter-pop') as any;
     if (!pop) return;
     const colors = [...new Set(_grimList().filter(n => n.color).map(n => n.color))];
     if (!colors.length) {
@@ -1597,7 +1612,7 @@ function _grimFindRun(q, doScroll) {
     _grimFindClearPaint();
     _grimFindRanges = [];
     _grimFindIdx = 0;
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     q = (q || '').trim();
     if (!bo || grimMode !== 'active' || !q) { _grimFindActive = false; _grimFindHideBar(); return; }
     const ql = q.toLowerCase();
@@ -1671,9 +1686,9 @@ function _grimFindBar() {
     return bar;
 }
 function _grimFindShowBar() { _grimFindBar().classList.add('show'); _grimFindUpdateBar(); }
-function _grimFindHideBar() { const b = document.getElementById('grim-find'); if (b) b.classList.remove('show'); }
+function _grimFindHideBar() { const b = document.getElementById('grim-find') as any; if (b) b.classList.remove('show'); }
 function _grimFindUpdateBar() {
-    const c = document.getElementById('grim-find-cnt');
+    const c = document.getElementById('grim-find-cnt') as any;
     if (c) c.innerHTML = _grimFindRanges.length ? `<b>${_grimFindIdx + 1}</b> / ${_grimFindRanges.length}` : '0';
 }
 
@@ -1711,7 +1726,7 @@ function _armDanger(btn, hint) {
 function _grimExitSelect() {
     grimSelectMode = false;
     grimSelectedIds.clear();
-    const delBtn = document.getElementById('grim-bulk-delete');
+    const delBtn = document.getElementById('grim-bulk-delete') as any;
     if (delBtn) { clearTimeout(delBtn._armTimer); delBtn._armed = false; delBtn.classList.remove('confirm-armed'); delBtn.title = 'Удалить навсегда'; }
 }
 
@@ -1722,7 +1737,7 @@ function grimToggleSelectMode() {
         grimSelectMode = true;
         grimSelectedIds.clear();
         currentNoteId = null;                       // pure list while selecting
-        const layoutEl = document.getElementById('grim-layout');
+        const layoutEl = document.getElementById('grim-layout') as any;
         if (layoutEl) layoutEl.classList.remove('show-detail');
     }
     renderNotes();
@@ -1732,7 +1747,7 @@ function grimToggleSelectMode() {
 function grimToggleSelectNote(id) {
     if (grimSelectedIds.has(id)) grimSelectedIds.delete(id);
     else grimSelectedIds.add(id);
-    const leaf = document.querySelector(`.grim-leaf[data-id="${id}"]`);
+    const leaf: any = document.querySelector(`.grim-leaf[data-id="${id}"]`);
     if (leaf) {
         const on = grimSelectedIds.has(id);
         leaf.classList.toggle('selected', on);
@@ -1744,10 +1759,10 @@ function grimToggleSelectNote(id) {
 
 function _updateGrimSelectBar() {
     const count = grimSelectedIds.size;
-    const c = document.getElementById('grim-select-count');
+    const c = document.getElementById('grim-select-count') as any;
     if (c) c.textContent = `${count} отмечено`;
     ['grim-bulk-archive', 'grim-bulk-restore', 'grim-bulk-color', 'grim-bulk-delete', 'grim-bulk-export'].forEach(id => {
-        const b = document.getElementById(id);
+        const b = document.getElementById(id) as any;
         if (b) b.disabled = count === 0;
     });
     if (count === 0) _grimCloseIoMenu();   // selection cleared → drop the export popover
@@ -1788,7 +1803,7 @@ function grimBulkRestore() {
     _grimExitSelect();
     grimMode = 'active';                             // mirror single restore
     notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box');
+    const sb = document.getElementById('notes-search-box') as any;
     if (sb) sb.value = '';
     saveState();
     renderNotes();
@@ -1798,7 +1813,7 @@ function grimBulkRestore() {
 // Permanent delete of every ticked note in the current segment (two-step, undoable).
 function grimBulkDelete() {
     if (!grimSelectedIds.size) return;
-    const btn = document.getElementById('grim-bulk-delete');
+    const btn = document.getElementById('grim-bulk-delete') as any;
     if (!_armDanger(btn, `Нажмите ещё раз — записи будут уничтожены (${grimSelectedIds.size})`)) return;
     clearTimeout(_grimSaveT);
     pushUndo();
@@ -1985,7 +2000,7 @@ function _grimAfterEdit(bo) {
 // Toolbar commands. onmousedown preventDefault on the buttons keeps the caret,
 // so execCommand acts on the live selection.
 function grimFmt(cmd) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     switch (cmd) {
@@ -2002,16 +2017,16 @@ function grimFmt(cmd) {
 // Nearest block-level "line" element around the caret.
 function _grimCurrentBlock(bo) {
     const sel = window.getSelection();
-    let n = sel && sel.anchorNode;
+    let n: any = sel && sel.anchorNode;
     while (n && n !== bo && !/^(LI|P|DIV|H1|H2|H3|BLOCKQUOTE)$/.test(n.tagName || '')) n = n.parentNode;
     return (n && n !== bo) ? n : null;
 }
 // Bold/italic: toggle the selection, or — with just a caret — the whole current line.
 function _grimEmphasis(cmd) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
-    try { document.execCommand('styleWithCSS', false, false); } catch (_) {}   // emit tags (<u>/<strike>), not inline style → survives sanitizer
+    try { (document as any).execCommand('styleWithCSS', false, false); } catch (_) {}   // emit tags (<u>/<strike>), not inline style → survives sanitizer
     const sel = window.getSelection();
     if (sel && sel.rangeCount && sel.isCollapsed) {
         const block = _grimCurrentBlock(bo);
@@ -2037,11 +2052,11 @@ function _grimToggleBlock(tag) {
 // Quote toggle. When turning a quote ON inside a list, drop the list first —
 // (re-enabling a list inside the quote is then a deliberate, manual step).
 function _grimQuote() {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     const goingOn = (document.queryCommandValue('formatBlock') || '').toLowerCase() !== 'blockquote';
     if (goingOn) {
-        let n = sel && sel.anchorNode;
+        let n: any = sel && sel.anchorNode;
         while (n && n !== bo) {
             if (n.tagName === 'UL') { document.execCommand('insertUnorderedList'); break; }
             if (n.tagName === 'OL') { document.execCommand('insertOrderedList'); break; }
@@ -2050,8 +2065,8 @@ function _grimQuote() {
     }
     _grimToggleBlock('blockquote');
 }
-function grimHeading(n) {
-    const bo = document.getElementById('grim-body');
+function grimHeading(n: any) {
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     _grimToggleBlock('h' + n);
@@ -2061,7 +2076,7 @@ function grimChecklist() { _grimSetListType('task'); }
 
 // ── List engine — per-line conversion, splitting where needed (Notion-style) ──
 // A line's list type, or null when it isn't a list item.
-function _grimLineType(li) {
+function _grimLineType(li: any) {
     if (!li || li.tagName !== 'LI' || !li.parentNode) return null;
     const list = li.parentNode;
     if (list.tagName === 'OL') return 'number';
@@ -2076,7 +2091,7 @@ function _grimSelectedLines(bo) {
     let lines = [...bo.querySelectorAll('li,p,div,h1,h2,h3,blockquote')].filter(el => range.intersectsNode(el));
     lines = lines.filter(el => !lines.some(o => o !== el && el.contains(o)));   // keep leaves
     if (!lines.length) {
-        let n = range.startContainer;
+        let n: any = range.startContainer;
         while (n && n !== bo && !/^(LI|P|DIV|H1|H2|H3|BLOCKQUOTE)$/.test(n.tagName || '')) n = n.parentNode;
         if (n && n !== bo) lines = [n];
     }
@@ -2103,7 +2118,7 @@ function _grimRestoreMarker(bo) {
     bo.normalize();
 }
 // Two list elements that can be fused (same tag + same task-ness).
-function _grimSameListKind(a, b) {
+function _grimSameListKind(a: any, b: any) {
     if (!a || !b || a.tagName !== b.tagName) return false;
     if (a.tagName !== 'UL' && a.tagName !== 'OL') return false;
     return a.classList.contains('task') === b.classList.contains('task');
@@ -2122,7 +2137,7 @@ function _grimMergeAdjacentLists(root) {
     }
 }
 // Convert ONE line to 'bullet'|'number'|'task'|'p', splitting its list if needed.
-function _grimConvertLine(line, toType) {
+function _grimConvertLine(line: any, toType) {
     // Remember the pre-list block type so toggling a list off restores it (e.g. H3),
     // and carry that memory across list-type changes.
     const pre = line.tagName === 'LI' ? (line.dataset.pre || 'p') : line.tagName.toLowerCase();
@@ -2158,7 +2173,7 @@ function _grimConvertLine(line, toType) {
 }
 // Apply a list type to the selected line(s); toggling the same type returns to paragraphs.
 function _grimSetListType(target) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     let lines = _grimSelectedLines(bo);
@@ -2180,7 +2195,7 @@ function _grimSetListType(target) {
 
 // Insert a separator and drop the caret onto a fresh line below it.
 function _grimInsertHr() {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     const sel = window.getSelection();
@@ -2195,7 +2210,7 @@ function _grimInsertHr() {
 }
 
 function grimInlineCode() {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     const sel = window.getSelection();
@@ -2222,15 +2237,15 @@ function grimInlineCode() {
 
 // ── п.8: multi-line code block (<pre>) ──────────────────────────────────────
 // Walk up to the enclosing <pre>, if the caret sits inside one.
-function _grimClosestPre(node, bo) {
-    let n = node;
+function _grimClosestPre(node: any, bo) {
+    let n: any = node;
     while (n && n !== bo) { if (n.tagName === 'PRE') return n; n = n.parentNode; }
     return null;
 }
 // Toolbar / ``` → drop a code block at the caret (selected text becomes its body,
 // newlines preserved). Inserted via insertHTML so it joins the native undo stack.
 function grimCodeBlock() {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     const sel = window.getSelection();
@@ -2255,12 +2270,12 @@ function grimCodeBlock() {
 }
 // A line that is exactly ``` + Enter opens an empty code block (markdown trigger).
 function _grimCodeFenceEnter(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount || !sel.isCollapsed) return false;
     // Climb to the top-level line under #grim-body (an element OR a bare text node —
     // a fresh, never-wrapped body types text straight into #grim-body).
-    let blk = sel.anchorNode;
+    let blk: any = sel.anchorNode;
     while (blk && blk.parentNode && blk.parentNode !== bo) blk = blk.parentNode;
     if (!blk || blk.parentNode !== bo || _grimClosestPre(blk, bo)) return false;
     if (blk.textContent.trim() !== '```') return false;
@@ -2283,7 +2298,7 @@ function _grimCodeFenceEnter(e) {
 // Enter inside a code block = newline; Enter on an empty trailing line exits the block
 // to the paragraph below it (Shift+Enter always inserts a newline, never exits).
 function _grimPreEnter(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount) return false;
     const pre = _grimClosestPre(sel.anchorNode, bo);
@@ -2328,7 +2343,7 @@ function _grimPreEnter(e) {
 }
 // Tab inside a code block inserts two spaces instead of leaving the editor.
 function _grimPreTab(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount) return false;
     if (!_grimClosestPre(sel.anchorNode, bo)) return false;
@@ -2342,26 +2357,26 @@ function _grimPreTab(e) {
 // before the modal steals focus, then restored on confirm.
 globalThis._grimLinkRange = null; globalThis._grimLinkAnchor = null;
 function grimLink() {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) { bo.focus(); return; }
     _grimLinkRange = sel.getRangeAt(0).cloneRange();
     // Editing an existing link under the caret?
-    let n = sel.anchorNode; _grimLinkAnchor = null;
+    let n: any = sel.anchorNode; _grimLinkAnchor = null;
     while (n && n !== bo) { if (n.tagName === 'A') { _grimLinkAnchor = n; break; } n = n.parentNode; }
-    const inp = document.getElementById('grim-link-input');
+    const inp = document.getElementById('grim-link-input') as any;
     if (inp) inp.value = _grimLinkAnchor ? (_grimLinkAnchor.getAttribute('href') || '') : 'https://';
-    const nameInp = document.getElementById('grim-link-name');
+    const nameInp = document.getElementById('grim-link-name') as any;
     if (nameInp) nameInp.value = _grimLinkAnchor ? (_grimLinkAnchor.textContent || '') : (sel.toString() || '');
-    const rm = document.getElementById('grim-link-remove');
+    const rm = document.getElementById('grim-link-remove') as any;
     if (rm) rm.style.display = _grimLinkAnchor ? '' : 'none';
     openModalWithFocus('grim-link-modal');
     requestAnimationFrame(() => requestAnimationFrame(() => { if (inp) { inp.focus(); inp.select(); } }));
 }
 // Re-focus the body and restore the saved selection so execCommand acts on it.
 function _grimRestoreLinkSel() {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo || !_grimLinkRange) return null;
     bo.focus();
     const sel = window.getSelection();
@@ -2370,8 +2385,8 @@ function _grimRestoreLinkSel() {
     return bo;
 }
 function grimLinkConfirm() {
-    const inp = document.getElementById('grim-link-input');
-    const nameInp = document.getElementById('grim-link-name');
+    const inp = document.getElementById('grim-link-input') as any;
+    const nameInp = document.getElementById('grim-link-name') as any;
     let url = ((inp && inp.value) || '').trim();
     if (!url) { if (inp) { inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 400); } return; }
     if (!/^(https?:|mailto:|#)/i.test(url)) url = 'https://' + url;   // forgive a missing scheme
@@ -2404,7 +2419,7 @@ function grimLinkRemove() {
     }
     _grimLinkRange = _grimLinkAnchor = null;
 }
-function grimLinkClose(event) {
+function grimLinkClose(event?) {
     if (!event || event.target === document.getElementById('grim-link-modal')) {
         closeModalWithAnim('grim-link-modal', () => {});
         _grimLinkRange = _grimLinkAnchor = null;
@@ -2449,7 +2464,7 @@ function grimBodyKey(e) {
     else if (k === 'k') { e.preventDefault(); grimLink(); }
 }
 // Collapse the selection to the start of an element's contents.
-function _grimCaretToStart(el) {
+function _grimCaretToStart(el: any) {
     const range = document.createRange();
     range.selectNodeContents(el);
     range.collapse(true);
@@ -2460,15 +2475,15 @@ function _grimCaretToStart(el) {
 // On Enter, break out of a blockquote (new paragraph after it) or step the
 // caret out of an inline <code> run so the next line isn't code-styled.
 function _grimExitOnEnter(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount) return false;
     // п.16: Enter on an empty line inside a callout breaks out below it (no way to
     // get stuck typing forever in the врезка). Mirrors the blockquote escape.
-    let co = sel.anchorNode;
+    let co: any = sel.anchorNode;
     while (co && co !== bo && !(co.nodeType === 1 && co.classList && co.classList.contains('grim-co'))) co = co.parentNode;
     if (co && co !== bo) {
-        let blk = sel.anchorNode;
+        let blk: any = sel.anchorNode;
         while (blk && blk !== co && !/^(P|LI|H1|H2|H3)$/.test(blk.tagName || '')) blk = blk.parentNode;
         if (blk && blk !== co && _grimCollapse(blk.textContent) === '') {
             e.preventDefault();
@@ -2482,7 +2497,7 @@ function _grimExitOnEnter(e) {
             return true;
         }
     }
-    let n = sel.anchorNode, bq = null, code = null;
+    let n: any = sel.anchorNode, bq = null, code = null;
     while (n && n !== bo) {
         if (n.tagName === 'BLOCKQUOTE') { bq = n; break; }
         if (n.tagName === 'CODE') { code = n; break; }
@@ -2517,10 +2532,10 @@ function _grimExitOnEnter(e) {
 // п.16: Backspace anywhere inside an EMPTY callout deletes the whole врезка at once
 // (instead of nibbling preceding blank lines and only then eating the callout).
 function _grimBackspaceCallout(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount || !sel.isCollapsed) return false;
-    let co = sel.anchorNode;
+    let co: any = sel.anchorNode;
     while (co && co !== bo && !(co.nodeType === 1 && co.classList && co.classList.contains('grim-co'))) co = co.parentNode;
     if (!co || co === bo) return false;
     if (_grimCollapse(co.textContent) !== '') return false;   // only when the callout is empty
@@ -2545,11 +2560,11 @@ function _grimBackspaceCallout(e) {
 // First Backspace at the very start of a list item outdents it to a paragraph
 // (keeps the text on its own line) instead of merging into the previous item.
 function _grimBackspaceOutdent(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount || !sel.isCollapsed) return false;
     const range = sel.getRangeAt(0);
-    let li = sel.anchorNode;
+    let li: any = sel.anchorNode;
     while (li && li !== bo && li.tagName !== 'LI') li = li.parentNode;
     if (!li || li.tagName !== 'LI') return false;
     // only fire when the caret sits at the very start of the item
@@ -2566,7 +2581,7 @@ function _grimBackspaceOutdent(e) {
     return true;
 }
 function _grimSyncToolbar() {
-    const bar = document.getElementById('grim-fmt-bar');
+    const bar = document.getElementById('grim-fmt-bar') as any;
     if (!bar) return;
     const set = (cmd, on) => { const b = bar.querySelector(`[data-cmd="${cmd}"]`); if (b) b.classList.toggle('on', on); };
     try {
@@ -2576,9 +2591,9 @@ function _grimSyncToolbar() {
         set('strike', document.queryCommandState('strikeThrough'));
         // List context by DOM walk — a checklist is a UL too, so queryCommandState
         // can't tell ul/ul.task/ol apart; light the right button only.
-        const bo = document.getElementById('grim-body');
+        const bo = document.getElementById('grim-body') as any;
         const sel = window.getSelection();
-        let ulTask = false, ulPlain = false, ol = false, n = sel && sel.anchorNode;
+        let ulTask = false, ulPlain = false, ol = false, n: any = sel && sel.anchorNode;
         while (n && n !== bo) {
             if (n.tagName === 'OL') { ol = true; break; }
             if (n.tagName === 'UL') { n.classList.contains('task') ? ulTask = true : ulPlain = true; break; }
@@ -2602,9 +2617,9 @@ const GRIM_TBL_MAX = 8;
 
 // Toggle the size-grid popover under the toolbar's table button.
 function grimTableMenu(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
-    const existing = document.getElementById('grim-table-pop');
+    const existing = document.getElementById('grim-table-pop') as any;
     if (existing) { existing.remove(); return; }
     const pop = document.createElement('div');
     pop.id = 'grim-table-pop';
@@ -2618,10 +2633,10 @@ function grimTableMenu(e) {
         for (let c = 1; c <= GRIM_TBL_MAX; c++) {
             const cell = document.createElement('div');
             cell.className = 'gtp-c';
-            cell.dataset.r = r; cell.dataset.c = c;
+            cell.dataset.r = String(r); cell.dataset.c = String(c);
             cell.addEventListener('mouseenter', () => {
                 lbl.textContent = c + ' × ' + r;
-                grid.querySelectorAll('.gtp-c').forEach(x =>
+                grid.querySelectorAll('.gtp-c').forEach((x: any) =>
                     x.classList.toggle('hot', +x.dataset.r <= r && +x.dataset.c <= c));
             });
             cell.addEventListener('mousedown', ev => { ev.preventDefault(); grimInsertTable(c, r); pop.remove(); });
@@ -2642,7 +2657,7 @@ function grimTableMenu(e) {
 
 // Build and drop a cols×rows table at the caret (first row = header).
 function grimInsertTable(cols, rows) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     cols = Math.max(1, Math.min(GRIM_TBL_MAX, cols | 0));
@@ -2692,8 +2707,8 @@ const GRIM_CO = {
 };
 
 // Walk up from a node to the enclosing callout, if any (so we never nest one).
-function _grimClosestCallout(node, bo) {
-    let n = node;
+function _grimClosestCallout(node: any, bo) {
+    let n: any = node;
     while (n && n !== bo) {
         if (n.nodeType === 1 && n.classList && n.classList.contains('grim-co')) return n;
         n = n.parentNode;
@@ -2703,9 +2718,9 @@ function _grimClosestCallout(node, bo) {
 
 // Toolbar → small type-picker popover under the callout button.
 function grimCalloutMenu(e) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
-    const existing = document.getElementById('grim-co-pop');
+    const existing = document.getElementById('grim-co-pop') as any;
     if (existing) { existing.remove(); return; }
     const pop = document.createElement('div');
     pop.id = 'grim-co-pop';
@@ -2731,7 +2746,7 @@ function grimCalloutMenu(e) {
 // Drop a callout of `type` at the caret (selected text becomes its body). Inserted
 // via execCommand('insertHTML') so it joins the native undo stack (Ctrl+Z reverts it).
 function grimCallout(type) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     if (!bo) return;
     bo.focus();
     const sel = window.getSelection();
@@ -2757,10 +2772,10 @@ function grimCallout(type) {
 
 // Resolve the cell / row / table around the caret (null when outside any table).
 function _grimCellCtx() {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const sel = window.getSelection();
     if (!bo || !sel || !sel.rangeCount) return null;
-    let n = sel.anchorNode;
+    let n: any = sel.anchorNode;
     while (n && n !== bo && !/^(TD|TH)$/.test(n.tagName || '')) n = n.parentNode;
     if (!n || n === bo) return null;
     let table = n;
@@ -2811,16 +2826,16 @@ function _grimObserveBody(bo) {
 // Toggle each seal's visibility: shown while its table is hovered, its seal is
 // hovered, or it's the table in edit mode.
 function _grimApplySealVis() {
-    const ov = document.querySelector('#grim-detail .grim-tctl');
+    const ov = document.querySelector<HTMLElement>('#grim-detail .grim-tctl');
     if (!ov) return;
-    ov.querySelectorAll('.gtc-seal').forEach(s => {
+    ov.querySelectorAll('.gtc-seal').forEach((s: any) => {
         const t = s._gtcTable;
         s.classList.toggle('gtc-show', !!t && (t === _grimEditTbl || t === _grimHoverTbl || t === _grimHoverSeal));
     });
 }
 
 function _grimTctl() {
-    const page = document.querySelector('#grim-detail .grim-page');
+    const page = document.querySelector<HTMLElement>('#grim-detail .grim-page');
     if (!page) return null;
     let ov = page.querySelector(':scope > .grim-tctl');
     if (!ov) {
@@ -2840,8 +2855,8 @@ function _grimScheduleTableUI() {
 // frame / edge rails for the table in edit mode. Offsets are measured within the
 // page's content box so they stay glued through scroll.
 function _grimLayoutTableUI() {
-    const bo = document.getElementById('grim-body');
-    const page = document.querySelector('#grim-detail .grim-page');
+    const bo = document.getElementById('grim-body') as any;
+    const page = document.querySelector<HTMLElement>('#grim-detail .grim-page');
     if (!bo || !page) return;
     if (_grimEditTbl && !bo.contains(_grimEditTbl)) _grimEditTbl = null;
     _grimCloseTableMenu();
@@ -2862,9 +2877,9 @@ function _grimLayoutTableUI() {
         seal.className = 'gtc-seal' + (table === _grimEditTbl ? ' on' : '');
         seal.title = 'Правка структуры таблицы';
         seal.innerHTML = `<span class="gtc-ring"></span>${FIC.tblSigil}`;
-        seal._gtcTable = table;
-        seal._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); seal.style.left = R(r.right - ox2) + 'px'; seal.style.top = R(r.top - oy2) + 'px'; };
-        seal._gtcReflow(ox, oy);
+        (seal as any)._gtcTable = table;
+        (seal as any)._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); seal.style.left = R(r.right - ox2) + 'px'; seal.style.top = R(r.top - oy2) + 'px'; };
+        (seal as any)._gtcReflow(ox, oy);
         seal.addEventListener('mousedown', e => e.preventDefault());
         seal.addEventListener('mouseenter', () => { _grimHoverSeal = table; _grimApplySealVis(); });
         seal.addEventListener('mouseleave', () => { if (_grimHoverSeal === table) _grimHoverSeal = null; _grimApplySealVis(); });
@@ -2877,15 +2892,15 @@ function _grimLayoutTableUI() {
         if (table !== _grimEditTbl) return;
         const frame = document.createElement('div');
         frame.className = 'gtc-frame';
-        frame._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(frame.style, { left: R(r.left - ox2) + 'px', top: R(r.top - oy2) + 'px', width: R(r.width) + 'px', height: R(r.height) + 'px' }); };
-        frame._gtcReflow(ox, oy);
+        (frame as any)._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(frame.style, { left: R(r.left - ox2) + 'px', top: R(r.top - oy2) + 'px', width: R(r.width) + 'px', height: R(r.height) + 'px' }); };
+        (frame as any)._gtcReflow(ox, oy);
         ov.appendChild(frame);
         const head = (table.tHead && table.tHead.rows[0]) ? table.tHead.rows[0] : table.rows[0];
         if (head) [...head.cells].forEach((cell, ci) => {
             const g = document.createElement('div');
             g.className = 'gtc-gut gtc-colgut';
-            g._gtcReflow = (ox2, oy2) => { const cr = cell.getBoundingClientRect(), r = table.getBoundingClientRect(); Object.assign(g.style, { left: R(cr.left - ox2) + 'px', top: R(r.top - oy2 - 20) + 'px', width: R(cr.width) + 'px' }); };
-            g._gtcReflow(ox, oy);
+            (g as any)._gtcReflow = (ox2, oy2) => { const cr = cell.getBoundingClientRect(), r = table.getBoundingClientRect(); Object.assign(g.style, { left: R(cr.left - ox2) + 'px', top: R(r.top - oy2 - 20) + 'px', width: R(cr.width) + 'px' }); };
+            (g as any)._gtcReflow(ox, oy);
             g.innerHTML = `<span class="gtc-grip">${FIC.tblGrip}</span>`;
             g.addEventListener('mousedown', e => e.preventDefault());
             g.addEventListener('click', e => { e.stopPropagation(); _grimToggleTableMenu(g, 'col', ci, table); });
@@ -2895,8 +2910,8 @@ function _grimLayoutTableUI() {
         bodyRows.forEach(rowEl => {
             const g = document.createElement('div');
             g.className = 'gtc-gut gtc-rowgut';
-            g._gtcReflow = (ox2, oy2) => { const rr = rowEl.getBoundingClientRect(), r = table.getBoundingClientRect(); Object.assign(g.style, { left: R(r.left - ox2 - 20) + 'px', top: R(rr.top - oy2) + 'px', height: R(rr.height) + 'px' }); };
-            g._gtcReflow(ox, oy);
+            (g as any)._gtcReflow = (ox2, oy2) => { const rr = rowEl.getBoundingClientRect(), r = table.getBoundingClientRect(); Object.assign(g.style, { left: R(r.left - ox2 - 20) + 'px', top: R(rr.top - oy2) + 'px', height: R(rr.height) + 'px' }); };
+            (g as any)._gtcReflow(ox, oy);
             g.innerHTML = `<span class="gtc-grip">${FIC.tblGrip}</span>`;
             g.addEventListener('mousedown', e => e.preventDefault());
             g.addEventListener('click', e => { e.stopPropagation(); _grimToggleTableMenu(g, 'row', rowEl, table); });
@@ -2905,16 +2920,16 @@ function _grimLayoutTableUI() {
         const edgeCol = document.createElement('button');
         edgeCol.type = 'button'; edgeCol.className = 'gtc-edge gtc-edge-col'; edgeCol.title = 'Добавить колонку';
         edgeCol.innerHTML = FIC.tblAdd;
-        edgeCol._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(edgeCol.style, { left: R(r.right - ox2 + 8) + 'px', top: R(r.top - oy2 + r.height / 2) + 'px' }); };
-        edgeCol._gtcReflow(ox, oy);
+        (edgeCol as any)._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(edgeCol.style, { left: R(r.right - ox2 + 8) + 'px', top: R(r.top - oy2 + r.height / 2) + 'px' }); };
+        (edgeCol as any)._gtcReflow(ox, oy);
         edgeCol.addEventListener('mousedown', e => e.preventDefault());
         edgeCol.addEventListener('click', e => { e.stopPropagation(); grimTableAppend('col', table); });
         ov.appendChild(edgeCol);
         const edgeRow = document.createElement('button');
         edgeRow.type = 'button'; edgeRow.className = 'gtc-edge gtc-edge-row'; edgeRow.title = 'Добавить строку';
         edgeRow.innerHTML = FIC.tblAdd;
-        edgeRow._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(edgeRow.style, { left: R(r.left - ox2 + r.width / 2) + 'px', top: R(r.bottom - oy2 + 8) + 'px' }); };
-        edgeRow._gtcReflow(ox, oy);
+        (edgeRow as any)._gtcReflow = (ox2, oy2) => { const r = table.getBoundingClientRect(); Object.assign(edgeRow.style, { left: R(r.left - ox2 + r.width / 2) + 'px', top: R(r.bottom - oy2 + 8) + 'px' }); };
+        (edgeRow as any)._gtcReflow(ox, oy);
         edgeRow.addEventListener('mousedown', e => e.preventDefault());
         edgeRow.addEventListener('click', e => { e.stopPropagation(); grimTableAppend('row', table); });
         ov.appendChild(edgeRow);
@@ -2924,12 +2939,12 @@ function _grimLayoutTableUI() {
 // Re-glue the overlay to current table geometry WITHOUT rebuilding it (no flicker,
 // no fade-restart). Used while the toolbar reveal animation shifts the tables.
 function _grimReflowOverlay() {
-    const page = document.querySelector('#grim-detail .grim-page');
+    const page = document.querySelector<HTMLElement>('#grim-detail .grim-page');
     const ov = page && page.querySelector(':scope > .grim-tctl');
     if (!page || !ov || !ov.classList.contains('on')) return;
     const pr = page.getBoundingClientRect();
     const ox = pr.left + page.clientLeft, oy = pr.top + page.clientTop;
-    [...ov.children].forEach(el => { if (el._gtcReflow) el._gtcReflow(ox, oy); });
+    [...ov.children].forEach(el => { if ((el as any)._gtcReflow) (el as any)._gtcReflow(ox, oy); });
 }
 // The toolbar reveal/hide (hover OR manual mode) shifts the tables down/up; follow
 // that transition frame-by-frame so each seal stays pinned to its table's corner.
@@ -2955,7 +2970,7 @@ function _grimToggleTableMenu(gutter, kind, ref, table) {
     if (wasActive) return;
     const ov = _grimTctl();
     if (!ov) return;
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     const menu = document.createElement('div');
     menu.className = 'gtc-pop';
     menu.setAttribute('contenteditable', 'false');
@@ -3013,7 +3028,7 @@ function _grimToggleTableMenu(gutter, kind, ref, table) {
     gutter.classList.add('gtc-active');
     _grimMenu = { el: menu, gutter, kind };
     // position above the gutter, clamped to the page; flip below if there's no room
-    const page = document.querySelector('#grim-detail .grim-page');
+    const page = document.querySelector<HTMLElement>('#grim-detail .grim-page');
     const prr = page.getBoundingClientRect();
     const ox = prr.left + page.clientLeft, oy = prr.top + page.clientTop;
     const gr = gutter.getBoundingClientRect();
@@ -3026,23 +3041,23 @@ function _grimToggleTableMenu(gutter, kind, ref, table) {
 }
 // Staged Esc / dismissal: drop the size-grid picker, then the menu, then the mode.
 function _grimDismissTableUI() {
-    const pop = document.getElementById('grim-table-pop'); if (pop) { pop.remove(); return true; }
+    const pop = document.getElementById('grim-table-pop') as any; if (pop) { pop.remove(); return true; }
     if (_grimMenu) { _grimCloseTableMenu(); return true; }
     if (_grimEditTbl) { _grimEditTbl = null; _grimLayoutTableUI(); return true; }
     return false;
 }
 // Full teardown — used when the detail pane re-renders.
 function _grimHideTableUI() {
-    const pop = document.getElementById('grim-table-pop'); if (pop) pop.remove();
+    const pop = document.getElementById('grim-table-pop') as any; if (pop) pop.remove();
     _grimCloseTableMenu();
     _grimEditTbl = null;
-    const ov = document.querySelector('#grim-detail .grim-tctl');
+    const ov = document.querySelector<HTMLElement>('#grim-detail .grim-tctl');
     if (ov) { ov.innerHTML = ''; ov.classList.remove('on'); }
 }
 
 // Edge rails: append a column (right) or row (bottom) at the end of the table.
 function grimTableAppend(kind, table) {
-    const bo = document.getElementById('grim-body');
+    const bo = document.getElementById('grim-body') as any;
     table = table || _grimEditTbl;
     if (!bo || !table || !bo.contains(table)) return;
     if (kind === 'col') {
@@ -3202,7 +3217,7 @@ function _grimToolbarHTML() {
 }
 
 // ── Markdown export ─────────────────────────────────────────────────────
-function _grimDownload(name, text, mime) {
+function _grimDownload(name, text, mime?) {
     const blob = new Blob([text], { type: (mime || 'text/markdown') + ';charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -3214,9 +3229,9 @@ function _grimDownload(name, text, mime) {
 function _grimSlug(s) {
     return ((s || '').trim() || 'без-заглавия').replace(/[\\/:*?"<>|]+/g, '').slice(0, 60);
 }
-function _grimInlineMd(node) {
+function _grimInlineMd(node: any) {
     let out = '';
-    node.childNodes.forEach(n => {
+    node.childNodes.forEach((n: any) => {
         if (n.nodeType === 3) { out += n.textContent; return; }
         if (n.nodeType !== 1) return;
         const t = n.tagName;
@@ -3235,7 +3250,7 @@ function _grimHtmlToMd(html) {
     const root = document.createElement('div');
     root.innerHTML = html || '';
     let md = '';
-    root.childNodes.forEach(n => {
+    root.childNodes.forEach((n: any) => {
         if (n.nodeType === 3) { const t = n.textContent.trim(); if (t) md += t + '\n\n'; return; }
         if (n.nodeType !== 1) return;
         const tag = n.tagName;
@@ -3386,7 +3401,7 @@ function grimExportFullBackup(scope) {
 }
 
 // Minimal store-method ZIP writer (no dependency). files = [{name, text}].
-const _GRIM_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
+const _GRIM_CRC = (() => { const t = new Uint32Array(256); for (let n: any = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
 function _grimCrc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = _GRIM_CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
 function _grimZipStore(files) {
     const enc = new TextEncoder();
@@ -3415,14 +3430,14 @@ function _grimZipStore(files) {
 }
 
 // ── «Перенос» popover (main bar: import + export-all; select bar: export-sel) ──
-function _grimIoItem(icon, name, desc, act, scope) {
+function _grimIoItem(icon, name, desc, act, scope?) {
     return `<div class="grim-tpl-item" role="menuitem" data-act="${act}"${scope ? ` data-scope="${scope}"` : ''}>
         <span class="grim-tpl-ic">${icon}</span>
         <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(name)}</span><span class="grim-tpl-desc">${escHtml(desc)}</span></span>
     </div>`;
 }
 function _grimRenderIoMenu() {
-    const pop = document.getElementById('grim-io-pop'); if (!pop) return;
+    const pop = document.getElementById('grim-io-pop') as any; if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Перенос записей</div>'
         + '<div class="grim-tpl-sect">Импорт</div>'
         + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md · .zip · .json · можно несколько', 'grimImportFiles')
@@ -3432,7 +3447,7 @@ function _grimRenderIoMenu() {
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', 'grimExportReading', 'all');
 }
 function _grimRenderIoSelMenu() {
-    const pop = document.getElementById('grim-io-sel-pop'); if (!pop) return;
+    const pop = document.getElementById('grim-io-sel-pop') as any; if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Экспорт выбранных</div>'
         + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · выбранные записи + летопись', 'grimExportFullBackup', 'sel')
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', 'grimExportBackup', 'sel')
@@ -3440,40 +3455,40 @@ function _grimRenderIoSelMenu() {
 }
 function _grimCloseIoMenu() {
     ['grim-io-split', 'grim-io-sel'].forEach(id => { const w = document.getElementById(id); if (w) w.classList.remove('open'); });
-    const a = document.getElementById('grim-io'); if (a) a.setAttribute('aria-expanded', 'false');
-    const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'false');
+    const a = document.getElementById('grim-io') as any; if (a) a.setAttribute('aria-expanded', 'false');
+    const b = document.getElementById('grim-bulk-export') as any; if (b) b.setAttribute('aria-expanded', 'false');
 }
 // NA-8: per-container closers for the shared _gothicPickers registry. The registry
 // fires once per registered picker, so a single shared close would mis-close the
 // other IO menu when clicking inside this one. These close only their own popover;
 // _grimCloseIoMenu stays for the explicit "close everything" call sites.
 function _grimCloseIoSplit() {
-    const w = document.getElementById('grim-io-split'); if (w) w.classList.remove('open');
-    const a = document.getElementById('grim-io'); if (a) a.setAttribute('aria-expanded', 'false');
+    const w = document.getElementById('grim-io-split') as any; if (w) w.classList.remove('open');
+    const a = document.getElementById('grim-io') as any; if (a) a.setAttribute('aria-expanded', 'false');
 }
 function _grimCloseIoSel() {
-    const w = document.getElementById('grim-io-sel'); if (w) w.classList.remove('open');
-    const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'false');
+    const w = document.getElementById('grim-io-sel') as any; if (w) w.classList.remove('open');
+    const b = document.getElementById('grim-bulk-export') as any; if (b) b.setAttribute('aria-expanded', 'false');
 }
 function grimToggleIoMenu(event) {
     if (event) event.stopPropagation();
-    const w = document.getElementById('grim-io-split'); if (!w) return;
+    const w = document.getElementById('grim-io-split') as any; if (!w) return;
     const wasOpen = w.classList.contains('open');
     _grimCloseIoMenu();
     if (wasOpen) return;
     _grimRenderIoMenu();
     requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
-    const b = document.getElementById('grim-io'); if (b) b.setAttribute('aria-expanded', 'true');
+    const b = document.getElementById('grim-io') as any; if (b) b.setAttribute('aria-expanded', 'true');
 }
 function grimToggleIoSelMenu(event) {
     if (event) event.stopPropagation();
-    const w = document.getElementById('grim-io-sel'); if (!w) return;
+    const w = document.getElementById('grim-io-sel') as any; if (!w) return;
     const wasOpen = w.classList.contains('open');
     _grimCloseIoMenu();
     if (wasOpen) return;
     _grimRenderIoSelMenu();
     requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
-    const b = document.getElementById('grim-bulk-export'); if (b) b.setAttribute('aria-expanded', 'true');
+    const b = document.getElementById('grim-bulk-export') as any; if (b) b.setAttribute('aria-expanded', 'true');
 }
 // NA-8: outside-click now runs through the shared _gothicPickers registry
 // (registered in init() once the static toolbar exists). Esc stays bespoke.
@@ -3654,7 +3669,7 @@ function _grimParseBackup(text) {
     const notes = []; let i = 0;
     while (i < lines.length) {
         if (lines[i].trim() === '---' && _grimFmLooks(lines, i)) {
-            const meta = {}; let j = i + 1;
+            const meta: any = {}; let j = i + 1;
             while (j < lines.length && lines[j].trim() !== '---') {
                 const m = /^([A-Za-z][\w-]*):\s?(.*)$/.exec(lines[j]);
                 if (m) meta[m[1].toLowerCase()] = m[2];
@@ -3706,11 +3721,11 @@ function _grimImportDocs(docs) {
     currentNoteId = lastId;
     grimNoteCollapsed = false;
     notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box'); if (sb) sb.value = '';
+    const sb = document.getElementById('notes-search-box') as any; if (sb) sb.value = '';
     saveState();
     renderNotes();
-    const layoutEl = document.getElementById('grim-layout'); if (layoutEl) layoutEl.classList.add('show-detail');
-    const ti = document.getElementById('grim-title-in'); if (ti) ti.focus();
+    const layoutEl = document.getElementById('grim-layout') as any; if (layoutEl) layoutEl.classList.add('show-detail');
+    const ti = document.getElementById('grim-title-in') as any; if (ti) ti.focus();
     showToast('Импортировано записей: ' + added);
 }
 // NA-3 (Б): a JSON «Полный бэкап» (grimExportFullBackup) was dropped into the import
@@ -3718,15 +3733,15 @@ function _grimImportDocs(docs) {
 // + склеп + templates + «Летопись» (reusing _grimRestoreVersions). Reuses the shared
 // import-choice modal; both openers now set their own title/desc so the text can't bleed.
 function _grimFullImport(loaded) {
-    const overlay = document.getElementById('import-choice-overlay');
+    const overlay = document.getElementById('import-choice-overlay') as any;
     if (!overlay) { _grimApplyFullBackup(loaded, 'replace'); return; }   // fallback
-    const title = document.getElementById('import-choice-title');
+    const title = document.getElementById('import-choice-title') as any;
     const desc  = overlay.querySelector('.import-choice-desc');
     if (title) title.textContent = 'Импорт записей';
     if (desc)  desc.textContent  = 'Добавить записи Гримуара к существующим или полностью заменить?';
-    const replaceBtn = document.getElementById('import-replace-btn');
-    const mergeBtn   = document.getElementById('import-merge-btn');
-    const cancelBtn  = document.getElementById('import-cancel-btn');
+    const replaceBtn = document.getElementById('import-replace-btn') as any;
+    const mergeBtn = document.getElementById('import-merge-btn') as any;
+    const cancelBtn = document.getElementById('import-cancel-btn') as any;
     const close = () => closeModalWithAnim('import-choice-overlay');
     replaceBtn.onclick = () => { close(); _grimApplyFullBackup(loaded, 'replace'); };
     mergeBtn.onclick   = () => { close(); _grimApplyFullBackup(loaded, 'merge'); };
@@ -3766,7 +3781,7 @@ function _grimApplyFullBackup(loaded, mode) {
     if (currentNoteId && ![...(state.notes || []), ...(state.notesArchive || [])].some(n => n.id === currentNoteId)) currentNoteId = null;
     if (mode === 'replace') { currentNoteId = lastId; grimNoteCollapsed = false; }
     notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box'); if (sb) sb.value = '';
+    const sb = document.getElementById('notes-search-box') as any; if (sb) sb.value = '';
     saveState();
     renderNotes();
     showToast(mode === 'replace' ? ('Заменено · записей: ' + state.notes.length) : ('Добавлено записей: ' + added), { undo: true });
@@ -3912,11 +3927,11 @@ function _grimSpawnSeeded(seed) {
     currentNoteId = note.id;
     grimNoteCollapsed = false;
     notesSearchQuery = '';
-    const sb = document.getElementById('notes-search-box'); if (sb) sb.value = '';
+    const sb = document.getElementById('notes-search-box') as any; if (sb) sb.value = '';
     saveState();
     renderNotes();
-    const layoutEl = document.getElementById('grim-layout'); if (layoutEl) layoutEl.classList.add('show-detail');
-    const ti = document.getElementById('grim-title-in'); if (ti) ti.focus();
+    const layoutEl = document.getElementById('grim-layout') as any; if (layoutEl) layoutEl.classList.add('show-detail');
+    const ti = document.getElementById('grim-title-in') as any; if (ti) ti.focus();
 }
 
 // Save the open note as a reusable template (mirrors saveTaskAsTemplate).
@@ -3964,24 +3979,24 @@ function grimDeleteTpl(id, event) {
 // ── popover open/close + render ──
 function grimToggleTplMenu(event) {
     if (event) event.stopPropagation();
-    const split = document.getElementById('grim-new-split');
+    const split = document.getElementById('grim-new-split') as any;
     if (!split) return;
     if (split.classList.contains('open')) { _grimCloseTplMenu(); return; }
     _grimRenderTplMenu();
     // Paint the closed base state first, THEN flip .open next frame so the
     // opacity/transform transition actually runs (same-tick add skips it).
     requestAnimationFrame(() => requestAnimationFrame(() => split.classList.add('open')));
-    const trig = document.getElementById('grim-tpl-trigger');
+    const trig = document.getElementById('grim-tpl-trigger') as any;
     if (trig) trig.setAttribute('aria-expanded', 'true');
 }
 function _grimCloseTplMenu() {
-    const split = document.getElementById('grim-new-split');
+    const split = document.getElementById('grim-new-split') as any;
     if (split) split.classList.remove('open');
-    const trig = document.getElementById('grim-tpl-trigger');
+    const trig = document.getElementById('grim-tpl-trigger') as any;
     if (trig) trig.setAttribute('aria-expanded', 'false');
 }
 function _grimRenderTplMenu() {
-    const pop = document.getElementById('grim-tpl-pop');
+    const pop = document.getElementById('grim-tpl-pop') as any;
     if (!pop) return;
     let html = '<div class="grim-tpl-head">Начертать из шаблона</div>';
     html += '<div class="grim-tpl-sect">Встроенные</div>';
@@ -4021,7 +4036,7 @@ document.addEventListener('keydown', e => {
         && !(document.activeElement && document.activeElement.id === 'grim-body')) _grimDismissTableUI();
 });
 // Reposition seals/gutters on resize (geometry shifts with column reflow).
-window.addEventListener('resize', () => { if (document.querySelector('#grim-detail .grim-tctl')) _grimScheduleTableUI(); });
+window.addEventListener('resize', () => { if (document.querySelector<HTMLElement>('#grim-detail .grim-tctl')) _grimScheduleTableUI(); });
 // Returning to the window/tab can leave the overlay stale (a blur fired on leave)
 // — rebuild it so the seal comes back.
 window.addEventListener('focus', () => { if (document.getElementById('grim-body')) _grimScheduleTableUI(); });
