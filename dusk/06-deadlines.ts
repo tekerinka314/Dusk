@@ -15,8 +15,8 @@ Object.assign(globalThis, {
 function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null) {
     editingTaskId = taskId;
     editingSubId  = subId;       // P-E: null for task/form/bulk; set when editing a subtask deadline
-    _formSubDeadlineIdx = formSubIdx;  // P-E: set only for a form-subtask deadline; reset on every other open
-    bulkDeadlineActive = bulk;   // P-D: when true, confirm applies to the whole selection
+    globalThis._formSubDeadlineIdx = formSubIdx;  // P-E: set only for a form-subtask deadline; reset on every other open
+    globalThis.bulkDeadlineActive = bulk;   // P-D: when true, confirm applies to the whole selection
     const existing = bulk ? null
         : (formSubIdx !== null
             ? (formSubtasks[formSubIdx] || {}).deadline
@@ -33,15 +33,15 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
     setDeadlineMode(mode);
 
     // Clear all inputs — both native and segmented custom widgets
-    document.getElementById('dl-time').value = '';
-    document.getElementById('dl-weekday').value = '1';
-    if (window._weekdayPickerSet) window._weekdayPickerSet(1);
-    document.getElementById('dl-weektime-time').value = '';
-    document.getElementById('dl-monthday').value = '';
-    document.getElementById('dl-month').value = '1';
-    if (window._monthPickerSet) window._monthPickerSet(1);
-    document.getElementById('dl-year').value = '';
-    document.getElementById('dl-date').value = '';
+    (document.getElementById('dl-time') as HTMLInputElement).value = '';
+    (document.getElementById('dl-weekday') as HTMLInputElement).value = '1';
+    if ((window as any)._weekdayPickerSet) (window as any)._weekdayPickerSet(1);
+    (document.getElementById('dl-weektime-time') as HTMLInputElement).value = '';
+    (document.getElementById('dl-monthday') as HTMLInputElement).value = '';
+    (document.getElementById('dl-month') as HTMLInputElement).value = '1';
+    if ((window as any)._monthPickerSet) (window as any)._monthPickerSet(1);
+    (document.getElementById('dl-year') as HTMLInputElement).value = '';
+    (document.getElementById('dl-date') as HTMLInputElement).value = '';
     if (segInputs['dl-time'])          segInputs['dl-time'].clear();
     if (segInputs['dl-weektime-time']) segInputs['dl-weektime-time'].clear();
     if (segInputs['dl-date'])          segInputs['dl-date'].clear();
@@ -54,29 +54,29 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
 
     if (existing) {
         const v = existing.value || '';
-        if (mode === 'time')     document.getElementById('dl-time').value     = v;
+        if (mode === 'time')     (document.getElementById('dl-time') as HTMLInputElement).value     = v;
         if (mode === 'weektime') {
             const [wd, t] = v.split('|');
-            document.getElementById('dl-weekday').value = wd || '1';
-            if (window._weekdayPickerSet) window._weekdayPickerSet(wd || '1');
+            (document.getElementById('dl-weekday') as HTMLInputElement).value = wd || '1';
+            if ((window as any)._weekdayPickerSet) (window as any)._weekdayPickerSet(wd || '1');
             // Fix 1: if timeSet is false, leave the time input empty
             if (existing.timeSet !== false) {
-                document.getElementById('dl-weektime-time').value = t || '';
+                (document.getElementById('dl-weektime-time') as HTMLInputElement).value = t || '';
             }
         }
-        if (mode === 'monthday') document.getElementById('dl-monthday').value = v;
-        if (mode === 'month')    { document.getElementById('dl-month').value    = v; if (window._monthPickerSet) window._monthPickerSet(v); }
-        if (mode === 'year')     document.getElementById('dl-year').value     = v;
+        if (mode === 'monthday') (document.getElementById('dl-monthday') as HTMLInputElement).value = v;
+        if (mode === 'month')    { (document.getElementById('dl-month') as HTMLInputElement).value    = v; if ((window as any)._monthPickerSet) (window as any)._monthPickerSet(v); }
+        if (mode === 'year')     (document.getElementById('dl-year') as HTMLInputElement).value     = v;
         if (mode === 'date')     {
-            document.getElementById('dl-date').value     = v;
+            (document.getElementById('dl-date') as HTMLInputElement).value     = v;
             // Extension 7: restore saved time if present
-            const dlTimeEl = document.getElementById('dl-date-time');
+            const dlTimeEl = document.getElementById('dl-date-time') as any;
             if (dlTimeEl) dlTimeEl.value = (existing && existing.time) ? existing.time : '';
         }
         _setDlDurationFields(existing.durationMin || 0);   // X-7: restore event-duration
     } else {
         // No existing deadline — clear time field too
-        const dlTimeEl = document.getElementById('dl-date-time');
+        const dlTimeEl = document.getElementById('dl-date-time') as any;
         if (dlTimeEl) dlTimeEl.value = '';
     }
 
@@ -123,26 +123,26 @@ function openDeadlineModal(taskId, bulk = false, subId = null, formSubIdx = null
     requestAnimationFrame(() => requestAnimationFrame(() => _focusDeadlineModeInput(mode)));
 }
 
-function closeDeadlineModal(event) {
+function closeDeadlineModal(event?) {
     if (!event || event.target === document.getElementById('deadline-modal')) {
-        if (window._monthPickerClose)   window._monthPickerClose();
-        if (window._weekdayPickerClose) window._weekdayPickerClose();
+        if ((window as any)._monthPickerClose)   (window as any)._monthPickerClose();
+        if ((window as any)._weekdayPickerClose) (window as any)._weekdayPickerClose();
         // Clear monthday inline messages so they don't persist on re-open
         const mw = document.getElementById('dl-monthday-warn');
         const mn = document.getElementById('dl-monthday-note');
         if (mw) { mw.hidden = true; mw.textContent = ''; }
         if (mn) { mn.hidden = true; mn.textContent = ''; }
-        bulkDeadlineActive = false;   // P-D: cancelling bulk must not leak into the next open
+        globalThis.bulkDeadlineActive = false;   // P-D: cancelling bulk must not leak into the next open
         editingSubId = null;          // P-E: cancelling a subtask-deadline edit must not leak
-        _formSubDeadlineIdx = null;   // P-E: same for a form-subtask-deadline edit
+        globalThis._formSubDeadlineIdx = null;   // P-E: same for a form-subtask-deadline edit
         closeModalWithAnim('deadline-modal');
     }
 }
 
-function setDeadlineMode(mode, withFocus) {
+function setDeadlineMode(mode, withFocus?) {
     dlCurrentMode = mode;
-    document.querySelectorAll('.dl-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-    document.querySelectorAll('.dl-input-wrap').forEach(w => w.classList.remove('active'));
+    document.querySelectorAll<HTMLElement>('.dl-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    document.querySelectorAll<HTMLElement>('.dl-input-wrap').forEach(w => w.classList.remove('active'));
     const wrap = document.getElementById('dl-wrap-' + mode);
     if (wrap) wrap.classList.add('active');
     // X-7: event-duration row — only for time-precise modes (time / weektime / date).
@@ -159,8 +159,8 @@ function setDeadlineMode(mode, withFocus) {
         if (noteEl) { noteEl.hidden = true; noteEl.textContent = ''; }
     }
     // Close pickers that belong to other modes when switching away
-    if (mode !== 'month'   && window._monthPickerClose)   window._monthPickerClose();
-    if (mode !== 'weektime' && window._weekdayPickerClose) window._weekdayPickerClose();
+    if (mode !== 'month'   && (window as any)._monthPickerClose)   (window as any)._monthPickerClose();
+    if (mode !== 'weektime' && (window as any)._weekdayPickerClose) (window as any)._weekdayPickerClose();
     // Autofocus: only when user explicitly clicks a mode tab (not during modal init)
     if (withFocus) requestAnimationFrame(() => _focusDeadlineModeInput(mode));
 }
@@ -204,7 +204,7 @@ function _focusDeadlineModeInput(mode) {
     }
 }
 
-document.querySelectorAll('.dl-mode-btn').forEach(btn => {
+document.querySelectorAll<HTMLElement>('.dl-mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         setDeadlineMode(btn.dataset.mode, true); // true = user-initiated → autofocus
         // NOTE: repeat availability is NOT updated here — only after confirmDeadline()
@@ -214,7 +214,7 @@ document.querySelectorAll('.dl-mode-btn').forEach(btn => {
 });
 
 function updateRepeatAvailability(mode) {
-    const repeatBtns = document.querySelectorAll('#repeat-selector .repeat-btn');
+    const repeatBtns = document.querySelectorAll<HTMLButtonElement>('#repeat-selector .repeat-btn');
     // X-8: which repeats make sense per deadline mode. monthday now allows monthly
     // (auto-repeat coupling); time keeps all options; weektime stays weekly-only.
     // No forced reset for time/monthday so the auto-repeat coupling can stick.
@@ -233,10 +233,10 @@ function clearDeadlineModal() {
     if (segInputs['dl-weektime-time']) segInputs['dl-weektime-time'].clear();
     if (segInputs['dl-date'])         segInputs['dl-date'].clear();
     // Extension 7: clear optional date-time field
-    const dtEl = document.getElementById('dl-date-time');
+    const dtEl = document.getElementById('dl-date-time') as any;
     if (dtEl) dtEl.value = '';
-    if (window._monthPickerClose)     window._monthPickerClose();
-    if (window._weekdayPickerClose)   window._weekdayPickerClose();
+    if ((window as any)._monthPickerClose)     (window as any)._monthPickerClose();
+    if ((window as any)._weekdayPickerClose)   (window as any)._weekdayPickerClose();
     // Clear monthday inline messages
     const mw = document.getElementById('dl-monthday-warn');
     const mn = document.getElementById('dl-monthday-note');
@@ -263,14 +263,14 @@ function toggleDlAutoRepeat() { _setDlAutoRepeat(!_dlAutoRepeat); }
 
 // X-7: shared event-duration field (hours + minutes → total minutes; 0 = none).
 function _readDlDuration() {
-    const h = parseInt(document.getElementById('dl-dur-h')?.value) || 0;
-    const m = parseInt(document.getElementById('dl-dur-m')?.value) || 0;
+    const h = parseInt((document.getElementById('dl-dur-h') as HTMLInputElement)?.value) || 0;
+    const m = parseInt((document.getElementById('dl-dur-m') as HTMLInputElement)?.value) || 0;
     return Math.max(0, h * 60 + m);
 }
 function _setDlDurationFields(min) {
     const total = Math.max(0, parseInt(min) || 0);
-    const hEl = document.getElementById('dl-dur-h');
-    const mEl = document.getElementById('dl-dur-m');
+    const hEl = document.getElementById('dl-dur-h') as any;
+    const mEl = document.getElementById('dl-dur-m') as any;
     if (hEl) hEl.value = total ? (Math.floor(total / 60) || '') : '';
     if (mEl) mEl.value = total ? (total % 60 || '') : '';
 }
@@ -289,7 +289,7 @@ function _clampDlDuration(el) {
 // #2: gothic arch steppers — bump hours (±1) / minutes (±5), clamped 0–23 / 0–59.
 // Zero shows as empty (placeholder «0»), consistent with _setDlDurationFields.
 function _stepDlDuration(which, delta) {
-    const el = document.getElementById(which === 'h' ? 'dl-dur-h' : 'dl-dur-m');
+    const el = document.getElementById(which === 'h' ? 'dl-dur-h' : 'dl-dur-m') as any;
     if (!el) return;
     const max = which === 'h' ? 23 : 59;
     let n = (parseInt((el.value || '').replace(/\D/g, ''), 10) || 0) + delta;
@@ -315,8 +315,8 @@ function _updateDlRepeatToggle(mode) {
     const lbl = _DL_REPEAT_LABELS[mode];
     btn.hidden = !lbl;
     if (!lbl) return;
-    const tEl = btn.querySelector('.dl-rt-title');
-    const sEl = btn.querySelector('.dl-rt-sub');
+    const tEl = btn.querySelector<HTMLElement>('.dl-rt-title');
+    const sEl = btn.querySelector<HTMLElement>('.dl-rt-sub');
     if (tEl) tEl.textContent = lbl.t;
     if (sEl) sEl.textContent = lbl.s;
 }
@@ -337,7 +337,7 @@ function confirmDeadline() {
     const wasBulk = bulkDeadlineActive;   // P-D: don't touch the add-form repeat state in bulk
     let value  = '';
     if (mode === 'time') {
-        value = segInputs['dl-time']?.getValue() || document.getElementById('dl-time').value;
+        value = segInputs['dl-time']?.getValue() || (document.getElementById('dl-time') as HTMLInputElement).value;
         if (!value) {
             showToast('Введите время дедлайна');
             (segInputs['dl-time'] ? segInputs['dl-time']._focus(0) : document.getElementById('dl-time').focus());
@@ -345,15 +345,15 @@ function confirmDeadline() {
         }
     }
     if (mode === 'weektime') {
-        const wd = document.getElementById('dl-weekday').value;
+        const wd = (document.getElementById('dl-weekday') as HTMLInputElement).value;
         if (!wd) {
             showToast('Выберите день недели');
             document.getElementById('dl-weekday').focus();
             return;
         }
-        const t  = segInputs['dl-weektime-time']?.getValue() || document.getElementById('dl-weektime-time').value;
+        const t  = segInputs['dl-weektime-time']?.getValue() || (document.getElementById('dl-weektime-time') as HTMLInputElement).value;
         value = `${wd}|${t || '00:00'}`;
-        const dl = { mode, value, timeSet: !!t };
+        const dl: any = { mode, value, timeSet: !!t };
         // X-7: optional event-duration (only meaningful when a time is set).
         if (t) { const _d = _readDlDuration(); if (_d > 0) dl.durationMin = _d; }
         localStorage.setItem(K_DL_MODE, mode);
@@ -371,7 +371,7 @@ function confirmDeadline() {
                 }
                 renderFormSubtasks();
             }
-            _formSubDeadlineIdx = null;
+            globalThis._formSubDeadlineIdx = null;
             editingTaskId = null;
             editingSubId  = null;
             closeModalWithAnim('deadline-modal');
@@ -424,8 +424,8 @@ function confirmDeadline() {
                 // add-form too (default ON), mirroring the existing-task coupling.
                 if (_dlAutoRepeat && selectedRepeat === 'none') {
                     setFormRepeat('weekly');
-                    if (window._formWdPickerSet) window._formWdPickerSet(parseInt(wd) || '');
-                    else formRepeatAnchorDay = parseInt(wd) || null;
+                    if ((window as any)._formWdPickerSet) (window as any)._formWdPickerSet(parseInt(wd) || '');
+                    else globalThis.formRepeatAnchorDay = parseInt(wd) || null;
                 }
             }
         }
@@ -438,7 +438,7 @@ function confirmDeadline() {
         const months = ['январе','феврале','марте','апреле','мае','июне',
                         'июле','августе','сентябре','октябре','ноябре','декабре'];
         const monthName = months[today.getMonth()];
-        const raw    = parseInt(document.getElementById('dl-monthday').value);
+        const raw    = parseInt((document.getElementById('dl-monthday') as HTMLInputElement).value);
         const warnEl = document.getElementById('dl-monthday-warn');
 
         // Helper: hide warning and footnote (on success, mode switch, cancel, clear)
@@ -452,7 +452,7 @@ function confirmDeadline() {
         if (isNaN(raw) || raw < 1) {
             hideMonthdayWarn();
             showToast('Введите корректный день');
-            document.getElementById('dl-monthday').value = '';
+            (document.getElementById('dl-monthday') as HTMLInputElement).value = '';
             document.getElementById('dl-monthday').focus();
             return;
         }
@@ -460,7 +460,7 @@ function confirmDeadline() {
         if (raw > 31) {
             hideMonthdayWarn();
             showToast(`${raw} — такого числа не бывает ни в одном месяце`);
-            document.getElementById('dl-monthday').value = '';
+            (document.getElementById('dl-monthday') as HTMLInputElement).value = '';
             // Hide note too — the field is cleared
             const noteEl2 = document.getElementById('dl-monthday-note');
             if (noteEl2) { noteEl2.hidden = true; noteEl2.textContent = ''; }
@@ -471,7 +471,7 @@ function confirmDeadline() {
         if (raw > maxDay) {
             // Clamp the input and show an inline warning.
             // The modal stays open — user can either adjust or confirm again.
-            document.getElementById('dl-monthday').value = String(maxDay);
+            (document.getElementById('dl-monthday') as HTMLInputElement).value = String(maxDay);
             if (warnEl) {
                 warnEl.textContent = `${raw}-го числа в ${monthName} не существует — подставлено ближайшее: ${maxDay}. Нажмите «Сохранить» ещё раз, чтобы подтвердить.`;
                 warnEl.hidden = false;
@@ -486,9 +486,9 @@ function confirmDeadline() {
         // No more toast for 29–31: the static hint below the stepper already
         // explains the "short month" behaviour unobtrusively. (See #dl-monthday-note)
     }
-    if (mode === 'month')  value = document.getElementById('dl-month').value;
+    if (mode === 'month')  value = (document.getElementById('dl-month') as HTMLInputElement).value;
     if (mode === 'year') {
-        value = document.getElementById('dl-year').value;
+        value = (document.getElementById('dl-year') as HTMLInputElement).value;
         const yv = parseInt(value);
         if (!value) {
             showToast('Введите год дедлайна');
@@ -500,7 +500,7 @@ function confirmDeadline() {
         }
     }
     if (mode === 'date') {
-        value = segInputs['dl-date']?.getValue() || document.getElementById('dl-date').value;
+        value = segInputs['dl-date']?.getValue() || (document.getElementById('dl-date') as HTMLInputElement).value;
         const dateSeg = segInputs['dl-date'];
 
         // Empty: user pressed Save without entering anything
@@ -540,7 +540,7 @@ function confirmDeadline() {
             ) {
                 showToast('Такой даты не существует — введите корректное число');
                 if (dateSeg) dateSeg.clear();
-                document.getElementById('dl-date').value = '';
+                (document.getElementById('dl-date') as HTMLInputElement).value = '';
                 return;
             }
             const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -548,11 +548,11 @@ function confirmDeadline() {
         }
     }
 
-    const dl = value ? { mode, value } : null;
+    const dl: any = value ? { mode, value } : null;
     // Extension 7: for date mode, persist optional time (HH:MM or empty)
     if (dl && mode === 'date') {
         const timeVal = (segInputs['dl-date-time']?.getValue() ||
-                         document.getElementById('dl-date-time')?.value || '').trim();
+                         (document.getElementById('dl-date-time') as HTMLInputElement)?.value || '').trim();
         if (timeVal) dl.time = timeVal;
     }
     // X-7: optional event-duration for time-precise modes (instant when 0/unset).
@@ -576,8 +576,8 @@ function confirmDeadline() {
             setFormRepeat(_AUTO_REPEAT_BY_MODE[dl.mode]);
             if (dl.mode === 'monthday') {
                 const _md = parseInt(dl.value) || null;
-                if (window._formMdPickerSet) window._formMdPickerSet(_md || '');
-                else formRepeatAnchorMonthday = _md;
+                if ((window as any)._formMdPickerSet) (window as any)._formMdPickerSet(_md || '');
+                else globalThis.formRepeatAnchorMonthday = _md;
             }
         }
     }
@@ -587,7 +587,7 @@ function applyDeadline(dl) {
     if (_formSubDeadlineIdx !== null) {       // P-E: form-subtask deadline (task not yet created; all modes except weektime)
         const s = formSubtasks[_formSubDeadlineIdx];
         if (s) { s.deadline = dl; _applyAutoRepeatToTarget(s, dl); renderFormSubtasks(); }
-        _formSubDeadlineIdx = null;
+        globalThis._formSubDeadlineIdx = null;
         editingTaskId = null;
         editingSubId  = null;
         return;
@@ -608,7 +608,7 @@ function applyDeadline(dl) {
         return;
     }
     if (bulkDeadlineActive) {                 // P-D: deadline modal opened for the selection
-        bulkDeadlineActive = false;
+        globalThis.bulkDeadlineActive = false;
         editingTaskId = null;
         bulkSetDeadline(dl);
         return;
@@ -660,16 +660,16 @@ function setupMonthdayStepper() {
     document.getElementById('dl-monthday-dec').addEventListener('click', () => stepMonthday(-1));
     document.getElementById('dl-monthday-inc').addEventListener('click', () => stepMonthday(+1));
     document.getElementById('dl-monthday').addEventListener('blur', () => {
-        const v = parseInt(document.getElementById('dl-monthday').value);
+        const v = parseInt((document.getElementById('dl-monthday') as HTMLInputElement).value);
         // Only reject truly unrecoverable input: empty / NaN / ≤ 0.
         // Everything in 1–∞ passes through so confirmDeadline can show
         // the correct inline warning with the actual value the user typed.
-        if (isNaN(v) || v < 1) { document.getElementById('dl-monthday').value = ''; }
+        if (isNaN(v) || v < 1) { (document.getElementById('dl-monthday') as HTMLInputElement).value = ''; }
     });
     // Show the smart "short month" footnote in real time as the user types.
     // Logic is leap-year-aware. Replaces the old intrusive per-save toast.
     document.getElementById('dl-monthday').addEventListener('input', () => {
-        const v    = parseInt(document.getElementById('dl-monthday').value);
+        const v    = parseInt((document.getElementById('dl-monthday') as HTMLInputElement).value);
         const note = document.getElementById('dl-monthday-note');
         if (!note) return;
         const text = monthdayNoteText(v);
@@ -683,7 +683,7 @@ const getYearMin = () => new Date().getFullYear();
 const YEAR_MAX = 2100;
 
 function setupYearStepper() {
-    const input = document.getElementById('dl-year');
+    const input = document.getElementById('dl-year') as any;
     document.getElementById('dl-year-dec').addEventListener('click', () => stepYear(-1));
     document.getElementById('dl-year-inc').addEventListener('click', () => stepYear(+1));
     input.addEventListener('blur', () => {
@@ -697,7 +697,7 @@ function setupYearStepper() {
 }
 
 function stepYear(delta) {
-    const input = document.getElementById('dl-year');
+    const input = document.getElementById('dl-year') as any;
     let v = parseInt(input.value);
     if (isNaN(v)) v = new Date().getFullYear();
     v += delta;
@@ -710,7 +710,7 @@ function stepMonthday(delta) {
     // Wrap at 31 always — this mode means "Nth of every month", not current-month's last day.
     // Validation for short months (28/29/30) is shown as a UI note in monthdayNoteText().
     const maxDay = 31;
-    const input  = document.getElementById('dl-monthday');
+    const input  = document.getElementById('dl-monthday') as any;
     let v = parseInt(input.value) || 0;
     v += delta;
     if (v < 1)      v = maxDay;
@@ -731,7 +731,7 @@ function _updateRepeatMonthdayHint(v) {
 function setupRepeatMonthdayStepper() {
     const dec   = document.getElementById('repeat-anchor-monthday-dec');
     const inc   = document.getElementById('repeat-anchor-monthday-inc');
-    const input = document.getElementById('repeat-anchor-monthday');
+    const input = document.getElementById('repeat-anchor-monthday') as any;
     if (!dec || !inc || !input) return;
 
     const step = (delta) => {
@@ -784,7 +784,7 @@ function updateMonthdayMax() {
     // to today's month (e.g. 28 in February) wrongly blocks entering 29–31.
     // The hint already explains the short-month behaviour via monthdayNoteText(),
     // so we just fix max=31 and update the informational hint with a general note.
-    const input = document.getElementById('dl-monthday');
+    const input = document.getElementById('dl-monthday') as any;
     const hint  = document.getElementById('dl-monthday-hint');
     input.max = 31;
     hint.textContent = '1–31 (в коротких месяцах — следующий день)';
@@ -874,7 +874,7 @@ function calDayDiff(ts) {
     // Returns integer calendar days: 0 = today, 1 = tomorrow, negative = past
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const target = new Date(ts); target.setHours(0, 0, 0, 0);
-    return Math.round((target - today) / 86400000);
+    return Math.round((+target - +today) / 86400000);
 }
 
 // Fix 1: day-diff for weektime-no-time deadlines (0 = today, 1-6 = days ahead)
@@ -1106,7 +1106,7 @@ function formatDeadlineAbsolute(dl, bare = false) {
     if (mode === 'date') {
         const d        = new Date(value + 'T00:00:00');
         const now      = new Date();
-        const diffDays = Math.round((d - new Date(now.toDateString())) / 86400000);
+        const diffDays = Math.round((+d - +new Date(now.toDateString())) / 86400000);
         // Only return relative words when bare=false (schedule panel, archive, etc.)
         // In task badges (bare=true) the countdown already shows 'завтра'/'сегодня',
         // so the absolute slot must show the real date to avoid duplication.
@@ -1187,7 +1187,7 @@ const _PULSE_MS = 1600; // must match pulseCritical / pulseSide duration in CSS
 function _syncCriticalPulse() {
     if (prefersReducedMotion()) return;
     const delay = `-${(Date.now() - _PULSE_EPOCH) % _PULSE_MS}ms`;
-    document.querySelectorAll('.meta-tag-wrap:has(> .deadline-tag.critical), .dl-side-panel.dl-side-critical')
+    document.querySelectorAll<HTMLElement>('.meta-tag-wrap:has(> .deadline-tag.critical), .dl-side-panel.dl-side-critical')
         .forEach(el => { el.style.animationDelay = delay; });
 }
 
@@ -1195,13 +1195,13 @@ function updateDeadlineBadges() {
     const tasksWithDl = state.tasks.filter(t => t.deadline);
     if (tasksWithDl.length) {
         // Build id → task map once (O(n)) instead of find() per DOM node (O(n²))
-        const taskMap = new Map(tasksWithDl.map(t => [t.id, t]));
+        const taskMap = new Map<any, any>(tasksWithDl.map(t => [t.id, t]));
 
-        document.querySelectorAll('.task-item[data-id]').forEach(li => {
+        document.querySelectorAll<HTMLElement>('.task-item[data-id]').forEach(li => {
             const id   = parseInt(li.dataset.id);
             const task = taskMap.get(id);
             if (!task) return;
-            const badge = li.querySelector('.deadline-tag');
+            const badge = li.querySelector<HTMLElement>('.deadline-tag');
             if (!badge) return;
             const status = deadlineStatus(task.deadline);
             badge.className = 'meta-tag deadline-tag';
@@ -1210,8 +1210,8 @@ function updateDeadlineBadges() {
             else if (status === 'critical') badge.classList.add('critical');
             else if (status === 'urgent')   badge.classList.add('urgent');
             else if (status === 'warn')     badge.classList.add('warn');
-            const cdEl = badge.querySelector('.dl-countdown');
-            const sep  = badge.querySelector('.dl-sep');
+            const cdEl = badge.querySelector<HTMLElement>('.dl-countdown');
+            const sep  = badge.querySelector<HTMLElement>('.dl-sep');
             const cd   = formatDeadlineCountdown(task.deadline);
             if (cdEl) {
                 if (cd) { cdEl.textContent = cd; cdEl.style.display = ''; if (sep) sep.style.display = ''; }
@@ -1221,8 +1221,8 @@ function updateDeadlineBadges() {
     }
 
     // P-E: subtask deadline badges + hover pills — live-tick the same way.
-    document.querySelectorAll('.subtask-item[data-sid]').forEach(li => {
-        const badge = li.querySelector('.sub-deadline-badge');
+    document.querySelectorAll<HTMLElement>('.subtask-item[data-sid]').forEach(li => {
+        const badge = li.querySelector<HTMLElement>('.sub-deadline-badge');
         if (!badge) return;                      // no deadline on this subtask
         const tid  = parseInt(li.dataset.tid);
         const sid  = parseInt(li.dataset.sid);
@@ -1235,19 +1235,19 @@ function updateDeadlineBadges() {
         const statusCls = status ? ` sub-dl-${status}` : '';
         badge.className = 'sub-deadline-badge' + statusCls;
         badge.title     = formatDeadlineAbsolute(sub.deadline, true);
-        const wrap = li.querySelector('.sub-deadline-wrapper');
+        const wrap = li.querySelector<HTMLElement>('.sub-deadline-wrapper');
         if (wrap) {
             // preserve the id so hover-reveal CSS + DnD keep targeting it
             wrap.className = 'sub-deadline-wrapper' + statusCls;
         }
-        const cdEl  = li.querySelector('.sub-dl-countdown');
-        const sepEl = li.querySelector('.sub-dl-sep');
+        const cdEl  = li.querySelector<HTMLElement>('.sub-dl-countdown');
+        const sepEl = li.querySelector<HTMLElement>('.sub-dl-sep');
         const cd    = formatDeadlineCountdown(sub.deadline);
         if (cdEl) {
             if (cd) { cdEl.textContent = cd; cdEl.style.display = ''; if (sepEl) sepEl.style.display = ''; }
             else    { cdEl.style.display = 'none'; if (sepEl) sepEl.style.display = 'none'; }
         }
-        const absEl = li.querySelector('.sub-dl-date');
+        const absEl = li.querySelector<HTMLElement>('.sub-dl-date');
         if (absEl) absEl.textContent = formatDeadlineAbsolute(sub.deadline, true);
     });
 
