@@ -1,0 +1,23 @@
+{
+    // Этап 3: incremental TypeScript. LOOSE start — .js files are included but
+    // NOT type-checked (checkJs off); each dusk module gets checked when it is
+    // renamed to .ts. Ratchet later: checkJs → strict, file by file.
+    // worker/ is excluded — deployed by wrangler, not part of the migration.
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "allowJs": true,
+        "checkJs": false,
+        "noEmit": true,
+        "strict": false,
+        "skipLibCheck": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "types": []
+    },
+    "include": ["src", "dusk", "tests", "scripts", "vite.config.js"],
+    "exclude": ["node_modules", "dist", "worker"]
+}
