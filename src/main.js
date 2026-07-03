@@ -11,7 +11,7 @@ import '../dusk/04-tasks.js';
 import '../dusk/05-edit-notes-groups.js';
 import '../dusk/06-deadlines.js';
 import '../dusk/07-dnd-filter-progress.js';
-import '../dusk/09-sync.js';
+import '../dusk/09-sync.ts';
 import '../dusk/10-cloud.js';
 import '../dusk/08-quickadd-export-init.js';
 import '../dusk/11-sync-ui.js';

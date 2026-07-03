@@ -1,9 +1,9 @@
-// Sync Phase 1 — the pure 3-way merge engine (dusk/09-sync.js), 39 cases.
+// Sync Phase 1 — the pure 3-way merge engine (dusk/09-sync.ts), 39 cases.
 // Ported node harness (was tests/harness/sync-merge.cjs; body kept verbatim).
 // The module is loaded as a side-effect import — its 2a globalThis bridges
-// publish the API — so this test survives the 09-sync.js → .ts rename (Этап 3).
+// publish the API — no import/export surface needed from the dusk module.
 import { it, expect } from 'vitest';
-import '../dusk/09-sync.js';
+import '../dusk/09-sync.ts';
 const { mergeStates, getSyncSubset, applySyncSubset, loadBaseline, saveBaseline, snapshotPreMerge, unresolvedCount } = globalThis;
 
 let pass = 0; const failures = [];

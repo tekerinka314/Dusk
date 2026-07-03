@@ -108,7 +108,7 @@ function _sideState(map, tomb, key) {
 // reorder isn't read as a content change — real reorders live in each sub's `order`).
 function _canon(rec, coll) {
     const skip = { id: 1, groupId: 1, updatedAt: 1, createdAt: 1, [coll.key]: 1 };
-    const o = {};
+    const o: Record<string, any> = {};
     for (const k of Object.keys(rec)) {
         if (skip[k]) continue;
         if (k === 'subtasks' && Array.isArray(rec.subtasks)) {
@@ -223,12 +223,12 @@ function _takeSub(a, b) {
 function _mergeFields(base, local, remote, coll, conflicts) {
     const localNewer = _ts(local) >= _ts(remote);               // same-field tiebreak
     const skip = { id: 1, groupId: 1, updatedAt: 1, createdAt: 1, subtasks: 1, [coll.key]: 1 };
-    const out = {};
+    const out: Record<string, any> = {};
     out[coll.key] = local[coll.key];
     out.createdAt = _minDef(base && base.createdAt, local.createdAt, remote.createdAt);
     out.updatedAt = Math.max(_ts(local), _ts(remote));
 
-    const fields = new Set();
+    const fields = new Set<string>();
     [local, remote, base].forEach(rec => { if (rec) Object.keys(rec).forEach(k => { if (!skip[k]) fields.add(k); }); });
 
     for (const f of fields) {
@@ -396,11 +396,11 @@ function _mergeJournal(B, L, R, newEntries) {
 // pulled in from remote get freshly-allocated local ids. Reuses the merge-import
 // gidMap pattern. `next* = max(used)+1` (and never below the local allocator).
 function _reindex(merged, local) {
-    const alloc = {};
+    const alloc: Record<string, number> = {};
     const localMap = (arrName, key) => _byKey(local[arrName], key);
 
     const assign = (recs, key, localById, startNext) => {
-        const used = new Set();
+        const used = new Set<number>();
         recs.forEach(r => {
             const lid = localById.get(r[key]);
             if (lid != null && !used.has(lid)) { r.id = lid; used.add(lid); }
@@ -426,7 +426,7 @@ function _reindex(merged, local) {
     const lsubId = new Map();
     (local.tasks || []).forEach(t => (t.subtasks || []).forEach(s => { if (s && s.uid != null) lsubId.set(s.uid, s.id); }));
     let subNext = local._alloc ? (local._alloc.nextSubId || 1) : 1;
-    const subUsed = new Set();
+    const subUsed = new Set<number>();
     merged.tasks.forEach(t => {
         t.groupId = (t._groupUid != null) ? (groupUidToId.get(t._groupUid) ?? null) : null;
         delete t._groupUid;
@@ -462,7 +462,7 @@ function mergeStates(base, local, remote, opts) {
 
     const conflicts = [];
     const stats = { added: 0, updated: 0, deleted: 0, kept: 0, conflicts: 0, gcTombstones: 0, gcJournal: 0 };
-    const merged = {};
+    const merged: Record<string, any> = {};
 
     for (const coll of SYNC_COLLECTIONS) {
         merged[coll.name] = _mergeCollection(coll, B, L, R, conflicts, stats);
@@ -566,15 +566,8 @@ function unresolvedCount(state) {
     return (((state && state.syncJournal) || []).filter(e => e && !e.resolved)).length;
 }
 
-// node test harness import (no-op in the browser classic-script context)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        mergeStates, getSyncSubset, applySyncSubset,
-        loadBaseline, saveBaseline, snapshotPreMerge, unresolvedCount,
-        SYNC_COLLECTIONS, K_SYNC_BASELINE, K_SYNC_PREMERGE,
-        TOMBSTONE_TTL_MS, JOURNAL_TTL_MS,
-    };
-}
+// (the old module.exports footer is gone — the tests read the API off the
+//  globalThis bridges via a side-effect import, nothing require()s this file)
 
 // ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
 // (mutable top-level let/var declarations were converted to globalThis.* so

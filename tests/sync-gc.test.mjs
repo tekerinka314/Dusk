@@ -1,8 +1,8 @@
-// Sync Phase 4 — age-based GC inside mergeStates (dusk/09-sync.js), 13 cases.
+// Sync Phase 4 — age-based GC inside mergeStates (dusk/09-sync.ts), 13 cases.
 // Ported node harness (was tests/harness/sync-gc.cjs; body kept verbatim).
 // Side-effect import + globalThis bridges → survives the .ts rename (Этап 3).
 import { it, expect } from 'vitest';
-import '../dusk/09-sync.js';
+import '../dusk/09-sync.ts';
 const S = globalThis;
 
 let pass = 0; const failures = [];
