@@ -1,3 +1,23 @@
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var _rendering: any;
+declare var _renderQueued: any;
+declare var _subCache: any;
+declare var _liCache: any;
+declare var _openSortPicker: any;
+declare var _portaledList: any;
+declare var _floatMenuEl: any;
+declare var _floatMenuAnchor: any;
+declare var _suppressReopenAnchor: any;
+declare var _suppressReopenAt: any;
+declare var sortableGroupsList: any;
+declare var sortableGroupSections: any;
+declare var bulkColorActive: any;
+declare var bulkDeadlineActive: any;
+declare var formColorActive: any;
+declare var selectMode: any;
+declare var mainSelectMode: any;
+
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
@@ -349,12 +369,12 @@ function renderTasks() {
     // rebuilding it — so checking/unchecking a parent (which never touches subtasks)
     // no longer rebuilds subtask DOM / Sortable / open note panels.
     _subCache = new Map();
-    document.querySelectorAll('.subtask-section').forEach(sec => {
+    document.querySelectorAll<HTMLElement>('.subtask-section').forEach(sec => {
         const m = sec.id && sec.id.match(/^sub-section-(\d+)$/);
         if (m) _subCache.set(parseInt(m[1]), sec);
     });
     _liCache = new Map();
-    document.querySelectorAll('.task-item[data-id]').forEach(li => {
+    document.querySelectorAll<HTMLElement>('.task-item[data-id]').forEach(li => {
         const id = parseInt(li.dataset.id);
         if (!isNaN(id)) _liCache.set(id, li);
     });
@@ -388,7 +408,7 @@ function renderTasks() {
     // blurred group frame is NEVER torn down — that teardown was the visible "whole
     // group flickers" flash. Harvest the live sections first.
     const _secCache = new Map();
-    Array.from(groupsContainer.children).forEach(sec => {
+    (Array.from(groupsContainer.children) as HTMLElement[]).forEach(sec => {
         if (sec.classList && sec.classList.contains('group-section') && sec.dataset.groupId)
             _secCache.set(parseInt(sec.dataset.groupId), sec);
     });
@@ -1056,7 +1076,7 @@ function _snoozeUnitPick(btn) {
     _floatMenuEl.querySelectorAll('.snooze-unit').forEach(b => b.classList.toggle('active', b === btn));
 }
 function _snoozeCustomApply(id) {
-    const inp = document.getElementById('snooze-custom-n');
+    const inp = document.getElementById('snooze-custom-n') as HTMLInputElement;
     const n   = parseInt(inp && inp.value);
     if (!n || n < 1) { if (inp) inp.focus(); return; }
     const unitBtn = _floatMenuEl && _floatMenuEl.querySelector('.snooze-unit.active');
@@ -1091,7 +1111,7 @@ function snoozeByRelative(id, n, unit) {
 // background colour, so screen readers announced nothing). Dynamic colour-filter
 // swatches are labelled where they're built (_populateColorFilterModal).
 function _labelColorSwatches() {
-    document.querySelectorAll('.color-swatch[data-color], .form-color-swatch[data-color]').forEach(sw => {
+    document.querySelectorAll<HTMLElement>('.color-swatch[data-color], .form-color-swatch[data-color]').forEach(sw => {
         if (sw.getAttribute('aria-label')) return;
         const c = sw.dataset.color;
         sw.setAttribute('aria-label', c ? ('Цвет ' + c) : 'Без цвета');
@@ -1134,7 +1154,7 @@ function openColorFilterModal() {
     openModalWithFocus('color-filter-modal');   // U-1/S1-3: focus-trap + return + exit-anim
 }
 
-function closeColorFilterModal(event) {
+function closeColorFilterModal(event?) {
     if (!event || event.target === document.getElementById('color-filter-modal')) {
         closeModalWithAnim('color-filter-modal');
     }
@@ -1175,14 +1195,14 @@ function _populateColorFilterModal() {
 // ---- Archive Search ----
 function _applyArchiveSearch() {
     const q = archiveSearchQuery.toLowerCase();
-    document.querySelectorAll('#archive-list .archive-item').forEach(li => {
+    document.querySelectorAll<HTMLElement>('#archive-list .archive-item').forEach(li => {
         const text = li.textContent.toLowerCase();
         li.style.display = (!q || text.includes(q)) ? '' : 'none';
     });
     // Show/hide month headers if all their items are hidden
-    document.querySelectorAll('.archive-month-section').forEach(sec => {
+    document.querySelectorAll<HTMLElement>('.archive-month-section').forEach(sec => {
         const visible = [...sec.querySelectorAll('.archive-item')]
-            .some(li => li.style.display !== 'none');
+            .some((li: any) => li.style.display !== 'none');
         sec.style.display = visible ? '' : 'none';
     });
 }
@@ -1194,7 +1214,7 @@ function importData(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
-            const loaded = JSON.parse(e.target.result);
+            const loaded = JSON.parse(e.target.result as string);
             // F-B: развести два формата. Бэкап записей Гримуара (_grimFull) — только заметки;
             // его место в импорте Гримуара (Перенос → Импорт), не здесь.
             if (loaded && loaded._grimFull && !Array.isArray(loaded.tasks)) {
@@ -1257,7 +1277,6 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             const _g = keepGrim ? { notes: state.notes, notesArchive: state.notesArchive,
                                     noteTemplates: state.noteTemplates, notesSort: state.notesSort } : null;
             state = {
-                tasks: [], groups: [], archive: [],
                 nextId: 1, nextGroupId: 1, nextSubId: 1,
                 sortMode: 'priority', sortModeOverrides: {},
                 ...loaded,
@@ -1387,7 +1406,6 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         const _g = keepGrim ? { notes: state.notes, notesArchive: state.notesArchive,
                                 noteTemplates: state.noteTemplates, notesSort: state.notesSort } : null;
         state = {
-            tasks: [], groups: [], archive: [],
             nextId: 1, nextGroupId: 1, nextSubId: 1,
             sortMode: 'priority', sortModeOverrides: {},
             ...loaded,
@@ -1500,7 +1518,7 @@ function initGroupDnD() {
                 // hidden groups in their relative places.
                 const movedId = parseInt(evt.item && evt.item.dataset.groupId);
                 if (!Number.isInteger(movedId)) return;
-                const domIds = [...groupsContainer.querySelectorAll(':scope > .group-section')]
+                const domIds = ([...groupsContainer.querySelectorAll(':scope > .group-section')] as any[])
                     .map(s => parseInt(s.dataset.groupId)).filter(Number.isInteger);
                 if (domIds.length < 2) return;
                 const moved = state.groups.find(g => g.id === movedId);
@@ -1593,7 +1611,7 @@ function openBulkColorModal() {
     if (!_requireSelection()) return;
     bulkColorActive = true;
     formColorActive = false;
-    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll<HTMLElement>('#task-color-picker .color-swatch').forEach(s => s.classList.remove('active'));
     _grgbSyncFromColor(null, 'task'); // bulk has no single current colour — show the default gothic violet
     openModalWithFocus('task-color-modal');
 }
@@ -1609,7 +1627,7 @@ function openBulkGroupModal() {
     _renderBulkGroupList();
     openModalWithFocus('bulk-group-modal');
 }
-function closeBulkGroupModal(event) {
+function closeBulkGroupModal(event?) {
     if (!event || event.target === document.getElementById('bulk-group-modal')) {
         closeModalWithAnim('bulk-group-modal');
     }
@@ -1691,7 +1709,7 @@ function renderGroupChips(currentVal) {
 }
 
 function selectGroupChip(gid) {
-    if (window._closeGroupPicker) window._closeGroupPicker();
+    if ((window as any)._closeGroupPicker) (window as any)._closeGroupPicker();
     if (gid === '__new__') {
         pendingGroupForSelector = true;
         showAddGroupModal();
@@ -1749,7 +1767,7 @@ function initGroupPicker() {
         trigger.setAttribute('aria-expanded', 'false');
         list.setAttribute('aria-hidden', 'true');
     }
-    window._closeGroupPicker = closePicker; // selectGroupChip closes after a pick
+    (window as any)._closeGroupPicker = closePicker; // selectGroupChip closes after a pick
 
     trigger.addEventListener('click', e => { e.stopPropagation(); isOpen ? closePicker() : openPicker(); });
     trigger.addEventListener('keydown', e => {
@@ -1785,7 +1803,7 @@ function renderArchive() {
         if (searchWrap) searchWrap.classList.add('is-hidden');
         if (archiveSearchQuery) {
             archiveSearchQuery = '';
-            const sb = document.getElementById('archive-search-box');
+            const sb = document.getElementById('archive-search-box') as HTMLInputElement;
             if (sb) sb.value = '';
         }
         // (archive stats removed)
@@ -1946,7 +1964,7 @@ function toggleArchiveSelection(id) {
 function updateSelectBar() {
     const count   = selectedArchiveIds.size;
     const countEl = document.getElementById('select-bar-count');
-    const restBtn = document.getElementById('btn-restore-selected');
+    const restBtn = document.getElementById('btn-restore-selected') as any;
     if (countEl) {
         countEl.textContent = count > 0 ? `${count} отмечено` : 'Ничего не отмечено';
     }

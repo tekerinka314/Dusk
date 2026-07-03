@@ -6,7 +6,7 @@
 import './sortable-global.js';
 import '../dusk/01-core.ts';
 import '../dusk/02-grimoire.js';
-import '../dusk/03-render.js';
+import '../dusk/03-render.ts';
 import '../dusk/04-tasks.js';
 import '../dusk/05-edit-notes-groups.ts';
 import '../dusk/06-deadlines.ts';
