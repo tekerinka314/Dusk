@@ -1,3 +1,14 @@
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var noteColorActive: any;
+declare var grimBulkColorActive: any;
+declare var editingNoteColorId: any;
+declare var _grgbH: any;
+declare var _grgbS: any;
+declare var _grgbV: any;
+declare var _grgbScope: any;
+declare var _announceRafId: any;
+
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
@@ -59,8 +70,8 @@ function _noteCtx(el) {
 
 // Collapse helpers — pure class toggles. Names kept so every existing caller
 // (hover handlers, always-open mode, toggle) keeps working unchanged.
-function _openNoteWrap(wrap)  { if (wrap) { wrap.classList.add('note-open');    wrap._noteOpen = true;  } }
-function _closeNoteWrap(wrap) { if (wrap) { wrap.classList.remove('note-open'); wrap._noteOpen = false; } }
+function _openNoteWrap(wrap)  { if (wrap) { wrap.classList.add('note-open');    (wrap as any)._noteOpen = true;  } }
+function _closeNoteWrap(wrap) { if (wrap) { wrap.classList.remove('note-open'); (wrap as any)._noteOpen = false; } }
 
 // Enter edit mode: flatten links/marks back to raw text, enable editing, caret end.
 function _noteEdit(el) {
@@ -152,7 +163,7 @@ function _noteCommit(el) {
 // Write the note to state/formSubtasks and sync wrapper class + toggle button.
 // keepEditing (debounced mid-typing): never rebuild the editable element's HTML
 // and never collapse on a transient empty value.
-function _notePersist(ctx, text, opts = {}) {
+function _notePersist(ctx, text, opts: any = {}) {
     ctx.sub.note = text;
     const wrap      = ctx.item.querySelector('.sub-note-wrapper');
     const toggleBtn = ctx.item.querySelector('.btn-sub-note-toggle');
@@ -197,7 +208,7 @@ function _noteDeleteClick(e, textEl) {
     if (textEl) { textEl.removeAttribute('contenteditable'); textEl.classList.remove('editing'); textEl.innerHTML = ''; }
     if (wrap) {
         wrap.classList.remove('has-note', 'note-open');
-        wrap._dismissed = false;
+        (wrap as any)._dismissed = false;
         const del = wrap.querySelector('.btn-sub-note-delete'); if (del) del.remove();
         const cnt = wrap.querySelector('.sub-note-count');      if (cnt) cnt.remove();
     }
@@ -216,9 +227,9 @@ function _noteToggle(wrap) {
     if (wrap.classList.contains('has-note')) {
         if (open) {
             if (noteEl && noteEl.getAttribute('contenteditable') === 'true') noteEl.blur();
-            wrap._dismissed = true; _closeNoteWrap(wrap);
+            (wrap as any)._dismissed = true; _closeNoteWrap(wrap);
         } else {
-            wrap._dismissed = false; _openNoteWrap(wrap); if (noteEl) _noteEdit(noteEl);
+            (wrap as any)._dismissed = false; _openNoteWrap(wrap); if (noteEl) _noteEdit(noteEl);
         }
     } else {
         // No saved note yet (create flow).
@@ -246,7 +257,7 @@ function toggleSubNote(taskId, subId) {
 function updateSubNotesAlwaysBtn(taskId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
-    const meta = document.querySelector(`.task-item[data-id="${taskId}"] .task-meta`);
+    const meta: any = document.querySelector(`.task-item[data-id="${taskId}"] .task-meta`);
     if (!meta) return;
 
     const hasSubNotes = (task.subtasks || []).some(s => s.note && s.note.trim());
@@ -278,7 +289,7 @@ function updateSubNotesAlwaysBtn(taskId) {
 function updateSubProgressBar(taskId) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
-    const wrap = document.querySelector(`#sub-section-${taskId} .sub-progress-bar-wrap`);
+    const wrap: any = document.querySelector(`#sub-section-${taskId} .sub-progress-bar-wrap`);
     if (!wrap) return;
     const total = task.subtasks.length;
     if (total === 0) { wrap.style.display = 'none'; return; }
@@ -334,23 +345,23 @@ function initSubSortable(taskId) {
     // BUBBLE — every cursor movement between child elements re-fires mouseover on the
     // UL, causing _openNoteWrap to restart the animation from 0 repeatedly.
     // mouseenter/mouseleave fire exactly ONCE per item boundary crossing (no bubbling).
-    ul.querySelectorAll('.subtask-item').forEach(item => {
+    ul.querySelectorAll<HTMLElement>('.subtask-item').forEach(item => {
         // Ensure _noteOpen is not stale from a previous render cycle — fresh DOM nodes
         // won't have it, but if initSubSortable is ever called without a full rebuild
         // the flag could be stuck at true, silently blocking the open guard.
         const noteWrap = item.querySelector('.sub-note-wrapper');
-        if (noteWrap) noteWrap._noteOpen = false;
+        if (noteWrap) (noteWrap as any)._noteOpen = false;
         // Bug B: subtask rows now persist across renders (reconciliation), and this
         // function re-runs every render — so bind the hover listeners ONCE per node or
         // they stack up and fire _openNoteWrap N times per hover.
-        if (item._hoverBound) return;
-        item._hoverBound = true;
+        if ((item as any)._hoverBound) return;
+        (item as any)._hoverBound = true;
         item.addEventListener('mouseenter', () => {
             // notes-always-open mode: nothing to do, CSS handles visibility
             const sec = item.closest('.subtask-section');
             if (sec && sec.classList.contains('notes-always-open')) return;
             const wrap = item.querySelector('.sub-note-wrapper.has-note');
-            if (wrap && !wrap._dismissed) _openNoteWrap(wrap);
+            if (wrap && !(wrap as any)._dismissed) _openNoteWrap(wrap);
         });
         item.addEventListener('mouseleave', () => {
             const sec = item.closest('.subtask-section');
@@ -364,7 +375,7 @@ function initSubSortable(taskId) {
             const noteEl = wrap.querySelector('.sub-note-text');
             if (noteEl && document.activeElement === noteEl) return;
             _closeNoteWrap(wrap);
-            wrap._dismissed = false; // reset so next hover is fresh
+            (wrap as any)._dismissed = false; // reset so next hover is fresh
         });
     });
     // ─────────────────────────────────────────────────────────────────────────
@@ -387,8 +398,8 @@ function initSubSortable(taskId) {
         // Problem 6: in split mode the draggable items live inside the per-zone
         // .sub-split-inner grids — NOT as direct children of the UL. Attach a
         // Sortable to each grid so DnD works and the 2-column layout is preserved.
-        const activeInner = ul.querySelector('.sub-split-active-wrap .sub-split-inner');
-        const doneInner   = ul.querySelector('.sub-split-done-wrap .sub-split-inner');
+        const activeInner = ul.querySelector<HTMLElement>('.sub-split-active-wrap .sub-split-inner');
+        const doneInner   = ul.querySelector<HTMLElement>('.sub-split-done-wrap .sub-split-inner');
         if (activeInner) sortableSubs[taskId].push(new Sortable(activeInner, activeOpts));
         // Done zone: reordering disabled (mirrors the task-level split lock).
         if (doneInner) sortableSubs[taskId].push(new Sortable(doneInner, {
@@ -409,7 +420,7 @@ function onSubDragEnd(evt, taskId) {
     if (!container) return;
 
     // Reorder — store DOM position as order
-    const allItems = Array.from(container.querySelectorAll(':scope > .subtask-item'));
+    const allItems = (Array.from as any)(container.querySelectorAll(':scope > .subtask-item'));
     allItems.forEach((el, i) => {
         const sid = parseInt(el.dataset.sid);
         const sub = task.subtasks.find(s => s.id === sid);
@@ -452,7 +463,7 @@ function startInlineEdit(event, id) {
     event.stopPropagation();
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
-    const span = document.querySelector(`.task-text[data-id="${id}"]`);
+    const span: any = document.querySelector(`.task-text[data-id="${id}"]`);
     if (!span) return;
     if (span.contentEditable === 'true') return; // already editing
     span.contentEditable = 'true';
@@ -506,7 +517,7 @@ function toggleTaskNote(id) {
     // collapse. This avoids the blur-collapse + click-reopen double-fire.
     if (noteEl && noteEl.getAttribute('contenteditable') === 'true') {
         const hasText = !!(noteEl.textContent && noteEl.textContent.trim());
-        if (!hasText) noteEl._noteCancel = true;   // empty → cancel cleanly
+        if (!hasText) (noteEl as any)._noteCancel = true;   // empty → cancel cleanly
         noteEl.blur();                              // commit persists / cancels + collapses
         if (hasText) {                             // text saved → honour the hide intent
             task.noteOpen = false;
@@ -651,8 +662,8 @@ function _taskNotePersist(ctx, text) {
 
 function openNoteModal(id) {
     editingTaskId = id;
-    document.getElementById('note-modal-input').value = '';
-    document.getElementById('note-modal').querySelector('.modal-title').textContent = 'Добавить заметку';
+    (document.getElementById('note-modal-input') as HTMLInputElement).value = '';
+    document.getElementById('note-modal').querySelector<HTMLElement>('.modal-title').textContent = 'Добавить заметку';
     openModalWithFocus('note-modal');
 }
 
@@ -660,19 +671,19 @@ function openEditNoteModal(id) {
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
     editingTaskId = id;
-    document.getElementById('note-modal-input').value = task.note || '';
-    document.getElementById('note-modal').querySelector('.modal-title').textContent = 'Изменить заметку';
+    (document.getElementById('note-modal-input') as HTMLInputElement).value = task.note || '';
+    document.getElementById('note-modal').querySelector<HTMLElement>('.modal-title').textContent = 'Изменить заметку';
     openModalWithFocus('note-modal');
     // Select text after focus trap moves focus in
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            const inp = document.getElementById('note-modal-input');
+            const inp = document.getElementById('note-modal-input') as any;
             if (inp) { inp.focus(); inp.select(); }
         });
     });
 }
 
-function closeNoteModal(event) {
+function closeNoteModal(event?) {
     if (!event || event.target === document.getElementById('note-modal')) {
         const id = editingTaskId;
         closeModalWithAnim('note-modal', () => { editingTaskId = null; });
@@ -684,7 +695,7 @@ function closeNoteModal(event) {
 function confirmNote() {
     const task = state.tasks.find(t => t.id === editingTaskId);
     if (!task) { closeNoteModal(); return; }
-    const val = document.getElementById('note-modal-input').value.trim();
+    const val = (document.getElementById('note-modal-input') as HTMLInputElement).value.trim();
     if (!val) { closeNoteModal(); return; }
     pushUndo();
     task.note = val;
@@ -708,7 +719,7 @@ function _taskNoteDelete(event, id) {
 // ============================================================
 function plainTextPaste(e) {
     e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    const text = (e.clipboardData || (window as any).clipboardData).getData('text/plain');
     if (!text) return;
     // Selection API replacement for deprecated document.execCommand('insertText').
     // Works in all modern browsers including Firefox where execCommand is unreliable.
@@ -723,7 +734,7 @@ function plainTextPaste(e) {
 
 /** Attach plain-text paste to all contenteditable note fields after render. */
 function attachPlainPasteHandlers() {
-    document.querySelectorAll('.task-note-text, .sub-note-text, .sub-text[contenteditable="true"]')
+    document.querySelectorAll<HTMLElement>('.task-note-text, .sub-note-text, .sub-text[contenteditable="true"]')
         .forEach(el => {
             el.removeEventListener('paste', plainTextPaste);
             el.addEventListener('paste', plainTextPaste);
@@ -733,8 +744,8 @@ function attachPlainPasteHandlers() {
 // Also attach to note modal textarea
 document.getElementById('note-modal-input').addEventListener('paste', e => {
     e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-    const ta = e.target;
+    const text = (e.clipboardData || (window as any).clipboardData).getData('text/plain');
+    const ta = e.target as any;
     const start = ta.selectionStart, end = ta.selectionEnd;
     ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
     ta.selectionStart = ta.selectionEnd = start + text.length;
@@ -752,7 +763,7 @@ function deleteTaskForever(id) {
     saveState();
     // ─────────────────────────────────────────────────────────────
 
-    const li = document.querySelector(`.task-item[data-id="${id}"]`);
+    const li: any = document.querySelector(`.task-item[data-id="${id}"]`);
     if (li) {
         // Use removing-forever (vertical collapse) — semantically distinct from archive slide
         li.style.setProperty('--row-h', li.scrollHeight + 'px'); // S1-1: real height for exit anim
@@ -786,13 +797,13 @@ function openPrioModal(id) {
     editingTaskId = id;
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
-    document.querySelectorAll('#modal-prio-selector .prio-btn').forEach(b =>
+    document.querySelectorAll<HTMLElement>('#modal-prio-selector .prio-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.prio === (task.priority || 'none'))
     );
     openModalWithFocus('prio-modal');
 }
 
-function closePrioModal(event) {
+function closePrioModal(event?) {
     if (!event || event.target === document.getElementById('prio-modal')) {
         closeModalWithAnim('prio-modal', () => { editingTaskId = null; });
         if (!event) editingTaskId = null;
@@ -800,7 +811,7 @@ function closePrioModal(event) {
 }
 
 document.getElementById('modal-prio-selector').addEventListener('click', e => {
-    const btn = e.target.closest('.prio-btn');
+    const btn = (e.target as any).closest('.prio-btn');
     if (!btn) return;
     const task = state.tasks.find(t => t.id === editingTaskId);
     if (!task) return;
@@ -818,9 +829,9 @@ globalThis.editingNoteColorId = null;
 function openGrimColorModal(id) {
     const note = (state.notes || []).find(n => n.id === id);
     if (!note) return;
-    noteColorActive = true; grimBulkColorActive = false; bulkColorActive = false; formColorActive = false; editingTaskId = null;
+    noteColorActive = true; grimBulkColorActive = false; globalThis.bulkColorActive = false; globalThis.formColorActive = false; editingTaskId = null;
     editingNoteColorId = id;
-    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
+    document.querySelectorAll<HTMLElement>('#task-color-picker .color-swatch').forEach(s =>
         s.classList.toggle('active', s.dataset.color === (note.color || ''))
     );
     _grgbSyncFromColor(note.color, 'task');   // reuse the task-color-modal spectrum scope
@@ -831,20 +842,20 @@ function openGrimColorModal(id) {
 function openGrimBulkColorModal() {
     if (!grimSelectedIds.size) return;
     grimBulkColorActive = true;
-    noteColorActive = false; bulkColorActive = false; formColorActive = false; editingTaskId = null; editingNoteColorId = null;
-    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s => s.classList.remove('active'));
+    noteColorActive = false; globalThis.bulkColorActive = false; globalThis.formColorActive = false; editingTaskId = null; editingNoteColorId = null;
+    document.querySelectorAll<HTMLElement>('#task-color-picker .color-swatch').forEach(s => s.classList.remove('active'));
     _grgbSyncFromColor(null, 'task');   // bulk has no single current colour — show the default gothic violet
     openModalWithFocus('task-color-modal');
 }
 
 function openTaskColorModal(id) {
     editingTaskId = id;
-    bulkColorActive = false;   // P-D: normal per-task open clears any stale bulk flag
-    formColorActive = false;
+    globalThis.bulkColorActive = false;   // P-D: normal per-task open clears any stale bulk flag
+    globalThis.formColorActive = false;
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
     // Highlight current colour in picker
-    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
+    document.querySelectorAll<HTMLElement>('#task-color-picker .color-swatch').forEach(s =>
         s.classList.toggle('active', s.dataset.color === (task.color || ''))
     );
     _grgbSyncFromColor(task.color, 'task'); // seed the spectrum from the task's current colour
@@ -854,20 +865,20 @@ function openTaskColorModal(id) {
 // Opened from the creation form's "свой цвет" crystal — the modal writes back into
 // selectedFormColor (no task exists yet) and reuses the same presets + spectrum.
 function openFormColorModal() {
-    formColorActive = true;
-    bulkColorActive = false;
+    globalThis.formColorActive = true;
+    globalThis.bulkColorActive = false;
     editingTaskId = null;
-    document.querySelectorAll('#task-color-picker .color-swatch').forEach(s =>
+    document.querySelectorAll<HTMLElement>('#task-color-picker .color-swatch').forEach(s =>
         s.classList.toggle('active', s.dataset.color === (selectedFormColor || ''))
     );
     _grgbSyncFromColor(selectedFormColor, 'task');
     openModalWithFocus('task-color-modal');
 }
 
-function closeTaskColorModal(event) {
+function closeTaskColorModal(event?) {
     if (!event || event.target === document.getElementById('task-color-modal')) {
-        bulkColorActive = false;   // P-D: cancelling bulk must not leak into the next open
-        formColorActive = false;
+        globalThis.bulkColorActive = false;   // P-D: cancelling bulk must not leak into the next open
+        globalThis.formColorActive = false;
         noteColorActive = false; editingNoteColorId = null;   // п.9: same for the note route
         grimBulkColorActive = false;   // cross-app #7: cancelling note-bulk colour must not leak either
         closeModalWithAnim('task-color-modal', () => { editingTaskId = null; });
@@ -900,13 +911,13 @@ function _commitColorChoice(color) {
         return;
     }
     if (formColorActive) {
-        formColorActive = false;
+        globalThis.formColorActive = false;
         _setFormColor(c);
         closeModalWithAnim('task-color-modal');
         return;
     }
     if (bulkColorActive) {
-        bulkColorActive = false;
+        globalThis.bulkColorActive = false;
         bulkSetColor(c);
         closeModalWithAnim('task-color-modal');
         return;
@@ -920,7 +931,7 @@ function _commitColorChoice(color) {
 }
 
 document.getElementById('task-color-picker').addEventListener('click', e => {
-    const sw = e.target.closest('.color-swatch');
+    const sw = (e.target as any).closest('.color-swatch');
     if (!sw) return;
     _commitColorChoice(sw.dataset.color);
 });
@@ -973,11 +984,11 @@ function _grgbEls() {
         : document.getElementById('task-color-modal');
     if (!root) return {};
     return {
-        pad:     root.querySelector('.grgb-pad'),
-        thumb:   root.querySelector('.grgb-thumb'),
-        hue:     root.querySelector('.grgb-hue'),
-        preview: root.querySelector('.grgb-preview'),
-        hexEl:   root.querySelector('.grgb-hex'),
+        pad:     root.querySelector<HTMLElement>('.grgb-pad'),
+        thumb:   root.querySelector<HTMLElement>('.grgb-thumb'),
+        hue:     root.querySelector('.grgb-hue') as any,
+        preview: root.querySelector<HTMLElement>('.grgb-preview'),
+        hexEl:   root.querySelector<HTMLElement>('.grgb-hex'),
     };
 }
 // Pure visual render of the active spectrum — never mutates the chosen colour.
@@ -995,7 +1006,7 @@ function _grgbRender() {
 // group's chosen colour and clears any highlighted preset.
 function _groupColorFromSpectrum() {
     selectedColor = _grgbHex();
-    if (colorPicker) colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    if (colorPicker) colorPicker.querySelectorAll<HTMLElement>('.color-swatch').forEach(s => s.classList.remove('active'));
 }
 function _grgbSyncFromColor(color, scope) {
     if (scope) _grgbScope = scope;
@@ -1013,7 +1024,7 @@ function _grgbApply() { _commitColorChoice(_grgbHex()); }
 // Pad pointer handling (mouse + touch via pointer events). Attached to BOTH spectrum
 // copies; each handler sets the scope from the modal it lives in.
 (function _grgbInitPads() {
-    document.querySelectorAll('.grgb-pad').forEach(pad => {
+    document.querySelectorAll<HTMLElement>('.grgb-pad').forEach(pad => {
         const scopeOf = () => pad.closest('#group-modal') ? 'group' : 'task';
         let dragging = false;
         const apply = e => {
@@ -1035,22 +1046,22 @@ function _grgbApply() { _commitColorChoice(_grgbHex()); }
 // ─── Populate anchor section ─────────────────────────────────────────────────
 // repeatMode: current repeat value; anchorTime: "HH:MM"|""; anchorDay: 1-7|0
 function _populateRepeatAnchor(repeatMode, anchorTime, anchorDay, anchorMonthday) {
-    const section   = document.getElementById('repeat-anchor-section');
-    const wdRow     = document.getElementById('repeat-anchor-weekday-row');
-    const mdRow     = document.getElementById('repeat-anchor-monthday-row');
-    const wdSelect  = document.getElementById('repeat-anchor-day');
-    const wdLabel   = document.getElementById('repeat-wd-label');
+    const section = document.getElementById('repeat-anchor-section') as any;
+    const wdRow = document.getElementById('repeat-anchor-weekday-row') as any;
+    const mdRow = document.getElementById('repeat-anchor-monthday-row') as any;
+    const wdSelect = document.getElementById('repeat-anchor-day') as any;
+    const wdLabel = document.getElementById('repeat-wd-label') as any;
     if (!section) return;
 
     const hasRepeat = repeatMode && repeatMode !== 'none';
     section.style.display = hasRepeat ? '' : 'none';
     if (wdRow) wdRow.style.display = (hasRepeat && repeatMode === 'weekly') ? '' : 'none';
     if (mdRow) mdRow.style.display = (hasRepeat && repeatMode === 'monthly') ? '' : 'none';
-    const mdLbl = document.getElementById('repeat-anchor-monthday-label-text');
+    const mdLbl = document.getElementById('repeat-anchor-monthday-label-text') as any;
     if (mdLbl) mdLbl.style.display = (hasRepeat && repeatMode === 'monthly') ? '' : 'none';
 
     // Populate time via SegmentedInput
-    const nativeTimeInput = document.getElementById('repeat-anchor-time');
+    const nativeTimeInput = document.getElementById('repeat-anchor-time') as any;
     if (nativeTimeInput) {
         nativeTimeInput.value = anchorTime || '';
         if (segInputs['repeat-anchor-time']) segInputs['repeat-anchor-time'].syncFromInput();
@@ -1060,12 +1071,12 @@ function _populateRepeatAnchor(repeatMode, anchorTime, anchorDay, anchorMonthday
     const WD_NAMES = ['','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
     if (wdSelect) wdSelect.value = anchorDay || '';
     if (wdLabel)  wdLabel.textContent = anchorDay ? (WD_NAMES[anchorDay] || 'Любой день') : 'Любой день';
-    document.querySelectorAll('#repeat-wd-list .dl-month-option').forEach(opt => {
+    document.querySelectorAll<HTMLElement>('#repeat-wd-list .dl-month-option').forEach(opt => {
         opt.classList.toggle('active', (opt.dataset.value || '') === String(anchorDay || ''));
     });
 
     // Populate monthday stepper
-    const mdInput = document.getElementById('repeat-anchor-monthday');
+    const mdInput = document.getElementById('repeat-anchor-monthday') as any;
     if (mdInput) {
         mdInput.value = anchorMonthday || 1;
         _updateRepeatMonthdayHint(parseInt(mdInput.value) || 1);
@@ -1081,14 +1092,14 @@ function openRepeatModal(id) {
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;
     const cur = task.repeat || 'none';
-    document.querySelectorAll('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
+    document.querySelectorAll<HTMLElement>('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.repeat === cur)
     );
     _populateRepeatAnchor(cur, task.repeatAnchorTime || '', parseInt(task.repeatAnchorDay) || 0, parseInt(task.repeatAnchorMonthday) || 0);
     openModalWithFocus('repeat-modal');
 }
 
-function closeRepeatModal(event) {
+function closeRepeatModal(event?) {
     if (!event || event.target === document.getElementById('repeat-modal')) {
         closeModalWithAnim('repeat-modal', () => { editingTaskId = null; editingSubId = null; });
         if (!event) { editingTaskId = null; editingSubId = null; }
@@ -1098,37 +1109,37 @@ function closeRepeatModal(event) {
 document.addEventListener('DOMContentLoaded', () => {
     // ── Repeat button grid ────────────────────────────────────────────────────
     document.getElementById('modal-repeat-selector').addEventListener('click', e => {
-        const btn = e.target.closest('.repeat-modal-btn');
+        const btn = (e.target as any).closest('.repeat-modal-btn');
         if (!btn) return;
         const newRepeat = btn.dataset.repeat;
 
-        document.querySelectorAll('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
+        document.querySelectorAll<HTMLElement>('#modal-repeat-selector .repeat-modal-btn').forEach(b =>
             b.classList.toggle('active', b === btn)
         );
-        const section = document.getElementById('repeat-anchor-section');
-        const wdRow   = document.getElementById('repeat-anchor-weekday-row');
-        const mdRow   = document.getElementById('repeat-anchor-monthday-row');
+        const section = document.getElementById('repeat-anchor-section') as any;
+        const wdRow = document.getElementById('repeat-anchor-weekday-row') as any;
+        const mdRow = document.getElementById('repeat-anchor-monthday-row') as any;
         if (section) section.style.display = newRepeat !== 'none' ? '' : 'none';
         if (wdRow)   wdRow.style.display   = newRepeat === 'weekly'  ? '' : 'none';
         if (mdRow)   mdRow.style.display   = newRepeat === 'monthly' ? '' : 'none';
-        const mdLbl2 = document.getElementById('repeat-anchor-monthday-label-text');
+        const mdLbl2 = document.getElementById('repeat-anchor-monthday-label-text') as any;
         if (mdLbl2)  mdLbl2.style.display  = newRepeat === 'monthly' ? '' : 'none';
     });
 
     // ── Confirm button ────────────────────────────────────────────────────────
-    const confirmBtn = document.getElementById('btn-confirm-repeat');
+    const confirmBtn = document.getElementById('btn-confirm-repeat') as any;
     if (confirmBtn) {
         confirmBtn.addEventListener('click', () => {
-            const activeBtn = document.querySelector('#modal-repeat-selector .repeat-modal-btn.active');
+            const activeBtn = document.querySelector<HTMLElement>('#modal-repeat-selector .repeat-modal-btn.active');
             if (!activeBtn) return;
             const newRepeat  = activeBtn.dataset.repeat;
 
             // Read time via SegmentedInput
             const anchorTime = segInputs['repeat-anchor-time']
                 ? (segInputs['repeat-anchor-time'].getValue() || '').trim()
-                : (document.getElementById('repeat-anchor-time')?.value || '').trim();
-            const anchorDay      = parseInt(document.getElementById('repeat-anchor-day')?.value || '') || 0;
-            const anchorMonthday = parseInt(document.getElementById('repeat-anchor-monthday')?.value || '') || 0;
+                : ((document.getElementById('repeat-anchor-time') as HTMLInputElement)?.value || '').trim();
+            const anchorDay      = parseInt((document.getElementById('repeat-anchor-day') as HTMLInputElement)?.value || '') || 0;
+            const anchorMonthday = parseInt((document.getElementById('repeat-anchor-monthday') as HTMLInputElement)?.value || '') || 0;
 
             // Build human-readable label for toast (problem 5)
             const _toastLabel = () => {
@@ -1147,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     s.repeatAnchorMonthday = anchorMonthday || null;
                     renderFormSubtasks();
                 }
-                _formSubRepeatIdx = null;
+                globalThis._formSubRepeatIdx = null;
                 closeRepeatModal();
                 return;
             }
@@ -1175,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     `.subtask-item[data-tid="${editingTaskId}"][data-sid="${editingSubId}"]`
                 );
                 if (subItem) {
-                    const repeatBtn = subItem.querySelector('.sub-repeat-btn');
+                    const repeatBtn = subItem.querySelector<HTMLElement>('.sub-repeat-btn');
                     if (repeatBtn) {
                         const repeatSet = sub.repeat !== 'none';
                         repeatBtn.classList.toggle('active', repeatSet);
@@ -1217,11 +1228,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Anchor weekday picker ─────────────────────────────────────────────────
-    const repeatWdList    = document.getElementById('repeat-wd-list');
-    const repeatWdTrigger = document.getElementById('repeat-wd-trigger');
-    const repeatWdPicker  = document.getElementById('repeat-wd-picker');
-    const repeatWdSelect  = document.getElementById('repeat-anchor-day');
-    const repeatWdLabel   = document.getElementById('repeat-wd-label');
+    const repeatWdList = document.getElementById('repeat-wd-list') as any;
+    const repeatWdTrigger = document.getElementById('repeat-wd-trigger') as any;
+    const repeatWdPicker = document.getElementById('repeat-wd-picker') as any;
+    const repeatWdSelect = document.getElementById('repeat-anchor-day') as any;
+    const repeatWdLabel = document.getElementById('repeat-wd-label') as any;
     const WD_NAMES = ['','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
 
     if (repeatWdTrigger && repeatWdPicker) {
@@ -1245,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (repeatWdList) {
         repeatWdList.addEventListener('click', e => {
-            const opt = e.target.closest('.dl-month-option');
+            const opt = (e.target as any).closest('.dl-month-option');
             if (!opt) return;
             const val = opt.dataset.value || '';
             if (repeatWdSelect) repeatWdSelect.value = val;
@@ -1272,10 +1283,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // (no separate clear button needed — native widget pattern)
 
     // ── Form color picker (task creation) ───────────────────────────────────
-    const formColorPicker = document.getElementById('form-color-picker');
+    const formColorPicker = document.getElementById('form-color-picker') as any;
     if (formColorPicker) {
         formColorPicker.addEventListener('click', e => {
-            const sw = e.target.closest('.form-color-swatch');
+            const sw = (e.target as any).closest('.form-color-swatch');
             if (!sw) return;
             _setFormColor(sw.dataset.color || null);
         });
@@ -1289,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /** Announce a message to screen readers via the live region. */
 globalThis._announceRafId = null;
 function announce(msg) {
-    const lr = document.getElementById('live-region');
+    const lr = document.getElementById('live-region') as any;
     if (!lr) return;
     // W-6: Cancel any pending rAF from a previous rapid announce() call.
     // Without this, two toasts fired back-to-back would race: the first rAF
@@ -1324,19 +1335,19 @@ const FOCUSABLE = [
 function openModalWithFocus(overlayId) {
     const overlay = document.getElementById(overlayId);
     if (!overlay) return;
-    overlay._returnFocus = document.activeElement;   // remember caller
+    (overlay as any)._returnFocus = document.activeElement;   // remember caller
 
     overlay.style.display = 'flex';
 
     // Focus first focusable element after the animation starts
     requestAnimationFrame(() => {
-        const focusable = Array.from(overlay.querySelectorAll(FOCUSABLE));
+        const focusable: any[] = Array.from(overlay.querySelectorAll(FOCUSABLE));
         if (focusable.length) focusable[0].focus();
 
         // Install focus trap
-        overlay._trapHandler = (e) => {
+        (overlay as any)._trapHandler = (e) => {
             if (e.key !== 'Tab') return;
-            const els = Array.from(overlay.querySelectorAll(FOCUSABLE));
+            const els: any[] = Array.from(overlay.querySelectorAll(FOCUSABLE));
             if (!els.length) return;
             const first = els[0], last = els[els.length - 1];
             if (e.shiftKey) {
@@ -1345,7 +1356,7 @@ function openModalWithFocus(overlayId) {
                 if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
             }
         };
-        overlay.addEventListener('keydown', overlay._trapHandler);
+        overlay.addEventListener('keydown', (overlay as any)._trapHandler);
     });
 }
 
@@ -1354,7 +1365,7 @@ function openModalWithFocus(overlayId) {
 //  Adds .closing class → waits for CSS modalOut animation → hides overlay.
 //  Removes focus trap and returns focus to the triggering element.
 // ============================================================
-function closeModalWithAnim(overlayId, onAfterClose) {
+function closeModalWithAnim(overlayId, onAfterClose?) {
     const overlay = document.getElementById(overlayId);
     if (!overlay) return;
 
@@ -1362,9 +1373,9 @@ function closeModalWithAnim(overlayId, onAfterClose) {
     if (overlay.style.display === 'none') return;
 
     // Remove focus trap
-    if (overlay._trapHandler) {
-        overlay.removeEventListener('keydown', overlay._trapHandler);
-        overlay._trapHandler = null;
+    if ((overlay as any)._trapHandler) {
+        overlay.removeEventListener('keydown', (overlay as any)._trapHandler);
+        (overlay as any)._trapHandler = null;
     }
 
     overlay.classList.add('closing');
@@ -1378,15 +1389,15 @@ function closeModalWithAnim(overlayId, onAfterClose) {
         overlay.style.display = 'none';
         overlay.classList.remove('closing');
         // Return focus to element that triggered the modal
-        if (overlay._returnFocus && typeof overlay._returnFocus.focus === 'function') {
-            overlay._returnFocus.focus();
-            overlay._returnFocus = null;
+        if ((overlay as any)._returnFocus && typeof (overlay as any)._returnFocus.focus === 'function') {
+            (overlay as any)._returnFocus.focus();
+            (overlay as any)._returnFocus = null;
         }
         if (onAfterClose) onAfterClose();
     };
 
     // Use animationend on the inner .modal element (the one that runs modalOut)
-    const modalEl = overlay.querySelector('.modal');
+    const modalEl = overlay.querySelector<HTMLElement>('.modal');
     if (modalEl) {
         modalEl.addEventListener('animationend', finish, { once: true });
         // Safety fallback: if animation never fires (reduced-motion, etc.)
@@ -1432,7 +1443,7 @@ function dismissModalById(id) {
 // Single delegated backdrop listener: a click landing on the overlay itself (never
 // on the inner .modal) closes it — for every registered modal at once.
 document.addEventListener('click', e => {
-    const ov = e.target.classList && e.target.classList.contains('modal-overlay') ? e.target : null;
+    const ov: any = (e.target as any).classList && (e.target as any).classList.contains('modal-overlay') ? e.target : null;
     if (!ov || ov.style.display === 'none' || ov.classList.contains('closing')) return;
     if (MODAL_CLOSERS[ov.id]) dismissModalById(ov.id);   // import-choice absent → no backdrop close
 });
@@ -1451,14 +1462,14 @@ function showAddGroupModal() {
 function _setGroupColor(c) {
     selectedColor = c || '#6C8EF5';
     if (colorPicker) {
-        colorPicker.querySelectorAll('.color-swatch').forEach(s =>
+        colorPicker.querySelectorAll<HTMLElement>('.color-swatch').forEach(s =>
             s.classList.toggle('active', s.dataset.color === selectedColor)
         );
     }
     _grgbSyncFromColor(selectedColor, 'group'); // position the spectrum on the chosen colour
 }
 
-function closeGroupModal(event) {
+function closeGroupModal(event?) {
     if (!event || event.target === groupModal) {
         closeModalWithAnim('group-modal', () => {
             if (pendingGroupForSelector) { pendingGroupForSelector = false; taskGroupSelect.value = ''; }
@@ -1496,7 +1507,7 @@ function confirmAddGroup() {
 function toggleGroupCollapse(id) {
     const section = document.querySelector(`[data-group-id="${id}"]`);
     if (!section) return;
-    const body = section.querySelector('.group-body');
+    const body = section.querySelector<HTMLElement>('.group-body');
     if (!body) return;
 
     // 3a FIX: use section.collapsed as the AUTHORITATIVE state, not body.expanded.
@@ -1505,7 +1516,7 @@ function toggleGroupCollapse(id) {
     const isCurrentlyCollapsed = section.classList.contains('collapsed');
 
     // S1-5: cancel any in-flight finisher before starting a new animation.
-    if (body._collapseCancel) { body._collapseCancel(); body._collapseCancel = null; }
+    if ((body as any)._collapseCancel) { (body as any)._collapseCancel(); (body as any)._collapseCancel = null; }
 
     if (isCurrentlyCollapsed) {
         // ── Expand ──────────────────────────────────────────────────────────
@@ -1515,8 +1526,8 @@ function toggleGroupCollapse(id) {
         body.style.maxHeight = body.scrollHeight + 'px';
         body.style.opacity   = '1';
 
-        body._collapseCancel = onMaxHeightEnd(body, () => {
-            body._collapseCancel = null;
+        (body as any)._collapseCancel = onMaxHeightEnd(body, () => {
+            (body as any)._collapseCancel = null;
             body.classList.add('unlocked');
             body.style.maxHeight = '';
         });
@@ -1537,8 +1548,8 @@ function toggleGroupCollapse(id) {
             });
         });
 
-        body._collapseCancel = onMaxHeightEnd(body, () => {
-            body._collapseCancel = null;
+        (body as any)._collapseCancel = onMaxHeightEnd(body, () => {
+            (body as any)._collapseCancel = null;
             body.classList.remove('expanded');
             body.style.maxHeight = '';
         });
@@ -1553,7 +1564,7 @@ function toggleGroupCollapse(id) {
  */
 function toggleCollapseAllGroups() {
     if (!state.groups.length) return;
-    const sections = Array.from(document.querySelectorAll('.group-section[data-group-id]'));
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('.group-section[data-group-id]'));
     if (!sections.length) return;
 
     // 3c FIX: check section.collapsed (reliable) not body.expanded (animation-lagged).
@@ -1571,9 +1582,9 @@ function toggleCollapseAllGroups() {
 
 /** Keep the collapse-all button active state and tooltip in sync. */
 function updateCollapseAllBtn() {
-    const btn = document.getElementById('btn-collapse-all');
+    const btn = document.getElementById('btn-collapse-all') as any;
     if (!btn) return;
-    const sections = Array.from(document.querySelectorAll('.group-section[data-group-id]'));
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('.group-section[data-group-id]'));
     if (!sections.length) { btn.style.display = 'none'; return; }
     btn.style.display = '';
 
@@ -1591,7 +1602,7 @@ function openRenameGroupModal(id) {
     renamingGroupId = id;
     const group = state.groups.find(g => g.id === id);
     if (!group) return;
-    const inp = document.getElementById('rename-group-input');
+    const inp = document.getElementById('rename-group-input') as any;
     inp.value = group.name;
     openModalWithFocus('rename-group-modal');
     // Select input text after focus trap fires
@@ -1600,7 +1611,7 @@ function openRenameGroupModal(id) {
     });
 }
 
-function closeRenameGroupModal(event) {
+function closeRenameGroupModal(event?) {
     if (!event || event.target === document.getElementById('rename-group-modal')) {
         closeModalWithAnim('rename-group-modal', () => { renamingGroupId = null; });
         if (!event) renamingGroupId = null;
@@ -1608,9 +1619,9 @@ function closeRenameGroupModal(event) {
 }
 
 function confirmRenameGroup() {
-    const name = document.getElementById('rename-group-input').value.trim();
+    const name = (document.getElementById('rename-group-input') as HTMLInputElement).value.trim();
     if (!name) {
-        const inp = document.getElementById('rename-group-input');
+        const inp = document.getElementById('rename-group-input') as any;
         inp.classList.add('shake');
         setTimeout(() => inp.classList.remove('shake'), 400);
         return;
@@ -1641,7 +1652,7 @@ document.getElementById('rename-group-input').addEventListener('keydown', e => {
 })();
 
 colorPicker.addEventListener('click', e => {
-    const s = e.target.closest('.color-swatch');
+    const s = (e.target as any).closest('.color-swatch');
     if (!s) return;
     _setGroupColor(s.dataset.color);   // P-fix#2: highlights preset + moves the spectrum thumb
 });
