@@ -61,7 +61,7 @@ const K_SYNC_REFRESH = 'dusk_sync_refresh_v1';  // long-lived REFRESH token (wor
 // (then pushed), the app switches to the auth-code + refresh-token flow → silent
 // re-auth for MONTHS, no popup. A test seam (window.__DUSK_WORKER_URL) lets the
 // headless harness point at a fake Worker; production reads the constant ('').
-const SYNC_WORKER_URL = (typeof window !== 'undefined' && window.__DUSK_WORKER_URL) || 'https://dusk-sync.petrehundima.workers.dev';
+const SYNC_WORKER_URL = (typeof window !== 'undefined' && (window as any).__DUSK_WORKER_URL) || 'https://dusk-sync.petrehundima.workers.dev';
 function _useWorker() { return !!SYNC_WORKER_URL; }
 
 // ── In-memory auth state ──────────────────────────────────────────────────────
@@ -196,6 +196,8 @@ async function _refreshViaWorker() {
 // Drive's per-file `version` is the optimistic-concurrency marker; a mismatch on
 // push means another device wrote in between → Phase 3 re-pulls, re-merges, retries.
 class ConflictError extends Error {
+    expected: any;
+    actual: any;
     constructor(expected, actual) {
         super('Drive version conflict (expected ' + expected + ', got ' + actual + ')');
         this.name = 'ConflictError';
@@ -205,6 +207,8 @@ class ConflictError extends Error {
 }
 
 // ── GIS availability / token client ──────────────────────────────────────────
+// GIS is a classic <script> global from index.html — ambient type, no runtime.
+declare const google: any;
 function _gisReady() {
     return typeof google !== 'undefined' && google.accounts && google.accounts.oauth2;
 }
@@ -316,7 +320,7 @@ async function _token() {
     return _accessToken;
 }
 
-async function _driveFetch(url, opts, _retried) {
+async function _driveFetch(url, opts?, _retried?) {
     opts = opts || {};
     const token = await _token();
     if (!token) throw new Error('Not authorized');
@@ -465,14 +469,8 @@ function __setAccessTokenForTest(token, ttlMs) {
     _tokenExp = token ? (Date.now() + (typeof ttlMs === 'number' ? ttlMs : 3600000)) : 0;
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        cloudIsConfigured, cloudStatus, cloudAuth, cloudSignOut,
-        cloudPull, cloudPush, ConflictError,
-        __setAccessTokenForTest,
-        SYNC_CLIENT_ID, SYNC_SCOPE, SYNC_FILENAME,
-    };
-}
+// (the old module.exports footer is gone — the tests read the API off the
+//  globalThis bridges via a side-effect import, nothing require()s this file)
 
 // ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
 // (mutable top-level let/var declarations were converted to globalThis.* so

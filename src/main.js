@@ -12,7 +12,7 @@ import '../dusk/05-edit-notes-groups.js';
 import '../dusk/06-deadlines.js';
 import '../dusk/07-dnd-filter-progress.js';
 import '../dusk/09-sync.ts';
-import '../dusk/10-cloud.js';
+import '../dusk/10-cloud.ts';
 import '../dusk/08-quickadd-export-init.js';
 import '../dusk/11-sync-ui.js';
 import '../dusk/12-sync-wake.js';

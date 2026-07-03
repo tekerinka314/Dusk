@@ -1,8 +1,8 @@
-// Sync Phase 2 — Drive transport (dusk/10-cloud.js), mocked fetch, 24 cases.
+// Sync Phase 2 — Drive transport (dusk/10-cloud.ts), mocked fetch, 24 cases.
 // Ported node harness (was tests/harness/cloud-transport.cjs; body kept verbatim).
 // Side-effect import + globalThis bridges → survives the .ts rename (Этап 3).
 import { it, expect } from 'vitest';
-import '../dusk/10-cloud.js';
+import '../dusk/10-cloud.ts';
 const C = globalThis;
 
 let pass = 0; const failures = [];
