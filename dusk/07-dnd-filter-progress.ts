@@ -1,3 +1,18 @@
+// TS ambient view of this module's 2a globalThis slots (runtime inits below);
+// `declare` emits nothing — the single storage slot stays globalThis.*.
+declare var PEN_ASSET: any;   // classic <script> public/pen-asset.js
+declare var _searchDebounce: any;
+declare var formRepeatAnchorTime: any;
+declare var formRepeatAnchorDay: any;
+declare var formRepeatAnchorMonthday: any;
+declare var _lastProgressMilestone: any;
+declare var _emptyWasVisible: any;
+declare var _cathedralFlashAbort: any;
+declare var audioCtx: any;
+declare var _penUIWired: any;
+declare var toastTimer: any;
+declare var toastHideTimer: any;
+
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
@@ -39,7 +54,7 @@ function setupSortables() {
         // In schedule/split modes these containers hold no direct task children
         // (tasks live in zone sub-ULs), so they idle harmlessly.
         sortableMain = new Sortable(listContainer, { ...SORTABLE_OPTS });
-        document.querySelectorAll('.group-body').forEach(ul => {
+        document.querySelectorAll<HTMLElement>('.group-body').forEach(ul => {
             const gid = parseInt(ul.id.replace('group-list-', ''));
             sortableGroups[gid] = new Sortable(ul, { ...SORTABLE_OPTS });
         });
@@ -47,7 +62,7 @@ function setupSortables() {
         // ── Schedule-only mode: each sched-zone-ul is its own Sortable.
         //    Group name matches only same-type zones (sched_dl ↔ sched_dl,
         //    sched_ndl ↔ sched_ndl) — cross-zone movement blocked at library level.
-        document.querySelectorAll('.sched-zone-ul').forEach((ul, i) => {
+        document.querySelectorAll<HTMLElement>('.sched-zone-ul').forEach((ul, i) => {
             const grpName = ul.dataset.sortableGroup; // 'sched_dl' | 'sched_ndl'
             const key = `${grpName}_${i}`;
             sortableZones[key] = new Sortable(ul, {
@@ -64,7 +79,7 @@ function setupSortables() {
         //    Group names: 'split_active' (split-only),
         //                 'combo_active_dl' / 'combo_active_ndl' (combined).
         //    put: [grpName] ensures only same-zone exchanges are possible.
-        document.querySelectorAll('.split-active-body').forEach((ul, i) => {
+        document.querySelectorAll<HTMLElement>('.split-active-body').forEach((ul, i) => {
             const grpName = ul.dataset.sortableGroup;
             const key = `${grpName}_${i}`;
             sortableZones[key] = new Sortable(ul, {
@@ -79,7 +94,7 @@ function setupSortables() {
 
         // ── Pinned zone (split mode): shares the 'split_active' pool so a card can
         //    be dragged OUT into the active zone (→ unpins) or reordered within.
-        document.querySelectorAll('.split-pinned-body').forEach((ul, i) => {
+        document.querySelectorAll<HTMLElement>('.split-pinned-body').forEach((ul, i) => {
             sortableZones[`split_pinned_${i}`] = new Sortable(ul, {
                 ...SORTABLE_OPTS,
                 group: { name: 'split_active', pull: true, put: ['split_active'] },
@@ -87,7 +102,7 @@ function setupSortables() {
         });
 
         // ── Done zones: fully disabled — no drag initiation, no drops accepted.
-        document.querySelectorAll('.split-done-body').forEach(ul => {
+        document.querySelectorAll<HTMLElement>('.split-done-body').forEach(ul => {
             new Sortable(ul, {
                 group:    { name: 'done_locked', pull: false, put: false },
                 disabled: true,
@@ -108,7 +123,7 @@ function setupSortables() {
 
 // ── Priority inheritance on drag ──
 function inferNeighbourPriority(movedId, ul) {
-    const items = Array.from(ul.querySelectorAll(':scope > .task-item'));
+    const items = (Array.from(ul.querySelectorAll(':scope > .task-item')) as any[]);
     const idx   = items.findIndex(el => parseInt(el.dataset.id) === movedId);
     if (idx === -1) return null;
     // Prefer the task above; fall back to task below
@@ -195,7 +210,7 @@ function onDragEnd(evt) {
     saveState();
     document.body.classList.remove('is-dragging');
     // Always clean up portal glow regardless of where drag ended
-    document.querySelectorAll('.group-body.drag-over')
+    document.querySelectorAll<HTMLElement>('.group-body.drag-over')
         .forEach(el => el.classList.remove('drag-over'));
 
     // ── Ghost settle: smooth ink-to-solid transition after drop ──────
@@ -227,7 +242,7 @@ function onDragEnd(evt) {
 }
 
 function reorderList(ul) {
-    Array.from(ul.querySelectorAll(':scope > .task-item')).forEach((li, i) => {
+    (Array.from(ul.querySelectorAll(':scope > .task-item')) as any[]).forEach((li, i) => {
         const t = state.tasks.find(t => t.id === parseInt(li.dataset.id));
         if (t) t.order = i;
     });
@@ -244,10 +259,10 @@ function updateGroupCounts() {
         if (t.checked || t.cycleChecked) c.done++;
         counts.set(key, c);
     });
-    document.querySelectorAll('.group-section').forEach(sec => {
+    document.querySelectorAll<HTMLElement>('.group-section').forEach(sec => {
         const gid   = parseInt(sec.dataset.groupId);
         const c     = counts.get(gid) || { total: 0, done: 0 };
-        const badge = sec.querySelector('.group-count');
+        const badge = sec.querySelector<HTMLElement>('.group-count');
         if (badge) badge.textContent = `${c.done}/${c.total}`;
     });
 }
@@ -464,7 +479,7 @@ function clearMainSearch() {
     searchBox.focus();
 }
 function clearArchiveSearch() {
-    const sb = document.getElementById('archive-search-box');
+    const sb = document.getElementById('archive-search-box') as any;
     if (sb) sb.value = '';
     archiveSearchQuery = '';
     renderArchive();
@@ -483,10 +498,10 @@ function focusNewTaskInput() {
 // ============================================================
 //  PRIORITY / REPEAT SELECTORS (form)
 // ============================================================
-document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(btn => {
+document.querySelectorAll<HTMLElement>('#priority-selector .prio-grid-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         selectedPriority = btn.dataset.prio;
-        document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll<HTMLElement>('#priority-selector .prio-grid-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         // FIX-1: Disable form color picker whenever a priority is chosen
         _syncFormColorPickerState();
@@ -502,9 +517,9 @@ function _syncFormColorPickerState() {
     if (!picker) return;
     if (hasPrio) {
         selectedFormColor = null;
-        picker.querySelectorAll('.form-color-swatch').forEach(s =>
+        picker.querySelectorAll<HTMLElement>('.form-color-swatch').forEach(s =>
             s.classList.toggle('active', s.dataset.color === ''));
-        const custom = picker.querySelector('.form-color-custom');
+        const custom = picker.querySelector<HTMLElement>('.form-color-custom');
         if (custom) { custom.classList.remove('has-color'); custom.style.background = ''; }
     }
 }
@@ -516,13 +531,13 @@ function _setFormColor(c) {
     const picker = document.getElementById('form-color-picker');
     if (picker) {
         let matched = false;
-        picker.querySelectorAll('.form-color-swatch').forEach(s => {
+        picker.querySelectorAll<HTMLElement>('.form-color-swatch').forEach(s => {
             const on = (s.dataset.color || null) === selectedFormColor;
             s.classList.toggle('active', on);
             if (on) matched = true;
         });
         // Custom (non-preset) colour → fill the crystal button with it like a swatch
-        const custom = picker.querySelector('.form-color-custom');
+        const custom = picker.querySelector<HTMLElement>('.form-color-custom');
         if (custom) {
             const isCustom = !!selectedFormColor && !matched;
             custom.classList.toggle('has-color', isCustom);
@@ -531,12 +546,12 @@ function _setFormColor(c) {
     }
     if (selectedFormColor) {
         selectedPriority = 'none';
-        document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
+        document.querySelectorAll<HTMLElement>('#priority-selector .prio-grid-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.prio === 'none'));
     }
 }
 
-document.querySelectorAll('#repeat-selector .repeat-btn').forEach(btn => {
+document.querySelectorAll<HTMLButtonElement>('#repeat-selector .repeat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         if (btn.disabled) return;
         setFormRepeat(btn.dataset.repeat);
@@ -550,7 +565,7 @@ globalThis.formRepeatAnchorMonthday = null;
 
 function setFormRepeat(repeat) {
     selectedRepeat = repeat;
-    document.querySelectorAll('#repeat-selector .repeat-btn').forEach(b =>
+    document.querySelectorAll<HTMLButtonElement>('#repeat-selector .repeat-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.repeat === repeat)
     );
     // Problem 3: show/hide inline anchor section in form
@@ -584,9 +599,9 @@ function toggleExpand() {
         // M-4: switch to 'none' only after the MAX-HEIGHT transition ends (the
         // propertyName filter inside onMaxHeightEnd avoids firing on the faster
         // opacity transition). S1-5: fallback timer covers reduced-motion / no-op.
-        if (extraFields._collapseCancel) extraFields._collapseCancel();
-        extraFields._collapseCancel = onMaxHeightEnd(extraFields, () => {
-            extraFields._collapseCancel = null;
+        if ((extraFields as any)._collapseCancel) (extraFields as any)._collapseCancel();
+        (extraFields as any)._collapseCancel = onMaxHeightEnd(extraFields, () => {
+            (extraFields as any)._collapseCancel = null;
             if (expandOpen) extraFields.style.maxHeight = 'none';
         });
     } else {
@@ -603,9 +618,9 @@ function toggleExpand() {
         clearFormSubtasks();
         clearFormDeadlineState();
         setFormRepeat('none');
-        document.querySelectorAll('#repeat-selector .repeat-btn').forEach(b => { b.disabled = false; });
+        document.querySelectorAll<HTMLButtonElement>('#repeat-selector .repeat-btn').forEach(b => { b.disabled = false; });
         selectedPriority = 'none';
-        document.querySelectorAll('#priority-selector .prio-grid-btn').forEach(b =>
+        document.querySelectorAll<HTMLElement>('#priority-selector .prio-grid-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.prio === 'none'));
         _setFormColor(null); // also clears the custom crystal button on collapse
         taskGroupSelect.value = '';
@@ -662,7 +677,7 @@ function updateProgress() {
         // Fire only on a new crossing (not on every render, not on page reload)
         if (reached > _lastProgressMilestone) {
             _lastProgressMilestone = reached;
-            localStorage.setItem('dusk_milestone', reached); // IMP-10: persist
+            localStorage.setItem('dusk_milestone', String(reached)); // IMP-10: persist
             progressBar.classList.remove('milestone-glow');
             void progressBar.offsetWidth;
             progressBar.classList.add('milestone-glow');
@@ -680,10 +695,10 @@ function updateProgress() {
     // ─────────────────────────────────────────────────────────────
 
     // ── Subtask footnote counter ──────────────────────────────────
-    const subtaskRow = document.getElementById('subtask-progress-row');
-    const subDoneEl  = document.getElementById('subtask-done-count');
-    const subTotalEl = document.getElementById('subtask-total-count');
-    const subBar     = document.getElementById('subtask-prog-bar');
+    const subtaskRow = document.getElementById('subtask-progress-row') as any;
+    const subDoneEl  = document.getElementById('subtask-done-count') as any;
+    const subTotalEl = document.getElementById('subtask-total-count') as any;
+    const subBar     = document.getElementById('subtask-prog-bar') as any;
     if (subtaskRow && subDoneEl && subTotalEl) {
         let subTotal = 0, subDone = 0;
         state.tasks.forEach(t => {
@@ -711,7 +726,7 @@ function updateVisibility() {
     progressSection.style.display = hasTasks ? 'flex'  : 'none';
     // Toolbar stays ALWAYS visible — export/import/restore-points are needed even with
     // no tasks (e.g. importing a backup on a fresh device = the #1 portability case).
-    toolbar.style.display         = 'flex';
+    (toolbar as any).style.display         = 'flex';
     groupsBar.style.display       = 'flex';
 
     const query     = searchQuery.toLowerCase();
@@ -762,7 +777,7 @@ function updateVisibility() {
         emptyState.style.flexDirection = 'column';
         emptyState.style.alignItems = 'center';
         // Honest message: tasks exist but are filtered out → "nothing found", else "add first".
-        const _msgEl = emptyState.querySelector('p');
+        const _msgEl = emptyState.querySelector<HTMLElement>('p');
         const _noTasks = state.tasks.length === 0;
         if (_msgEl) _msgEl.textContent = _noTasks
             ? 'Нет задач. Добавьте первую.'
@@ -775,8 +790,8 @@ function updateVisibility() {
         // ── Empty state staged entrance ───────────────────────────
         // Only animate when transitioning from hidden → visible
         if (!prefersReducedMotion() && wasHidden) {
-            const rune   = emptyState.querySelector('.empty-rune');
-            const textEl = emptyState.querySelector('p');
+            const rune   = emptyState.querySelector<HTMLElement>('.empty-rune');
+            const textEl = emptyState.querySelector<HTMLElement>('p');
             if (rune) {
                 rune.style.animation = 'none';
                 void rune.offsetWidth;
@@ -808,7 +823,7 @@ function showAllDone() {
 
     if (!prefersReducedMotion()) {
         // Cathedral flash on the app box
-        const appBox = document.querySelector('.todo-app');
+        const appBox = document.querySelector<HTMLElement>('.todo-app');
         if (appBox) {
             // ANIM-5: abort any previous listener before adding a new one
             if (_cathedralFlashAbort) { _cathedralFlashAbort.abort(); }
@@ -823,8 +838,8 @@ function showAllDone() {
 
         // Staged icon → text entrance (icon uses existing allDoneIcon keyframe,
         // text fades in with delay)
-        const icon    = allDone.querySelector('.all-done-icon');
-        const textEl  = allDone.querySelector('p');
+        const icon    = allDone.querySelector<HTMLElement>('.all-done-icon');
+        const textEl  = allDone.querySelector<HTMLElement>('p');
 
         if (icon) {
             icon.style.animation = 'none';
@@ -849,7 +864,7 @@ function showAllDone() {
 // ============================================================
 globalThis.audioCtx = null;
 function getAudioCtx() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     return audioCtx;
 }
 
@@ -943,7 +958,7 @@ const PEN_TIP_OFF = 'Звук пера: выкл — письмо беззвуч
 function _penLoad() {
     if (_penBuf) return Promise.resolve(_penBuf);
     if (_penLoading) return _penLoading;
-    try { _penAC = _penAC || new (window.AudioContext || window.webkitAudioContext)(); } catch (_) { return Promise.reject(); }
+    try { _penAC = _penAC || new (window.AudioContext || (window as any).webkitAudioContext)(); } catch (_) { return Promise.reject(); }
     // D-3: decode the base64 data-URI in-memory via atob (NO fetch) so the pen sound works
     // fully offline from a local file:// page without any server. PEN_ASSET lives in
     // pen-asset.js (loaded as a <script> before app.js) → window.PEN_ASSET.
@@ -1030,7 +1045,7 @@ document.addEventListener('keydown', e => {
 globalThis._penUIWired = false;
 function _penSetVolFromEvent(e) {
     const b = _penBtn(); if (!b) return;
-    const ch = b.querySelector('.pen-chan'); if (!ch) return;
+    const ch = b.querySelector<HTMLElement>('.pen-chan'); if (!ch) return;
     const r = ch.getBoundingClientRect();
     const y = e.touches ? e.touches[0].clientY : e.clientY;
     let f = (r.bottom - y) / r.height;
@@ -1038,7 +1053,7 @@ function _penSetVolFromEvent(e) {
     penVolume = f;
     localStorage.setItem(K_PEN_VOL, f.toFixed(3));
     b.style.setProperty('--pv', (f * 100) + '%');
-    const pc = b.querySelector('.pen-pct');
+    const pc = b.querySelector<HTMLElement>('.pen-pct');
     if (pc) pc.textContent = Math.round(f * 100) + '%';
 }
 function _penBuildUI() {
@@ -1048,10 +1063,10 @@ function _penBuildUI() {
         '<span class="pen-ico-slot">' + IC.penSound + '</span>' +
         '<span class="pen-pct"></span>';
     b.style.setProperty('--pv', (penVolume * 100) + '%');
-    b.querySelector('.pen-pct').textContent = Math.round(penVolume * 100) + '%';
+    b.querySelector<HTMLElement>('.pen-pct').textContent = Math.round(penVolume * 100) + '%';
     let dragging = false, fromChan = false;
     b.addEventListener('pointerdown', e => {
-        if (penSoundEnabled && e.target.closest('.pen-chan')) {
+        if (penSoundEnabled && (e.target as any).closest('.pen-chan')) {
             dragging = true; fromChan = true;         // any click begun in the channel must NOT toggle
             b.classList.add('pen-live');
             _penSetVolFromEvent(e);
@@ -1116,7 +1131,7 @@ function _hideToast() {
     toastHideTimer = setTimeout(() => toast.classList.remove('hide'), 280);
 }
 
-function showToast(msg, opts = {}) {
+function showToast(msg, opts: any = {}) {
     // Cancel any in-flight hide
     clearTimeout(toastTimer);
     clearTimeout(toastHideTimer);
@@ -1234,7 +1249,7 @@ function filterByTag(tag) {
     } else {
         searchBox.value = tag; searchQuery = tag; saveUiState();
     }
-    if (toolbar.style.display === 'none') toolbar.style.display = 'flex';
+    if ((toolbar as any).style.display === 'none') (toolbar as any).style.display = 'flex';
     render();
     // D-3: announce result count for screen readers
     const visible = _visibleTaskEls().length;

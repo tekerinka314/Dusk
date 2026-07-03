@@ -7,6 +7,10 @@ declare var searchQuery: any;
 declare var soundEnabled: any;
 declare var penSoundEnabled: any;
 declare var penVolume: any;
+declare var _penAC: any;
+declare var _penBuf: any;
+declare var _penLoading: any;
+declare var _penVoices: any;
 declare var _penLastL: any;
 declare var expandOpen: any;
 declare var currentPage: any;
@@ -799,9 +803,9 @@ const archiveBadge    = document.getElementById('archive-badge');
 
 // ---- SORTABLE ----
 globalThis.sortableMain = null;
-const sortableGroups = {};
-const sortableSubs   = {};
-const sortableZones  = {}; // keyed inner uls for schedule+split combined mode
+const sortableGroups: Record<string, any> = {};
+const sortableSubs: Record<string, any>   = {};
+const sortableZones: Record<string, any>  = {}; // keyed inner uls for schedule+split combined mode
 globalThis._setupRaf = null;// FIX: track pending rAF so we cancel stale queued inits
 
 const SORTABLE_OPTS = {
@@ -829,8 +833,8 @@ const SORTABLE_OPTS = {
     // 7c split A1: onDragEnd/onDragAdd живут в dusk/07-dnd; этот файл (core)
     // грузится раньше, поэтому ссылаемся лениво (вызов в момент drag, когда
     // 07 уже загружен). Хендлеры используют только evt, не this → обёртка безопасна.
-    onEnd: (...a) => onDragEnd(...a),
-    onAdd: (...a) => onDragAdd(...a),
+    onEnd: (...a: any[]) => (onDragEnd as any)(...a),
+    onAdd: (...a: any[]) => (onDragAdd as any)(...a),
     onStart() { document.body.classList.add('is-dragging'); },
     onMove(evt) {
         const dragged = evt.dragged;
