@@ -4,6 +4,7 @@
 // so evaluation order is the load-bearing contract here. 08 runs init() at its
 // top level and must come after 09/10; 11/12 wire sync AFTER init.
 import './sortable-global.js';
+import './idb-global.js';
 import '../dusk/01-core.ts';
 import '../dusk/02-grimoire.ts';
 import '../dusk/03-render.ts';

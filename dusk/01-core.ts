@@ -1,5 +1,12 @@
 // TS ambient view of this module's 2a globalThis slots (runtime inits below);
 // `declare` emits nothing — the single storage slot stays globalThis.*.
+// Этап 4: idb-keyval's get/set are bridged in via src/idb-global.js (same
+// reasoning as Sortable in src/sortable-global.js) — a real static `import`
+// here would silently turn this file into an ES module for TypeScript,
+// severing its top-level declarations from the shared global namespace the
+// other 11 dusk modules read ambiently (script-mode merging).
+declare var _idbKvGet: any;
+declare var _idbKvSet: any;
 declare var _dragHandleObserver: any;
 declare var state: any;
 declare var isFiltered: any;
@@ -69,7 +76,7 @@ Object.assign(globalThis, {
     _resetDragHandle, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
     loadState, _migrateV3toV4, migrateTasks, uid, nowTs, _contentSig, _trackedRecords, primeRecSig,
     bumpUpdatedAt, addTombstone, _delegate, normalizeState, migrateFromOld, loadUiState, saveUiState, pushUndo,
-    pushUndoSnapshot, undo, redo,
+    pushUndoSnapshot, undo, redo, _idbGet, _idbSet,
 });
 
 // ============================================================
@@ -83,6 +90,19 @@ const K_STATE_V3 = 'duskState_v3';
 const K_STATE_V4 = 'duskState_v4';
 const K_STATE    = K_STATE_V4;                  // active key — every save goes here
 const K_PREMIGRATION = 'dusk_premigration_v3';  // one-time raw v3 snapshot, taken before migrating
+
+// Этап 4: thin IndexedDB wrapper (idb-keyval). Both helpers swallow every
+// error themselves — callers never need try/catch, a broken/unavailable IDB
+// must never block a save or a boot (rule #1: never lose data, localStorage
+// stays authoritative-on-failure for both directions).
+async function _idbGet(key) {
+    try { return await _idbKvGet(key); } catch (_) { return undefined; }
+}
+async function _idbSet(key, value) {
+    try { await _idbKvSet(key, value); return true; } catch (_) { return false; }
+}
+
+
 const K_SOUND  = 'soundEnabled';
 const K_FILTER = 'isFiltered';
 const K_PAGE   = 'currentPage';
