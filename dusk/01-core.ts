@@ -1025,7 +1025,7 @@ function saveState() {
     try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
     localStorage.setItem(K_STATE, JSON.stringify(state));   // K_STATE === v4 — LS stays the live fallback forever
     _idbSet(K_STATE, state);   // Этап 4: fire-and-forget mirror; swallows its own errors, never blocks a save
-    try { maybeBackup(); } catch (_) { /* backups must never break a save */ }
+    maybeBackup().catch(_ => {}); // Этап 4: maybeBackup is now async (IDB-primary loadBackups) — fire-and-forget, backups must never block a save
     // Sync Phase 3: notify the sync layer (debounced push). Guarded — undefined until
     // 11-sync-ui.js loads, and a no-op until sync is enabled + ready (never blocks a save).
     try { if (typeof _afterSaveState === 'function') _afterSaveState(); } catch (_) {}
@@ -1041,13 +1041,22 @@ const K_BACKUPS          = 'dusk_backups_v1';
 const BACKUP_RING_SIZE   = 10;               // keep the last 10 snapshots
 const BACKUP_THROTTLE_MS  = 10 * 60 * 1000;  // at most one auto-snapshot / 10 min
 
-function loadBackups() {
+// Этап 4: IndexedDB is the primary read source (same reasoning as loadState());
+// localStorage stays a live, permanently-updated fallback.
+async function loadBackups() {
+    try {
+        const idb = await _idbGet(K_BACKUPS);
+        if (Array.isArray(idb)) return idb;
+    } catch (_) { /* fall through to the LS path below */ }
     try { return JSON.parse(localStorage.getItem(K_BACKUPS)) || []; }
     catch (_) { return []; }
 }
 
-/** Quota-safe write: on failure drop the oldest snapshot(s) and retry. */
+/** Quota-safe write: on failure drop the oldest snapshot(s) and retry. IDB gets
+ *  the full untruncated ring (no comparable quota ceiling) via a defensive copy
+ *  taken BEFORE any LS-quota shrinking mutates `arr` in place. */
 function persistBackups(arr) {
+    _idbSet(K_BACKUPS, arr.slice());   // Этап 4: fire-and-forget mirror; swallows its own errors
     while (arr.length) {
         try { localStorage.setItem(K_BACKUPS, JSON.stringify(arr)); return true; }
         catch (_) { arr.shift(); }
@@ -1060,8 +1069,8 @@ function persistBackups(arr) {
  * Capture a snapshot of the just-saved state, throttled by time.
  * Skips storing a duplicate when nothing changed since the last snapshot.
  */
-function maybeBackup() {
-    const backups = loadBackups();
+async function maybeBackup() {
+    const backups = await loadBackups();
     const last = backups[backups.length - 1];
     const now = Date.now();
     if (last && now - last.ts < BACKUP_THROTTLE_MS) return;

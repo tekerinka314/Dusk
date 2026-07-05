@@ -1463,8 +1463,8 @@ function _formatBackupStamp(ts) {
     return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function openBackupModal() {
-    _renderBackupList();
+async function openBackupModal() {
+    await _renderBackupList();   // Этап 4: loadBackups() is async (IDB-primary) — await so the modal never opens on stale/empty content
     openModalWithFocus('backup-modal');
 }
 function closeBackupModal(event?) {
@@ -1472,10 +1472,10 @@ function closeBackupModal(event?) {
         closeModalWithAnim('backup-modal');
     }
 }
-function _renderBackupList() {
+async function _renderBackupList() {
     const cont = document.getElementById('backup-list');
     if (!cont) return;
-    const backups = loadBackups().slice().reverse(); // newest first
+    const backups = (await loadBackups()).slice().reverse(); // newest first
     if (!backups.length) {
         cont.innerHTML = '<p class="backups-empty">Точек восстановления пока нет</p>';
         return;
@@ -1495,8 +1495,8 @@ function _renderBackupList() {
     }).join('');
 }
 
-function restoreBackup(ts) {
-    const snap = loadBackups().find(b => b.ts === ts);
+async function restoreBackup(ts) {
+    const snap = (await loadBackups()).find(b => b.ts === ts);
     if (!snap) { showToast('Точка восстановления не найдена'); return; }
     let loaded;
     try { loaded = JSON.parse(snap.json); }

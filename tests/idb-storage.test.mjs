@@ -96,7 +96,41 @@ let threw10 = false;
 try { await S.loadState(); } catch (_) { threw10 = true; }
 rec('loadState(): a rejected IDB read falls back to LS without throwing', !threw10 && globalThis.state.tasks?.[0]?.uid === 'fallback-ls', { threw10, state: globalThis.state });
 
-it('idb storage wrapper (Этап 4 steps 0-2) — 13 cases', () => {
+// 11. persistBackups(): writes both LS (unchanged shape) and IDB (fire-and-forget, full copy)
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+S.persistBackups([{ ts: 1, json: '{}', counts: {} }]);
+rec('persistBackups() writes the LS ring', JSON.parse(globalThis.localStorage.getItem(S.K_BACKUPS) || 'null')?.length === 1);
+rec('persistBackups() mirrors the same ring into IDB', (await S._idbGet(S.K_BACKUPS))?.length === 1);
+
+// 12. loadBackups(): IDB present → preferred over LS
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+globalThis.localStorage.setItem(S.K_BACKUPS, JSON.stringify([{ ts: 1, json: '{}', counts: {} }]));
+await S._idbSet(S.K_BACKUPS, [{ ts: 2, json: '{}', counts: {} }, { ts: 3, json: '{}', counts: {} }]);
+const got12 = await S.loadBackups();
+rec('loadBackups(): IDB present wins over LS', Array.isArray(got12) && got12.length === 2 && got12[0].ts === 2, got12);
+
+// 13. loadBackups(): a rejected IDB read falls back to LS, never throws
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+globalThis.localStorage.setItem(S.K_BACKUPS, JSON.stringify([{ ts: 9, json: '{}', counts: {} }]));
+idbKeyval.get.mockRejectedValueOnce(new Error('boom'));
+let threw13 = false; let got13;
+try { got13 = await S.loadBackups(); } catch (_) { threw13 = true; }
+rec('loadBackups(): a rejected IDB read falls back to LS without throwing', !threw13 && got13?.length === 1 && got13[0].ts === 9, { threw13, got13 });
+
+// 14. maybeBackup(): creates a ring entry, present in both LS and its IDB mirror
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+globalThis.state = { tasks: [{ uid: 'bk1' }], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1 };
+await S.maybeBackup();
+const idbBackups14 = await S._idbGet(S.K_BACKUPS);
+const lsBackups14 = JSON.parse(globalThis.localStorage.getItem(S.K_BACKUPS) || 'null');
+rec('maybeBackup() creates a backup entry mirrored into IDB', Array.isArray(idbBackups14) && idbBackups14.length === 1, idbBackups14);
+rec('maybeBackup() also writes the LS ring (unchanged shape)', Array.isArray(lsBackups14) && lsBackups14.length === 1, lsBackups14);
+
+it('idb storage wrapper (Этап 4 steps 0-3) — 19 cases', () => {
     expect(failures).toEqual([]);
-    expect(pass).toBe(13);
+    expect(pass).toBe(19);
 });
