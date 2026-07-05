@@ -1512,7 +1512,16 @@ function initFormWeekdayPicker() {
 }
 
 
-init();
+// Этап 4: init() is now async (loadState() awaits an IndexedDB round-trip
+// first). Deliberately NOT `await`-ed at top level here — a top-level await
+// would make TypeScript/bundlers treat 08 as an async module, and per the ES
+// module spec that only blocks modules that actually IMPORT it; sibling
+// side-effect imports (11-sync-ui.ts, 12-sync-wake.ts) are NOT dependents, so
+// their own evaluation could interleave before init() resolves regardless —
+// no safety gained, only exotic ordering risk. render()/setupEventListeners()
+// etc. all run INSIDE init(), sequenced after its own internal `await
+// loadState()`, so first paint still waits for the IDB round-trip either way.
+init().catch(e => { try { console.error('DUSK boot failed', e); } catch (_) {} });
 
 // ── ES-module bridge (migration 2a), part 2: consts/classes ─────────────────
 // (mutable top-level let/var declarations were converted to globalThis.* so

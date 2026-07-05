@@ -19,6 +19,11 @@ vi.mock('idb-keyval', () => ({
 import * as idbKeyval from 'idb-keyval';
 import '../src/idb-global.js';
 import '../dusk/01-core.ts';
+// loadState()'s normalizeState() calls migrateNotes() (defined in 02-grimoire.ts,
+// shared via the script-mode global namespace) — load it too so the loadState()
+// scenarios below don't hit a ReferenceError that only exists in this isolated
+// test, not in the real app (which loads all 12 modules together).
+import '../dusk/02-grimoire.ts';
 const S = globalThis;
 
 let pass = 0; const failures = [];
@@ -65,7 +70,33 @@ try { S.saveState(); } catch (_) { threw7 = true; }
 rec('saveState never throws even when the IDB mirror rejects', !threw7);
 rec('saveState LS write still lands despite the IDB mirror rejecting', globalThis.localStorage.getItem(S.K_STATE) === JSON.stringify(globalThis.state));
 
-it('idb storage wrapper (Этап 4 steps 0-1) — 9 cases', () => {
+// 8. loadState(): LS-only boot (fresh IDB) loads the LS data and migrates it into IDB
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+globalThis.localStorage.setItem(S.K_STATE_V4, JSON.stringify({ tasks: [{ uid: 'ls1', text: 'from ls' }], groups: [], archive: [], nextId: 2, nextGroupId: 1, nextSubId: 1 }));
+await S.loadState();
+rec('loadState(): LS-only boot loads the LS data', globalThis.state.tasks?.[0]?.uid === 'ls1', globalThis.state);
+await Promise.resolve();
+rec('loadState(): LS-only boot migrates that data into IDB', (await S._idbGet(S.K_STATE))?.tasks?.[0]?.uid === 'ls1');
+
+// 9. loadState(): IDB present → preferred over LS, even when LS holds different (stale) data
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+globalThis.localStorage.setItem(S.K_STATE_V4, JSON.stringify({ tasks: [{ uid: 'stale-ls' }], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1 }));
+await S._idbSet(S.K_STATE, { tasks: [{ uid: 'fresh-idb' }], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1 });
+await S.loadState();
+rec('loadState(): IDB present wins over stale LS', globalThis.state.tasks?.[0]?.uid === 'fresh-idb', globalThis.state);
+
+// 10. loadState(): a rejected IDB read falls back to LS and still boots — never throws
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+globalThis.localStorage.setItem(S.K_STATE_V4, JSON.stringify({ tasks: [{ uid: 'fallback-ls' }], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1 }));
+idbKeyval.get.mockRejectedValueOnce(new Error('boom'));
+let threw10 = false;
+try { await S.loadState(); } catch (_) { threw10 = true; }
+rec('loadState(): a rejected IDB read falls back to LS without throwing', !threw10 && globalThis.state.tasks?.[0]?.uid === 'fallback-ls', { threw10, state: globalThis.state });
+
+it('idb storage wrapper (Этап 4 steps 0-2) — 13 cases', () => {
     expect(failures).toEqual([]);
-    expect(pass).toBe(9);
+    expect(pass).toBe(13);
 });

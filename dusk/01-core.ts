@@ -915,8 +915,8 @@ const SORTABLE_OPTS = {
 // ============================================================
 //  INIT
 // ============================================================
-function init() {
-    loadState();
+async function init() {
+    await loadState();
     // Ensure new state fields exist for older stored data
     if (!state.sortMode) state.sortMode = 'priority';
     if (!state.sortModeOverrides) state.sortModeOverrides = {};
@@ -1080,7 +1080,24 @@ function maybeBackup() {
     persistBackups(backups);
 }
 
-function loadState() {
+async function loadState() {
+    // Этап 4: IndexedDB is the primary read source at boot. localStorage keeps
+    // receiving a live, full copy on every saveState() (step 1) — never a
+    // frozen one-time snapshot — so a failed/unavailable/empty IDB always has
+    // a fresh LS fallback (rule #1: never lose data). Any error here must
+    // fall through to the LS path below, never leave the app un-booted.
+    try {
+        const idbState = await _idbGet(K_STATE);
+        if (idbState && typeof idbState === 'object') {
+            state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...idbState };
+            migrateTasks(state.tasks);
+            migrateTasks(state.archive);
+            normalizeState();
+            saveState();   // keeps the LS mirror fresh + persists any one-time normalization
+            return;
+        }
+    } catch (_) { /* IDB unavailable/corrupt — fall through to the LS path below */ }
+
     // Idea 8: prefer the v4 key. If it's absent, do the one-time v3→v4 upgrade
     // (which keeps v3 frozen as a fallback). Only if neither exists fall back to
     // the legacy migrators.
@@ -1092,7 +1109,7 @@ function loadState() {
             migrateTasks(state.tasks);
             migrateTasks(state.archive);
             normalizeState();
-            saveState();   // persist note plain→HTML migration once
+            saveState();   // persist note plain→HTML migration once; also seeds the IDB mirror
         } catch(e) { if (!_migrateV3toV4()) migrateFromOld(); }
         return;
     }
