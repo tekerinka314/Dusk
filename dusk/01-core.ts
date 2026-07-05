@@ -917,6 +917,10 @@ const SORTABLE_OPTS = {
 // ============================================================
 async function init() {
     await loadState();
+    // Этап 4: best-effort request to keep IDB/LS from being evicted under storage
+    // pressure. Never blocks boot, never surfaces a denial — same defensive
+    // style as the rest of this function.
+    try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (_) {}
     // Ensure new state fields exist for older stored data
     if (!state.sortMode) state.sortMode = 'priority';
     if (!state.sortModeOverrides) state.sortModeOverrides = {};
