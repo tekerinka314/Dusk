@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 //
-// Этап 4 step 0 — _idbGet/_idbSet wrapper (dusk/01-core.ts) over idb-keyval,
+// Этап 4 steps 0-1 — _idbGet/_idbSet wrapper + saveState() dual-write (dusk/01-core.ts) over idb-keyval,
 // bridged in via src/idb-global.js (same pattern as sortable-global.js for
 // Sortable — 01-core.ts stays import/export-free so TS keeps merging its
 // top-level declarations into the shared global namespace the other 11 dusk
@@ -48,7 +48,24 @@ rec('_idbSet swallows a rejected set() (no throw, resolves false)', !threw4 && g
 // 5. a successful set() resolves true
 rec('_idbSet resolves true on success', await S._idbSet('k2', 2) === true);
 
-it('idb storage wrapper (Этап 4 step 0) — 5 cases', () => {
+// 6. saveState() dual-writes: LS synchronously (unchanged), IDB as a fire-and-forget mirror
+globalThis.localStorage.clear();
+globalThis.state = { tasks: [{ uid: 't1', text: 'x' }], groups: [], archive: [], nextId: 2, nextGroupId: 1, nextSubId: 1 };
+S.saveState();
+rec('saveState still writes LS synchronously', globalThis.localStorage.getItem(S.K_STATE) === JSON.stringify(globalThis.state));
+await Promise.resolve(); // let the fire-and-forget _idbSet microtask land
+rec('saveState mirrors the same state into IDB', JSON.stringify(await S._idbGet(S.K_STATE)) === JSON.stringify(globalThis.state));
+
+// 7. a rejected IDB mirror write never throws out of saveState and never blocks the LS write
+globalThis.localStorage.clear();
+idbKeyval.set.mockRejectedValueOnce(new Error('boom'));
+globalThis.state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1 };
+let threw7 = false;
+try { S.saveState(); } catch (_) { threw7 = true; }
+rec('saveState never throws even when the IDB mirror rejects', !threw7);
+rec('saveState LS write still lands despite the IDB mirror rejecting', globalThis.localStorage.getItem(S.K_STATE) === JSON.stringify(globalThis.state));
+
+it('idb storage wrapper (Этап 4 steps 0-1) — 9 cases', () => {
     expect(failures).toEqual([]);
-    expect(pass).toBe(5);
+    expect(pass).toBe(9);
 });

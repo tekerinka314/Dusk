@@ -1023,7 +1023,8 @@ function playLoadAnimations() {
 // ============================================================
 function saveState() {
     try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
-    localStorage.setItem(K_STATE, JSON.stringify(state));   // K_STATE === v4
+    localStorage.setItem(K_STATE, JSON.stringify(state));   // K_STATE === v4 — LS stays the live fallback forever
+    _idbSet(K_STATE, state);   // Этап 4: fire-and-forget mirror; swallows its own errors, never blocks a save
     try { maybeBackup(); } catch (_) { /* backups must never break a save */ }
     // Sync Phase 3: notify the sync layer (debounced push). Guarded — undefined until
     // 11-sync-ui.js loads, and a no-op until sync is enabled + ready (never blocks a save).
