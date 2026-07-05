@@ -7,6 +7,7 @@
 // other 11 dusk modules read ambiently (script-mode merging).
 declare var _idbKvGet: any;
 declare var _idbKvSet: any;
+declare var _lastIdbStateJson: any;
 declare var _dragHandleObserver: any;
 declare var state: any;
 declare var isFiltered: any;
@@ -101,6 +102,12 @@ async function _idbGet(key) {
 async function _idbSet(key, value) {
     try { await _idbKvSet(key, value); return true; } catch (_) { return false; }
 }
+// Этап 4: last state JSON successfully mirrored to IDB. saveState() skips a
+// redundant _idbSet when the serialized state is byte-identical — cuts LevelDB
+// write-amplification (obsolete versions pending compaction) from no-op/repeat
+// saves. Only updated on a CONFIRMED write, so a failed mirror can't poison the
+// dedup (the next save re-attempts). LS still writes every time (cheap, in-place).
+globalThis._lastIdbStateJson = undefined;
 
 
 const K_SOUND  = 'soundEnabled';
@@ -1027,8 +1034,14 @@ function playLoadAnimations() {
 // ============================================================
 function saveState() {
     try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
-    localStorage.setItem(K_STATE, JSON.stringify(state));   // K_STATE === v4 — LS stays the live fallback forever
-    _idbSet(K_STATE, state);   // Этап 4: fire-and-forget mirror; swallows its own errors, never blocks a save
+    const json = JSON.stringify(state);                     // serialize once — reused for LS + the IDB dedup check
+    localStorage.setItem(K_STATE, json);                    // K_STATE === v4 — LS stays the live fallback forever
+    // Этап 4: fire-and-forget IDB mirror, skipped when byte-identical to the last
+    // confirmed write (dedup — kills LevelDB churn from repeat/no-op saves). Cache
+    // advances only on success, so a failed mirror never blocks a later re-attempt.
+    if (json !== _lastIdbStateJson) {
+        _idbSet(K_STATE, state).then(ok => { if (ok) _lastIdbStateJson = json; });
+    }
     maybeBackup().catch(_ => {}); // Этап 4: maybeBackup is now async (IDB-primary loadBackups) — fire-and-forget, backups must never block a save
     // Sync Phase 3: notify the sync layer (debounced push). Guarded — undefined until
     // 11-sync-ui.js loads, and a no-op until sync is enabled + ready (never blocks a save).

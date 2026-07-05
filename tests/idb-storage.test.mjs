@@ -130,7 +130,33 @@ const lsBackups14 = JSON.parse(globalThis.localStorage.getItem(S.K_BACKUPS) || '
 rec('maybeBackup() creates a backup entry mirrored into IDB', Array.isArray(idbBackups14) && idbBackups14.length === 1, idbBackups14);
 rec('maybeBackup() also writes the LS ring (unchanged shape)', Array.isArray(lsBackups14) && lsBackups14.length === 1, lsBackups14);
 
-it('idb storage wrapper (Этап 4 steps 0-3) — 19 cases', () => {
+// 15. dedup: identical consecutive saveState() calls mirror to IDB only once;
+//     a real change writes again. Guards against LevelDB write-amplification.
+const flush = () => new Promise(r => setTimeout(r, 0)); // let _idbSet resolve + its .then update the dedup cache
+globalThis.localStorage.clear();
+for (const k in _store) delete _store[k];
+globalThis._lastIdbStateJson = undefined;
+globalThis.state = { tasks: [{ uid: 'dd1' }], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1 };
+idbKeyval.set.mockClear();
+S.saveState();
+await flush();
+S.saveState();   // byte-identical → must be skipped
+await flush();
+const stateWrites1 = idbKeyval.set.mock.calls.filter(c => c[0] === S.K_STATE).length;
+rec('dedup: identical consecutive saves mirror state to IDB only once', stateWrites1 === 1, stateWrites1);
+globalThis.state.tasks.push({ uid: 'dd2' });
+S.saveState();   // changed → must write again
+await flush();
+const stateWrites2 = idbKeyval.set.mock.calls.filter(c => c[0] === S.K_STATE).length;
+rec('dedup: a changed state writes to IDB again', stateWrites2 === 2, stateWrites2);
+
+// 16. dedup never blocks LS: LS is written on every save regardless of the skip
+globalThis.localStorage.clear();
+globalThis._lastIdbStateJson = JSON.stringify(globalThis.state); // pretend IDB already holds this exact state
+S.saveState();   // IDB skipped, but LS must still be written
+rec('dedup: LS write still lands even when the IDB mirror is skipped', globalThis.localStorage.getItem(S.K_STATE) === JSON.stringify(globalThis.state));
+
+it('idb storage wrapper (Этап 4 steps 0-4, dedup) — 22 cases', () => {
     expect(failures).toEqual([]);
-    expect(pass).toBe(19);
+    expect(pass).toBe(22);
 });
