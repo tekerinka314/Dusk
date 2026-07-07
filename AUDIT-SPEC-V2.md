@@ -1,14 +1,31 @@
-# DUSK / Grimuar — Comprehensive Quality Audit, Spec v2 (Fable 5)
+# DUSK / Grimuar — Comprehensive Quality Audit, Spec v2
 
-Rev 2 · 2026-07-06 · Branch: `refactor/sync` · Supersedes
+Rev 3 · 2026-07-07 · Branch: `refactor/sync` · Supersedes
 `COMPREHENSIVE-QUALITY-AUDIT-SPECIFICATION-FOR-FABLE-5.md` (v1 = the original
 brief, kept in the repo untouched). This document is the operating standard
-for the entire audit. Rev 2 incorporates the user's Phase-1 answers:
+for the entire audit.
+
+**Execution history.** Phase 0 (spec) + Phase 1 (clarification) + the start of
+B0 (repo reading through `dusk/12` and the whole sync stack) were done by
+**Fable 5 (high)**; that model's usage limit was then exhausted. The audit is
+continued by **Opus 4.8 (xhigh)** from mid-B0 onward. Rev 3 is Opus's revision.
+
+**Rev 3 mandate (the reason this revision exists): remove every budget ceiling.**
+The Fable session was written to survive an early hard stop on a single shared
+usage limit, so rev 2 hedged depth against budget. That constraint is GONE. The
+new doctrine (§3) is **maximum depth and maximum coverage on every batch**,
+with the explicit goal of matching the exhaustiveness a top-tier Mythos-class
+model (Fable 5) would have produced. There is no batch that gets "lean"
+treatment; there is no tail that gets sacrificed. Budget is not a reason to cut
+anything, ever. The only pacing rule that survives is: **persist as you go** (so
+progress is durable and resumable), not because we expect to run out.
+
+Rev 2/3 incorporate the user's Phase-1 answers:
 
 - **Execution order follows the ORIGINAL v1 priority order** (mobile first).
   Reordering was proposed in rev 1 and explicitly declined by the user.
-- **Mobile depth must never be cut.** If the usage limit runs out, the tail
-  batches are sacrificed — never the depth of the high-priority ones.
+- **Mobile (B1) depth is the highest, and NO batch's depth is ever cut.** Every
+  priority is taken to its exhaustive conclusion.
 - **Persist everything**: after every batch, findings + implementation
   guidance go to disk and memory, so a hard stop at any point still leaves a
   complete, implementable record of everything audited so far.
@@ -81,6 +98,20 @@ Rules:
 - Data-loss findings outrank everything at equal severity; even a `D`-level
   data-loss suspicion is recorded immediately and queued for runtime
   confirmation.
+- **Adversarial verification (rev 3, budget-unbounded).** Before any finding is
+  promoted to `A`/`B` and written to the roadmap, it is actively attacked: try
+  to REFUTE it (find the guard that already handles it, the caller that never
+  passes the bad input, the CSS rule that already covers the case). A finding
+  survives only if the refutation attempt fails. High-severity or data-loss
+  findings get an independent second pass (a fresh read of the surrounding
+  code, or a runtime probe that actually reproduces the failure) — the goal is
+  zero false positives in the final roadmap, because a wrong data-loss claim
+  wastes the implementation session and erodes trust. Every confirmed finding
+  records the refutation that was attempted and why it failed.
+- **Reproduce, don't just reason, wherever a probe is cheap.** With no budget
+  ceiling, prefer `B`-level (runtime-reproduced) evidence over `D`-level
+  (inferred) for any claim where a seeded headless probe or node script can
+  settle it. Inference is the fallback, not the default.
 - **Dedup against prior audits.** The repo already contains a completed
   June-2026 audit (`AUDIT-FINDINGS.md`, the audit section of `CLAUDE.md`,
   memory files) with ~60 closed findings and a known-deferred list (S1-9,
@@ -90,7 +121,7 @@ Rules:
   is re-opened only with new evidence (regression). Deferred items are
   referenced by their existing IDs.
 
-## 3. Persistence, resumability, budget
+## 3. Persistence, resumability, depth doctrine
 
 - Registry dir: **`audit-v2/`** (repo root):
   - `audit-v2/FINDINGS.md` — append-only registry, full per-finding records.
@@ -103,15 +134,31 @@ Rules:
 - After each batch: write the batch report → append findings → add/update a
   memory file + MEMORY.md pointer (so even a lost repo copy keeps the core)
   → **commit + push** (`Co-Authored-By` trailer, no version bump).
-- **Budget strategy** (user: one usage limit total, unknown session count):
-  - Work continuously in original priority order; deepest quality first.
-  - Interim reports/memory cost ~2–5% of a batch's analysis cost — always
-    worth it; they are the insurance the user asked for.
-  - No budget checkpoints that stall work; if the limit dies mid-batch, the
-    last committed state is complete and implementable up to that point.
-  - Token discipline: read each source region once and extract findings for
-    ALL lenses while there (§5 B0 note-taking); prefer targeted probes over
-    broad browser wandering; screenshots small and few but sufficient.
+- **Depth doctrine (rev 3 — budget is not a constraint):**
+  - Every batch is taken to exhaustion. "Exhaustion" = the completeness critic
+    (§6/§7) finds nothing more to audit: no unread source region in scope, no
+    unverified claim, no un-probed suspicious path, no screen not visually
+    reviewed at the target sizes. A batch closes only when its aspect is fully
+    covered — never because a token budget said so.
+  - Prefer more evidence, not less: reproduce with runtime probes, add node
+    scripts, take the screenshots, run the benchmarks, drive the two-device
+    fake-cloud scenarios. Re-reading a source region for a fresh lens is fine;
+    the "single-read" note-taking of B0 is an efficiency, not a cap.
+  - Adversarial verification (§2) is applied to every promoted finding; this
+    costs extra passes and that is expected and welcome.
+  - Interim reports + memory after every batch are still written — now purely
+    for durability/resumability, not because an early stop is anticipated.
+  - The only things NOT expanded are the guardrails against waste that protect
+    QUALITY: don't re-report closed findings (§2 dedup), don't chase rabbit
+    holes unrelated to the aspect, don't pad reports with restated code. Depth
+    means more real findings and stronger evidence, not more words.
+- **Optional multi-agent fan-out (see §4).** With no budget ceiling, heavy
+  fan-out batches (B1 screen-by-screen, B6 subsystem-by-subsystem, adversarial
+  verification panels) MAY be run as orchestrated multi-agent Workflows for
+  breadth + independent verification — gated on explicit user opt-in, since it
+  is a large resource commitment even when budget is unbounded. The main thread
+  always owns B0 (the coherent architecture model) and the cross-batch
+  synthesis; workflows only fan out well-scoped sub-work under that model.
 - Everything is resumable: a fresh session reads `AUDIT-SPEC-V2.md` +
   `audit-v2/` + memory index and continues from the next batch.
 
@@ -126,11 +173,12 @@ Rules:
 | Live prod | claude-in-chrome MCP on `https://dusk-du4.pages.dev` — SW behavior, update toast, PWA install, real-feel checks. Read-only conduct: no edits to real data, no sign-outs | ✅ user's Chrome must be open |
 | Real device | user's Android phone, guided checklists (5–10 short checks) at B1 and where needed | ✅ user agreed |
 | Performance | CDP via playwright (tracing, FPS, metrics), 200/1000-task seeded benchmarks; `npx lighthouse` on demand | ✅ / on-demand |
-| Multi-agent Workflow | NOT used (budget; no ultracode opt-in) | — |
+| Multi-agent Workflow | AVAILABLE (rev 3). Budget no longer blocks it; use for heavy fan-out + adversarial verification panels once the user opts in (§3). | ⏳ opt-in |
+| Chrome-DevTools MCP | preferred by the `web-perf` skill for Lighthouse-grade traces; not installed. Offer to install for B8 if deeper perf tracing is wanted. | ⏳ optional |
 
-Known gap, accepted: the `web-perf` skill prefers a Chrome-DevTools MCP that
-is not installed; CDP-via-playwright covers this audit's perf needs. If B8
-needs Lighthouse-grade traces, run `npx lighthouse` (auto-installs) then.
+`npx lighthouse` auto-installs on first use — no decision needed. The
+Chrome-DevTools MCP would give richer perf traces than CDP-via-playwright for
+B8; it is optional and can be installed on request when B8 begins.
 
 ## 5. Execution plan
 
@@ -197,28 +245,32 @@ target / acceptable temporary debt / already-dangerous debt. Do not
 recommend a broad rewrite unless incremental migration provably cannot meet
 the safety and quality goals.
 
-Then the priority batches, in v1 order:
+Then the priority batches, in v1 order. **Depth = maximum on every batch**
+(rev 3). The Priority column is EXECUTION ORDER and severity WEIGHT — mobile
+(B1) still leads and carries the heaviest weight in the roadmap — but it is no
+longer a depth ration: B10/B12/B13 get the same exhaustive treatment as B1/B6.
 
-| Batch | v1 priority | Aspect | Depth |
-|---|---|---|---|
-| B1 | P1 | Mobile experience | 🔵 maximum, never cut |
-| B2 | P2 | Gothic design language | 🟢 |
-| B3 | P3 | Glyphs & iconography | 🟢 |
-| B4 | P4 | UI | 🟢 |
-| B5 | P5 | UX (+ a11y, + RU copy — v2 additions) | 🟢 |
-| B6 | P6 | Functional correctness (+ Guardrail A deep-dive) | 🔵 |
-| B7 | P7 | Animation & motion | 🟢 |
-| B8 | P8 | Performance | 🟢 |
-| B9 | P9 | Architecture, sync architecture, migration (+ Guardrail B deep-dive) | 🟢 |
-| B10 | P10 | Code quality | 🟡 |
-| B11 | P11 | Security | 🟢 |
-| B12 | P12 | PWA | 🟡 |
-| B13 | P13 | Cross-app parity (synthesis of the continuous lens) | 🟡 |
-| B14 | P14 | Project evolution + FINAL DELIVERABLES | 🟢 |
+| Batch | v1 priority | Aspect |
+|---|---|---|
+| B1 | P1 | Mobile experience (highest weight) |
+| B2 | P2 | Gothic design language |
+| B3 | P3 | Glyphs & iconography |
+| B4 | P4 | UI |
+| B5 | P5 | UX (+ a11y, + RU copy — v2 additions) |
+| B6 | P6 | Functional correctness (+ Guardrail A deep-dive) |
+| B7 | P7 | Animation & motion |
+| B8 | P8 | Performance |
+| B9 | P9 | Architecture, sync architecture, migration (+ Guardrail B deep-dive) |
+| B10 | P10 | Code quality |
+| B11 | P11 | Security |
+| B12 | P12 | PWA |
+| B13 | P13 | Cross-app parity (synthesis of the continuous lens) |
+| B14 | P14 | Project evolution + FINAL DELIVERABLES |
 
-If the usage limit threatens to end the audit early, the committed artifacts
-of completed batches ARE the deliverable; B14's synthesis is then produced in
-whatever budget remains (even abbreviated, from the on-disk registry).
+Because budget no longer forces an early stop, the audit runs to completion
+through B14. If a session boundary is hit, the committed `audit-v2/` artifacts +
+memory make the next session resume seamlessly from the next batch — no batch is
+abbreviated for lack of budget.
 
 ## 6. Per-batch scope & checklists
 
@@ -467,7 +519,7 @@ is explored exhaustively. Root-cause chains are recorded in the finding.
 
 ## 8. Final deliverables (all 23 of v1, mapped)
 
-Produced at B14 (or from the on-disk registry if the budget dies earlier):
+Produced at B14 (reconstructable from the on-disk registry if a session ends):
 1. Executive summary · 2. Complete issue list (`FINDINGS.md`) ·
 3. Prioritized roadmap (severity-weighted; mobile #1) · 4. Cross-app parity
 report (B13) · 5. UI review (B4) · 6. UX review (B5) · 7. Mobile review
@@ -517,9 +569,12 @@ Questions are not limited to the start. STOP and ask the user whenever:
 - a visual/UX judgment collides with a possibly-locked preference not
   captured in §9;
 - a data-risk hypothesis needs a fact only he knows;
-- scope or budget decisions arise (e.g. limit nearly exhausted mid-batch).
-Maximize audit quality, not interruption minimization — but batch questions
-where possible to respect the budget.
+- a scope/methodology fork arises (e.g. whether to fan a batch out to a
+  multi-agent Workflow, whether to install the Chrome-DevTools MCP for B8, a
+  proposed evolution idea worth his steer).
+Maximize audit quality, not interruption minimization. Budget is no longer a
+reason to withhold a question — ask whenever the answer materially improves the
+audit; batch related questions into one prompt only for the user's convenience.
 
 ---
 
