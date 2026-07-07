@@ -176,9 +176,50 @@ Rules:
 | Multi-agent Workflow | AVAILABLE (rev 3). Budget no longer blocks it; use for heavy fan-out + adversarial verification panels once the user opts in (§3). | ⏳ opt-in |
 | Chrome-DevTools MCP | preferred by the `web-perf` skill for Lighthouse-grade traces; not installed. Offer to install for B8 if deeper perf tracing is wanted. | ⏳ optional |
 
-`npx lighthouse` auto-installs on first use — no decision needed. The
-Chrome-DevTools MCP would give richer perf traces than CDP-via-playwright for
-B8; it is optional and can be installed on request when B8 begins.
+`npx lighthouse` auto-installs on first use — no decision needed.
+
+**Decided (user, 2026-07-07):**
+- **Chrome-DevTools MCP → install at B8.** When B8 begins, Opus attempts to add
+  the `chrome-devtools-mcp` server itself (npx-based, via the update-config
+  skill / MCP config); if that can't be done headlessly, it asks the user to
+  enable it. Used for Lighthouse-grade traces (INP/LCP/CLS, layout-shift,
+  network dependency chains) on top of CDP-via-playwright.
+- **Multi-agent orchestration → HYBRID (opted in).** See §4a.
+
+### 4a. Multi-agent methodology (hybrid — opted in 2026-07-07)
+
+The MAIN THREAD (Opus 4.8 xhigh) owns everything that needs one coherent mental
+model: the B0 architecture model, all cross-batch synthesis, the roadmap, and
+the "taste" batches where holistic judgment beats parallel breadth (**B2**
+gothic design language, **B5** UX — a cold agent judges these more shallowly).
+
+Multi-agent **Workflow** runs are used where independent breadth or independent
+skepticism raises quality, always UNDER the main thread's architecture model
+(each agent is handed the relevant source slice + the ARCHITECTURE.md summary so
+it isn't fully cold):
+
+- **B1 (mobile) — screen-by-screen fan-out.** One agent per screen/modal/picker
+  × target viewport, each returning a structured finding list from its
+  screenshot + DOM. The main thread seeds the screen inventory, then synthesizes
+  and de-dupes. Independent per-screen passes catch layout/tap-target issues a
+  single sweep skips.
+- **B6 (functional correctness) — subsystem-by-subsystem bug hunt, loop-until-dry.**
+  One agent per subsystem (tasks, subtasks, repeats, deadlines, groups,
+  archive, quick-add, Grimuar editor, sync flows…), each hunting bugs/edge
+  cases/races to exhaustion; re-run until K consecutive rounds surface nothing
+  new. Main thread owns the Guardrail-A data-safety reasoning itself.
+- **Adversarial verification panels (every batch).** Each promoted `A`/`B`
+  finding — especially data-loss/high-severity — is handed to N independent
+  skeptic agents prompted to REFUTE it (find the guard, the caller, the CSS
+  rule that already covers it). A finding survives only if a majority fail to
+  refute. This is the §2 rule, executed as a workflow panel.
+
+Guardrails on the fan-out: agents get schemas (structured output) so results
+merge cleanly; the main thread always re-reads the code behind any finding
+before it enters the roadmap (agents locate + argue, the main thread ratifies);
+no silent truncation — if a fan-out bounds coverage, the batch report logs what
+was not covered. Workflows are one well-scoped phase at a time; the main thread
+reads each result and decides the next phase (stays in the loop).
 
 ## 5. Execution plan
 
@@ -252,7 +293,7 @@ longer a depth ration: B10/B12/B13 get the same exhaustive treatment as B1/B6.
 
 | Batch | v1 priority | Aspect |
 |---|---|---|
-| B1 | P1 | Mobile experience (highest weight) |
+| B1 | **P0 — FUNDAMENTAL** | **Mobile experience (a standalone exhaustive audit — see §6 B1 banner)** |
 | B2 | P2 | Gothic design language |
 | B3 | P3 | Glyphs & iconography |
 | B4 | P4 | UI |
@@ -286,10 +327,31 @@ Output: `ARCHITECTURE.md` covering every item listed in §5 B0. Plus ⊕:
 - inline-SVG/icon inventory pointers (for B3);
 - test-to-subsystem map skeleton (for B9/B10's coverage map).
 
-### B1 — Mobile experience (P1, maximum depth)
+### B1 — Mobile experience (P0 · FUNDAMENTAL · a standalone audit)
+
+> **ELEVATION (user directive, 2026-07-07).** The site is currently adapted to
+> phones **BADLY** — per the user (ground truth, treat as given): nearly the
+> entire mobile UI/UX needs reworking, and there are many FUNCTIONAL problems on
+> mobile too, not just layout. B1 is therefore **not a "scan for issues" pass —
+> it is a separate, huge, extremely scrupulous audit**, the single most important
+> deliverable of the whole project. Rank it above every other batch. It gets the
+> largest test volume of any batch by far: **every kind of test, deeply and in
+> large quantity** — static, visual/screenshot (every screen × every viewport ×
+> every state), motion/animation on-device-class throttling, interaction/gesture,
+> functional edge-case, performance (CPU+network throttle), accessibility
+> (touch + screen-reader), keyboard-on-mobile, and real-device confirmation.
+> **Maximum edge-case coverage** is mandatory. Findings here should be numerous
+> and concrete; assume mobile is broken until proven otherwise, and prove each
+> claim with a screenshot or a runtime probe. The detailed execution plan,
+> screen inventory, per-screen test matrix, and edge-case catalog live in
+> **`audit-v2/B1-PLAN.md`** — follow it. B1 may itself be split across several
+> Workflow runs (one screen-family per run) and several sessions; it is complete
+> only when the completeness critic finds no unaudited screen/state/interaction.
+
 Primary target: modern Android ~6.6–6.7" (412×915 class). Secondary: smaller
-(360×800) and landscape. Audit the complete mobile product, both apps, every
-screen/modal/picker/popover. Checklist:
+(360×800), 384×832, and landscape. Audit the complete mobile product, both apps,
+every screen/modal/picker/popover, every state, every interaction. Checklist
+(a FLOOR, not a ceiling — B1-PLAN.md expands each into concrete probes):
 - layout (per-screen review at target sizes; content overflow, clipping,
   wasted space, 2-col subtask grid → 1-col behavior);
 - touch ergonomics; thumb reach (both FABs, toolbar, select-bar, header
