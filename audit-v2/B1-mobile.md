@@ -38,6 +38,18 @@ touch, and a handful of overflow/fit/safe-area gaps around it.
 | **V2-B1-09** | 2 / 0 | B | tap targets: 410/587 <44 px, **88 <24 px** (colour swatches 20 px) — WCAG 2.2 (2.5.8) fails |
 | **V2-B1-10** | 2 / 0 | B | no list virtualization, ~154 nodes/card → boot 5.6 s (200) / 30.8 s (1000) @CPU4×; layout height explodes |
 | **V2-B1-11** | 2 / 0 | A+B | (cross-batch → B6) Cyrillic quick-add priority tokens don't parse (ASCII `\b` after Cyrillic); token left in title |
+| **V2-B1-12** | 1 / 0 | A | task/search inputs lack `autocapitalize`/`autocorrect`/`inputmode` → autocorrect can mangle quick-add tokens |
+| **V2-B1-13** | 3 / 0 | A+B+C | ⚠ 2nd FLAGSHIP — group-section header title collapses to 3 px @360 / 47 px @412 (17-icon cluster crushes it); group names unreadable |
+| **V2-B1-14** | 2 / 0 | A+B | main bulk-select bar wraps into a ragged 3–4 row block on mobile (doesn't fit one row even at 412); stray dividers |
+| **V2-B1-15** | 2 / 0 | A+B+C | wide Grimuar table has no h-scroll container → columns crush to 44 px, headers wrap to ~2 chars/line |
+| **V2-B1-16** | 1 / 0 | A+B+C | Grimuar TOC rail `display:none` on mobile, no fallback → no heading nav for long notes |
+| **V2-B1-17** | 2 / 0 | A+C | body-portal popovers (task-more etc.) anchored to right-edge buttons overflow the screen → menu text clipped |
+| **V2-B1-18** | 1 / 0 | A | all font-sizes fixed px (0 rem) → OS font-size setting doesn't enlarge UI (WCAG 1.4.4; pinch-zoom mitigates) |
+
+Two independent flagship-class collapses now stand: **V2-B1-01** (task-card title)
+and **V2-B1-13** (group-header title) — same root pattern (revealed action cluster
+crushes a shrinkable label) but **different elements with different fix sites**, so
+the rework must address both the list row AND the group header.
 
 ## Root-cause themes (drive the rework, not just point fixes)
 
@@ -71,16 +83,21 @@ touch, and a handful of overflow/fit/safe-area gaps around it.
 
 ## Test-type coverage (this batch)
 
-Done: static/code (A, every finding root-caused), visual/screenshot (C, ~20 shots
-across pages×viewports×states×modals), functional-at-mobile (add-by-tap ✓,
-schedule-toggle-by-tap ✓, quick-add parse ✗ bug), performance (200/1000 tasks,
-CPU 4×), a11y (tap-target census, viewport meta, WCAG 2.2 target-size), PWA/
-safe-area (viewport-fit, FAB geometry), gesture (tap path verified).
-Deferred to device round / later batches: real touch-DnD feel (SORTABLE
+Done: static/code (A, every finding root-caused), visual/screenshot (C, ~75 shots
+across pages×viewports×states×modals×pickers×overlays), functional-at-mobile
+(add-by-tap ✓, schedule-toggle-by-tap ✓, checklist-toggle-by-tap ✓, quick-add
+parse ✗ bug), performance (200/1000 tasks, CPU 4×), a11y (tap-target census,
+viewport meta, WCAG 2.2 target-size, reduced-motion coverage, px-type-scale),
+PWA/safe-area (viewport-fit, FAB geometry), gesture (tap path verified), pickers/
+popovers (more-menu clip, history overlay OK), select/bulk bars, Grimuar editor
+edge cases (wide table, code wrap, callout, checklist, link modal, TOC), 200%
+text-scale (px-only finding), reduced-motion (50 blocks — solid).
+Deferred to the device round / later batches: real touch-DnD feel (SORTABLE
 `delay:120`), real virtual-keyboard scroll-into-view & squeeze, real safe-area/
-install occlusion, contenteditable caret/selection on touch, motion jank at
-mobile (deep motion = B7), reduced-motion completeness, 200% text-scale reflow,
-outside-tap layer ordering with several overlays open, pull-to-refresh mis-trigger.
+install occlusion, contenteditable caret/selection on touch, deep motion jank at
+mobile (= B7), outside-tap layer ordering with several overlays open,
+pull-to-refresh mis-trigger, snooze/sub-mode/demote popover right-edge overflow
+(V2-B1-17 sibling menus — verify each), quarantine overlay (needs journal data).
 
 ## Remaining leads to chase (B1 continuation / device / other batches)
 
@@ -119,14 +136,17 @@ Screenshots welcome; they upgrade B1-01/06/07 evidence from B→C-on-device.
 
 ## Mobile-first prioritized roadmap (proposals only — no code until user approves)
 
-1. **P0 — Card action-model rework (fixes B1-01, B1-02, B1-03, most of B1-09).**
-   On touch/narrow: take actions off the title row (wrapped own-row or overflow
-   menu; ≤2–3 inline primaries), give the title full width, ensure ≥24–44 px hit
-   areas, nothing clipped. This is the batch's headline and the bulk of "перело­
-   пачивать мобильный UI". Gothic motifs unchanged.
+1. **P0 — Row/header action-model rework (fixes B1-01, B1-03, B1-13, B1-02, most of B1-09).**
+   The one headline change. On touch/narrow, take the revealed action cluster OFF
+   the label's inline row for BOTH the **task card** (B1-01/02/03) AND the **group
+   header** (B1-13) — wrapped own-row or overflow menu, ≤2–3 inline primaries — so
+   the title/label gets full width, nothing clips, hit areas ≥24–44 px. This is the
+   bulk of "перелопачивать мобильный UI". Gothic motifs unchanged.
 2. **P1 — Overflow/fit fixes.** Group-pill max-width+ellipsis or scroll strip
-   (B1-05); grim-bar-acts icon-only/scroll on narrow (B1-04); modal
-   `max-height:100dvh + overflow:auto` + a landscape block (B1-06).
+   (B1-05); grim-bar-acts icon-only/scroll on narrow (B1-04, also re-centers the
+   notes-page modals); modal `max-height:100dvh + overflow:auto` + a landscape
+   block (B1-06); wide-table h-scroll wrapper (B1-15); bulk-bar ≤2-row footprint
+   (B1-14); clamp/flip body-portal popovers to the viewport (B1-17).
 3. **P1 — Safe-area + FAB layout.** `viewport-fit=cover` + `env(safe-area-inset-*)`
    on bottom UI; reserve a bottom scroll gutter so FABs don't cover content (B1-07,
    B1-08).
@@ -134,10 +154,32 @@ Screenshots welcome; they upgrade B1-01/06/07 evidence from B→C-on-device.
    coordinate with B8.
 5. **Cross-batch — quick-add regex fix** (B1-11) → owned by B6.
 
+## Deepen-workflow outcome (hybrid method)
+
+A background Workflow fanned out 6 finders + adversarial verifiers + a critic.
+It hit the **session token limit** mid-run: 6 of 20 agents completed, 14 errored
+(mostly limit). Rather than resume (which would re-run all 14 and re-hit the
+limit), the completed agents' structured results were **harvested from the
+run journal**, and several "failed" agents' **screenshots survived** (they shot
+before their final return failed), so their surfaces were audited from those
+shots + serial re-probes. New findings V2-B1-13/14/15/16 came from this harvest;
+the high-severity ones (esp. the group-header collapse) were **independently
+re-measured by the main thread** before promotion (§4a). V2-B1-17/18 were found
+serially. Net: the workflow's breadth was recovered at ~⅓ its intended cost.
+Lesson for later batches: keep finder fan-outs small (≤4) and cheap, or run the
+breadth serially — the full 20-agent panel is too token-hungry for the session
+limit.
+
 ## Status / next
 
-- 11 findings recorded; the flagship (B1-01) carries A+B+C and cross-width proof.
-- Harness + seed are reusable (`D:\tmp\pw\b1\`); re-runnable for regression once fixes land.
-- Next within B1: an adversarial-verification workflow on the high-severity
-  findings + a completeness-critic sweep of the not-yet-shot pickers/overlays and
-  the remaining test types; then fold the user's device screenshots in.
+- **18 findings** recorded; two flagship-class collapses (B1-01 task card,
+  B1-13 group header), each with A+B+C / re-verified evidence.
+- Harness + seed reusable (`D:\tmp\pw\b1\`); ~75 shots in `audit-v2/shots/`
+  (`B1_*`, `B1w_*`, `B1e_*`); re-runnable for regression once fixes land.
+- Remaining for B1: the user's **real-device round** (checklist above) to upgrade
+  B1-01/06/07/13 to on-device C and settle touch-DnD/keyboard/caret; verify the
+  V2-B1-17 sibling popovers (snooze/sub-mode/demote) and the quarantine overlay.
+  These are cheap serial probes + a short device session — no further large
+  workflow needed.
+- B1 is effectively complete for the emulation phase; the roadmap above is the
+  hand-off into the (later, approval-gated) fix stage.
