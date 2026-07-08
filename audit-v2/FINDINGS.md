@@ -464,6 +464,18 @@ screenshot (C) on top of the CSS root-cause (A). Adversarial refutation per §2.
 - **Tests:** set the emulated OS font scale / root font-size to 200 % and assert UI text enlarges without breaking layout.
 - **Cross-app:** whole app.
 
+### V2-B1-19 — ⚠ INSTALLED PWA WON'T LAUNCH: `start_url:"./index.html"` hits a Cloudflare 308→`/` that the SW returns as a redirected navigation response → ERR_FAILED (owner B12/PWA)
+- **Evidence:** A (manifest + SW code) + B (**live**: `curl -I https://dusk-du4.pages.dev/index.html` → `308 Permanent Redirect, Location: /`; `/` → 200; and the user's on-device `ERR_FAILED` at `/index.html` from the installed icon).
+- **Severity:** UI 3 · DL 0 (origin storage intact; the app just won't open) · RR 1 · IC 1 · CF 3
+- **Where:** `public/manifest.json:5` `"start_url": "./index.html"`. Cloudflare Pages canonicalizes `/index.html` with a **308 redirect to `/`**. The SW's `networkFirst` (`public/sw.js:97`) does `fetch(request.url, { cache:'no-cache' })` with the default `redirect:'follow'`, so for the standalone launch navigation to `/index.html` it resolves a response whose `.redirected === true`, then `e.respondWith(...)` (sw.js:145) hands that redirected response to a **navigation** request — which Chrome refuses (a SW may not answer a navigation with a redirected response) → **ERR_FAILED**. The installed PWA never opens.
+- **Failure scenario:** User installs the PWA (the whole point of an offline-first app) and taps the icon → "Не удаётся получить доступ к сайту … ERR_FAILED". Total failure of the installed experience. A plain browser tab works because it navigates to `/` (200, no redirect) — and before the SW is active Chrome follows the 308 natively — so the bug is masked everywhere except the SW-controlled standalone launch of `start_url`.
+- **Refutation attempted (§2):** "Maybe the site is just down." → No: `/` returns 200 and the browser tab works; only `/index.html` 308s. "Maybe headers/CSP." → `_headers` only sets cache rules; no CSP/COEP. "Maybe offline." → The user was online; offline would actually hit the SW cache branch (`cache.match` returns the precached non-redirected `./index.html`) and likely succeed — the bug is specifically the ONLINE standalone launch following the 308. Live curl confirms the redirect; refutation fails.
+- **Root cause:** `start_url` points at `index.html` (which Pages redirects) instead of `/`, combined with a network-first SW that returns the followed-redirect response to a navigation.
+- **Fix strategy (small, but it deploys to prod — get user approval):** (1) primary — set `manifest.json` `start_url: "./"` (and it already `scope:"./"`), so the launch hits `/` (200, no redirect); (2) defense-in-depth — in `networkFirst`, when answering a navigation whose response `.redirected` is true, reconstruct a clean same-URL `Response(resp.body, {status,statusText,headers})` so any future redirect can't break navigations. Bump the SW `CACHE` name so clients reinstall. Likely broken since the Cloudflare Pages move (2026-06-29).
+- **Change together:** `public/manifest.json` (start_url) + optionally `public/sw.js` (redirect-safe navigation) + `version.json`/CACHE bump on deploy.
+- **Tests:** after fix, install on device → icon launches; `curl -I` the new start_url is 200; add a Playwright/SW test asserting a navigation response is never `.redirected`.
+- **Cross-app:** whole PWA (both apps). Owner is **B12 (PWA)**; recorded here because the device round surfaced it. **Blocks the on-device half of B1** (safe-area/standalone checks) until fixed.
+
 ---
 
 ### Good surfaces confirmed on mobile (differential evidence — preserve in the rework)
