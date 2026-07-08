@@ -45,6 +45,20 @@ touch, and a handful of overflow/fit/safe-area gaps around it.
 | **V2-B1-16** | 1 / 0 | A+B+C | Grimuar TOC rail `display:none` on mobile, no fallback → no heading nav for long notes |
 | **V2-B1-17** | 2 / 0 | A+C | body-portal popovers (task-more etc.) anchored to right-edge buttons overflow the screen → menu text clipped |
 | **V2-B1-18** | 1 / 0 | A | all font-sizes fixed px (0 rem) → OS font-size setting doesn't enlarge UI (WCAG 1.4.4; pinch-zoom mitigates) |
+| **V2-B1-19** | 3 / 0 | A+B | ⚠ installed PWA won't launch — `start_url` 308→`/` returned as redirected navigation → ERR_FAILED (**FIXED + deployed 2026-07-08**) |
+| **V2-B1-20** | 1 / 0 | A+B | «Звук пера» silent on letter typing on mobile (IME keydown lacks `key.length===1`; space/backspace work) |
+| **V2-B1-21** | 2 / 0 | A+B | touch drag ghost offset far left of the finger → reordering nearly unusable (Sortable fallback + no `fallbackOnBody`) |
+| **V2-B1-22** | 2 / 1 | B+A | deadline modal: segmented time input + steppers don't respond to tap on mobile → can't set a time |
+| **V2-B1-23** | 2 / 0 | B | interface intermittently fails to paint on scroll (varies each re-scroll) — compositing under the huge B1-01/10 layout |
+
+**Device round (user's real Android, web tab, 2026-07-08):** on-device CONFIRMED
+B1-01, B1-13, B1-06, B1-08, B1-15 (photos 1–6). Did NOT reproduce B1-05 / B1-17
+(his viewport >360 px → those are ≤360-px-only). Good on device: new-task field
+above keyboard, more-menu fit, smooth scroll. New device-only findings B1-20…23.
+**B1-19 (PWA install) fixed and deployed** — awaiting the user's re-install check.
+Minor lead (not a numbered finding): the Grimuar format toolbar sits at the top of
+the editor, far from the caret — reaching it while typing is awkward on a phone
+(consider a caret-adjacent / sticky toolbar on touch).
 
 Two independent flagship-class collapses now stand: **V2-B1-01** (task-card title)
 and **V2-B1-13** (group-header title) — same root pattern (revealed action cluster
@@ -152,7 +166,16 @@ Screenshots welcome; they upgrade B1-01/06/07 evidence from B→C-on-device.
    B1-08).
 4. **P2 — Perf at scale.** List virtualization + slimmer card nodes (B1-10);
    coordinate with B8.
-5. **Cross-batch — quick-add regex fix** (B1-11) → owned by B6.
+5. **P1 quick-wins (low-risk, high-value, mostly one-liners):** touch DnD
+   `fallbackOnBody:true` so the drag ghost tracks the finger (B1-21); pen sound
+   also driven by `input`/`beforeinput` so letters click on mobile (B1-20); make
+   the deadline segmented time input focus + accept a numeric keyboard on touch,
+   or fall back to a native `<input type=time>` (B1-22).
+6. **P2 — scroll paint** (B1-23): fix B1-01/B1-13 first (kills the height
+   explosion), then profile mobile paints and lighten the stacked filter/backdrop
+   layers → overlaps B7/B8.
+7. **Done 2026-07-08:** B1-19 installed-PWA launch (start_url "./" + redirect-safe SW).
+8. **Cross-batch — quick-add regex fix** (B1-11) → owned by B6.
 
 ## Deepen-workflow outcome (hybrid method)
 

@@ -474,7 +474,85 @@ screenshot (C) on top of the CSS root-cause (A). Adversarial refutation per §2.
 - **Fix strategy (small, but it deploys to prod — get user approval):** (1) primary — set `manifest.json` `start_url: "./"` (and it already `scope:"./"`), so the launch hits `/` (200, no redirect); (2) defense-in-depth — in `networkFirst`, when answering a navigation whose response `.redirected` is true, reconstruct a clean same-URL `Response(resp.body, {status,statusText,headers})` so any future redirect can't break navigations. Bump the SW `CACHE` name so clients reinstall. Likely broken since the Cloudflare Pages move (2026-06-29).
 - **Change together:** `public/manifest.json` (start_url) + optionally `public/sw.js` (redirect-safe navigation) + `version.json`/CACHE bump on deploy.
 - **Tests:** after fix, install on device → icon launches; `curl -I` the new start_url is 200; add a Playwright/SW test asserting a navigation response is never `.redirected`.
-- **Cross-app:** whole PWA (both apps). Owner is **B12 (PWA)**; recorded here because the device round surfaced it. **Blocks the on-device half of B1** (safe-area/standalone checks) until fixed.
+- **Cross-app:** whole PWA (both apps). Owner is **B12 (PWA)**; recorded here because the device round surfaced it. **Blocks the on-device half of B1** (safe-area/standalone checks) until fixed. **FIXED 2026-07-08** (commit — start_url "./" + redirect-safe SW), pending user re-install verification.
+
+---
+
+## Device round (user's real Android, 2026-07-08 — web tab, PWA install was blocked by B1-19)
+
+Photos: `audit-v2/photo_1..6_2026-07-08_*.jpg`. The user's phone is wider than the
+360-px emulation (≈393–412 CSS px), which is why the two 360-only overflow findings
+did not reproduce.
+
+**On-device CONFIRMATIONS (emulation B/C → now C-on-device):**
+- **V2-B1-01** — CONFIRMED: task titles render as a vertical column of single
+  letters ("П/о/м/ы/т/ь/с/я"), 9-icon row across the card top (photo_1, photo_5).
+- **V2-B1-13** — CONFIRMED: group header name crushed to "Д." (from "Дела") with the
+  icon cluster filling the row (photo_1, photo_5).
+- **V2-B1-06** — CONFIRMED: in landscape the deadline AND repeat modals are clipped
+  top+bottom, «Сохранить» is off-screen, and there is no scroll (photo_2, photo_3).
+- **V2-B1-08** — CONFIRMED: the bottom FAB discs overlap task/group content (photo_1, photo_5).
+- **V2-B1-15** — CONFIRMED: a 5-column note table crushes every column, all cells/
+  headers wrap to 2–3 chars per line, unreadable (photo_6).
+
+**On-device NON-repro (scope narrowed to ≤360-px devices):**
+- **V2-B1-05** (page horizontal scroll from the long group pill) — did NOT reproduce
+  (user: "при свайпе ничего не происходит"); his viewport is wider than the 360 px
+  where it overflowed. Scope: budget/compact ≤360-px phones only.
+- **V2-B1-17** (more-menu clips off the right) — did NOT reproduce; the menu fit and
+  every item tapped (photo_5). Scope: ≤360-px only; downgrade CF to 2.
+
+**On-device GOOD (confirmed fine):** the new-task input focuses and stays above the
+keyboard (photo_4); the "more" menu fits and taps; colour swatches were usable for
+the user; scrolling is smooth (except the render glitch below).
+
+### V2-B1-20 — «Звук пера» is silent on LETTER typing on mobile (only Space/Backspace/Enter sound) — IME keydown has no `key.length===1`
+- **Evidence:** A (code) + B (user on device: letters silent, space/backspace work).
+- **Severity:** UI 1 · DL 0 · RR 1 · IC 1 · CF 3
+- **Where:** the pen-sound trigger is a global `keydown` listener (07-dnd-filter-progress.ts:1031) that plays the "letter" grain only when `printable = e.key && e.key.length === 1` (:1036). On Android/iOS the virtual-keyboard IME delivers letter `keydown`s as `e.key === 'Unidentified'` / `keyCode 229` (composition), so `printable` is false and nothing plays; Space/Backspace/Enter fire real named keys → the `soft` branch (:1035) still sounds. Exactly matches the report.
+- **Failure scenario:** With «Звук пера» on, typing actual letters on a phone is silent — the feature's whole point (a quill sound per letter) doesn't work on mobile; only spaces/deletes click.
+- **Refutation attempted (§2):** "Maybe the buffer isn't warmed." → No: space/backspace DO sound, so the buffer is loaded; letters specifically don't reach `_penPlay`. "Maybe a hardware-keyboard-only feature." → It's wired to every writing field incl. the mobile task input. Refutation fails.
+- **Root cause:** `keydown`+`key.length===1` can't observe IME letter input on mobile.
+- **Fix strategy:** additionally drive the letter grain from an `input`/`beforeinput` listener on writing fields (fires for IME letters), or handle the `keyCode 229` / `Unidentified` case; de-dupe so a physical keyboard doesn't double-play.
+- **Change together:** `07-dnd-filter-progress.ts` (pen trigger).
+- **Tests:** simulate an `input` event on the task field with pen enabled → letter grain plays; ensure no double-play with a real keydown.
+- **Cross-app:** applies to the Grimuar editor typing too (verify the pen sounds there on mobile).
+
+### V2-B1-21 — Touch drag ghost is offset far to the LEFT of the finger → reordering is nearly unusable on mobile
+- **Evidence:** A (SortableJS fallback + transformed-ancestor mechanics) + B (user: "позиция задачи где-то в левом месте от пальца … перетащить крайне неудобно").
+- **Severity:** UI 2 · DL 0 · RR 2 · IC 1 · CF 2 (root cause needs a device confirm of the exact transformed ancestor)
+- **Where:** `SORTABLE_OPTS` (01-core.ts:838) sets neither `forceFallback` nor **`fallbackOnBody`**. On touch (no native HTML5 DnD) SortableJS always uses its fallback clone, positioned `position:fixed` and appended to the dragged item's container. Any ancestor with a `transform`/`filter`/`will-change` (the app has group-header `translateY`, card/`.app-glow` filters, entrance `scale`) becomes the containing block for that fixed clone, shifting its coordinate origin → the ghost renders displaced from the touch point (here, to the left).
+- **Failure scenario:** Dragging a task or subtask on a phone shows the drag image detached from the finger, making it very hard to aim a drop — a core interaction (reorder) is effectively broken on touch.
+- **Refutation attempted (§2):** "It's `delay:120` mis-fire." → Different symptom; the user reports the ghost is spatially offset, not that it fails to start. "No transformed ancestor exists." → The app uses transforms/filters on list ancestors; the classic `fallbackOnBody` fix targets exactly this. Held at CF 2 pending a device check of which ancestor. Refutation reduces but doesn't kill it.
+- **Root cause:** fixed-positioned fallback clone inside a transformed/filtered containing block.
+- **Fix strategy:** set `fallbackOnBody: true` (append the clone to `<body>`, escaping the transformed ancestor) and consider `forceFallback:true` for consistent cross-platform ghost behaviour; re-test the offset on device. Applies to every Sortable instance (tasks/subtasks/groups/form-subs) sharing `SORTABLE_OPTS`.
+- **Change together:** `01-core.ts` (`SORTABLE_OPTS`).
+- **Tests:** device drag — ghost tracks the finger; emulated drag — clone is a child of `<body>`.
+- **Cross-app:** all Sortable lists (tasks, subtasks, groups, Grimuar note DnD if it shares options).
+
+### V2-B1-22 — Deadline modal: the segmented time input and its steppers don't respond to tap on mobile
+- **Evidence:** B (user: deadline modal saves, but "не кликаются тайм пикеры и дейт пикеры"); A-partial (custom `SegmentedInput`, not a native picker).
+- **Severity:** UI 2 · DL 1 (can't set a time on mobile → the deadline the user intended isn't captured) · RR 2 · IC 2 · CF 2
+- **Where:** the deadline modal's time field is a custom `SegmentedInput` widget (`segInputs['dl-date-time']`, built by `initSegmentedInputs()`, 01-core.ts:946; class in 08) with hourglass steppers, NOT a native `<input type="time">`. On the user's phone, tapping the segments/steppers doesn't focus a segment or change the value, so a time can't be entered via touch (the mode buttons + Save do work). Needs a device-level root-cause pass (likely the segment tap→focus/caret handling doesn't fire on touch, or the native keyboard doesn't bind to the custom segment).
+- **Failure scenario:** On a phone the user can pick a deadline mode and Save, but cannot actually set the hour/minute — the time portion of a deadline is unenterable, so time-based deadlines can't be created on mobile.
+- **Refutation attempted (§2):** "Maybe he tapped the wrong spot." → He reports both time and date pickers unresponsive across the attempt; the field is a non-native custom widget, which is exactly the kind that commonly misses touch focus. Held CF 2 pending a device/emulation repro of the segment tap path.
+- **Root cause (hypothesis):** the `SegmentedInput` segment focus/caret logic is bound to mouse/keyboard, not touch (`pointerdown`/`touchstart`), so a tap neither focuses a segment nor raises the numeric keyboard.
+- **Fix strategy:** ensure segment tap uses pointer events and focuses the segment + raises a numeric keyboard on touch; provide a native `<input type="time">` fallback on coarse pointers, or make the steppers real buttons. Verify on device.
+- **Change together:** `08-quickadd-export-init.ts` (`SegmentedInput`) + `06-deadlines.ts`.
+- **Tests:** on a touch context, tap a segment → it focuses and accepts digits; steppers change the value.
+- **Cross-app:** the repeat-anchor time input and any other `SegmentedInput` (weektime) share this — verify.
+
+### V2-B1-23 — Interface intermittently fails to paint on scroll (and paints differently each re-scroll) on mobile
+- **Evidence:** B (user, on device: "при скроллах вверх-вниз интерфейс иногда может просто не отрисоваться … по-разному при каждом перескролле"). Not reproduced in headless emulation.
+- **Severity:** UI 2 · DL 0 · RR 2 · IC 2 · CF 2 (device-only so far; needs profiling)
+- **Where / hypothesis:** likely a compositing/paint problem amplified by (a) the astronomically tall layout from V2-B1-01/B1-13 (the collapsed cards make the page 10–15× viewport, and 190 k–959 k px at scale — V2-B1-10), and/or (b) heavy `backdrop-filter`/`filter`/shadow layers (the gothic glow, `.app-glow`, card glows) that the mobile GPU drops/re-rasterizes inconsistently while scrolling. The "different each re-scroll" signature points at dropped/aborted paints of expensive filter layers rather than a logic bug.
+- **Failure scenario:** Scrolling the list on a phone sometimes leaves regions unpainted or renders icons/elements inconsistently — a visible, confidence-eroding glitch.
+- **Refutation attempted:** "It's the reconciliation logic." → Reconciliation is deterministic and content-keyed; a *visual* paint that varies per scroll with identical DOM points at the compositor, not the DOM. Held CF 2 pending a device trace (Chrome DevTools paint flashing / layer borders).
+- **Root cause:** to be confirmed — probable interaction of huge scroll height (B1-01/10) + expensive filter/backdrop layers on mobile GPUs.
+- **Fix strategy:** first fix B1-01/B1-13 (kills the height explosion), then profile paints on device; reduce/rasterize the heavy filter layers (`will-change`, `content-visibility:auto` on off-screen sections, fewer stacked `backdrop-filter`s). Owner overlaps B7 (motion/paint) and B8 (perf).
+- **Change together:** `style.css` (filter/compositing) + the B1-01 fix; investigate in B7/B8.
+- **Tests:** device paint-flashing trace before/after B1-01 fix; assert no unpainted regions on a scripted scroll.
+- **Cross-app:** whole app scroll surfaces.
 
 ---
 
