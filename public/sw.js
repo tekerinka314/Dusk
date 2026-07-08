@@ -23,7 +23,7 @@
 // (only `basic` same-origin + `cors`), and every cross-origin asset we DO want
 // offline (Google Fonts CSS, SortableJS) carries `crossorigin` so it comes back as
 // `cors`. v4 also re-purges the v3 cache that had re-accumulated font padding.
-const CACHE = 'dusk-shell-v8';   // v8: Vite build — single app.js bundle, no CDN dep
+const CACHE = 'dusk-shell-v9';   // v9: start_url→"./" fix + redirect-safe navigations (v8: Vite single bundle)
 const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
 
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
@@ -78,6 +78,19 @@ function _cacheable(resp) {
     return !!resp && resp.ok && resp.type !== 'opaque' && resp.type !== 'opaqueredirect';
 }
 
+// A Service Worker may NOT answer a NAVIGATION request with a response obtained by
+// following a redirect (`resp.redirected === true`) — Chrome fails the load with
+// ERR_FAILED. Cloudflare Pages 308-redirects `/index.html` → `/`, so a standalone
+// launch whose start_url resolved to a redirecting path would break. start_url is
+// now "./" (no redirect), but this rebuilds any redirected navigation response into
+// a clean same-URL one so no future server-side redirect can ever break the launch.
+function _navSafe(request, resp) {
+    if (request.mode === 'navigate' && resp && resp.redirected) {
+        return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers: resp.headers });
+    }
+    return resp;
+}
+
 // Network-first with a timeout, cache as the safety net.
 //   • network answers within NET_TIMEOUT_MS → serve it fresh (and refresh cache).
 //   • times out / errors → serve cache instantly; the fetch keeps running in the
@@ -109,12 +122,12 @@ async function networkFirst(request) {
     }
 
     if (winner !== TIMEOUT && winner !== NETFAIL) {
-        return winner;                          // fresh from network within the budget
+        return _navSafe(request, winner);       // fresh from network within the budget
     }
 
     const cached = await cache.match(request);
-    if (cached) return cached;                  // slow/offline → serve cache instantly
-    return networkPromise;                      // nothing cached → wait for the network
+    if (cached) return cached;                  // slow/offline → serve cache instantly (cache hits are never redirected)
+    return networkPromise.then(r => _navSafe(request, r)); // nothing cached → wait for the network
 }
 
 self.addEventListener('fetch', e => {
