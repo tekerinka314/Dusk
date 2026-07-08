@@ -554,6 +554,50 @@ the user; scrolling is smooth (except the render glitch below).
 - **Tests:** device paint-flashing trace before/after B1-01 fix; assert no unpainted regions on a scripted scroll.
 - **Cross-app:** whole app scroll surfaces.
 
+### V2-B1-24 — Gesture-nav bar / edge-to-edge area is flat near-black, not the gothic background (user-noted)
+- **Evidence:** B (user, installed & web: "фон жестовой полоски в нашем приложении тёмный") + A (`background_color`/`theme_color` `#03010a`; no `viewport-fit=cover` so the bg image never extends into the inset area).
+- **Severity:** UI 1 · DL 0 · RR 1 · IC 1 · CF 3
+- **Where:** `manifest.json` `background_color`/`theme_color` are flat `#03010a`; the gothic `bg-gothic.jpg` is painted on `.container`, which stops above the system inset. In standalone (and behind the browser bottom bar) the strip under/around the gesture bar is a dead black band instead of a continuation of the gothic atmosphere.
+- **Failure scenario:** The bottom edge reads as a flat black cutoff rather than the immersive gothic backdrop — a small but real polish gap on a "aesthetic is mandatory" app.
+- **Refutation attempted:** "Dark is on-brand." → It's darker/flatter than the bg image and reads as a seam; the user explicitly disliked it. Minor but valid.
+- **Root cause:** no edge-to-edge opt-in (`viewport-fit=cover`) + solid theme colour; the background layer doesn't reach the insets.
+- **Fix strategy:** with the `viewport-fit=cover` change (B1-07), extend the gothic background (or a matching gradient) into the safe-area insets so the strip blends; tune `theme_color` to the image's edge tone.
+- **Change together:** `index.html`/`style.css` (bg extends to insets) + `manifest.json` (theme_color) — bundle with B1-07.
+- **Cross-app:** whole app chrome. Pairs with B1-07.
+
+### V2-B1-25 — Grimuar format toolbar is docked at the top of the editor, far from the caret → awkward to reach while typing on a phone
+- **Evidence:** B (user: "до тулбара тянуться неудобно") + C (`B1_grim_n1_pixel7.png` — toolbar at the top, body/caret below).
+- **Severity:** UI 1 · DL 0 · RR 2 · IC 2 · CF 3
+- **Where:** `renderGrimDetail` renders the format toolbar as a fixed block at the top of the note; on a tall mobile note the caret is far below it, so applying bold/list/etc. means scrolling back up. On touch there is no hover-toolbar or selection-anchored bar.
+- **Failure scenario:** Formatting text while writing a long note on a phone is clumsy — you lose your place scrolling up to the toolbar and back.
+- **Refutation attempted:** "It's sticky." → It scrolls away with the note (not confirmed sticky on mobile); even sticky-at-top is far from a mid-note caret. Valid UX gap.
+- **Root cause:** desktop-oriented top toolbar; no mobile caret-adjacent / selection-popover / sticky-bottom toolbar.
+- **Fix strategy:** on touch, make the toolbar sticky near the keyboard (bottom) or show a selection-anchored mini-toolbar; keep the gothic styling.
+- **Change together:** `02-grimoire.ts` (toolbar placement on touch) + `style.css`.
+- **Cross-app:** Grimuar-only.
+
+---
+
+### Leads for an EXHAUSTIVE B1 (not yet probed — concrete next work to multiply coverage)
+The 23→25 findings cluster around a few dominant root causes (revealed-action crush,
+non-wrapping strips, no-landscape modals, custom touch inputs); many surfaces are
+genuinely fine (differential list below). To push B1 toward exhaustive, each area
+below is a concrete runnable probe likely to yield further findings — several are
+cross-batch (gothic=B2, icons=B3, UX=B5, motion=B7, perf=B8) but manifest on mobile:
+- **All 6 gothic pickers** (sort ×3, dl-month, dl-weekday, form-weekday, repeat-weekday, colour-filter pop) at 360 + landscape: placement/clip/tap-size (only sort + task-more sampled).
+- **Remaining modals** not yet landscape/keyboard-swept: `grim-link`, `bulk-group`, `import-choice`; and every modal WITH the keyboard raised (not just short-viewport proxy).
+- **Quarantine review overlay** + the unresolved-count badge on mobile (needs seeded journal).
+- **Notification permission / bell** flow + the deadline-notification toast on mobile.
+- **Archive month collapse** animation + header tap-target; **Grimuar crypt month** collapse.
+- **Find bar** (`::highlight`) over the keyboard; **search-result highlight** legibility on mobile.
+- **Schedule mode** `.dl-side-panel` (44 px) legibility + the split/today/focus combos at mobile width.
+- **Sub-notes-always eye**, promote/demote, duplicate, template-apply flows on touch.
+- **200 % browser-zoom reflow** (distinct from OS font-scale B1-18) — does anything break/overlap.
+- **RTL / long-locale** text; **very long unbroken word/URL** isolated from B1-01/04/05 (patch them out first).
+- **Contrast over the BRIGHT bg-image regions** (moon/branches) — pixel-sample muted/purple text there (solid-bg text is fine, 17.5:1).
+- **Orientation-change mid-edit** data safety; **long-press vs text-selection** and **double-tap-zoom vs double-tap-edit** conflicts; **pen-volume drag** + **colour-spectrum pad** touch precision (looked OK, not touch-tested).
+- **Per-component tap-target + spacing census** (beyond the count) and **motion timing on a throttled phone** (B7).
+
 ---
 
 ### Good surfaces confirmed on mobile (differential evidence — preserve in the rework)

@@ -50,6 +50,19 @@ touch, and a handful of overflow/fit/safe-area gaps around it.
 | **V2-B1-21** | 2 / 0 | A+B | touch drag ghost offset far left of the finger → reordering nearly unusable (Sortable fallback + no `fallbackOnBody`) |
 | **V2-B1-22** | 2 / 1 | B+A | deadline modal: segmented time input + steppers don't respond to tap on mobile → can't set a time |
 | **V2-B1-23** | 2 / 0 | B | interface intermittently fails to paint on scroll (varies each re-scroll) — compositing under the huge B1-01/10 layout |
+| **V2-B1-24** | 1 / 0 | A+B | gesture-nav/edge-to-edge strip is flat near-black, not the gothic bg (user-noted) — bundle with B1-07 |
+| **V2-B1-25** | 1 / 0 | B+C | Grimuar format toolbar docked at top, far from the caret → awkward to reach while typing on a phone |
+
+**Edge-case sweep (2026-07-08):** all modals in landscape 915×412 — deadline/repeat/
+color/group clip (B1-06 scope), but note/prio/colorFilter/templates/backup/renameGroup
+FIT with Save reachable. Primary text contrast is excellent (17.5:1). Snooze menu fits
+at 360. So the sweep was mostly confirmations — the mobile defects cluster around a few
+root causes (see `FINDINGS.md` → "Leads for an EXHAUSTIVE B1"). **Why 25 and not more:**
+the dominant root causes recur across surfaces (one fix each covers many symptoms) and
+several surfaces are genuinely well-built; a larger count needs the enumerated
+uncovered probe-areas (pickers/overlays/notification/zoom/RTL/per-component census),
+much of which is cross-batch (B2/B3/B5/B7/B8). That list is the actionable path to
+exhaustive coverage.
 
 **Device round (user's real Android, web tab, 2026-07-08):** on-device CONFIRMED
 B1-01, B1-13, B1-06, B1-08, B1-15 (photos 1–6). Did NOT reproduce B1-05 / B1-17
