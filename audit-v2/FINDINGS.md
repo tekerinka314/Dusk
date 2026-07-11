@@ -877,3 +877,80 @@ recorded there — the registry lists only defects.
 - **Cross-app:** align with СКЛЕП treatment.
 - **Refutation attempted:** "dimness is the design" — function (find & restore,
   the #1 archive job) loses; identity keeps via strike+desat, not near-invisibility.
+
+---
+
+## Batch B3 — Glyphs & iconography (S2, 2026-07-11)
+
+User ground truth: most icons (esp. outside Grimuar) fail the 3-axis bar
+(gothic × detail × intuitive, all maxed). Census: IC 47 + GIC 18 + FIC 22
+builders + 75 unique statics in index.html; only 2 shared <symbol>s. Full
+triage + redesign program: `audit-v2/B3-icons.md`.
+
+---
+
+### V2-B3-01 — Majority of motif icons fail the detail/gothic axes (systemic redesign program)
+- **Evidence:** E→confirmed (user mandate) + C (D-iconsheet: 16/20/24/32px) +
+  A-metric (≥50% of IC/statics ≤4 SVG elements; exemplars exist: chronicle:15,
+  drag:9, sundial:8, skull:7).
+- **Severity:** UI 3 · DL 0 · RR 1 · IC 3 · CF 3
+- **Root cause:** icons accreted per-feature without a quality bar or exemplar
+  set; the strong glyphs (летопись, skull, sundial) came later and never
+  propagated back.
+- **Fix strategy:** tiered program (report): registry-first (V2-B3-02), then
+  per-family ornate redesign of Tier B against Tier A exemplars, 16px legibility
+  gate, user-ratified preview sheets per family; micro-marks (FIC) only weight-
+  normalized, NOT engraved.
+- **Files:** dusk/01-core.ts (IC), dusk/02-grimoire.ts (GIC/FIC), index.html
+  statics, style.css sizing.
+- **Tests:** rerun icon-sheet harness per family (s2_shots.mjs icons) + in-situ
+  spot shots; npm test untouched.
+- **Refutation attempted:** "minimal glyphs are a legitimate style" — overruled
+  by explicit user requirement (locked): all three axes at maximum.
+
+### V2-B3-02 — No icon system: ~160 duplicated definitions, 2 symbols, near-duplicate motif drift
+- **Evidence:** A (census: 99 inline SVGs in index.html, 75 unique, 14 literal
+  repeats ×≤5; 87 JS builders; 2 <symbol>s) + C (sheet shows ≥6 cross variants,
+  ≥5 crescents, ≥5 X-marks, 2 magnifiers, multiple arch/book/tombstone drifts).
+- **Severity:** UI 1 (drift visible) · DL 0 · RR 2 (touch-everything refactor) ·
+  IC 2 · CF 3
+- **Root cause:** copy-paste inline SVG as the default insertion method; no
+  role→glyph registry; CLAUDE.md reuse rule unenforceable without one.
+- **Fix strategy:** consolidate one definition per ROLE (builders preferred —
+  they already dominate), replace index.html statics with refs, THEN redesign
+  (order matters: makes V2-B3-01 O(roles) not O(instances)). Also shrinks HTML
+  (~140KB index.html today) — cross-ref B8/B9.
+- **Files together:** index.html + all dusk modules that emit icon HTML.
+- **Tests:** visual diff per surface; build size check.
+- **Cross-app:** unify same-role glyphs across DUSK/Grimuar (magnifier, archive).
+- **Refutation attempted:** "duplication is harmless denormalization" — the
+  drift on the sheet (6 crosses) is the direct product; reuse rule already broken.
+
+### V2-B3-03 — Semantic misfires: death motifs on schedule concepts and other role/motif mismatches
+- **Evidence:** C (D-modal-repeat: tombstones = «По будням»/«Ежемесячно»;
+  D-pop-snooze: tombstone = «+1 неделя»; D-modal-templates: unreadable row
+  action; toolbar ВИД cluster lookalikes) + A (IC key names).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 2 · CF 3
+- **Root cause:** motif chosen for "gothic-ness" without a semantic map; the
+  same glyph family (tombstone/arch) covers archive, weekday, month, data.
+- **Fix strategy:** role→motif semantic map ratified by user BEFORE redrawing
+  (part of the V2-B3-01 program); schedule concepts get time/astral motifs
+  (moon phases, sundial, bell-toll) not burial motifs; cross also двойная роль
+  (add vs none) — disambiguate.
+- **Refutation attempted:** "tombstone = день недели is charmingly dark" — fails
+  the intuitiveness axis (user's third requirement), and collides with coffin=
+  archive locked motif.
+
+### V2-B3-04 — Stroke-weight and optical-size normalization absent across the estate
+- **Evidence:** C (sheet: hairline arrows vs heavy tombstones vs filled shapes
+  at equal rendered size).
+- **Severity:** UI 1 · DL 0 · RR 1 · IC 2 · CF 3
+- **Fix strategy:** one weight scale on a 24-unit grid inside the registry pass;
+  optical variants for 16px-critical glyphs.
+
+### V2-B3-05 — Five glyphs rendered EMPTY on the icon sheet (inline#98-101, #116) — verify in-app
+- **Evidence:** D (likely sheet-harness extraction artifact: context-dependent
+  sizing/currentColor), C (D-iconsheet blank cells).
+- **Severity:** UI ? · DL 0 · RR 0 · IC 0-1 · CF 1
+- **Next:** during B4 popover re-sweep, map sheet DOM order → source and confirm
+  each renders in-app; if any is genuinely blank in-app, promote to a bug.
