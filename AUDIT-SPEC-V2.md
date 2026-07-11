@@ -1,24 +1,29 @@
 # DUSK / Grimuar — Comprehensive Quality Audit, Spec v2
 
-Rev 3 · 2026-07-07 · Branch: `refactor/sync` · Supersedes
+Rev 4 · 2026-07-11 · Branch: `refactor/sync` · Supersedes
 `COMPREHENSIVE-QUALITY-AUDIT-SPECIFICATION-FOR-FABLE-5.md` (v1 = the original
 brief, kept in the repo untouched). This document is the operating standard
 for the entire audit.
 
 **Execution history.** Phase 0 (spec) + Phase 1 (clarification) + the start of
-B0 (repo reading through `dusk/12` and the whole sync stack) were done by
-**Fable 5 (high)**; that model's usage limit was then exhausted. The audit is
-continued by **Opus 4.8 (xhigh)** from mid-B0 onward. Rev 3 is Opus's revision.
+B0 were done by **Fable 5 (high)**; its limit ran out mid-B0. **Opus 4.8
+(xhigh)** continued (rev 3): finished B0, ran B1 to 25 findings incl. the
+on-device round and the approved PWA fix (`686ddd3`). **Fable 5 returned
+2026-07-11**, audited the Opus branch (accepted its substance; ARCHITECTURE.md
+spot-verified; all 29 findings ratified in form), and wrote rev 4 with the
+user's new mandate.
 
-**Rev 3 mandate (the reason this revision exists): remove every budget ceiling.**
-The Fable session was written to survive an early hard stop on a single shared
-usage limit, so rev 2 hedged depth against budget. That constraint is GONE. The
-new doctrine (§3) is **maximum depth and maximum coverage on every batch**,
-with the explicit goal of matching the exhaustiveness a top-tier Mythos-class
-model (Fable 5) would have produced. There is no batch that gets "lean"
-treatment; there is no tail that gets sacrificed. Budget is not a reason to cut
-anything, ever. The only pacing rule that survives is: **persist as you go** (so
-progress is durable and resumable), not because we expect to run out.
+**Rev 4 mandate (supersedes rev 3's "no budget ceiling"): near-maximum quality
+at maximum context-efficiency.** Budget is again a real constraint. The rule is
+**ROI per token**: spend context where it buys real findings or stronger
+evidence (data-safety probes, taste judgments, root-cause classes); do not
+spend it re-deriving known root-cause themes, re-setting-up harnesses per
+batch, or re-reading sources a prior batch already mapped. Depth is preserved
+where risk lives; only overhead is cut. Concretely: batches that share an
+evidence source run as ONE session (§5 table); adversarial verification stays
+but is executed serially by the auditing thread (§4a); large multi-agent
+fan-outs are retired (§4a, evidence-based). Persist-as-you-go survives
+unchanged.
 
 Rev 2/3 incorporate the user's Phase-1 answers:
 
@@ -134,31 +139,24 @@ Rules:
 - After each batch: write the batch report → append findings → add/update a
   memory file + MEMORY.md pointer (so even a lost repo copy keeps the core)
   → **commit + push** (`Co-Authored-By` trailer, no version bump).
-- **Depth doctrine (rev 3 — budget is not a constraint):**
-  - Every batch is taken to exhaustion. "Exhaustion" = the completeness critic
-    (§6/§7) finds nothing more to audit: no unread source region in scope, no
-    unverified claim, no un-probed suspicious path, no screen not visually
-    reviewed at the target sizes. A batch closes only when its aspect is fully
-    covered — never because a token budget said so.
-  - Prefer more evidence, not less: reproduce with runtime probes, add node
-    scripts, take the screenshots, run the benchmarks, drive the two-device
-    fake-cloud scenarios. Re-reading a source region for a fresh lens is fine;
-    the "single-read" note-taking of B0 is an efficiency, not a cap.
-  - Adversarial verification (§2) is applied to every promoted finding; this
-    costs extra passes and that is expected and welcome.
-  - Interim reports + memory after every batch are still written — now purely
-    for durability/resumability, not because an early stop is anticipated.
-  - The only things NOT expanded are the guardrails against waste that protect
-    QUALITY: don't re-report closed findings (§2 dedup), don't chase rabbit
-    holes unrelated to the aspect, don't pad reports with restated code. Depth
-    means more real findings and stronger evidence, not more words.
-- **Optional multi-agent fan-out (see §4).** With no budget ceiling, heavy
-  fan-out batches (B1 screen-by-screen, B6 subsystem-by-subsystem, adversarial
-  verification panels) MAY be run as orchestrated multi-agent Workflows for
-  breadth + independent verification — gated on explicit user opt-in, since it
-  is a large resource commitment even when budget is unbounded. The main thread
-  always owns B0 (the coherent architecture model) and the cross-batch
-  synthesis; workflows only fan out well-scoped sub-work under that model.
+- **Depth doctrine (rev 4 — ROI per token):**
+  - Depth is allocated by RISK and by NOVELTY of what a probe can reveal, not
+    uniformly. Data-safety paths (Guardrail A), taste judgments on the core
+    identity, and unexplored root-cause CLASSES get full depth. Additional
+    INSTANCES of already-established root-cause themes are enumerated briefly
+    (one line referencing the theme), not re-proven one by one — especially
+    where a planned rework will replace the surface anyway (the B1 mobile
+    rework invalidates per-instance findings against the current card layout).
+  - Evidence still beats inference where a probe is CHEAP (a node script, a
+    reused harness run). Where a probe is expensive and the code reasoning is
+    airtight, `A`-level evidence with a recorded refutation attempt suffices;
+    say so explicitly in the finding.
+  - Sessions are sized to CLOSE their batch(es): never leave a batch half-done
+    at a session boundary if finishing costs less than the re-entry overhead.
+  - Interim reports + memory after every batch/session — unchanged (insurance).
+  - Anti-waste guardrails unchanged: no re-reported closed findings (§2 dedup),
+    no rabbit holes off-aspect, no padded reports. Reports state what was NOT
+    covered and why (ROI call), so "efficient" never silently becomes "shallow".
 - Everything is resumable: a fresh session reads `AUDIT-SPEC-V2.md` +
   `audit-v2/` + memory index and continues from the next batch.
 
@@ -173,53 +171,42 @@ Rules:
 | Live prod | claude-in-chrome MCP on `https://dusk-du4.pages.dev` — SW behavior, update toast, PWA install, real-feel checks. Read-only conduct: no edits to real data, no sign-outs | ✅ user's Chrome must be open |
 | Real device | user's Android phone, guided checklists (5–10 short checks) at B1 and where needed | ✅ user agreed |
 | Performance | CDP via playwright (tracing, FPS, metrics), 200/1000-task seeded benchmarks; `npx lighthouse` on demand | ✅ / on-demand |
-| Multi-agent Workflow | AVAILABLE (rev 3). Budget no longer blocks it; use for heavy fan-out + adversarial verification panels once the user opts in (§3). | ⏳ opt-in |
-| Chrome-DevTools MCP | preferred by the `web-perf` skill for Lighthouse-grade traces; not installed. Offer to install for B8 if deeper perf tracing is wanted. | ⏳ optional |
+| Multi-agent Workflow | **RETIRED (rev 4, evidence-based)** — the B1 20-agent panel consumed ~2 session limits with 6/20 agents completing; the harvested value was recovered serially at ~⅓ cost. All remaining work runs serially in the auditing thread. | ❌ retired |
+| Chrome-DevTools MCP | preferred by the `web-perf` skill for Lighthouse-grade traces; not installed. Install at S5 (B7+B8) if deeper perf tracing is wanted. | ⏳ optional |
 
 `npx lighthouse` auto-installs on first use — no decision needed.
 
-**Decided (user, 2026-07-07):**
-- **Chrome-DevTools MCP → install at B8.** When B8 begins, Opus attempts to add
-  the `chrome-devtools-mcp` server itself (npx-based, via the update-config
-  skill / MCP config); if that can't be done headlessly, it asks the user to
-  enable it. Used for Lighthouse-grade traces (INP/LCP/CLS, layout-shift,
-  network dependency chains) on top of CDP-via-playwright.
-- **Multi-agent orchestration → HYBRID (opted in).** See §4a.
+**Decided (user, 2026-07-07, upheld in rev 4):**
+- **Chrome-DevTools MCP → install at the perf session (S5).** The auditing model
+  attempts to add the `chrome-devtools-mcp` server itself (npx-based); if that
+  can't be done headlessly, it asks the user. Used for Lighthouse-grade traces
+  (INP/LCP/CLS, layout-shift, network chains) on top of CDP-via-playwright.
 
-### 4a. Multi-agent methodology (hybrid — opted in 2026-07-07)
+### 4a. Verification methodology (rev 4 — serial; workflows retired)
 
-The MAIN THREAD (Opus 4.8 xhigh) owns everything that needs one coherent mental
-model: the B0 architecture model, all cross-batch synthesis, the roadmap, and
-the "taste" batches where holistic judgment beats parallel breadth (**B2**
-gothic design language, **B5** UX — a cold agent judges these more shallowly).
+Adversarial verification (§2) is executed **serially by the auditing thread**:
+every promoted finding gets an explicit refutation attempt recorded in
+FINDINGS.md; data-loss / high-severity findings additionally get an independent
+second pass (a fresh read of the surrounding code on a later day/session, or a
+runtime probe that reproduces the failure). This is the same standard the B1
+registry already demonstrates — main-thread refutation proved as effective as
+agent panels at a fraction of the cost.
 
-Multi-agent **Workflow** runs are used where independent breadth or independent
-skepticism raises quality, always UNDER the main thread's architecture model
-(each agent is handed the relevant source slice + the ARCHITECTURE.md summary so
-it isn't fully cold):
+Multi-agent Workflow fan-outs are **retired** for this audit (B1 evidence: the
+20-agent panel burned ~2 session limits, 6/20 completed; its breadth was
+recovered serially from the journal at ~⅓ cost). If a future batch ever
+genuinely needs parallel breadth, the cap is ≤4 cheap finder agents with
+structured output, user-approved beforehand — but the default is serial.
 
-- **B1 (mobile) — screen-by-screen fan-out.** One agent per screen/modal/picker
-  × target viewport, each returning a structured finding list from its
-  screenshot + DOM. The main thread seeds the screen inventory, then synthesizes
-  and de-dupes. Independent per-screen passes catch layout/tap-target issues a
-  single sweep skips.
-- **B6 (functional correctness) — subsystem-by-subsystem bug hunt, loop-until-dry.**
-  One agent per subsystem (tasks, subtasks, repeats, deadlines, groups,
-  archive, quick-add, Grimuar editor, sync flows…), each hunting bugs/edge
-  cases/races to exhaustion; re-run until K consecutive rounds surface nothing
-  new. Main thread owns the Guardrail-A data-safety reasoning itself.
-- **Adversarial verification panels (every batch).** Each promoted `A`/`B`
-  finding — especially data-loss/high-severity — is handed to N independent
-  skeptic agents prompted to REFUTE it (find the guard, the caller, the CSS
-  rule that already covers it). A finding survives only if a majority fail to
-  refute. This is the §2 rule, executed as a workflow panel.
+### 4b. Model allocation (user-approved 2026-07-11)
 
-Guardrails on the fan-out: agents get schemas (structured output) so results
-merge cleanly; the main thread always re-reads the code behind any finding
-before it enters the roadmap (agents locate + argue, the main thread ratifies);
-no silent truncation — if a fan-out bounds coverage, the batch report logs what
-was not covered. Workflows are one well-scoped phase at a time; the main thread
-reads each result and decides the next phase (stays in the loop).
+| Sessions | Model | Rationale |
+|---|---|---|
+| S1 (B1-topup), S2 (B2+B3+B4), S3 (B5) | **Fable 5** | taste/judgment batches — the premium edge is visible here; user explicitly wants Fable on the mobile top-up |
+| S4 (B6) probe-matrix DESIGN + ratification of all data-loss/high-severity findings | **Fable 5** | data-safety judgment concentrated where it pays; review is ~10× cheaper than execution |
+| S4 (B6) execution (probes, bug-hunt) | **Opus 4.8** | runs the Fable-designed matrix; findings above severity threshold go back to Fable for ratification |
+| S5 (B7+B8), S6 (B9+B10+B11), S7 (B12+B13) | **Opus 4.8** | instrumented/mechanical batches — statistically insignificant quality gap, large limit savings |
+| B14 final synthesis + roadmap (end of S7 or separate) | **Fable 5** | one voice calibrates severity across the whole registry |
 
 ## 5. Execution plan
 
@@ -286,32 +273,36 @@ target / acceptable temporary debt / already-dangerous debt. Do not
 recommend a broad rewrite unless incremental migration provably cannot meet
 the safety and quality goals.
 
-Then the priority batches, in v1 order. **Depth = maximum on every batch**
-(rev 3). The Priority column is EXECUTION ORDER and severity WEIGHT — mobile
-(B1) still leads and carries the heaviest weight in the roadmap — but it is no
-longer a depth ration: B10/B12/B13 get the same exhaustive treatment as B1/B6.
+Then the priority batches, in v1 order. **Rev 4: adjacent batches sharing one
+evidence source run as ONE session** (S1–S7, user-approved 2026-07-11) — the
+v1 priority ORDER is fully preserved; only setup/read overhead is merged. Each
+session still produces one report PER BATCH (B2, B3, B4 stay separate documents
+even when audited in one S2 run). Status: B0 ✅ · B1 ✅ emulation+device (25
+findings) — remainder = the S1 targeted top-up.
 
-| Batch | v1 priority | Aspect |
-|---|---|---|
-| B1 | **P0 — FUNDAMENTAL** | **Mobile experience (a standalone exhaustive audit — see §6 B1 banner)** |
-| B2 | P2 | Gothic design language |
-| B3 | P3 | Glyphs & iconography |
-| B4 | P4 | UI |
-| B5 | P5 | UX (+ a11y, + RU copy — v2 additions) |
-| B6 | P6 | Functional correctness (+ Guardrail A deep-dive) |
-| B7 | P7 | Animation & motion |
-| B8 | P8 | Performance |
-| B9 | P9 | Architecture, sync architecture, migration (+ Guardrail B deep-dive) |
-| B10 | P10 | Code quality |
-| B11 | P11 | Security |
-| B12 | P12 | PWA |
-| B13 | P13 | Cross-app parity (synthesis of the continuous lens) |
-| B14 | P14 | Project evolution + FINAL DELIVERABLES |
+| Session | Batches | Evidence source shared | Model | Est. context |
+|---|---|---|---|---|
+| S1 | B1 top-up (targeted) | mobile harness (`D:\tmp\pw\b1\`) | Fable | ~100–150k |
+| S2 | B2 gothic + B3 icons + B4 UI | one screenshot inventory (desktop set + existing ~140 mobile shots) → three lenses | Fable | ~200–250k |
+| S3 | B5 UX + a11y + RU copy | S2 evidence + keyboard-only/AT passes | Fable | ~150k |
+| S4 | B6 functional + Guardrail A deep-dive | runtime probes (incl. the V2-B0-02 boot-race probe FIRST), subsystem hunts | Fable designs+ratifies, Opus executes | ~300–400k |
+| S5 | B7 motion + B8 performance | one instrumented browser (traces, throttling, chrome-devtools MCP) | Opus | ~150–200k |
+| S6 | B9 architecture + B10 code quality + B11 security | one code read over the existing ARCHITECTURE.md model | Opus | ~200–300k |
+| S7 | B12 PWA + B13 cross-app + B14 evolution & final deliverables | small surfaces + synthesis of the accumulated registry | Opus (B12/B13) → Fable (B14 synthesis) | ~150–200k |
 
-Because budget no longer forces an early stop, the audit runs to completion
-through B14. If a session boundary is hit, the committed `audit-v2/` artifacts +
-memory make the next session resume seamlessly from the next batch — no batch is
-abbreviated for lack of budget.
+**S1 (B1 top-up) scope — targeted, user-approved:** only root-cause CLASSES not
+yet exercised: touch-input widgets (SegmentedInput family incl. repeat-anchor
+time; the 6 gothic pickers on touch), every modal with the real keyboard raised,
+orientation-change mid-edit (data safety), the quarantine overlay on mobile
+(seeded journal), quick-add typeahead above the keyboard. New INSTANCES of the
+four established themes (action-row crush, nowrap strips, no-landscape modals,
+fixed-px) are noted one-line against the theme, not re-proven — the mobile
+rework replaces those surfaces. Cross-batch leads from "Leads for an EXHAUSTIVE
+B1" execute in their owner batches (B2/B3/B5/B7/B8), each of which audits BOTH
+desktop and the mobile viewport from now on.
+
+If a session boundary is hit mid-way, the committed `audit-v2/` artifacts +
+memory make the next session resume seamlessly.
 
 ## 6. Per-batch scope & checklists
 
