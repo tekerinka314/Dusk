@@ -260,3 +260,48 @@ REFUTED as probe-order artifacts — recorded in FINDINGS so they aren't re-chas
 - **P1 quick-wins list gains:** typeahead visualViewport clamp/flip (B1-27 — same
   clamp utility as the B1-17 popover fix); SegmentedInput touch input path
   (B1-22 fix already listed) — verify steppers on device before touching them.
+
+---
+
+## S1 device round 2 (user's Android, 2026-07-11) — B1 CLOSED at 28 findings
+
+User ran the three new checklist items:
+- **(10) B1-26:** double-tap edit WORKS on device (task + subtask) → severity
+  downgraded to discoverability/ergonomics (UI 2); caret placement «тяжеловато» —
+  confounded by B1-01, re-assess after that fix. Emulation's suppressed-dblclick
+  did NOT transfer to the real device — recorded as an emulation-fidelity lesson.
+- **(11) B1-22:** both native Android pickers open and work → the `showPicker()`
+  button is a functioning mobile path; finding narrowed (dead-looking segments +
+  zero signposting), DL mitigated.
+- **(12) B1-27:** portrait dropdown fully above the keyboard on device —
+  confirmed good; landscape clip stands. The same check surfaced **V2-B1-28**:
+  the typeahead menu is pinned to viewport coords and detaches from the input on
+  scroll — on ANDROID AND PC, for priority/date/tag alike (code-confirmed: no
+  scroll handling while open). Cross-platform; B4 must sweep the sibling
+  body-portal popovers for the same defect.
+
+### Closure statement & residual-lead ownership (completeness re-check)
+
+B1 is **closed at its user-approved scope**: rev4 §5 targeted top-up executed in
+full (all 5 classes probed), both device rounds done, every emulation flagship
+device-confirmed, probe artifacts refuted on record. What B1 deliberately does
+NOT contain — and who owns it (all owners audit the MOBILE viewport too, per
+rev4 decision #3):
+
+| Residual lead (from "Leads for an EXHAUSTIVE B1") | Owner |
+|---|---|
+| Notification permission / bell flow + deadline toast on mobile | S3 (B5 UX) + S4 (B6 functional) |
+| Find bar over keyboard; search-highlight legibility | S3 (B5) |
+| Contrast over bright bg-image regions (moon/branches) | S2 (B2 gothic) |
+| Archive/crypt month collapse animation + header tap target | S5 (B7 motion) |
+| Schedule-mode `.dl-side-panel` legibility | S2 (B2/B4) — re-measure AFTER the B1-01 fix |
+| Sub-notes eye / promote / demote / duplicate / template-apply taps | S4 (B6 functional-at-mobile) |
+| 200 % browser zoom; RTL / long-locale; long unbroken word | S3 (B5 a11y) |
+| Pen-volume drag + colour-spectrum pad touch precision | S3 (B5) |
+| Body-portal popover scroll-detach sweep (B1-28 siblings) + B1-17 sibling menus | S2 (B4 UI) |
+| Per-component tap-target census beyond the B1-09 count | S3 (B5) |
+| List virtualization / paint profiling at scale | S5 (B8 perf, chrome-devtools MCP) |
+| Touch-DnD delay:120 feel after fallbackOnBody fix lands | fix-stage regression check |
+
+Nothing on this list is uncovered-and-unowned. The four root-cause themes + the
+28 findings + this table are the complete mobile picture the rework needs.

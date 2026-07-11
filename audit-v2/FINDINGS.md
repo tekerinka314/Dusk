@@ -555,6 +555,12 @@ the user; scrolling is smooth (except the render glitch below).
   report did not reproduce; likely he was tapping the seg-widget, or a device-specific issue —
   re-check once the seg fix lands. Evidence now A+B; CF 3. Fix unchanged (focusable per-segment
   inputs with `inputmode="numeric"`, or native `<input type=time/date>` on coarse pointers).
+- **DEVICE UPDATE (2026-07-11, user's Android):** both native pickers (hourglass → time, arch →
+  calendar) **open and function correctly** on the device — the `showPicker()` escape hatch is real,
+  so a time/date IS settable on mobile via that button. The finding narrows to: the segment fields
+  themselves stay dead to touch typing (VK never raises) and nothing signals that the icon button is
+  the intended mobile path. Severity DL 1 → effectively mitigated (a workaround exists in-widget);
+  keep UI 2 for the dead-looking primary control. CF 3 (settled on device).
 
 ### V2-B1-23 — Interface intermittently fails to paint on scroll (and paints differently each re-scroll) on mobile
 - **Evidence:** B (user, on device: "при скроллах вверх-вниз интерфейс иногда может просто не отрисоваться … по-разному при каждом перескролле"). Not reproduced in headless emulation.
@@ -631,6 +637,15 @@ the user; scrolling is smooth (except the render glitch below).
   existing sub note, form-sub text; regression: desktop dblclick still works.
 - **Cross-app:** Grimuar is NOT affected (note body is an always-editable contenteditable; toolbar
   buttons are taps). Archive titles are read-only by design. This is the tasks-page family only.
+- **DEVICE UPDATE (2026-07-11, user's Android):** double-tap edit **WORKS on the real device** for
+  both task title and subtask — real Android Chrome does synthesize `dblclick` on this
+  mobile-optimized viewport; the emulation's zero-event result did not transfer. Severity
+  **downgraded UI 3 → 2**, reframed: the entry EXISTS on device but is (a) **undiscoverable** — the
+  only hint is a hover tooltip that never shows on touch, nothing invites a double-tap; (b) **caret
+  placement is hard** (user: «поставить курсор возможно но тяжеловато») — confounded by the B1-01
+  single-character vertical title collapse; re-assess caret UX after the B1-01 fix. The fix strategy
+  stands (explicit touch affordance), now as discoverability/ergonomics rather than a hard block.
+  CF 3 (settled on device).
 
 ### V2-B1-27 — Quick-add typeahead drops below the input with no flip/clamp → clipped by the virtual keyboard on short viewports and unusable in landscape
 - **Evidence:** A + B + C (S1 emulation: `ta_open_kbshort.png`, `ta_open_landscape.png`,
@@ -662,6 +677,39 @@ the user; scrolling is smooth (except the render glitch below).
 - **Tests:** at 412×460 and 915×412, open typeahead → every option on-screen and tap-accept inserts.
 - **Cross-app:** the qa-menu is tasks-only; Grimuar has no typeahead. Body-portal popover clamping
   overlaps V2-B1-17 — fix with the same clamp utility.
+- **DEVICE UPDATE (2026-07-11, user's Android):** portrait-with-keyboard CONFIRMED GOOD on device —
+  the priority dropdown shows fully above the keyboard (matches the emulation portrait numbers).
+  The landscape clip stands (emulation-measured; device landscape not re-checked). The user's same
+  check surfaced the scroll-anchoring defect → split out as V2-B1-28.
+
+### V2-B1-28 — Typeahead menu is pinned to viewport coordinates, not to the input: scrolling while it is open detaches it (all platforms, all trigger types)
+- **Evidence:** B (user, on device AND on PC: «он фиксируется по вьюпорту а не инпутом задачи…
+  не только на андроиде но и ПК и не только приоритета а и даты и тегов») + A (code).
+- **Severity:** UI 2 · DL 0 · RR 2 · IC 2 · CF 3 (user-observed on two platforms + code-confirmed)
+- **Where:** `.qa-menu` is `position:fixed` (style.css:1181); `_qaRenderMenu`
+  (08-quickadd-export-init.ts:174-177) writes `left/top` from `inputBox.getBoundingClientRect()`
+  only when a keystroke re-renders the menu. There is **no scroll or resize handling while the menu
+  is open**: `_qaClose()` fires only on Escape / accept / input-blur / empty-query (08:149-223).
+  Scrolling the page moves the input but the fixed-position menu stays at its old viewport spot —
+  visibly detached from its anchor. Applies to every trigger type (`!` priority, `%` date, `*` tag)
+  because they share the one menu.
+- **Failure scenario:** User types `задача !`, the dropdown opens, they scroll (finger-drag on
+  mobile easily scrolls; mouse wheel on desktop) → the menu floats over unrelated content, no longer
+  attached to the input; picking an option still edits the (now off-screen) input — disorienting.
+- **Refutation attempted (§2):** "Scroll blurs the input and the menu closes." → No: scrolling does
+  not blur a focused input, and there is no scroll listener; code paths enumerated above. "Menu
+  re-anchors on the next keystroke." → True, but that requires typing again; while scrolled it stays
+  detached.
+- **Root cause:** one-shot fixed positioning with no anchor-tracking (no scroll/resize reposition,
+  no close-on-scroll) — same body-portal weakness family as V2-B1-17/27.
+- **Fix strategy:** cheapest correct: close the menu on window scroll (typeahead re-opens on the
+  next keystroke); better: reposition on `scroll`/`resize`/`visualViewport` while open — do it in
+  the same clamp utility as the V2-B1-27 fix.
+- **Change together:** `08-quickadd-export-init.ts` (`_qaRenderMenu`/`_qaClose`) + the B1-27 clamp.
+- **Tests:** open typeahead, scroll 200 px → menu either follows the input or closes; desktop + touch.
+- **Cross-app:** NOT mobile-specific (desktop too) — recorded here because the typeahead is this
+  batch's surface; B4 (UI consistency) should sweep the other body-portal popovers (task-more,
+  snooze, sub-mode, demote, grp-dd) for the same scroll-detach behaviour.
 
 ### S1 top-up — one-line theme instances & probe-artifact refutations (2026-07-11)
 Instances of established themes (recorded, NOT re-proven — the rework replaces these surfaces):
