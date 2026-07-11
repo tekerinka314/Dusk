@@ -1045,3 +1045,338 @@ B1-28 popover-sweep ownership item. Full report: `audit-v2/B4-ui.md`.
 - **Fix:** human RU labels per recType/field map (задача→«Заголовок», группа→
   «Название», заметка→«Текст»); B6 verifies loser-value rendering for every
   journal kind (jq3 «пусто» case).
+
+---
+
+## Batch B5 — UX + Accessibility + RU copy (S3, Opus 4.8, 2026-07-11)
+
+Executed `audit-v2/S3-B5-DIRECTIVE.md`. Full report + tables (contrast, hotkey,
+icon-aria census, discoverability matrix, toast census, terminology, quarantine
+label map, workflow cost): `audit-v2/B5-ux.md`. Contrast is ground-truth (fg vs
+sampled composited backdrop, PNG-decoded from screenshots). Probes:
+`D:\tmp\pw\b1\s3_*.mjs`; raw JSON in `audit-v2/shots/s3/_*.json`. Positives
+(live region + toast announce, 13 modals with focus trap+return, labelled
+dialogs, listbox activedescendant, 387/389 named icon buttons) recorded in the
+report — the registry lists only defects. `[RATIFY-FABLE]` = taste-judgment,
+one cheap Fable pass owed.
+
+---
+
+### V2-B5-01 — Overdue-deadline chip text fails AA contrast (2.53:1) — the most important status is the least legible
+- **Evidence:** B (ground-truth contrast probe `s3_contrast.mjs`) + A (color source).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 1 · CF 3
+- **Where:** the over-deadline chip text (`.dl-absolute` in an overdue `.task-deadline`)
+  renders `#A01525` (rgb 160,21,37), **9.5px + bold**, on the near-black card
+  (sampled backdrop #09031B) → **2.53:1**, well below the 4.5:1 AA body floor.
+  Contrast: the non-overdue "time/daily" chip uses the brighter `#E03060` and
+  passes (4.56:1). So the darkest, most-saturated red is on the MOST important
+  state (a task that is already overdue — «должен гореть красным»).
+- **Failure scenario:** A user scanning for what's overdue cannot read the overdue
+  date itself (2.53:1, tiny, bold, dark-red on black). The chip's whole job — telling
+  you WHEN it was due — is the least legible text in the app. Low-vision users lose it.
+- **Refutation attempted (§2):** "The red is a signal, not meant to be read." → The
+  date string («10 июл») is content, not decoration, and 2.53:1 fails regardless.
+  "Maybe a red glow/bg lifts it." → Sampled backdrop is near-black (#09031B), not a
+  red fill; the glow doesn't raise text contrast. "Large-text exemption?" → 9.5px is
+  not large. Refutation fails.
+- **Root cause:** the overdue state uses a darker/more-saturated red (#A01525) than
+  the already-passing #E03060 used elsewhere; contrast was never measured on the
+  dark card. Ties the one-token-tuned-to-floor theme (V2-B5-12).
+- **Fix strategy:** unify overdue text on the brighter `#E03060` (or lift #A01525's
+  lightness in the OKLCH re-derivation, DESIGN-PLAN §2.2) — **keeps danger-red
+  semantics (§9), only raises luminance to ≥4.5:1**; also bump the deadline-chip
+  font-size off the 9.5px floor (readability). Do in D1 (foundations).
+- **Change together:** `style.css` (overdue deadline color + `.task-deadline`/
+  `.dl-absolute` size).
+- **Tests:** re-run `s3_contrast.mjs`, assert overdue chip ≥4.5:1.
+- **Cross-app:** deadline chips are task-only; the token lift also helps V2-B5-12.
+
+### V2-B5-02 — Collapsed «Параметры» panel keeps 40 focusable controls in the tab order (hidden but reachable)
+- **Evidence:** A (CSS) + B (`s3_a11y.mjs`/`s3_probe3.mjs`: focus lands inside the
+  height:0 panel; Tab circuit walked all 40 before the reveal toggle).
+- **Severity:** UI 2 · DL 0 · RR 2 · IC 1 · CF 3
+- **Where:** `#extra-fields` collapses via `max-height:0; overflow:hidden` (computed
+  `display:block; visibility:visible`, NOT `display:none`/`visibility:hidden`/`inert`).
+  Its 40 controls (priority grid, 11 colour swatches, group picker, deadline trigger,
+  note input, 5 repeat buttons, subtask input, pin, template) stay focusable while
+  clipped to 0px. The keyboard Tab sequence reaches them BEFORE `#btn-expand`
+  («Параметры») — the button that would reveal them.
+- **Failure scenario:** A keyboard/AT user tabs through 40 invisible, off-screen
+  controls (operable but clipped to 0px) before reaching the control that opens the
+  panel — WCAG 2.4.3 (focus order) + 2.4.7 (focus not visible: focused element is
+  clipped). Present on desktop AND mobile (B1 didn't catch it).
+- **Refutation attempted (§2):** "max-height:0 removes it from tab order." → No —
+  only `display:none`/`visibility:hidden`/`inert`/`tabindex=-1` do; `max-height:0`
+  keeps elements focusable (runtime-confirmed focus landed inside). "The panel is
+  open by default." → maxHeight computed 0px, panel collapsed. Refutation fails.
+- **Root cause:** the collapse animation uses `max-height` (for the CSS transition)
+  without gating focusability; no `inert` toggle paired with the collapsed state.
+- **Fix strategy:** add `inert` (or `visibility:hidden` at the collapsed end-state,
+  toggled when the transition finishes) to `#extra-fields` while collapsed; remove
+  on expand. Preserves the max-height animation. Same pattern for any other
+  max-height-collapsed region with focusables (audit group bodies in the fix stage).
+- **Change together:** `dusk/08` (toggle `inert` in the expand/collapse handler) +
+  `style.css`.
+- **Tests:** collapsed panel → assert `document.activeElement` can never enter
+  `#extra-fields`; expanded → all 40 reachable.
+- **Cross-app:** the pattern (max-height collapse) recurs — sweep group/subtask/
+  archive-month collapses for the same focusable-while-hidden issue.
+
+### V2-B5-03 — Text inputs have no visible focus indicator (buttons do; inputs get only the caret)
+- **Evidence:** A + B (`s3_probe3.mjs`: on focus `outline:none`, border unchanged,
+  no box-shadow; `ringAppeared:false`).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 1 · CF 3
+- **Where:** `#input-box`, `#search-box`, `#task-note`, `#form-sub-input`,
+  `#notes-search-box` and modal inputs receive NO focus styling — `outline` stays
+  `none`, `border-color` does not change, no box-shadow ring appears on `:focus`
+  or `:focus-visible`. Buttons DO get the purple token ring (B4 baseline). The tab
+  circuit flagged all four visible inputs as `⟨NO-RING⟩`.
+- **Failure scenario:** A keyboard user tabbing into any text field sees only the
+  native blinking caret; there is no visible focus indicator on the field itself
+  (WCAG 2.4.7). Inconsistent with buttons, which are clearly ringed.
+- **Refutation attempted (§2):** "The caret is the indicator." → The caret marks the
+  insertion point, not that the control has focus per 2.4.7; and it's easy to miss.
+  "JS focus() suppressed :focus-visible." → The real-Tab circuit (keyboard focus,
+  focus-visible active) ALSO showed no ring. Refutation fails.
+- **Root cause:** inputs were styled with `outline:none` (to kill the default UA
+  ring) but never given a replacement focus token, unlike buttons.
+- **Fix strategy:** define one focus-visible ring token (D1) and apply to inputs +
+  contenteditable + buttons uniformly (e.g. `box-shadow: 0 0 0 2px var(--focus-ring)`
+  matching the button ring). Gothic-neutral.
+- **Change together:** `style.css` (input/`:focus-visible` rules).
+- **Tests:** focus each input via Tab → assert an outline or box-shadow ring appears.
+- **Cross-app:** both apps' inputs.
+
+### V2-B5-04 — Quarantine conflict overlay bypasses the modal a11y machinery (no label, no focus trap, no focus-in, Esc doesn't close)
+- **Evidence:** B (`s3_a11y.mjs`: `labelledby:null`, `focusInside:false`,
+  `escClosed:false`) + A (`openQuarantine`, 11:597 — hand-rolled, not `openModalWithFocus`).
+- **Severity:** UI 2 · DL 0 (display/interaction only; the journal data is intact) ·
+  RR 1 · IC 1 · CF 3
+- **Where:** `openQuarantine()` builds `<div class="modal-overlay sync-quar-overlay"
+  role=dialog aria-modal=true>` directly and appends it — it does NOT go through
+  `openModalWithFocus` (05:1335). Consequences (all runtime-confirmed): (a) no
+  `aria-labelledby` — the `<h3 class=modal-title>` has no id, so the dialog is
+  announced nameless; (b) focus is never moved into the overlay; (c) no Tab focus
+  trap; (d) **Esc does not close it** — the overlay has no `id`, so the global Esc
+  handler's `dismissModalById(undefined)` (08:574) is a no-op, and the overlay
+  installs no own key listener (it closes only on backdrop/«Закрыть» click).
+- **Failure scenario:** The one surface built specifically so a non-technical user
+  can resolve data conflicts is the LEAST accessible: a screen-reader user hears an
+  unnamed dialog, keyboard focus stays behind it on the page, Tab escapes into the
+  background, and Esc won't dismiss it. Contrast: all 13 static modals do this correctly.
+- **Refutation attempted (§2):** "Esc closes it via the generic overlay list." → The
+  Esc handler filters `.modal-overlay` and calls `dismissModalById(openModals[…].id)`;
+  the quarantine overlay's `id` is `''` → `dismissModalById(undefined)` →
+  `closeModalWithAnim(undefined)` → `getElementById(undefined)` null → returns.
+  Runtime: `escClosed:false`. "Focus is trapped by aria-modal." → `aria-modal` is a
+  hint to AT, it does not trap DOM focus. Refutation fails.
+- **Root cause:** built by hand outside the shared modal helper (echoes the
+  function-first chrome theme, B2-01/B4-02).
+- **Fix strategy:** give the overlay an `id`, `aria-labelledby` (id the title), and
+  route open/close through `openModalWithFocus`/`closeModalWithAnim` (D2). One
+  change gives it label + focus-in + trap + return + Esc.
+- **Change together:** `dusk/11-sync-ui.ts` (`openQuarantine`/`closeQuarantine`).
+- **Tests:** open quarantine → focus inside, Tab contained, Esc closes, focus returns
+  to the sync FAB; dialog has an accessible name.
+- **Cross-app:** the conflict overlay serves both apps' synced records. Pairs with
+  V2-B4-07 (copy) + V2-B2-01 (skin).
+
+### V2-B5-05 — No `<main>` landmark and no heading structure below the single h1 «DUSK»
+- **Evidence:** B (`s3_a11y.mjs`: `main:0`, `h2:0`, visible headings = only `H1:DUSK`).
+- **Severity:** UI 1 · DL 0 · RR 1 · IC 1 · CF 3
+- **Where:** the app has one `<h1 class=brand-name>DUSK</h1>` (index.html:51), a
+  single `<nav class=page-nav>` (index.html:63), and a `<div class=container>` body
+  with NO `<main>`/`role=main`. No `<h2>` anywhere; the task list, group sections,
+  archive, and Grimuar surfaces have no headings. Modal titles are `<h3>` (skipping
+  h2). Only 1 landmark region (nav).
+- **Failure scenario:** A screen-reader user navigating by landmark finds only a nav;
+  by heading finds only «DUSK» — there is no way to jump to "the task list" or "the
+  archive". Section structure is invisible to AT (WCAG 1.3.1 / 2.4.1).
+- **Refutation attempted (§2):** "It's a single-view app, headings are optional." →
+  Landmarks/headings are the primary AT navigation aid; a 3-tab app with lists,
+  groups and modals has clear regions to mark. "Group headers ARE headings." → They
+  are `<div class=group-header>`, not `<h*>`, and carry no heading role. Refutation fails.
+- **Root cause:** semantic HTML was not applied to the app shell (div-based layout).
+- **Fix strategy:** wrap the page body in `<main>`; promote page/section titles to
+  real headings (h2 for the current page region, group headers as h3, or
+  `role=heading aria-level`). Cheap; do with D1. Preserve visual styling.
+- **Change together:** `index.html` (shell) + `dusk/03-render.ts`/`02-grimoire.ts`
+  (group/section heading markup) + `style.css` (heading resets).
+- **Tests:** landmark + heading-outline audit (axe/manual) → main present, sane h1→h2→h3.
+- **Cross-app:** whole shell (both apps).
+
+### V2-B5-06 — Hotkey documentation is incomplete and Grimuar's map is entirely unhinted (truthfulness/discoverability)
+- **Evidence:** A (hint HTML index.html:1501 vs the handler 08:525-759) + B (every
+  advertised key fired and passed; undocumented keys confirmed wired).
+- **Severity:** UI 1 · DL 0 · RR 0 · IC 1 · CF 3
+- **Where:** the shortcuts hint (`#shortcuts-hint`, toggled by `#btn-shortcuts-toggle`,
+  `display:none` by default, tasks-toolbar only) lists N // JK X E D Del P L M R T
+  Ctrl+Z Ctrl+Y S — **all of which work** (verified). But the handler ALSO binds,
+  with no hint entry: `Ctrl/Cmd+F` (search on notes/archive), `F3`/`Shift+F3`
+  (find next/prev in a note), `Esc` (close/clear/close-find), `Backspace` (archive
+  alias for Del), `Enter`/`Shift+Enter` (find-nav in notes search). The **Grimuar
+  page's own map** (N/J/K/E/T/Del/Ctrl+F/F3) has NO in-UI documentation at all.
+- **Failure scenario:** A user learns the shortcuts from the hint bar and never
+  discovers find-in-note (F3) or the notes-page keys; the bar's list is both
+  incomplete (tasks) and absent (notes). Truthfulness gap (the doc under-states the
+  real capability).
+- **Refutation attempted (§2):** "The advertised keys might not all work." → Fired
+  each at runtime; all pass (see report §3.2). "Grimuar has no hotkeys." → It has 8
+  (grepped + fired J/K/N). Refutation fails.
+- **Root cause:** the hint is a hand-maintained HTML string that drifted from the
+  handler; no notes-page hint surface.
+- **Fix strategy:** generate the hint from the key table (stays truthful forever);
+  show a page-appropriate list (tasks keys on tasks, Grimuar keys on notes) — a
+  «?»-overlay is the cheapest home for both. D7.
+- **Change together:** `index.html` (hint) + `dusk/08` (generate from table) +
+  `dusk/02-grimoire.ts` (notes hint).
+- **Tests:** hint list == the keys the handler actually binds for the current page.
+- **Cross-app:** the notes-page gap is a Grimuar↔tasks parity issue (B13).
+
+### V2-B5-07 — Toast still animates (translate+scale) under `prefers-reduced-motion: reduce`
+- **Evidence:** B (`s3_a11y.mjs` under `reducedMotion:'reduce'`: toast computed
+  `animation: toastAppear 0.3s`) + A (keyframes style.css:1631).
+- **Severity:** UI 1 · DL 0 · RR 1 · IC 0 · CF 3
+- **Where:** every other swept surface (row enter, app-glow, overdue pulse, sync eye,
+  snooze popover, group collapse) computes `none/0s` under `reduce`, but the toast
+  keeps `toastAppear 0.30s` — a `translateX(-50%) translateY(12px) scale(0.88)`
+  transform (style.css:1631), i.e. real motion, not an opacity fade. No
+  `@media (prefers-reduced-motion: reduce)` override neutralizes it.
+- **Failure scenario:** A motion-sensitive user still sees the toast slide up + scale
+  on every action. Minor (brief, single element), but it violates the "replace motion,
+  don't merely keep it" rule the app otherwise honors in 50 RM blocks.
+- **Refutation attempted (§2):** "It's an opacity fade, allowed." → Keyframes include
+  translateY+scale, not just opacity. "An RM block covers it." → Runtime shows it
+  still animating under reduce. Refutation fails.
+- **Root cause:** the toast animation predates / was missed by the RM sweep.
+- **Fix strategy:** add a `prefers-reduced-motion: reduce` rule zeroing the toast
+  transform (fade opacity only, or instant). D8; overlaps B7 (motion) — recorded
+  here as the §3.5 result.
+- **Change together:** `style.css` (toast RM override).
+- **Tests:** re-run the RM sweep → toast computes `none/0s` or opacity-only.
+- **Cross-app:** shared toast (both apps).
+
+### V2-B5-08 — Two "repeat" concepts share the same vocabulary with no explainer (mental model) **[RATIFY-FABLE]**
+- **Evidence:** A (task-repeat: Repeat modal + `cycleChecked`/`nextReset`; deadline
+  auto-repeat: `#dl-repeat-toggle`, `_dlAutoRepeat`, 06:151/311).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 1 · CF 2
+- **Where:** `task.repeat` (daily/weekly/… via the **Repeat modal**, R / ouroboros)
+  drives the recurring-task mechanic (`cycleChecked`, `nextReset`, 2s auto-return).
+  Separately, the **deadline modal** has a `dl-repeat-toggle` (default OFF; X-8) that
+  makes the *deadline* recur (time→daily / weektime→weekly / monthday→monthly)
+  WITHOUT making the task a recurring task. Both surfaces speak "повтор".
+- **Failure scenario:** A user who set a repeating task via R, then opens the deadline
+  modal and sees another "повтор" toggle (or vice-versa), cannot tell what differs —
+  does the deadline toggle also cycle the task? does R also recur the deadline? The
+  June audit deliberately made deadline auto-repeat default OFF, but the DIFFERENCE
+  is never surfaced.
+- **Refutation attempted (§2):** "The toggle is clearly labelled per mode." → The
+  relabel names the cadence (daily/weekly) but not the DISTINCTION from task-repeat;
+  the two systems are never contrasted in copy. Held CF 2 (taste/mental-model → Fable
+  ratifies). "They never co-occur." → A task can have BOTH a repeat AND a rhythmic
+  deadline. Refutation reduces confidence, not the gap.
+- **Root cause:** two recurrence systems grew independently and were never reconciled
+  in UI vocabulary.
+- **Fix strategy:** one-line explainer in the deadline modal near the toggle
+  («Повторять сам дедлайн — задача не станет повторяющейся») and/or distinct icons/
+  labels for the two concepts. D7. **Fable to ratify the framing.**
+- **Change together:** `index.html` (deadline modal copy) + `dusk/06-deadlines.ts`
+  (toggle relabel).
+- **Tests:** n/a (copy); visual review.
+- **Cross-app:** task-only (Grimuar has neither).
+
+### V2-B5-09 — Cross-app search-empty inconsistency: tasks show a message, Grimuar shows only «Найдено · 0»
+- **Evidence:** B (`s3_probe4.mjs`: tasks search «zznotexist» → «Ничего не найдено»
+  empty state visible; notes search «zznotexist» → 0 cards, no empty element, only a
+  «Найдено · 0» list-head).
+- **Severity:** UI 1 · DL 0 · RR 1 · IC 1 · CF 3
+- **Where:** the tasks list renders a «✦ Ничего не найдено» empty state on a zero-result
+  search; the Grimuar list renders only a `«Найдено · 0»` counter in the list head with
+  a blank body — no gothic empty-state / voice line. Also: Esc clears neither search
+  input (`escCleared:false` on tasks).
+- **Failure scenario:** A Grimuar search with no matches shows a bare, wordless blank
+  area under a tiny counter — no reassurance that the search ran and found nothing;
+  inconsistent with the tasks side.
+- **Refutation attempted (§2):** "The counter is enough feedback." → Tasks side proves
+  the intended bar is a worded empty state; the counter alone reads as a glitch. "It's
+  a selector miss." → Confirmed no empty element exists in the notes list (only the
+  head). Refutation fails.
+- **Root cause:** the Grimuar list-render has no zero-result branch (only a count);
+  the tasks list does. Search-input Esc-clear was never wired.
+- **Fix strategy:** add a Grimuar search-empty state in the app's voice (feeds
+  V2-B2-04); wire Esc to clear a focused search box. D7.
+- **Change together:** `dusk/02-grimoire.ts` (notes list empty branch) + `dusk/08`
+  (Esc-clear).
+- **Cross-app:** the one place Tasks is AHEAD of Grimuar on voice (B13 note).
+
+### V2-B5-10 — The only in-UI teacher of quick-add syntax (`!`/`*`/`%`) is `aria-hidden` and keyboard-occluded
+- **Evidence:** A (index.html:117 `#qa-syntax-hint aria-hidden="true"`; shown on input
+  focus via `.show`) + B (contrast probe reached it only by forcing `.show`).
+- **Severity:** UI 1 · DL 0 · RR 0 · IC 1 · CF 3
+- **Where:** `#qa-syntax-hint` («*тег %дата !приоритет») appears under the task input
+  on focus — the sole affordance that teaches the quick-add trigger symbols. It is
+  `aria-hidden="true"` (screen-reader users never learn the syntax) and sits BELOW the
+  input, so on mobile the virtual keyboard occludes it (B1 owns the mobile geometry).
+- **Failure scenario:** A screen-reader user has no way to discover `!`/`*`/`%`; a
+  mobile user's keyboard hides the hint. Compounds V2-B1-11 (`!высокий` doesn't even
+  parse) — the feature is both hard to find AND partly broken for its primary language.
+- **Refutation attempted (§2):** "The hint `?`/shortcuts bar documents it." → It does
+  NOT — the shortcuts hint lists hotkeys, not quick-add syntax; this hint is the only
+  place. "aria-hidden is fine, it's decorative." → It's the sole instructional text
+  for a power feature — not decorative. Refutation fails.
+- **Root cause:** the hint was treated as decorative chrome (aria-hidden) and placed
+  below the input without a desktop/AT-safe alternative.
+- **Fix strategy:** remove `aria-hidden` (or expose via `aria-describedby` on the
+  input so AT announces the syntax); ensure a persistent/accessible path to the syntax
+  (the «?» overlay from V2-B5-06 can host it). D7. Mobile placement = B1.
+- **Change together:** `index.html` (attr) + the hint/«?» surface.
+- **Cross-app:** task-only (Grimuar has no quick-add).
+
+### V2-B5-11 — Cross-app terminology divergence unmapped (Архив/Склеп, Добавить/Начертать, заметка overloaded) **[RATIFY-FABLE]**
+- **Evidence:** A (toast/label census — see report terminology table).
+- **Severity:** UI 1 · DL 0 · RR 1 · IC 1 · CF 2
+- **Where:** the same soft-delete store is «Архив»/«В архив» on tasks but «Склеп»/«В
+  склеп» on notes; "create" is «Добавить»/«создать» on tasks but «Начертать» on notes;
+  «заметка» names BOTH a task's inline memo AND (loosely) is adjacent to «запись» for
+  a Grimuar note; permanent delete is «Удалить навсегда» (tasks) vs «Уничтожить»/
+  «Удалить навсегда» (notes).
+- **Failure scenario:** A user moving between tabs meets two names for the same action
+  (archive), and «заметка» is overloaded. Low confusion cost (different tabs), but it
+  dilutes the "one product" mental model (§1.2).
+- **Refutation attempted (§2):** "Архив vs Склеп is deliberate gothic flavour." →
+  Plausible and maybe kept — but it IS a divergence to decide consciously, and the
+  «заметка» overload is a genuine ambiguity. Held CF 2 → Fable ratifies whether the
+  flavour split stays.
+- **Root cause:** the two apps were voiced separately; no shared glossary.
+- **Fix strategy:** a term glossary (one term per concept, or a documented, deliberate
+  per-app flavour split); at minimum disambiguate «заметка» (task memo) vs «запись»
+  (Grimuar note). D7. **Fable ratifies the glossary.**
+- **Change together:** copy across `dusk/*` (labels/toasts) + `index.html`.
+- **Cross-app:** the core of it (B13).
+
+### V2-B5-12 — Shared dim-violet text token (~#9068C0) sits at the AA floor on-card and fails over the bright bg-image
+- **Evidence:** B (ground-truth contrast: 4.73–4.81:1 for meta labels, placeholder,
+  empty caption, quarantine text, quick-add hint — a cluster just above 4.5).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 1 · CF 3
+- **Where:** one muted-violet text value (~`#9068C0`) is used for secondary text
+  across surfaces; on the near-black card it measures 4.7–4.8:1 (marginal AA pass,
+  zero headroom). Over the bright `bg-gothic.jpg` regions (moon/branches — the B1
+  lead about non-card text) the same token drops below AA. It also reads "dim" per
+  the B2 real-note note.
+- **Failure scenario:** Any secondary text that ends up over a bright background
+  region (or on a slightly lighter surface) fails AA; and the whole secondary tier
+  reads faint. No single-surface catastrophe, but a systemic near-floor token.
+- **Refutation attempted (§2):** "It passes on the card, so it's fine." → It passes
+  by a hair with no margin; the app deliberately composites text over a photographic
+  background where the same token fails. "It's intentionally quiet." → Quiet ≠ at the
+  legibility floor; lifting one lightness step keeps the quiet hierarchy. Refutation
+  fails for the over-image / no-headroom case.
+- **Root cause:** the secondary-text token was tuned to *just* pass on the darkest
+  surface; no headroom budget for the lighter/bright-image cases.
+- **Fix strategy:** lift the token one lightness step in the OKLCH re-derivation
+  (DESIGN-PLAN §2.2) so it clears ~5.5–6:1 on-card (headroom for bright regions);
+  applies to meta labels, placeholders, empty captions, quarantine + hint text. D1.
+- **Change together:** `style.css` (the secondary-text token/vars).
+- **Tests:** re-run `s3_contrast.mjs`; assert secondary text ≥5.5:1 on-card; spot the
+  bright-image regions.
+- **Cross-app:** shared token (both apps).

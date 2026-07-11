@@ -1,0 +1,60 @@
+[
+  {
+    "desc": "archived row title",
+    "pg": "archive",
+    "txt": "Старый ритуал в архиве",
+    "fs": "16px",
+    "fw": "400",
+    "deco": "line-through",
+    "fg": "rgb(160,120,210)",
+    "bg": "rgb(10,6,22)",
+    "ratio": 5.82,
+    "pass": true
+  },
+  {
+    "desc": "archive month header",
+    "pg": "archive",
+    "txt": "Июль",
+    "fs": "10px",
+    "fw": "400",
+    "deco": "none",
+    "fg": "rgb(184,128,232)",
+    "bg": "rgb(9,6,25)",
+    "ratio": 6.93,
+    "pass": true
+  },
+  {
+    "desc": "archived subtask text",
+    "pg": "archive",
+    "txt": "с подпунктом",
+    "fs": "12px",
+    "fw": "400",
+    "deco": "line-through",
+    "fg": "rgb(144,104,192)",
+    "bg": "rgb(5,2,18)",
+    "ratio": 4.81,
+    "pass": true
+  },
+  {
+    "desc": "archive date meta",
+    "pg": "archive",
+    "txt": "8 июл.",
+    "fs": "10.5px",
+    "fw": "500",
+    "deco": "none",
+    "fg": "rgb(184,128,232)",
+    "bg": "rgb(10,4,31)",
+    "ratio": 6.94,
+    "pass": true
+  },
+  {
+    "desc": "warn callout body",
+    "pg": "notes",
+    "err": "NF"
+  },
+  {
+    "desc": "warn callout (node)",
+    "pg": "notes",
+    "err": "NF"
+  }
+]

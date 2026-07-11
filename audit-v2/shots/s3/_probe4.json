@@ -1,0 +1,243 @@
+{
+  "hotkeysClean": {
+    "P_prio": [
+      "prio-modal"
+    ],
+    "L_deadline": [
+      "deadline-modal"
+    ],
+    "M_note": [
+      "note-modal"
+    ],
+    "R_repeat": [
+      "repeat-modal"
+    ],
+    "X_flipped": true,
+    "D_added": 1,
+    "T_flipped": true,
+    "focusedForX": 9,
+    "focusedForT": 100
+  },
+  "taskSearchEmpty": {
+    "visible": 0,
+    "emptyText": "✦\n                Ничего не найдено\n                \n                \n          ",
+    "emptyVisible": true
+  },
+  "notesSearchEmpty": {
+    "visible": 0,
+    "emptyText": "",
+    "emptyVisible": false,
+    "listHTML": "<div class=\"grim-list-head\"><span>Найдено · 0</span><div class=\"grim-sort dl-month-picker\" id=\"grim-sort-picker\">\n      "
+  },
+  "iconButtons": {
+    "totalButtons": 509,
+    "iconOnlyCount": 389,
+    "noAccessibleName": 2,
+    "noNameSample": [
+      "stepper-btn",
+      "stepper-btn"
+    ],
+    "sample": [
+      {
+        "id": "btn-add",
+        "title": "Добавить задачу",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Без цвета",
+        "aria": "Без цвета"
+      },
+      {
+        "id": "",
+        "title": "Синий",
+        "aria": "Цвет #6C8EF5"
+      },
+      {
+        "id": "",
+        "title": "Голубой",
+        "aria": "Цвет #6CD4F5"
+      },
+      {
+        "id": "",
+        "title": "Бирюзовый",
+        "aria": "Цвет #4FC9B7"
+      },
+      {
+        "id": "",
+        "title": "Зелёный",
+        "aria": "Цвет #6CBF8E"
+      },
+      {
+        "id": "",
+        "title": "Лайм",
+        "aria": "Цвет #B8D45C"
+      },
+      {
+        "id": "",
+        "title": "Золотой",
+        "aria": "Цвет #F5D56C"
+      },
+      {
+        "id": "",
+        "title": "Оранжевый",
+        "aria": "Цвет #F5A56C"
+      },
+      {
+        "id": "",
+        "title": "Красный",
+        "aria": "Цвет #F56C6C"
+      },
+      {
+        "id": "",
+        "title": "Розовый",
+        "aria": "Цвет #F06CAE"
+      },
+      {
+        "id": "",
+        "title": "Фиолетовый",
+        "aria": "Цвет #B06CF5"
+      },
+      {
+        "id": "",
+        "title": "Свой цвет — спектр",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Удалить группу",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Удалить группу",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Удалить группу",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Очистить время",
+        "aria": "Очистить время"
+      },
+      {
+        "id": "",
+        "title": "Выбрать время",
+        "aria": "Выбрать время"
+      },
+      {
+        "id": "",
+        "title": "Добавить подпункт",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Очистить",
+        "aria": "Очистить поиск"
+      },
+      {
+        "id": "btn-sort-mode",
+        "title": "Сортировка: по приоритету",
+        "aria": ""
+      },
+      {
+        "id": "btn-notifications",
+        "title": "Уведомления о дедлайнах",
+        "aria": ""
+      },
+      {
+        "id": "btn-schedule",
+        "title": "Сортировка по дедлайну",
+        "aria": ""
+      },
+      {
+        "id": "btn-today",
+        "title": "Только на сегодня и просроченн",
+        "aria": ""
+      },
+      {
+        "id": "btn-split-groups",
+        "title": "Разделить группы: активные / в",
+        "aria": ""
+      },
+      {
+        "id": "btn-collapse-all",
+        "title": "Свернуть все группы",
+        "aria": ""
+      },
+      {
+        "id": "btn-sub-anymode",
+        "title": "Родитель чекается по всем подп",
+        "aria": ""
+      },
+      {
+        "id": "btn-filter",
+        "title": "Фильтр: только невыполненные",
+        "aria": ""
+      },
+      {
+        "id": "btn-color-filter",
+        "title": "Фильтр по цвету метки",
+        "aria": ""
+      },
+      {
+        "id": "btn-main-select",
+        "title": "Выбрать несколько задач",
+        "aria": ""
+      },
+      {
+        "id": "btn-export",
+        "title": "Экспорт: только задачи / всё",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Импорт полного бэкапа DUSK (.j",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Точки восстановления",
+        "aria": ""
+      },
+      {
+        "id": "btn-archive-all",
+        "title": "Архивировать всё",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Удалить всё навсегда",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Удалить группу",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Удалить группу",
+        "aria": ""
+      },
+      {
+        "id": "",
+        "title": "Удалить группу",
+        "aria": ""
+      }
+    ]
+  }
+}

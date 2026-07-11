@@ -1,0 +1,147 @@
+{
+  "keyboard": {
+    "sequence": [
+      "button#nav-main.nav-tab«Задачи»",
+      "button#nav-archive.nav-tab«Архив\n            »",
+      "button#nav-notes.nav-tab«Гримуар»",
+      "input#input-box«Новая задача...» ⟨NO-RING⟩",
+      "button#btn-add.btn-add",
+      "button.prio-grid-btn«Нет»",
+      "button.prio-grid-btn«Низкий»",
+      "button.prio-grid-btn«Средний»",
+      "button.prio-grid-btn«Высокий»",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-swatch",
+      "button.form-color-custom",
+      "button#grp-trigger.dl-month-trigger«без группы»",
+      "button.grp-dd-del",
+      "button.grp-dd-del",
+      "button.grp-dd-del",
+      "button#deadline-trigger.deadline-trigger«Установить дедлайн»",
+      "input#task-note.note-input«Краткий комментари» ⟨NO-RING⟩",
+      "button.repeat-btn«Нет»",
+      "button.repeat-btn«Ежедневно»",
+      "button.repeat-btn«Еженедельно»",
+      "button.repeat-btn«По будням»",
+      "button.repeat-btn«Ежемесячно»",
+      "input#form-sub-input.form-sub-input«Новый подпункт...» ⟨NO-RING⟩",
+      "button.btn-form-sub-add",
+      "button#form-pin-toggle.form-flag-toggle«Закрепить задачу»",
+      "button.form-tpl-btn«Сохранить как шабл»",
+      "button#btn-expand.btn-expand«Параметры»",
+      "input#search-box«Поиск...» ⟨NO-RING⟩",
+      "button#btn-sort-mode.btn-tool",
+      "button#btn-notifications.btn-tool",
+      "button#btn-schedule.btn-tool",
+      "button#btn-today.btn-tool",
+      "button#btn-split-groups.btn-tool",
+      "button#btn-collapse-all.btn-tool",
+      "button#btn-sub-anymode.btn-tool"
+    ],
+    "noRingCount": 4,
+    "uniqueStops": 26,
+    "totalFocusable": 558
+  },
+  "trap": {
+    "modalOpen": true,
+    "escapedCount": 0,
+    "insideSample": [
+      "DIV.seg-input",
+      "DIV.seg-input",
+      "DIV.seg-input"
+    ]
+  },
+  "focusReturn": {
+    "deadline": {
+      "trigDesc": "BUTTON.btn-task-action",
+      "afterEsc": {
+        "d": "BUTTON.btn-task-action",
+        "isChip": true
+      }
+    }
+  },
+  "reducedMotion": [
+    {
+      "label": "task-item base",
+      "sel": ".task-item",
+      "v": "anim=none/0s"
+    },
+    {
+      "label": "app-glow",
+      "sel": ".app-glow",
+      "v": "anim=none/0s"
+    },
+    {
+      "label": "critical deadline pulse",
+      "sel": ".task-deadline.overdue, .dl-badge.overdue, .task-item[data-id=\"2\"] [class*=deadline]",
+      "v": "anim=none/0s"
+    },
+    {
+      "label": "sync eye FAB",
+      "sel": "#sync-glyph-btn",
+      "v": "anim=none/0s"
+    },
+    {
+      "label": "candle/progress",
+      "sel": ".progress-fill, .candle-flame, [class*=flame]",
+      "v": "anim=none/0s"
+    },
+    {
+      "label": "ember (subtask prio)",
+      "sel": ".subtask-item[data-prio=high], [style*=\"--sprio\"]",
+      "v": "NF"
+    },
+    {
+      "label": "snooze popover",
+      "sel": ".snooze-menu",
+      "v": "anim=none/0s"
+    },
+    {
+      "label": "toast",
+      "sel": "#toast, .toast",
+      "v": "anim=toastAppear/0.3s"
+    },
+    {
+      "label": "group collapse container",
+      "sel": ".group-tasks, .group-body, [class*=group][class*=task]",
+      "v": "trans=none/0s"
+    }
+  ],
+  "callout": {
+    "color": "color(srgb 0.889726 0.318118 0.488706)",
+    "fs": "15.5px"
+  },
+  "landmarks": {
+    "main": 0,
+    "nav": 1,
+    "h1": [
+      "DUSK"
+    ],
+    "h2": 0,
+    "headingsVisible": [
+      "H1:DUSK"
+    ]
+  },
+  "quarantine": {
+    "before": "btn-add",
+    "role": "dialog",
+    "modal": "true",
+    "labelledby": null,
+    "hasId": false,
+    "titleHasId": false,
+    "focusInside": false,
+    "activeEl": "BUTTON",
+    "escClosed": false,
+    "afterFocus": "btn-add"
+  },
+  "reducedMotionActive": true
+}
