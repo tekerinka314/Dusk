@@ -208,6 +208,24 @@ structured output, user-approved beforehand — but the default is serial.
 | S5 (B7+B8), S6 (B9+B10+B11), S7 (B12+B13) | **Opus 4.8** | instrumented/mechanical batches — statistically insignificant quality gap, large limit savings |
 | B14 final synthesis + roadmap (end of S7 or separate) | **Fable 5** | one voice calibrates severity across the whole registry |
 
+**Rev 4.1 amendment (2026-07-11, user-approved limit reallocation).** Supersedes
+the two rows above where they conflict:
+- **S3 (B5) moves to Opus 4.8 (xhigh)** executing the Fable-written protocol
+  `audit-v2/S3-B5-DIRECTIVE.md` (the taste half is encoded as rubrics there).
+  Findings tagged `[RATIFY-FABLE]` get one cheap Fable pass afterwards.
+- **B14 moves to Opus DRAFT (xhigh) + Fable ratification** per
+  `audit-v2/S7-B14-TEMPLATE.md` (compact ratification-queue interface).
+- **Fable keeps (non-negotiable): B6 probe-matrix design + all data-loss/
+  high-severity ratifications.** B6 matrix = short dedicated Fable session at
+  S4 start (reads spec §6 B6 + Guardrail A + FINDINGS + ARCHITECTURE.md).
+- Efforts: S3 xhigh · S4 exec xhigh · S5 high · S6 xhigh · S7 high (B14 draft
+  xhigh) · Fable ratification passes high.
+- Rationale: ~15% Fable / ~85% Opus by volume on the audit remainder (≈1:5 in
+  limits given Opus's ~2× cheaper burn); preserves Fable limits for the fix
+  stage, where allocation is re-derived per-series at its start (D1/D4
+  mechanical → Opus; D2/D3/D5 taste → Fable designs previews, Opus lands;
+  B1-P0 rework → Fable design + Opus execution).
+
 ## 5. Execution plan
 
 **Order = v1 priority order** (user's explicit requirement). One aspect = one
