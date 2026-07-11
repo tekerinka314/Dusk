@@ -112,3 +112,15 @@ gothic — it is **extending the existing identity down into the chrome layer**.
 - NO code changes in this audit; the above is guidance for the fix stage.
 - Deferred check: user's real Grimuar note (he'll drop it into the project folder
   on request) → verify long-form typography verdicts hold on real content.
+
+## Addendum (2026-07-11): real-note typography check (grimuar_note.png)
+
+User supplied a real Grimuar note (mobile render). Verdicts CONFIRMED on real
+content: Cinzel title survives a long real title; serif body + diamond bullets +
+checked-item italics hold; 5-column table squeezes but stays functional; long
+unbroken strings wrap without overflow; inline-code pill and code block fine.
+New micro-observations: (1) body text on mobile leans small/dim — the §2.1
+light-on-dark compensation in DESIGN-PLAN.md addresses it; B5 measures exact
+contrast; (2) red callout body text is near the legibility floor on dark glass —
+include in B5 contrast pass; (3) ordered-list numerals are plain — cosmetic,
+fold into icon/ornament program if desired.
