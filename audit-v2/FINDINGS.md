@@ -775,3 +775,105 @@ Not findings — recorded so the mobile rework keeps what already works and the 
   class stays exactly where B1-06 drew it (deadline/repeat/color/group).
 - **(S1) Typeahead opens from real keystrokes on touch** and tap-accept inserts correctly in portrait
   (the B1-era `.fill()` non-trigger was a probe artifact); only placement fails (V2-B1-27).
+
+---
+
+## Batch B2 — Gothic design language (S2, 2026-07-11)
+
+Calibration: user primary render 2560×1440@100%; recommendation scale = вариант (б)
+(large proposals allowed, user decides each); user ground truth: priority strip =
+AI-pattern. Full report: `audit-v2/B2-gothic.md`. Positives (identity anchors)
+recorded there — the registry lists only defects.
+
+---
+
+### V2-B2-01 — Two design languages: ornamented identity layer vs generic "chrome" layer
+- **Evidence:** C (shots: D-sort-menu, D-pop-more-menu, D-pop-export, D-pop-snooze,
+  D-sync-panel, D-sync-quarantine, D-modal-rename-group vs D-modal-deadline,
+  D-quickadd-params) + A (single `.snooze-menu` class family, style.css:1077).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 2 · CF 3
+- **What:** every floating menu (snooze/task-more/sub-mode/demote/export/sync
+  panel), the sort portal, quarantine modal and utility modals are plain rounded
+  rects with generic items — no gothic framing/ornament — while quick-add,
+  deadline modal and Grimuar editor are richly art-directed. The app reads as two
+  products.
+- **Root cause:** chrome components were built function-first at different times
+  and never passed through the identity treatment; there is no shared "gothic
+  popover frame" primitive to inherit from.
+- **Fix strategy:** create ONE popover/modal skin (frame, header ornament, item
+  hover idiom) and apply via the shared float-menu engine — do together with
+  V2-B4-02 (engine unification) so restyle lands everywhere at once.
+- **Files together:** dusk/03-render.ts (_openFloatMenu, sort portal), dusk/08
+  (_qaRenderMenu), dusk/11-sync-ui.ts (panel html), style.css (.snooze-menu,
+  .task-sort-portal, .qa-menu, modal frames).
+- **Tests:** visual pass over every popover (list in V2-B4-02); npm test (no logic).
+- **Cross-app:** Grimuar popovers (io/tpl/cfilter) share the plainness — same fix.
+- **Refutation attempted:** "plain menus are a deliberate quiet-chrome choice" —
+  rejected: the deadline modal and quick-add prove the intended direction is
+  ornamented; CLAUDE.md mandates gothic for ALL controls, not just hero surfaces.
+
+### V2-B2-02 — Priority presentation = AI-pattern (colored left strip + plain dots); gothic ember idiom already exists but only on subtasks
+- **Evidence:** C (D-main-2560, D-hover-task, D-typeahead-prio, D-quickadd-params)
+  + E→confirmed (user named the strip an AI-pattern himself) + A (subtask ember
+  `--sprio` in style.css per CLAUDE.md).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 2 · CF 3
+- **What:** task cards mark priority with a colored left border bar; pickers use
+  plain colored circles. Both are the generic to-do fingerprint. Subtasks already
+  solve this with the soft ember glow (`--sprio`) — the documented app idiom.
+- **Fix strategy:** extend the ember idiom to task cards (glow from tombstone
+  checkbox or card edge — no bar); replace picker dots with tinted gothic glyphs
+  (flame/rune sizes). Prototype as HTML preview → user picks (his standing
+  design-tools preference), then implement.
+- **Files together:** dusk/03-render.ts (card markup), style.css (task card,
+  prio pickers, typeahead menu), keep `--prio-*` color vars as the tint source.
+- **Tests:** visual (all prio levels × checked/pinned/colored states × both grids).
+- **Cross-app:** Grimuar has no priorities — n/a; but color-label framing
+  (V2-B2-03) should land in the same visual language.
+- **Refutation attempted:** "strip is efficient and familiar" — familiarity IS
+  the complaint (generic); function preserved by glow alternative.
+
+### V2-B2-03 — Label-color system presented as bright material swatches, off the palette discipline
+- **Evidence:** C (D-quickadd-params ЦВЕТ МЕТКИ row, D-modal-colorfilter,
+  D-grim-cfilter) + A (swatch markup/CSS).
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 1-2 · CF 2
+- **What:** 10 fully-saturated circles/squares (lime, cyan, orange, pink…) sit
+  raw in a UI whose rule is violet-on-near-black with red reserved for danger.
+  The FEATURE (10 user colors) is locked data; the PRESENTATION is generic and
+  loud.
+- **Fix strategy:** desaturate/dusk-tint the swatch rendering (keep hues apart),
+  restyle swatches as gothic tokens (ink drop / wax seal / cabochon); user-color
+  tints on cards inherit via V2-B2-02 idiom.
+- **Files together:** style.css (swatch classes), dusk/03-render.ts +
+  05 (bulk color), 08 (params row), Grimuar cfilter (02).
+- **Tests:** visual: all 10 colors on card + chip + filter + Grimuar frame;
+  ensure distinguishability survives desaturation (a11y check in B5).
+- **Cross-app:** shared — same swatch set both apps.
+- **Refutation attempted:** "colors must stay maximally distinct for scanning" —
+  distinctness survives moderate desaturation; B5 will verify.
+
+### V2-B2-04 — Tasks empty state lacks the app's voice (Grimuar's has it)
+- **Evidence:** C (D-empty-tasks vs D-empty-grim, D-empty-archive).
+- **Severity:** UI 1 · DL 0 · RR 0 · IC 1 · CF 3
+- **What:** tasks-side empty state = small sparkle + grey caption; Grimuar =
+  book glyph + «Гримуар пуст» + italic subline + НАЧЕРТАТЬ ПЕРВУЮ. Filter/search
+  empty states share the flatness (June V-2 added presence, not voice).
+- **Fix strategy:** tasks empty-state set (no tasks / all done / filter-empty /
+  search-empty) in own motifs + RU voice lines; mirror Grimuar's structure.
+- **Files:** dusk/03-render.ts empty-state markup, style.css.
+- **Cross-app:** brings tasks up to the Grimuar bar.
+- **Refutation attempted:** "empty states are rare" — first-run IS the first
+  impression; user chose вариант (б) quality bar.
+
+### V2-B2-05 — Tasks АРХИВ readability overshoots the "buried" effect
+- **Evidence:** C (D-archive at 2560: row titles barely legible) — B5 to measure
+  exact contrast ratios.
+- **Severity:** UI 2 · DL 0 · RR 1 · IC 1 · CF 2
+- **What:** archived task titles render ultra-dim strikethrough on dim panel —
+  the ghost intent is right, but scanning/restoring from a big archive is work
+  against the UI. СКЛЕП (notes) proves buried-but-readable is achievable.
+- **Fix strategy:** raise archived-title contrast toward ~4.5:1 while keeping
+  ghost styling (strike, desat); keep month headers as is.
+- **Files:** style.css archive rows; none else.
+- **Cross-app:** align with СКЛЕП treatment.
+- **Refutation attempted:** "dimness is the design" — function (find & restore,
+  the #1 archive job) loses; identity keeps via strike+desat, not near-invisibility.
