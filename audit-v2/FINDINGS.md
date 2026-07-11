@@ -954,3 +954,94 @@ triage + redesign program: `audit-v2/B3-icons.md`.
 - **Severity:** UI ? · DL 0 · RR 0 · IC 0-1 · CF 1
 - **Next:** during B4 popover re-sweep, map sheet DOM order → source and confirm
   each renders in-app; if any is genuinely blank in-app, promote to a bug.
+
+---
+
+## Batch B4 — UI (S2, 2026-07-11)
+
+Desktop-first pass at the user's primary 2560×1440 (+1920/1366), executed the
+B1-28 popover-sweep ownership item. Full report: `audit-v2/B4-ui.md`.
+
+---
+
+### V2-B4-01 — No large-screen layout tier: app is a ≤770px column at any viewport
+- **Evidence:** C (D-main-2560 vs D-main-1366: ~70% background waste vs balanced;
+  3-4-line title wraps; ~300px subtask grid cells at 2560).
+- **Severity:** UI 3 (user's own primary monitor) · DL 0 · RR 2 · IC 2-3 · CF 3
+- **Root cause:** single max-width designed for laptop; no ≥1440px breakpoint
+  exists in style.css.
+- **Fix strategy (вариант (б), user to choose):** (a) wider column at ≥1600px
+  (~900px, typography-safe); (b) optional desktop master-detail (mirror
+  Grimuar's own list+detail pattern); (c) toolbar density option.
+- **Files:** style.css breakpoints; (b) additionally dusk/03-render.ts.
+- **Tests:** shots at 1366/1920/2560 × both apps × key states.
+- **Cross-app:** Grimuar already master-detail — proof of concept in-app.
+- **Refutation attempted:** "focused single column is the design" — holds at
+  ≤1600px, fails at 2560 where wrap/squeeze actively hurts (measured).
+
+### V2-B4-02 — Systemic: 4 ad-hoc popover engines; float-menu family detaches on scroll (live-proven), no Esc, no scroll tracking anywhere
+- **Evidence:** A (engine census: _openFloatMenu 03:1018; toggleSortPicker
+  portal; _qaRenderMenu 08:156; registerGothicPicker 03:1733 — none listen to
+  scroll/resize) + B (s2_fix2: snooze menu top 725→725 after wheel 300px, still
+  open, detached — D-pop-snooze-detached.png; open after Escape: true).
+- **Severity:** UI 2 · DL 0 · RR 2 · IC 2 · CF 3
+- **What:** every body-portal popover freezes its viewport coords at open.
+  Desktop wheel-scroll detaches ALL of them from their anchors (V2-B1-28 was the
+  qa-menu instance; family = snooze, task-more, sub-mode ×2, demote, export,
+  sync panel, sort portal, gothic pickers). Float menus also ignore Escape;
+  role="menu" has no keyboard nav (→B5). Touch partially self-heals (outside
+  pointerdown closes on scroll start).
+- **Root cause:** four independent one-shot positioning implementations; no
+  shared anchored-popover utility.
+- **Fix strategy:** ONE utility (flip + clamp + maxHeight + reposition-or-close
+  on scroll/resize + Esc + single-open across families + arrow-key nav) adopted
+  by all four engines; restyle once with V2-B2-01 skin. Closes V2-B1-27,
+  V2-B1-28, the B1-17 sibling question, and this.
+- **Files together:** dusk/03-render.ts, dusk/08-quickadd-export-init.ts,
+  dusk/11-sync-ui.ts, style.css (.snooze-menu/.task-sort-portal/.qa-menu).
+- **Tests:** rerun s2_fix2 detach probe per popover; B1 kb-proxy/landscape shots
+  for qa-menu; cross-family single-open check.
+- **Refutation attempted:** "outside-pointerdown makes scroll-detach unreachable"
+  — false on desktop: wheel scroll fires no pointerdown (proven live); user hit
+  it on PC himself (his device round item 12).
+
+### V2-B4-03 — Viewport-anchored strips orphaned from the app frame at large viewports
+- **Evidence:** C (D-shortcuts: full-width bottom strip wider than the column;
+  D-filter-today: status pill floating ~350px below content; right-edge FAB
+  stack mid-background in most shots).
+- **Severity:** UI 1-2 · DL 0 · RR 1 · IC 1 · CF 3
+- **Fix:** anchor hint bar/status pill/FAB stack to the app column geometry;
+  scale hint-bar type up at desktop.
+
+### V2-B4-04 — Collapsed group nearly indistinguishable from expanded
+- **Evidence:** C (D-group-collapsed vs D-main-2560: only a small right-side
+  dash differs).
+- **Severity:** UI 1 · DL 0 · RR 0-1 · IC 1 · CF 3
+- **Fix:** closed-state affordance via the locked sword-chevron rotation +
+  header dim/engraved divider.
+
+### V2-B4-05 — Disabled state missing in the float-menu family (sync panel items look active)
+- **Evidence:** A (11-sync-ui.ts:425-426 sets `disabled`; style.css has NO
+  `.snooze-menu [disabled]` rule — grep shows :disabled styles only for
+  repeat-btn/select-bar/sb-btn) + C (D-sync-panel: «Синхронизировать сейчас»
+  visually identical to enabled while signed out).
+- **Severity:** UI 2 (silent dead click on a sync control) · DL 0 · RR 0 ·
+  IC 0-1 · CF 3
+- **Fix:** disabled style in the shared popover skin (opacity + cursor +
+  aria-disabled); include in V2-B2-01/B4-02 change.
+
+### V2-B4-06 — ::selection themed only inside Grimuar body
+- **Evidence:** A (style.css:7479 scopes ::selection to .grim-body) + C
+  (default blue selection in D-modal-rename-group).
+- **Severity:** UI 1 · DL 0 · RR 0 · IC 0 · CF 3
+- **Fix:** global violet ::selection (match rgba(150,70,255,.30) already used).
+
+### V2-B4-07 — Quarantine review rows leak internal field names (copy) — cross-owned with B5/B6
+- **Evidence:** C (D-sync-quarantine: «поле «text»», «поле «name»»; one seeded
+  subtask clash displayed loser as «пусто» though seed carried text — display
+  logic check owed to B6).
+- **Severity:** UI 1-2 (the panel exists to let a non-technical user decide) ·
+  DL 0 (display only) · RR 0 · IC 1 · CF 3
+- **Fix:** human RU labels per recType/field map (задача→«Заголовок», группа→
+  «Название», заметка→«Текст»); B6 verifies loser-value rendering for every
+  journal kind (jq3 «пусто» case).
