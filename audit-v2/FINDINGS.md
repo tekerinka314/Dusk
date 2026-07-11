@@ -541,6 +541,20 @@ the user; scrolling is smooth (except the render glitch below).
 - **Change together:** `08-quickadd-export-init.ts` (`SegmentedInput`) + `06-deadlines.ts`.
 - **Tests:** on a touch context, tap a segment → it focuses and accepts digits; steppers change the value.
 - **Cross-app:** the repeat-anchor time input and any other `SegmentedInput` (weektime) share this — verify.
+- **S1 UPDATE (2026-07-11, Fable — emulation root-cause pass):** root cause CONFIRMED at `A` and
+  narrowed. Tap **does** activate a segment (Playwright touch, pixel7: `mousedown` synthetic fires,
+  segment gets active state) — but `document.activeElement` becomes the widget's **non-editable
+  `div[tabindex=0]`** (`_buildDOM`, 08:926): not an input, not contenteditable, **no `inputmode`** →
+  a virtual keyboard can structurally never raise; digits enter only from a hardware keyboard
+  (verified: `keyboard.type('1')` lands in the segment buffer). The ONLY touch path to a value is
+  the native-picker button (`showPicker()`). Applies to the whole family built by
+  `initSegmentedInputs()` (08:1431): `dl-time`, `dl-weektime-time`, `dl-date`, `dl-date-time`,
+  `repeat-anchor-time`, `form-repeat-anchor-time` — repeat-anchor verified by tap probe too.
+  **Refuted part:** the monthday steppers DO respond to tap (44×40 button, value 15→16 on touch tap)
+  and `#dl-monthday` is a native `type=number` → the "steppers don't respond" half of the user's
+  report did not reproduce; likely he was tapping the seg-widget, or a device-specific issue —
+  re-check once the seg fix lands. Evidence now A+B; CF 3. Fix unchanged (focusable per-segment
+  inputs with `inputmode="numeric"`, or native `<input type=time/date>` on coarse pointers).
 
 ### V2-B1-23 — Interface intermittently fails to paint on scroll (and paints differently each re-scroll) on mobile
 - **Evidence:** B (user, on device: "при скроллах вверх-вниз интерфейс иногда может просто не отрисоваться … по-разному при каждом перескролле"). Not reproduced in headless emulation.
@@ -575,6 +589,93 @@ the user; scrolling is smooth (except the render glitch below).
 - **Fix strategy:** on touch, make the toolbar sticky near the keyboard (bottom) or show a selection-anchored mini-toolbar; keep the gothic styling.
 - **Change together:** `02-grimoire.ts` (toolbar placement on touch) + `style.css`.
 - **Cross-app:** Grimuar-only.
+
+### V2-B1-26 — Text editing is dblclick-gated on five surfaces → on touch there is no reliable or discoverable way to rename a task / edit subtask text / edit an existing note
+- **Evidence:** A + B (S1 emulation, 2026-07-11).
+  - **A (structural):** the ONLY entry into inline text editing is the `dblclick` delegation channel
+    (`ACT_DBL`, 01-core.ts:1336/1365): task title `startInlineEdit` (04:166), task note `_taskNoteEdit`
+    (04:193), subtask text `startSubEdit` (04:554), subtask note `_noteEdit` (04:571), form-sub
+    `startFormSubEdit` (04:690). No touch fallback exists anywhere: the task more-menu (04:2260) offers
+    only шаблон/дублировать/подпункт-режим/понизить — **no «Редактировать»**; the note toggle button
+    opens editing directly only for an EMPTY note (05:540), an existing note is dblclick-only. The only
+    affordance is `title="Двойной клик — редактировать"` — a hover tooltip that does not exist on touch.
+  - **B (behavioural, pixel7 emulation):** a fast double-tap on the task title produced **zero click and
+    zero dblclick events** (document-level capture listeners logged nothing — the double-tap is consumed
+    as a zoom-intent gesture; the viewport meta is `width=device-width, initial-scale=1` with **no
+    `maximum-scale`/`user-scalable=no`** and **no `touch-action: manipulation`** anywhere in style.css,
+    so double-tap-zoom stays armed). A programmatic `dblclick` dispatched at the same element enters
+    editing correctly (contenteditable=true, focused) → the delegation itself is healthy; it is the
+    touch gesture that never reaches it.
+- **Severity:** UI 3 · DL 0 · RR 3 (every text-edit of existing content, the most basic flow after
+  check/add) · IC 3 · CF 2 (emulation-confirmed; real-device Chrome may synthesize dblclick on
+  mobile-optimized viewports — but even then it collides with double-tap word-selection and is
+  undiscoverable; device check queued)
+- **Failure scenario:** On a phone the user cannot rename a task, fix a typo in a subtask, or edit an
+  existing task/subtask note — double-tapping either does nothing, zooms, or selects a word. The only
+  workaround is deleting and re-creating the item (or editing on desktop).
+- **Refutation attempted (§2):** "Real Android Chrome disables double-tap-zoom on `width=device-width`
+  pages, so dblclick would fire there." → Possible (that is why CF stays 2 pending device check), but
+  insufficient even if true: double-tap on TEXT in Android Chrome triggers word-selection with handles,
+  competing with edit-entry; and nothing tells the user double-tap is the gesture. "The more-menu has an
+  edit item." → Checked (04:2260) — it does not. "Editing was probed by B1's functional pass." → B1
+  verified add/check/toggle taps; edit-entry was explicitly left as a lead («double-tap-zoom vs
+  double-tap-edit conflicts») and is settled here.
+- **Root cause:** desktop-idiom dblclick as the sole edit-entry gesture; no touch-path (edit button /
+  long-press / more-menu item), no `touch-action: manipulation` to make dblclick reliable on touch.
+- **Fix strategy (for the mobile rework, P0-adjacent):** add an explicit touch edit affordance — an
+  «Редактировать» item in the task more-menu + a pencil in the revealed action set (or long-press),
+  covering title, subtask and note text; optionally add `touch-action: manipulation` on interactive
+  regions (also kills the 300 ms tap delay) — but keep pinch-zoom (B1-18 relies on it).
+- **Change together:** `04-tasks.ts` (more-menu, action row) + `01-core.ts` (ACT entry) + `style.css`.
+- **Tests:** on a touch context, edit entry reachable for: task title, subtask text, existing task note,
+  existing sub note, form-sub text; regression: desktop dblclick still works.
+- **Cross-app:** Grimuar is NOT affected (note body is an always-editable contenteditable; toolbar
+  buttons are taps). Archive titles are read-only by design. This is the tasks-page family only.
+
+### V2-B1-27 — Quick-add typeahead drops below the input with no flip/clamp → clipped by the virtual keyboard on short viewports and unusable in landscape
+- **Evidence:** A + B + C (S1 emulation: `ta_open_kbshort.png`, `ta_open_landscape.png`,
+  measurements in `shots/s1/_s1_results.json`).
+- **Severity:** UI 2 · DL 0 · RR 2 · IC 2 · CF 3 (landscape geometry is measured fact; the
+  keyboard-overlay case follows from Chrome ≥108 `resizes-visual` default + `position:fixed`)
+- **Where:** `_qaRenderMenu` (08-quickadd-export-init.ts:174-177) sets `position:fixed` (style.css:1181)
+  with `top = input.bottom + 5` — always BELOW the input, with no flip-above logic, no viewport clamp,
+  no `max-height`, and no `visualViewport` awareness. Measured: portrait pixel7 fits (menu 347→489 of
+  915); **412×460 (keyboard-height proxy): menu bottom 489 > 460** — the lower item(s) land under the
+  keyboard (screenshot shows the 4th option cut); **landscape 915×412: menu bottom 535 > 412** — off-
+  screen even with no keyboard, and the accept-tap on a clipped item missed (value stayed `задача !`,
+  menu closed without inserting) → typeahead effectively unusable in landscape.
+- **Failure scenario:** On a phone with the keyboard raised (short visual viewport) or in landscape,
+  the typeahead's lower options are invisible/untappable; in landscape selecting any option can fail
+  entirely. The feature silently degrades exactly where quick-add matters most — typing on mobile.
+- **Refutation attempted (§2):** "The old B1 note said `.fill()` didn't even trigger the menu — maybe
+  it doesn't open on mobile at all." → Refuted by this probe: real keystrokes (`keyboard.type`) DO open
+  it on a touch context; the earlier non-trigger was a `.fill()` artifact (no input events per key).
+  "Portrait is the dominant case and it fits." → True for pixel7-class heights (that scopes severity
+  to 2, not 3), but landscape + smaller/short phones + large-font settings all hit it; the accept-miss
+  makes it functional, not cosmetic.
+- **Root cause:** body-portal fixed-position dropdown positioned only relative to the input's bottom
+  edge; portrait-tall-viewport assumption (theme 3 sibling, distinct widget and fix site).
+- **Fix strategy:** clamp to `visualViewport` (flip above the input when space below is insufficient —
+  above it is the header, always roomy), cap `max-height` with internal scroll; listen to
+  `visualViewport.resize` while open.
+- **Change together:** `08-quickadd-export-init.ts` (`_qaRenderMenu`) + `style.css` (`.qa-menu`).
+- **Tests:** at 412×460 and 915×412, open typeahead → every option on-screen and tap-accept inserts.
+- **Cross-app:** the qa-menu is tasks-only; Grimuar has no typeahead. Body-portal popover clamping
+  overlaps V2-B1-17 — fix with the same clamp utility.
+
+### S1 top-up — one-line theme instances & probe-artifact refutations (2026-07-11)
+Instances of established themes (recorded, NOT re-proven — the rework replaces these surfaces):
+- `#dl-weekday-list` clips ~11 px past the bottom edge in landscape (no flip-up; the month list DOES
+  flip up but then clips 5 px at the top) → theme 3 / V2-B1-06 family. Items are 45 px — good.
+- Modal confirm/cancel buttons measure 97×26; quarantine restore/dismiss 96×24; qa-menu items 31 px
+  tall → theme 4 / V2-B1-09 census.
+- At 360 px the layout viewport expands to ~391 px (tasks) and ~412 px (Grimuar list) — the same
+  horizontal overflow already recorded as V2-B1-05 / V2-B1-04 (cross-confirmation via
+  `innerWidth`, no new finding).
+Probe-order artifacts refuted by clean re-runs (recorded so they aren't re-chased): group picker
+(`#grp-trigger`) opens fine on tap; Grimuar colour-filter pop opens fine on tap at 360 (3 swatches,
+36 px, fits); the deadline modal survives rotation with typed segment buffers intact — earlier
+failures were leftover-state/animation-timing artifacts of the probe script itself, not the app.
 
 ---
 
@@ -613,3 +714,16 @@ Not findings — recorded so the mobile rework keeps what already works and the 
 - **Grimuar history «Летопись» overlay** — full-width, readable snapshot list + current-version preview + a large close button; fits and works at mobile width (`B1w_hist_pixel7.png`).
 - **Grimuar editor content on touch** (deepen-workflow) — long `pre/code` wraps cleanly inside its slab (no h-scroll), checklist checkboxes toggle on a real tap, the warning callout renders correctly, the format toolbar fits inside the card, focus modes are harmless. (Only the wide-table and TOC gaps above.)
 - **Select/bulk is functional** — neither the task nor Grimuar bulk bar clips or traps a control; every button is tappable (the only issues are the cosmetic wrap V2-B1-14 and 32 px targets → V2-B1-09).
+- **(S1) Quarantine overlay** — fits and works on pixel7 / 360 / landscape: modal never clips, the
+  entry list scrolls internally (`max-height:52vh`), long loser-values wrap, badge («5») visible on the
+  sync FAB, and a touch tap on «Восстановить» correctly restores the losing value into state and
+  removes the row. The one dent: 96×24 buttons (theme 4). Seeded-journal harness in `s1_probes.mjs`.
+- **(S1) Rotation is data-safe everywhere probed** — quick-add draft text, deadline-modal typed segment
+  buffers, a mid-edit (pre-debounce) contenteditable note, and the Grimuar editor body all survive
+  portrait↔landscape rotation with the modal/editor still open (no resize-triggered re-render exists
+  outside the Grimuar table UI). Rotate-mid-edit closes as SAFE.
+- **(S1) Modals with a raised keyboard (412×460 proxy)** — note-modal, rename-group, grim-link (and the
+  templates list) all fit with the focused input AND the confirm button fully visible. The clipping
+  class stays exactly where B1-06 drew it (deadline/repeat/color/group).
+- **(S1) Typeahead opens from real keystrokes on touch** and tap-accept inserts correctly in portrait
+  (the B1-era `.fill()` non-trigger was a probe artifact); only placement fails (V2-B1-27).

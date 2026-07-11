@@ -219,3 +219,44 @@ limit.
   workflow needed.
 - B1 is effectively complete for the emulation phase; the roadmap above is the
   hand-off into the (later, approval-gated) fix stage.
+
+---
+
+## S1 — targeted top-up (Fable 5, 2026-07-11, spec rev4 §5)
+
+Scope executed exactly as user-approved: five root-cause CLASSES not exercised
+before. Probes: `D:\tmp\pw\b1\s1_probes.mjs` (+ 4 one-off debug scripts), shots
+in `audit-v2/shots/s1/`, raw measurements in `shots/s1/_s1_results.json`.
+27 findings total for B1 after this pass.
+
+| Class probed | Verdict | Outcome |
+|---|---|---|
+| SegmentedInput family (6 widgets incl. repeat-anchor) on touch | **DEFECT, root cause A-confirmed** | B1-22 upgraded: tap focuses a non-editable div, no `inputmode` → VK can never raise; only the native-picker button works. Steppers half of B1-22 REFUTED (they tap fine) |
+| Text-edit entry on touch (found while probing) | **NEW FLAGSHIP-class → V2-B1-26** | all 5 edit surfaces are dblclick-only; double-tap yields ZERO events in touch emulation (zoom-intent), no touch fallback, no affordance → can't rename a task on a phone |
+| 6 gothic pickers on touch (month/weekday/group/grim-cfilter probed; form-wd same family; sort sampled in B1) | HEALTHY | all open on tap, 45 px items; weekday list clips ~11 px in landscape (theme-3 one-liner) |
+| Every modal + keyboard proxy (412×460) | HEALTHY | note/rename-group/grim-link/templates fit with input+confirm visible; clipping class unchanged (B1-06) |
+| Rotate mid-edit (data safety) | **SAFE** | quick-add draft, deadline segment buffers, mid-debounce note edit, Grimuar body — all survive rotation, nothing closes |
+| Quarantine overlay (seeded journal, 3 viewports) | HEALTHY | fits, scrolls, badge shows, touch-restore works; 96×24 buttons → theme 4 |
+| Quick-add typeahead above keyboard | **DEFECT → V2-B1-27** | opens fine from real keystrokes, but fixed below-input placement → clipped under keyboard @460h, off-screen + accept-miss in landscape |
+
+Method note (§2 discipline): three initial probe "failures" (group picker tap,
+grim-cfilter tap @360, deadline modal closing on rotate) were re-run clean and
+REFUTED as probe-order artifacts — recorded in FINDINGS so they aren't re-chased.
+
+### Additions to the real-device checklist (hand to the user)
+10. Double-tap a task's title — does inline editing open (cursor + selection),
+    does the page zoom, or does it just select a word? Same on a subtask. (B1-26)
+11. In the deadline modal, tap the hourglass/calendar button next to the time and
+    date fields — does the native Android picker open? (That is currently the ONLY
+    touch path to set a time — B1-22.)
+12. With the keyboard up, type `задача !` in the new-task field — does the
+    priority dropdown show fully above the keyboard? Rotate to landscape and
+    repeat. (B1-27)
+
+### Roadmap adjustments (proposals only)
+- **P0 (join the action-model rework):** touch edit-entry (B1-26) — an explicit
+  «Редактировать» affordance must be part of the mobile card/action redesign, or
+  the rework ships with editing still impossible on phones.
+- **P1 quick-wins list gains:** typeahead visualViewport clamp/flip (B1-27 — same
+  clamp utility as the B1-17 popover fix); SegmentedInput touch input path
+  (B1-22 fix already listed) — verify steppers on device before touching them.
