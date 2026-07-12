@@ -71,7 +71,19 @@ guardrail sweep runs during B0 rather than being deferred.
   (`added=true inLS=true`) — the danger is IDB **present-but-stale**, not IDB-dead.
   Refutation: (c) isolates the loss to the IDB-over-LS choice at `loadState` 01:1116-1123
   (unconditional IDB read → `saveState()` at 1122 overwrites the fresher LS). Confirmed.
-- **Severity:** UI 3 · DL 3 · RR 2 · IC 2 · CF 3 (was CF 2 — runtime-confirmed) — **`[RATIFY-FABLE]`**
+- **Severity:** UI 3 · DL 3 · RR 2 · IC 2 · CF 3 (was CF 2 — runtime-confirmed) — **[RATIFIED-FABLE 2026-07-12]**
+- **RATIFIED-FABLE 2026-07-12:** Confirmed (01:1116-1122 unconditional IDB-wins + LS clobber via
+  `saveState()`; probe variant (c) cleanly isolates the mechanism). **Fix decision: option A,
+  monotonic `_saveSeq` marker — do NOT revert the Этап-4 boot order (user-made fork, and IDB
+  capacity is still wanted).** Spec: `saveState` stamps `state._saveSeq = (state._saveSeq|0)+1`
+  before serializing (blob-level, local-persistence-only semantics; it will ride along through
+  sync harmlessly — merge output keeps whatever max lands, correctness does not depend on it).
+  `loadState` reads BOTH IDB and LS, parses each's `_saveSeq` (missing → 0, legacy blobs), and
+  boots from the HIGHER; if LS wins over a present-but-stale IDB, immediately mirror the winner
+  to IDB. Plus belt: `pagehide` → best-effort awaitless `_idbSet` flush of the latest json if
+  the dedup cache says IDB is behind. Tests: the two probes from **Tests** below become vitest/
+  probe regressions (LS-newer survives; IDB-dead → LS authoritative). W0, paired in the same
+  session as V2-B6-01 (same file, same boot path — test together).
 - **Where:** `saveState` (01:1035) writes localStorage synchronously EVERY time but
   mirrors to IndexedDB fire-and-forget (`_idbSet(K_STATE, state).then(...)`, 01:1042)
   and swallows failures. `loadState` (01:1109-1124) prefers IDB unconditionally if
@@ -1430,7 +1442,18 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 - **Evidence:** A (code) + **B (runtime, deterministic).** Probes
   `D:\tmp\pw\b1\s4_bootrace.mjs` + discriminator `s4_racetiming.mjs` (raw
   `audit-v2/shots/s4/bootrace.json`, `racetiming.json`).
-- **Severity:** UI 3 · DL 3 · RR 2 · IC 2 · CF 3 — **`[RATIFY-FABLE]`** (DL 3)
+- **Severity:** UI 3 · DL 3 · RR 2 · IC 2 · CF 3 — **[RATIFIED-FABLE 2026-07-12]** (DL 3)
+- **RATIFIED-FABLE 2026-07-12:** Confirmed against code (11:714-715 module-body call, unawaited
+  `init()` at 08:1524, both trigger paths 11:661-662 + 11:676-684). Probe discrimination
+  (seeded-IDB reload safe 14/14 vs IDB-absent wipe 5/5) is sound and honestly scoped.
+  **Fix decision: option (i)+(ii) combined, guard INSIDE `syncNow`** — `loadState` resolves a
+  `globalThis._stateLoadedPromise` (flag `_stateLoaded=true`) at its END (both IDB and LS paths);
+  `syncNow` begins with `if (!_stateLoaded) await _stateLoadedPromise` (covers on-open, exchange,
+  visibility/focus/online — every trigger, present and future). Belt: before push/merge, if
+  `state.tasks.length===0 && state.groups.length===0 && state.archive.length===0` and the
+  local baseline is non-empty, abort the sync with a console warn (pristine-state fuse — cheap,
+  catches any future unforeseen path to the same wipe). Rejected: gating only the two known
+  triggers (fragile). W0 — fix FIRST, before any other code change.
 - **Where:** `dusk/11-sync-ui.ts:714-715` runs `_initSyncUI()` **synchronously in the
   module body**; its comment (713) "11 loads after 08 (init done) — DOM + state ready"
   is **false**: `init()` is async and NOT awaited (`08-quickadd-export-init.ts:1524`
@@ -1485,8 +1508,17 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 ### V2-B6-02 — Multi-tab same-origin: a stale in-memory save silently erases the other tab's committed edit (no `storage`/BroadcastChannel reconciliation)
 - **Evidence:** A (no cross-tab listener — grep) + **B (runtime).** Probe
   `D:\tmp\pw\b1\s4_p2_multitab.mjs` (raw `audit-v2/shots/s4/p2_multitab.json`).
-- **Severity:** UI 2 · DL 2 · RR 1 · IC 2 · CF 3 — **`[RATIFY-FABLE]`** (DL 2) — frequency
+- **Severity:** UI 2 · DL 2 · RR 1 · IC 2 · CF 3 — **[RATIFIED-FABLE 2026-07-12]** (DL 2) — frequency
   is an **E (needs-user)** question (see below).
+- **RATIFIED-FABLE 2026-07-12:** Real (grep confirms no `storage` listener / BroadcastChannel in
+  dusk/), exposure LOW (user: usually one tab). **Fix decision: DEFER to W3, minimal-safe variant**
+  — a `storage`-event listener on `K_STATE` that (a) sets a `_lsForeignWrite` flag; (b) on this
+  tab's NEXT `saveState`, if the flag is set, first re-reads LS and runs `mergeStates(inMemory,
+  lsBlob, baseline=this tab's last-written blob)` through the existing pure engine (journal
+  catches real clashes), then writes. NOT chosen: leader-election/BroadcastChannel (over-built
+  for occasional 2nd tab); naive reload-on-storage-event (stomps mid-edit UI state). Not W0:
+  medium IC + touches saveState hot path — do it calmly after the mobile wave, with the
+  multitab probe as regression.
 - **E RESOLVED (2026-07-12, user):** "usually one tab, but could be more." So multi-tab is
   OCCASIONAL, not routine → the loss window is real but rarely hit. Severity DL 2 stands
   (a real silent-loss path for a non-sync user), exposure LOW. Keep for `[RATIFY-FABLE]`.
@@ -1515,7 +1547,15 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 ### V2-B6-03 — `saveState` swallows a `QuotaExceededError` silently: edit not persisted, no toast, lost on reload
 - **Evidence:** A (code) + **B (runtime).** Probe `D:\tmp\pw\b1\s4_p4_quota.mjs` (raw
   `audit-v2/shots/s4/p4_quota.json`).
-- **Severity:** UI 2 · DL 3 (silent-loss path, §6) · RR 1 · IC 1 · CF 3 — **`[RATIFY-FABLE]`**
+- **Severity:** UI 2 · DL 3 (silent-loss path, §6) · RR 1 · IC 1 · CF 3 — **[RATIFIED-FABLE 2026-07-12]**
+- **RATIFIED-FABLE 2026-07-12:** Confirmed (01:1038 bare `setItem`; the IDB mirror at 01:1042 is
+  indeed unreachable after the throw). **Fix decision: as proposed, with explicit ordering** —
+  restructure `saveState` so the IDB mirror + `maybeBackup` + `_afterSaveState` run REGARDLESS of
+  the LS outcome: wrap ONLY the `setItem` in try/catch; on `QuotaExceededError` show a persistent
+  (non-auto-dismissing) toast «Хранилище переполнено — изменения не сохраняются» once per session
+  (a `_quotaWarned` flag, re-armed on a later successful write) and continue to the IDB mirror so
+  the edit still lands in IDB (loadState IDB-first will then recover it — after V2-B0-02's fix,
+  newer-wins makes this correct rather than accidental). W0.
 - **Where:** `saveState` (01:1038) `localStorage.setItem(K_STATE, json)` has **no try/catch
   and no user messaging** — the one state-write that doesn't (the backups ring 01:1078,
   sync baseline 09:560, note-versions 02:279 all `try{}catch{}` quota silently, and the
@@ -1578,8 +1618,15 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 
 ### V2-B6-05 — Undo reaches ACROSS a landed sync merge: Ctrl+Z reverts remote-landed changes locally (self-healing on next sync) — design verdict
 - **Evidence:** A (code) + **B (runtime machine, recorded — not self-graded).** Probe
-  `D:\tmp\pw\b1\s4_p5_undo.mjs` (raw `audit-v2/shots/s4/p5_undo.json`). **`[RATIFY-FABLE]`
-  (mandatory per directive P5).**
+  `D:\tmp\pw\b1\s4_p5_undo.mjs` (raw `audit-v2/shots/s4/p5_undo.json`). **[RATIFIED-FABLE
+  2026-07-12] (mandatory per directive P5).**
+- **RATIFIED-FABLE 2026-07-12 — design verdict: option (i), leave as-is.** Reasoning: (ii)
+  clear-stack destroys the user's own undo history on every merge landing (violates recovery
+  spirit of rule #1 for the sake of a cosmetic anomaly); (iii) changes undo granularity and
+  still reverts the merge as a unit (same visible flicker, new semantics to maintain). The
+  anomaly is transient, self-healing (Drive re-pulls, redo exists, probe-proven), zero data
+  loss. NOT a fix-wave item. Documented behavior; revisit only if the user reports actual
+  confusion in practice.
 - **Severity:** UI 1 · DL 0 (self-healing — no permanent loss) · RR 1 · IC 1 · CF 3
 - **Where:** `syncNow`'s merge-landing (`11:283-288` `applySyncSubset`+`saveState` under
   `_applyingMerge`) does **NOT** `pushUndo`. Undo/redo operate on whole-state snapshots
@@ -1609,6 +1656,10 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 - **Evidence:** A (code) + **B (runtime, UTC+3).** Probe `D:\tmp\pw\b1\s4_p9_repeats.mjs`
   + `s4_tzcheck.mjs` (raw `audit-v2/shots/s4/p9_repeats.json`).
 - **Severity:** UI 2 · DL 0 (wrong displayed date, not lost data) · RR 1 · IC 1 · CF 3
+- **RATIFIED-FABLE 2026-07-12:** Confirmed (04:1652 local-midnight construction vs 04:1658 UTC
+  serialization; snooze's `_ymd` is the house convention). Fix = `_ymd(base)` exactly as
+  proposed; add the UTC+3 daily/weekly assertions to a vitest test. W0 (smallest item — do it
+  first as the warm-up commit). Export-header off-by-one: cosmetic, W3.
 - **Exposure (2026-07-12, user):** "rarely use deadlines, hadn't noticed." Confirms low
   real-world exposure; the bug is still deterministic and a 1-line fix (`_ymd(base)`).
 - **Where:** `shiftDeadline` (`04-tasks.ts:1658`) returns
