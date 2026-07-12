@@ -584,8 +584,14 @@ function _entryWhat(e) {
     return T[e.kind] || 'конфликт';
 }
 function _entryLoserPreview(e) {
-    const v = e.kind === 'field' ? e.loser
-        : (e.loser && (e.loser.text || e.loser.name || e.loser.title)) || '';
+    // V2-B6-04: label fields can legitimately be empty while the record still
+    // carries recoverable content — notes are body-first, subtasks can be
+    // note-only. Fall back to body/note so «пусто» appears only when the loser
+    // truly has nothing to recover (a misleading «пусто» invites a dismissal
+    // that GC later makes permanent).
+    const l = e.loser;
+    const v = e.kind === 'field' ? l
+        : (l && (l.text || l.name || l.title || l.body || l.note)) || '';
     let s = typeof v === 'object' ? JSON.stringify(v) : String(v == null ? '' : v);
     s = s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();   // strip any HTML, collapse ws
     return s.length > 120 ? s.slice(0, 117) + '…' : s;
