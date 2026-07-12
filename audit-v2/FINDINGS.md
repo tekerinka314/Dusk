@@ -1698,3 +1698,105 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 - **Cross-app:** task recurring deadlines. Minor cross-ref: the export "today" headers
   (`08-quickadd-export-init.ts:257/284/305`) also use `new Date().toISOString().slice(0,10)`
   → a cosmetic off-by-one in the export date near midnight east of UTC (display-only).
+
+### V2-B6-07 — ⚠ CRITICAL (user-reported 2026-07-12): sync-triggered render kills in-flight task-note editing every ~2 s AND silently discards uncommitted keystrokes
+- **Evidence:** A (complete code chain) + E (user report — ground truth: "при
+  написании заметки она сворачивается (unfocus) каждые несколько секунд").
+  Runtime probe still owed (fake-cloud + typing) — Opus, cheap.
+- **Severity:** UI 3 (a core flow breaks every few seconds while sync is on) ·
+  DL 2 (typed-but-uncommitted text is silently discarded on every occurrence)
+  · RR 1 · IC 1-2 · CF 3 (chain is airtight; cadence matches the report).
+- **Where (the full loop):**
+  1. Typing in the inline task note → `_taskNoteInput` debounce **350 ms** →
+     `task.note = …; saveState()` (05-edit-notes-groups.ts:584-587).
+  2. `saveState` → `_afterSaveState` → `scheduleSyncPush` → debounce
+     **1500 ms** → `syncNow` (11-sync-ui.ts:397-398, 401; SYNC_DEBOUNCE_MS 11:65).
+  3. `syncNow` merge-landing: `applySyncSubset` REPLACES `state.tasks` with
+     fresh clones + **unconditional `render()`** (11:283-289) — even on a
+     no-change pull.
+  4. `render` card-reuse check: the card's `_liSig` embeds
+     `noteDisplayHTML(task.note)` (04-tasks.ts:213-215); the note text changed
+     at step 1 → signature differs → the `<li>` is REBUILT: the new note div
+     has no `contenteditable`, focus dies, the editing session ends, and every
+     keystroke typed after the last 350 ms-commit exists only in the replaced
+     DOM node → **discarded**.
+  Timing: the 350 ms commit fires only after a typing PAUSE; the push fires
+  1.5 s later — i.e. pause → resume typing → sync lands mid-typing ≈ every
+  ~2 s of burst-writing. Additional independent triggers hit the same window:
+  peer wake nudges (12-sync-wake), the 120 s periodic (11:66), window focus /
+  visibilitychange (11:733), online. **Bug requires sync enabled — matches
+  "вероятно связаны с синком".**
+- **Refutation attempted (§2):** "The reconcile reuses the live card, editing
+  survives." → Only when the signature is UNCHANGED; the note autosave itself
+  changes it — self-defeating by construction. "Commit-on-blur saves the tail
+  keystrokes." → `_taskNoteCommit` runs on the blur EVENT of the old node;
+  render replaces the node — the delegated blur (`data-actblur`) does fire
+  during teardown in some orders, but the debounce timer holding the LAST text
+  is cleared only by commit; any input after the last commit that hasn't
+  re-armed... the replaced node's `textContent` is rebuilt from `state` — the
+  un-persisted tail cannot survive a rebuild. Refutation fails; only the exact
+  discard-size needs the runtime probe.
+- **Root cause (class):** the render/reconcile layer has NO concept of "an
+  inline editor is active", while sync makes renders ASYNCHRONOUS to user
+  input. The codebase already solves the identical class for drag —
+  `checkCycleResets` defers when `body.is-dragging` (04-tasks.ts:1665, IMP-3)
+  — editing never got the same guard.
+- **Fix strategy (two guards, both):**
+  (i) **render-defer during inline edit** — a cheap `_inlineEditActive()`
+  (document.activeElement is a `[contenteditable=true]` inside the list) →
+  `render()`/`renderListOnly()` defers (retry via setTimeout, mirroring the
+  is-dragging pattern). Covers ALL render sources (sync, periodic, wake,
+  focus), also protects inline title/subtask editing (same class).
+  (ii) **don't schedule the push while editing** — `scheduleSyncPush` keeps
+  `_pendingPush = true` but does not arm the timer while `_inlineEditActive()`;
+  `_taskNoteCommit`/blur flushes it. Sync still converges (commit, hidden-tab
+  flush, periodic all push later).
+  Guard (i) must NOT defer the merge SAVE — only the render; data landing
+  stays immediate. Add: probe with fake cloud typing 10 s bursts → editing
+  survives, no text lost.
+- **Change together:** `dusk/03-render.ts` (render defer), `dusk/11-sync-ui.ts`
+  (scheduleSyncPush guard), `dusk/05-edit-notes-groups.ts` (flush on commit).
+- **Tests:** new fake-cloud typing probe; existing `s4_*` suite green;
+  manual: write a long note with sync on — no unfocus, no lost text.
+- **Cross-app:** Grimuar body editing is NOT hit by this exact chain
+  (`syncNow`'s `render()` rebuilds only the tasks page — 03:50-72), but
+  `applySyncSubset` DOES replace `state.notes` objects mid-edit; the Grimuar
+  autosave commits into the fresh object by id lookup, so it survives —
+  verify with the same probe while in Grimuar.
+- **Priority: fix FIRST in W2 — recommended to pull ahead of W1** (user hits
+  it in daily use; small, bounded fix).
+
+### V2-B6-08 — (user-reported 2026-07-12) tail of a rapid action sequence silently rolls back on reload/sync, no conflict — root-cause attribution
+- **Evidence:** E (user report: "последовательное множество действий могут не
+  охватиться синком, часть тихо откатывается при релоаде/синке, без
+  конфликта") + A (mechanism chains below).
+- **Attribution (primary): V2-B0-02 — stale-IDB boot clobber. FIXED 2026-07-12
+  (`4b18b42`).** Chain matches every reported detail: a rapid burst of actions
+  → each `saveState` lands LS synchronously but mirrors IDB fire-and-forget;
+  the tab is closed/killed before the LAST transaction(s) commit → next boot
+  loaded the stale IDB and overwrote the fresher LS → the TAIL of the sequence
+  (not all of it) rolled back locally. **Sync then AMPLIFIED the loss
+  conflict-free:** the rolled-back records differ from the baseline exactly
+  like fresh local edits, so the next 3-way merge treats the rollback as the
+  user's newest change and pushes it cloud-wide — no conflict is possible by
+  construction (local-vs-baseline diff + newer local clock). This is why it
+  looked like "синк не охватил часть действий".
+- **Attribution (secondary): V2-B6-07** — text typed into an inline note after
+  the last debounce-commit is discarded by a sync render; perceived as "an
+  action that silently didn't stick", also conflict-free.
+- **Status: believed CLOSED by the W0 fixes** (`4b18b42` newer-wins boot +
+  pagehide IDB flush; `f0e20d5` boot-race gate; B6-07 fix pending). **User
+  verification protocol:** on builds ≥ `2026-07-12-4`, repeat the failing
+  pattern (burst of 5-10 quick edits → immediately close the tab → reopen →
+  reload) — everything must survive.
+- **If it recurs after W0 + the B6-07 fix, the investigation checklist (in
+  priority order):**
+  1. mutation-without-`saveState` census (an action that mutates state but
+     never persists would vanish on reload; P12 audited undo pushes, NOT save
+     coverage);
+  2. `bumpUpdatedAt` diff coverage — a mutated record whose `updatedAt` was
+     NOT bumped loses same-field merges against any newer remote change
+     (silent, no quarantine entry);
+  3. two-device probe: rapid action bursts on A while B syncs — hunt subset/
+     apply races under the wake channel's frequent syncs.
+- **Cross-app:** whole state blob (both apps).

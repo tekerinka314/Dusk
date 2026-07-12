@@ -51,6 +51,14 @@ explicit user approval).
 7. **Undo regressions.** Any new mutation path must `pushUndo()` BEFORE mutating
    (audit P12 verified all 30 existing sites — keep it that way).
 
+## Design approval rule (binding, user-set 2026-07-12)
+EVERY design decision — visuals of the mobile rework, any new or changed
+component look, glyphs, motion — is shown to the user and approved BEFORE
+implementation (preview file or deployed slice he reviews), unless he
+explicitly grants autonomy for a specific scope. `audit-v2/mobile-preview.html`
+is a DRAFT/образец of the direction, not an эталон — elements will be refined
+with him.
+
 ## What NOT to do without the user (or Fable) explicitly approving
 - Icon/design-language redesigns (FIX-PLAN W4 warning — preview-first protocol).
 - Renames of user-facing terminology (B5-11 — propose first).

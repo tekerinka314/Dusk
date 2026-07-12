@@ -9,14 +9,20 @@ Inputs: `audit-v2/B1-mobile.md` (28 findings, 4 root-cause themes, good-surface 
 gothic identity, or data logic. This is a LAYOUT + ACTION-MODEL rework, zero
 state-model changes.
 
-**TASTE REFERENCE (Fable, 2026-07-12): `audit-v2/mobile-preview.html`** — open
-in a browser. Interactive target look for slices 1–3: the 3-row task card, the
-2-row group header, and the bottom-sheet «crypt slab» (tap ⋯), at 412/360 px,
-built from the app's REAL palette tokens and IC glyphs. It is the visual
-ground truth for those slices — when the text spec and the preview disagree on
-look-and-feel, the preview wins; exact px paddings may be tuned to the
-acceptance criteria. If the user requests visual changes after viewing it,
-update the preview file first, then implement.
+**DESIGN DRAFT (Fable, 2026-07-12): `audit-v2/mobile-preview.html`** — open in
+a browser. Interactive DRAFT of slices 1–3: the 3-row task card, the 2-row
+group header, and the bottom-sheet «crypt slab» (tap ⋯), at 412/360 px, built
+from the app's real palette tokens and IC glyphs. **User verdict (2026-07-12):
+direction approved, but this is a ЧЕРНОВИК/образец, NOT an эталон — individual
+elements need further refinement.** Use it as the starting point for the
+layout/action-model direction; do NOT treat its exact proportions, spacing, or
+element styling as final.
+
+**DESIGN APPROVAL RULE (binding, user-set 2026-07-12): every design decision —
+this rework's visuals, any new/changed component look, glyphs, motion —
+must be shown to the user and approved by him BEFORE implementation** (updated
+preview file or in-app deploy he reviews on his phone), unless he explicitly
+grants autonomy for a specific scope. Silence is not approval.
 
 ---
 

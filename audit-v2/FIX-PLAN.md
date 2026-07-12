@@ -38,6 +38,15 @@ covers the mechanism meanwhile.
 NOTE: V2-B6-05 needs NO fix (ratified design verdict: leave as-is).
 V2-B1-19 (PWA launch) already fixed + deployed 2026-07-08.
 
+**W0.5 — URGENT, before W1 (added 2026-07-12 from user reports):**
+- **V2-B6-07** — sync render kills in-flight note editing + discards
+  uncommitted keystrokes (~every 2 s of burst typing with sync on). Fix per
+  the finding's two-guard spec (render-defer during inline edit +
+  scheduleSyncPush guard). Small, bounded, user hits it daily.
+- **V2-B6-08** — sequence-tail rollback: attributed to V2-B0-02 (already fixed
+  `4b18b42`) + B6-07; NO new code — user re-verifies on builds ≥ 2026-07-12-4;
+  investigation checklist in the finding if it recurs.
+
 **W1 — mobile rework** = `audit-v2/MOBILE-REWORK-PLAN.md`, slices 1–6 in order.
 Covers: B1-01/02/03/13 (slices 1–2), B1-17/28-mobile (slice 3), B1-06 (slice 4),
 B1-07/08/24 + B0-04 (slice 5), B1-04/05/12/14/15/20/21/22/27 + B1-26
