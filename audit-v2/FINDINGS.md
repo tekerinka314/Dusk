@@ -1256,7 +1256,7 @@ one cheap Fable pass owed.
 - **Tests:** re-run the RM sweep → toast computes `none/0s` or opacity-only.
 - **Cross-app:** shared toast (both apps).
 
-### V2-B5-08 — Two "repeat" concepts share the same vocabulary with no explainer (mental model) **[RATIFY-FABLE]**
+### V2-B5-08 — Two "repeat" concepts share the same vocabulary with no explainer (mental model) **[RATIFIED-FABLE 2026-07-12]**
 - **Evidence:** A (task-repeat: Repeat modal + `cycleChecked`/`nextReset`; deadline
   auto-repeat: `#dl-repeat-toggle`, `_dlAutoRepeat`, 06:151/311).
 - **Severity:** UI 2 · DL 0 · RR 1 · IC 1 · CF 2
@@ -1284,6 +1284,14 @@ one cheap Fable pass owed.
   (toggle relabel).
 - **Tests:** n/a (copy); visual review.
 - **Cross-app:** task-only (Grimuar has neither).
+- **Fable ratification (2026-07-12):** CONFIRMED — the gap is real: co-occurrence
+  is legitimate (one task can carry both systems) and the copy never contrasts
+  them. Framing ratified with one sharpening: the one-line explainer is the FLOOR;
+  the real fix is lexical — reserve «повтор» (+ ouroboros) exclusively for task
+  recurrence and give the deadline toggle a rhythm-word for the deadline itself
+  («Повторять срок» / «Ритм срока» — final wording = user pick at D7), with the
+  explainer «Повторяется только срок — задача не становится повторяющейся» under
+  the toggle. CF for the gap's existence raised 2→3; naming stays open by design.
 
 ### V2-B5-09 — Cross-app search-empty inconsistency: tasks show a message, Grimuar shows only «Найдено · 0»
 - **Evidence:** B (`s3_probe4.mjs`: tasks search «zznotexist» → «Ничего не найдено»
@@ -1332,7 +1340,7 @@ one cheap Fable pass owed.
 - **Change together:** `index.html` (attr) + the hint/«?» surface.
 - **Cross-app:** task-only (Grimuar has no quick-add).
 
-### V2-B5-11 — Cross-app terminology divergence unmapped (Архив/Склеп, Добавить/Начертать, заметка overloaded) **[RATIFY-FABLE]**
+### V2-B5-11 — Cross-app terminology divergence unmapped (Архив/Склеп, Добавить/Начертать, заметка overloaded) **[RATIFIED-FABLE 2026-07-12]**
 - **Evidence:** A (toast/label census — see report terminology table).
 - **Severity:** UI 1 · DL 0 · RR 1 · IC 1 · CF 2
 - **Where:** the same soft-delete store is «Архив»/«В архив» on tasks but «Склеп»/«В
@@ -1353,6 +1361,16 @@ one cheap Fable pass owed.
   (Grimuar note). D7. **Fable ratifies the glossary.**
 - **Change together:** copy across `dusk/*` (labels/toasts) + `index.html`.
 - **Cross-app:** the core of it (B13).
+- **Fable ratification (2026-07-12):** CONFIRMED as a finding, resolved in three
+  parts. (1) The «заметка» overload is a genuine defect — disambiguate
+  unconditionally: «заметка» = task memo, «запись» = Grimuar note. (2) Архив/Склеп
+  and Добавить/Начертать are LEGITIMATE deliberate per-app flavour, NOT to be
+  auto-unified — Grimuar's register is the richer voice per B2 and unification
+  would flatten it; but the split must become a documented glossary decision the
+  user signs off at fix stage (D7) — his aesthetic call, not the auditor's.
+  (3) Permanent-delete verbs must be consistent WITHIN each app (the notes side
+  mixes «Уничтожить»/«Удалить навсегда» — pick one; «Уничтожить» fits the
+  register); cross-app flavour divergence allowed. Severity UI 1 upheld.
 
 ### V2-B5-12 — Shared dim-violet text token (~#9068C0) sits at the AA floor on-card and fails over the bright bg-image
 - **Evidence:** B (ground-truth contrast: 4.73–4.81:1 for meta labels, placeholder,
