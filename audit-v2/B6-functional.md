@@ -15,8 +15,9 @@ B6 — ядро безопасности данных всего аудита. �
 
 Статус: **B6 ЗАКРЫТ.** Tier 0 (безопасность данных) — 10 проб, 5 finding + 2 промоушена +
 design-вердикт. Tier 1 (движки): P11/P9 рантайм (1 finding V2-B6-06 + sibling-sweep clean),
-P10/P12/P15/P16 статик-ценз (все чисты, callout-долг закрыт), P13/14/17/18 DEFERRED (низкий
-DL, покрыты B4/B5, ROI отрицательный). **Итог B6: 6 finding (V2-B6-01..06) + 2 промоушена
+P10/P12/P15/P16 статик-ценз (все чисты, callout-долг закрыт), **P14/P18 углублены статикой
+→ verified clean** (int-id reconcile×sync снята `_reindex`; DnD correct-by-construction),
+P13/P17 DL 0 UI покрыты B4/B5. **Итог B6: 6 finding (V2-B6-01..06) + 2 промоушена
 (B0-01/02) + 1 design-вердикт.**
 
 ---
@@ -150,9 +151,43 @@ export→import→sanitize целиком (структура+тип). **Деф�
 дедлайна), прунинг флагов мёртвых задач, персист в LS `dusk_notified_v1`. DL 0 (не трогает
 `state`). Чист.
 
-**Итог Tier 1:** новых finding сверх V2-B6-06 нет. P13 (view-combos), P14 (DnD), P17
-(mobile-taps), P18 (reconcile-fuzz) — **DEFERRED**: рантайм-тяжёлые UI-функц-матрицы, DL 0-1,
-существенно покрыты B4/B5 UX-аудитом; ROI против стоимости прогона отрицательный.
+**P14 — DnD battery (статик-deep, data-safety фокус).** Три data/IC-релевантные нити,
+все **correct-by-construction**:
+1. **Task-level move** (`onDragAdd` 07:157-200): `groupId` из `evt.to` с фолбэками
+   (`|| null` → ungrouped безопасно), `pinned` toggle по зоне, `reorderList` на обе UL,
+   `saveState` (авто-бамп `updatedAt` диффом). Re-render только при структурном сдвиге
+   (pin/unpin или cross-group в schedule/split). Потери данных нет.
+2. **int-id коллизия reconcile×sync (ключевая гипотеза).** Оба устройства стартуют
+   `nextId=1` → int id НЕ глобально уникальны; `_liCache`/`find(t=>t.id===)` по int id →
+   казалось бы коллизия при мерже. **СНЯТО:** `mergeStates` мержит по `uid`
+   (`_mergeCollection` 09:323), затем `_reindex` (09:393-448, вызван 09:492 на КАЖДОМ
+   мерже) ремапит int id: локальные uid держат свой id (`assign` предпочитает
+   `localById.get(uid)`), remote-only uid получают свежий незанятый
+   (`while(used.has(next))next++`); `task.groupId` перестраивается из `_groupUid`. →
+   int id уникальны в merged-наборе, `_liCache` по int id безопасен.
+3. **Subtask-DnD split-режим.** `onSubDragEnd` (05:414) НЕ трогает `sub.done` — казалось бы
+   drag active→done не тоглит completion. **СНЯТО:** `initSubSortable` (05:397-408) в split
+   ставит ДВА раздельных Sortable с разными `group.name` + `pull:false,put:false`, done-зона
+   `disabled:true,sort:false`; `draggable` исключает `.checked/.cycle-checked` → cross-zone
+   drag запрещён конструктивно. Completion только клик-чеком.
+
+**P18 — reconcile signature (статик-deep).** `_reconcile` (03:104-122) — keyed по
+node-identity (Set desired), teardown с `parentNode`-guard (re-entrancy blur-safe),
+insert по `parent.children[i]`. Card-сигнатура (`_liSig` 04:213-215) = className(без
+transient anim) + priority + deadline-flag + ink + `_mainHTML` + `subsHtml` — **ловит
+любое изменение контента по конструкции** (сигнатура ⊇ весь innerHTML). Кэш keyed по int id,
+уникальность которого гарантирует `_reindex` (см. P14 п.2) → стейл-нода/cross-task
+контаминация невозможны. DL 0.
+
+**Benign-наблюдение (не finding):** `reorderList` (07:244) пишет `order`=DOM-индекс только
+по ВИДИМЫМ `:scope>.task-item` → при активном фильтре отфильтрованные задачи держат старый
+`order` (возможны дубли значений). `order` — лишь ключ сортировки со стабильным фолбэком,
+самолечится на след. полном reorder; не потеря данных.
+
+**Итог Tier 1:** новых finding сверх V2-B6-06 нет. **P14/P18 углублены статикой → verified
+clean** (механизмы процитированы выше — deferred-неизвестность конвертирована в закрытый
+риск). P13 (view-combos), P17 (mobile-taps) — DL 0 UI, покрыты B4/B5 UX-аудитом, оставлены
+на том уровне (budget); рантайм-fuzz по ним ROI-отрицателен.
 
 ## ROI-ledger (что пропущено и почему)
 
@@ -163,10 +198,11 @@ export→import→sanitize целиком (структура+тип). **Деф�
   пишет loser+bump updatedAt; dismiss→resolved). Runtime-клик низкого риска, не гонялся
   (ROI). Grimuar callout-класс round-trip перенесён в **P15** (Tier 1, тест санитайзера).
 - **P2 частота** — E-вопрос пользователю (две вкладки?), severity от ответа.
-- **Tier 1 остаток — ЗАКРЫТ статикой + deferral:** P10/P12/P15/P16 покрыты статик-цензом
-  (выше, все чисты); P13 (view-combos), P14 (DnD), P17 (mobile-taps), P18 (reconcile-fuzz)
-  **DEFERRED** — рантайм-тяжёлые UI-матрицы, DL 0-1, покрыты B4/B5, ROI отрицательный.
-  Мандат эффективности юзера (2026-07-12): «пропускай опциональные шаги».
+- **Tier 1 остаток — ЗАКРЫТ статикой:** P10/P12/P15/P16 статик-ценз (все чисты);
+  **P14 (DnD) + P18 (reconcile) углублены статикой → verified clean** (int-id коллизия
+  reconcile×sync снята `_reindex`; task/subtask-DnD correct-by-construction). P13
+  (view-combos), P17 (mobile-taps) — DL 0 UI, покрыты B4/B5, оставлены на том уровне
+  (budget-мандат юзера 2026-07-12: «пропускай опциональное»); рантайм-fuzz ROI-отрицателен.
 
 ## Probe-artefact ledger (`D:\tmp\pw\b1\`)
 
