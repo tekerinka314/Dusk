@@ -1487,6 +1487,9 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
   `D:\tmp\pw\b1\s4_p2_multitab.mjs` (raw `audit-v2/shots/s4/p2_multitab.json`).
 - **Severity:** UI 2 · DL 2 · RR 1 · IC 2 · CF 3 — **`[RATIFY-FABLE]`** (DL 2) — frequency
   is an **E (needs-user)** question (see below).
+- **E RESOLVED (2026-07-12, user):** "usually one tab, but could be more." So multi-tab is
+  OCCASIONAL, not routine → the loss window is real but rarely hit. Severity DL 2 stands
+  (a real silent-loss path for a non-sync user), exposure LOW. Keep for `[RATIFY-FABLE]`.
 - **Where:** `saveState` (01:1035) writes the whole in-memory `state` blob to LS; there is
   **no `window.addEventListener('storage', …)` and no `BroadcastChannel`** anywhere in
   `dusk/` (grep clean). Two tabs on one origin share LS but each holds an independent
@@ -1606,6 +1609,8 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 - **Evidence:** A (code) + **B (runtime, UTC+3).** Probe `D:\tmp\pw\b1\s4_p9_repeats.mjs`
   + `s4_tzcheck.mjs` (raw `audit-v2/shots/s4/p9_repeats.json`).
 - **Severity:** UI 2 · DL 0 (wrong displayed date, not lost data) · RR 1 · IC 1 · CF 3
+- **Exposure (2026-07-12, user):** "rarely use deadlines, hadn't noticed." Confirms low
+  real-world exposure; the bug is still deterministic and a 1-line fix (`_ymd(base)`).
 - **Where:** `shiftDeadline` (`04-tasks.ts:1658`) returns
   `{ mode:'date', value: base.toISOString().slice(0,10) }`. `base` is built from a LOCAL
   midnight (`new Date(dl.value + 'T00:00:00')`, 1652) and advanced with `setDate` (local),

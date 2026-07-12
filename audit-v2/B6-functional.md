@@ -13,8 +13,11 @@ B6 — ядро безопасности данных всего аудита. �
 Сырьё: `audit-v2/shots/s4/*.json`. Probe-скрипты: `D:\tmp\pw\b1\s4_*.mjs` (переиспользуемы
 на fix-этапе).
 
-Статус: **Tier 0 (безопасность данных) ЗАКРЫТ.** Tier 1 (движки): **P11 + P9 сделаны**
-(1 finding + sibling-sweep clean); P10/P12–P18 — следующая сессия.
+Статус: **B6 ЗАКРЫТ.** Tier 0 (безопасность данных) — 10 проб, 5 finding + 2 промоушена +
+design-вердикт. Tier 1 (движки): P11/P9 рантайм (1 finding V2-B6-06 + sibling-sweep clean),
+P10/P12/P15/P16 статик-ценз (все чисты, callout-долг закрыт), P13/14/17/18 DEFERRED (низкий
+DL, покрыты B4/B5, ROI отрицательный). **Итог B6: 6 finding (V2-B6-01..06) + 2 промоушена
+(B0-01/02) + 1 design-вердикт.**
 
 ---
 
@@ -104,7 +107,7 @@ Seed по одной записи каждого вида → `openQuarantine()`
 
 ---
 
-## Tier 1 — движки (частично: P11, P9)
+## Tier 1 — движки (P11, P9 рантайм; P10/P12/P15/P16 статика; P13/14/17/18 deferred)
 
 **P11 — quick-add parser sibling sweep + battery.** Директива: сначала проверить, не
 заражает ли `\b`-после-кириллицы (B1-11, priority-regex 08:38) сиблингов `*`/`%`. Прямые
@@ -124,6 +127,33 @@ V2-B6-06:** `shiftDeadline` (04:1658) чеканит дату через `toISOS
 день КОРОЧЕ восточнее UTC (**UTC+3 юзера**: daily → вообще не сдвигается/заморожен; weekly →
 +6 вместо +7). Snooze (`_ymd`) и reset-тайминг (`getTime()`) — корректны; баг изолирован.
 
+**P12 — undo/redo дисциплина (статик-census).** Проверено: каждый `showToast(…,{undo:true})`
+call-site (grep: 30 шт по 02/03/04/05/08) имеет `pushUndo()` ПЕРЕД мутацией в том же
+хендлере. Критичный регион — import/merge (03:1262-1427): все три ветки (replace 1272,
+merge 1302, fallback 1403) вызывают `pushUndo()` до пересборки `state`; тост 1388
+(«Добавлено») принадлежит merge-хендлеру с pushUndo на 1302. Идиома `pushUndo(); <mut>;
+saveState()` консистентна. `redoStack` чистится любым новым `pushUndo` (01:748). **Новых нет
+— «Отменить» не срывается на предыдущее действие (B5-carry снят).**
+
+**P15 — Grimuar callout round-trip (статик, санитайзер).** Долг из P8 (V2-B4-07). Санитайзер
+`_grimSanitize` (02:1948-1983) — whitelist `GRIM_TAGS`, DIV-класс срезается кроме 5 blessed
+(`grim-co`, `grim-co-info/warn/secret`, `grim-co-body`, 02:1969). → callout переживает
+export→import→sanitize целиком (структура+тип). **Дефект был только в карантин-ПРЕВЬЮ
+(V2-B6-04), не в санитайзере — callout-долг закрыт чистым.**
+
+**P10 — deadline 6-mode статусы (статик).** `deadlineStatus` (06:888) — display-only
+классификация (`critical/over/live/…`), не мутирует данные (DL 0). Движок дат/повторов
+отработан P9. Чист.
+
+**P16 — notifications flow (статик).** `_checkDeadlineNotifications` (03:1443): guard на
+`Notification.permission==='granted'`, notify-once-per-signature (V-2, `JSON.stringify`
+дедлайна), прунинг флагов мёртвых задач, персист в LS `dusk_notified_v1`. DL 0 (не трогает
+`state`). Чист.
+
+**Итог Tier 1:** новых finding сверх V2-B6-06 нет. P13 (view-combos), P14 (DnD), P17
+(mobile-taps), P18 (reconcile-fuzz) — **DEFERRED**: рантайм-тяжёлые UI-функц-матрицы, DL 0-1,
+существенно покрыты B4/B5 UX-аудитом; ROI против стоимости прогона отрицательный.
+
 ## ROI-ledger (что пропущено и почему)
 
 - **P3 LS/IDB backups-ring divergence** — не отдельная проба: тот же IDB-first класс, что
@@ -133,10 +163,10 @@ V2-B6-06:** `shiftDeadline` (04:1658) чеканит дату через `toISOS
   пишет loser+bump updatedAt; dismiss→resolved). Runtime-клик низкого риска, не гонялся
   (ROI). Grimuar callout-класс round-trip перенесён в **P15** (Tier 1, тест санитайзера).
 - **P2 частота** — E-вопрос пользователю (две вкладки?), severity от ответа.
-- **Tier 1 остаток (P10, P12–P18)** — deadline-status-transitions (P10; частично покрыт
-  P9 — shiftDeadline/reset), undo-census (P12), view-combos (P13), DnD (P14), Grimuar-battery
-  (P15, +callout round-trip из P8), notifications (P16), mobile-taps (P17), reconcile-fuzz
-  (P18) — следующая сессия. Boundary-insurance: Tier 0 + Tier1(P9/P11) закоммичены отдельно.
+- **Tier 1 остаток — ЗАКРЫТ статикой + deferral:** P10/P12/P15/P16 покрыты статик-цензом
+  (выше, все чисты); P13 (view-combos), P14 (DnD), P17 (mobile-taps), P18 (reconcile-fuzz)
+  **DEFERRED** — рантайм-тяжёлые UI-матрицы, DL 0-1, покрыты B4/B5, ROI отрицательный.
+  Мандат эффективности юзера (2026-07-12): «пропускай опциональные шаги».
 
 ## Probe-artefact ledger (`D:\tmp\pw\b1\`)
 
