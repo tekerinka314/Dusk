@@ -1795,6 +1795,9 @@ function restoreTask(id) {
     state.tasks.push(taskFromArchive(item));
     _newTaskIds.add(item.id);
     state.archive = state.archive.filter(a => a.id !== id);
+    saveState();   // V2-B6-08: persist NOW — the render is deferred to animationend,
+                   // but persistence must not wait (a reload before the anim ends,
+                   // or with no later saved action, would silently drop the restore).
     updateArchiveBadge();
 
     const doTransition = () => {

@@ -59,6 +59,20 @@ it('(i) render() defers while editing — renderTasks never runs, a retry is arm
     vi.useRealTimers();
 });
 
+it('(i, class-level) render() ALSO defers during an active drag (is-dragging)', () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = '';            // nothing focused
+    document.body.classList.add('is-dragging');
+    S._liCache = null;
+    S._renderDeferT = null;
+    S.render();
+    expect(S._liCache).toBe(null);           // renderTasks did NOT run mid-drag
+    expect(S._rendering).toBe(false);
+    expect(S._renderDeferT).not.toBe(null);  // deferred → the drop's own render catches up
+    document.body.classList.remove('is-dragging');
+    vi.useRealTimers();
+});
+
 it('(ii) scheduleSyncPush stays pending (no debounce armed) while editing, arms once editing ends', () => {
     // NB: the debounce callback calls the lexical `syncNow` in module 11, so a
     // globalThis spy can't intercept it — assert on the armed timer instead.

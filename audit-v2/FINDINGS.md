@@ -1704,7 +1704,20 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
   (03-render.ts) → `render()`/`renderListOnly()` defer (500 ms retry, mirrors the
   is-dragging pattern) while a `.task-item` contenteditable is focused; (ii)
   `scheduleSyncPush` (11) does not arm the debounce while editing (`_pendingPush`
-  stays true; commit/hidden-flush/periodic converge). **End-to-end probe on the
+  stays true; commit/hidden-flush/periodic converge).
+- **CLASS-LEVEL EXTENSION 2026-07-12 (Opus, per user's root-cause-of-the-class
+  directive):** the real defect class is "an ASYNC DOM rebuild (sync landing,
+  periodic, wake, cycle timer) tears down whatever live interaction owns the
+  DOM." Two such states exist on the tasks page: a focused inline editor AND an
+  active drag (`body.is-dragging`). The render chokepoint now defers on EITHER
+  (`_liveInteractionActive()` = `_inlineEditActive() || is-dragging`), so a sync
+  landing mid-DRAG no longer re-inits Sortable and hangs the drag — the same
+  hazard IMP-3 had patched for the cycle timer ONLY (`checkCycleResets`), leaving
+  the sync/periodic/wake render paths exposed. One guard now covers every async
+  trigger × every live state. Grimuar has NO async render trigger (sync
+  re-renders only the tasks page) → safe by absence; a comment marks that a
+  future periodic `renderNotes` would need the same guard. Unit test extended
+  with the is-dragging case (34/34). **End-to-end probe on the
   real dist** `D:\tmp\pw\b1\s4_b607_noteedit.mjs` (raw `shots/s4/b607_noteedit.json`):
   with sync enabled, a forced `render()` AND a forced `syncNow()` merge-landing
   fired MID-EDIT both left the editor **focused + editable**, the full typed text
@@ -1801,11 +1814,20 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
   reload) — everything must survive.
 - **If it recurs after W0 + the B6-07 fix, the investigation checklist (in
   priority order):**
-  1. mutation-without-`saveState` census (an action that mutates state but
-     never persists would vanish on reload; P12 audited undo pushes, NOT save
-     coverage) — **the ONLY residual root-cause class; hot paths
-     (toggleCheck/togglePin/setPriority/setTaskColor/snooze) spot-verified to
-     call `saveState` 2026-07-12, full ~30-site census still owed;**
+  1. mutation-without-`saveState` census — **DONE 2026-07-12 (Opus). ONE REAL
+     LEAK FOUND + FIXED: `restoreTask` (04-tasks.ts)** — the animated single-task
+     archive restore mutated state (task out of `archive`, into `tasks`) but had
+     dropped `saveState()` when its render was deferred to animationend (its own
+     comment even claimed "State mutation + saveState happen immediately"). So a
+     restore that was the LAST action before a reload — or before the animation
+     finished — silently rolled back, CONFLICT-FREE, exactly matching the user's
+     B6-08 report. Fix: `saveState()` immediately after the mutation (siblings
+     `restoreSelected`/`restoreAll` already persisted; only the single restore
+     leaked). Regression `tests/restore-persist.test.mjs`. Census method: heuristic
+     sweep for `render()`+mutation-without-`saveState` and `pushUndo()`-without-
+     `saveState` across 03/04/05/06/08 → after the fix, ZERO remaining leaks;
+     `toggleFocusGroup` correctly persists UI-state via `saveUiState` (not synced
+     data). version.json 2026-07-12-7.
   2. `bumpUpdatedAt` diff coverage — **VERIFIED CLOSED 2026-07-12 (Opus):**
      `bumpUpdatedAt` is called ONLY from `saveState` (01:1050) and bumps by
      CONTENT-DIFF (`_contentSig` vs the `_recSig` map, 01:1359-1368), not by

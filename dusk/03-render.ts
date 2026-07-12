@@ -70,10 +70,32 @@ function _inlineEditActive() {
     // always set contenteditable="true" on the focused element itself.
     return a.isContentEditable === true || (typeof a.getAttribute === 'function' && a.getAttribute('contenteditable') === 'true');
 }
+
+// V2-B6-07 (CLASS-LEVEL guard). The real defect class: an ASYNC DOM rebuild —
+// fired by a non-user trigger (sync merge landing 11:325/604, the 2 s cycle
+// timer, a peer wake, a periodic pull) — tears down whatever live interaction
+// currently OWNS the DOM. Two such states exist on the tasks page:
+//   • a focused inline editor (title / note / subtask text)  → _inlineEditActive
+//   • an in-progress drag (Sortable)                          → body.is-dragging
+// Before sync, every render was user-initiated and could never land
+// mid-interaction; sync/periodic/wake made renders asynchronous to input, so
+// BOTH states became vulnerable (note-editing was the reported symptom; a sync
+// landing mid-drag likewise re-inits Sortable and hangs the drag — the exact
+// hazard IMP-3 patched for the cycle timer ONLY). Guarding the render chokepoint
+// here closes the whole class: every async trigger × every live state, in one
+// place. render()/renderListOnly() defer (short retry) while this holds; the
+// interaction's own end (blur/commit, drop) fires the catch-up render.
+// (Grimuar has NO async render trigger — sync re-renders only the tasks page —
+// so note-body editing is safe by absence; if a periodic renderNotes is ever
+// added, it must gain the same guard.)
+function _liveInteractionActive() {
+    return _inlineEditActive() || document.body.classList.contains('is-dragging');
+}
 function render() {
-    // V2-B6-07: never rebuild the list out from under a focused inline editor —
-    // reschedule and let the edit finish (blur/commit fires its own refresh).
-    if (_inlineEditActive()) { clearTimeout(_renderDeferT); _renderDeferT = setTimeout(render, RENDER_DEFER_MS); return; }
+    // V2-B6-07 (class-level): never rebuild the list out from under a live
+    // interaction (focused inline editor OR active drag) — reschedule; the
+    // interaction's own end (blur/commit, drop) fires the catch-up refresh.
+    if (_liveInteractionActive()) { clearTimeout(_renderDeferT); _renderDeferT = setTimeout(render, RENDER_DEFER_MS); return; }
     if (_rendering) { _renderQueued = true; return; }
     _rendering = true;
     try {
@@ -102,7 +124,7 @@ function render() {
 // updateArchiveBadge — those depend on data these ops never touch (group names,
 // task text/tags, archive), so rebuilding them every time was wasted work.
 function renderListOnly() {
-    if (_inlineEditActive()) { clearTimeout(_renderDeferT); _renderDeferT = setTimeout(render, RENDER_DEFER_MS); return; }   // V2-B6-07: defer to a full render after the edit ends
+    if (_liveInteractionActive()) { clearTimeout(_renderDeferT); _renderDeferT = setTimeout(render, RENDER_DEFER_MS); return; }   // V2-B6-07: defer past a live edit/drag to a full render
     if (_rendering) { _renderQueued = true; return; }   // re-entrant → coalesce into a follow-up full render
     _rendering = true;
     try {
