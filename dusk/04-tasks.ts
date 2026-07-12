@@ -1655,7 +1655,9 @@ function shiftDeadline(dl, repeat) {
     else if (repeat === 'weekdays') {
         do { base.setDate(base.getDate() + 1); } while ([0,6].includes(base.getDay()));
     }
-    return { mode: 'date', value: base.toISOString().slice(0,10) };
+    // V2-B6-06: serialize in LOCAL time (_ymd) like every other date mint —
+    // toISOString() is UTC and lands one day short east of Greenwich.
+    return { mode: 'date', value: _ymd(base) };
 }
 
 function checkCycleResets() {
