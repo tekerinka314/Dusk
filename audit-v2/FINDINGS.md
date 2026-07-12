@@ -1803,10 +1803,16 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
   priority order):**
   1. mutation-without-`saveState` census (an action that mutates state but
      never persists would vanish on reload; P12 audited undo pushes, NOT save
-     coverage);
-  2. `bumpUpdatedAt` diff coverage — a mutated record whose `updatedAt` was
-     NOT bumped loses same-field merges against any newer remote change
-     (silent, no quarantine entry);
+     coverage) — **the ONLY residual root-cause class; hot paths
+     (toggleCheck/togglePin/setPriority/setTaskColor/snooze) spot-verified to
+     call `saveState` 2026-07-12, full ~30-site census still owed;**
+  2. `bumpUpdatedAt` diff coverage — **VERIFIED CLOSED 2026-07-12 (Opus):**
+     `bumpUpdatedAt` is called ONLY from `saveState` (01:1050) and bumps by
+     CONTENT-DIFF (`_contentSig` vs the `_recSig` map, 01:1359-1368), not by
+     per-mutation calls. So updatedAt coverage == saveState coverage
+     automatically — the "forgot to bump" class is structurally absent; it
+     COLLAPSES into item 1 (if saveState runs, both persistence AND the bump
+     are correct; if it doesn't, both fail together);
   3. two-device probe: rapid action bursts on A while B syncs — hunt subset/
      apply races under the wake channel's frequent syncs.
 - **Cross-app:** whole state blob (both apps).
