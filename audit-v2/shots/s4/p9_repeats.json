@@ -1,0 +1,34 @@
+{
+  "verdict": {
+    "day31_all_land_on_31": true,
+    "leap_feb29_correct": true,
+    "cycle_return_and_no_double_fire": false,
+    "weektime_future": true
+  },
+  "out": {
+    "m31": {
+      "from_jan15": "2027-01-31",
+      "from_jan31": "2027-03-31",
+      "from_feb15": "2027-03-31",
+      "from_apr15": "2027-05-31",
+      "from_may31": "2027-07-31",
+      "from_dec15": "2027-12-31"
+    },
+    "m29": {
+      "leap_feb10": "2028-02-29",
+      "nonleap_feb10": "2027-03-29"
+    },
+    "weektime": {
+      "future": true,
+      "day": "2026-07-22"
+    },
+    "cyc": {
+      "afterFirst": {
+        "cycleChecked": false,
+        "nextReset": null,
+        "deadlineShifted": false
+      },
+      "noDoubleFire": true
+    }
+  }
+}

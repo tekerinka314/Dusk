@@ -1601,3 +1601,44 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
   only if a non-(i) option is chosen.
 - **Tests:** `s4_p5_undo.mjs` — pin the chosen semantics.
 - **Cross-app:** undo + sync (both apps).
+
+### V2-B6-06 — `shiftDeadline` mints the shifted date via `toISOString()` (UTC) while the app uses local dates → date-mode recurring deadlines shift one day SHORT east of UTC (daily = never advances)
+- **Evidence:** A (code) + **B (runtime, UTC+3).** Probe `D:\tmp\pw\b1\s4_p9_repeats.mjs`
+  + `s4_tzcheck.mjs` (raw `audit-v2/shots/s4/p9_repeats.json`).
+- **Severity:** UI 2 · DL 0 (wrong displayed date, not lost data) · RR 1 · IC 1 · CF 3
+- **Where:** `shiftDeadline` (`04-tasks.ts:1658`) returns
+  `{ mode:'date', value: base.toISOString().slice(0,10) }`. `base` is built from a LOCAL
+  midnight (`new Date(dl.value + 'T00:00:00')`, 1652) and advanced with `setDate` (local),
+  but serialized with `toISOString()` (UTC). Everywhere else the app mints date values in
+  LOCAL time via `_ymd` (getFullYear/Month/Date) — e.g. `snoozeDeadline` (03:966/969/974)
+  and quick-add. So `shiftDeadline` is the lone UTC-serialized date mint, inconsistent with
+  the local convention.
+- **Failure scenario:** In any timezone EAST of UTC (UTC+1…+14 — including the user's
+  **UTC+3**, measured `tzOffMin:-180`), local-midnight + N days is still the PREVIOUS UTC
+  day, so `toISOString().slice(0,10)` returns a date one short. Measured:
+  `shiftDeadline('2026-07-11','daily') → '2026-07-11'` (**no advance at all**),
+  `shiftDeadline('2026-07-11','weekly') → '2026-07-17'` (**+6, not +7**), vs the app's own
+  `_ymd(Jul 12) → '2026-07-12'`. `shiftDeadline` is called from `checkCycleResets` (04:1680)
+  on every auto-cycle-reset of a **date-mode** recurring task, so: **daily** date-deadline
+  recurring task → deadline frozen on the old date → shows perpetually overdue and never
+  advances; **weekly/weekdays** → deadline drifts one day backward per cycle.
+- **Refutation attempted (§2):** "Maybe the reset TIMING is also wrong." → No — the reset
+  trigger `getNextResetTimestamp` (04:1538-1545) returns `base.getTime()` (a tz-agnostic
+  timestamp) and is correct; only the DISPLAYED `deadline.value` from `shiftDeadline` is
+  wrong. "Maybe snooze has the same bug." → No — `snoozeDeadline` (03:957) uses `_ymd`
+  (local) consistently; snooze is correct, so the defect is `shiftDeadline`-only. "Fake-Date
+  artifact." → `s4_tzcheck.mjs` reproduces with the REAL system clock (UTC+3), no fake Date.
+  Refutation confirms a real, isolated bug. "West of UTC it'd be fine." → Yes; this is an
+  east-of-UTC (incl. the user's) defect — CF 3 for UTC+3.
+- **Root cause:** `toISOString()` used to format a locally-constructed date; the +N-day
+  local shift crosses the UTC day boundary backward.
+- **Fix strategy:** format `base` with the same local helper the rest of the app uses —
+  `_ymd(base)` (or `base.getFullYear()+'-'+pad(base.getMonth()+1)+'-'+pad(base.getDate())`)
+  instead of `toISOString().slice(0,10)`. One-line change; low RR.
+- **Change together:** `dusk/04-tasks.ts` (`shiftDeadline`).
+- **Tests:** `s4_p9_repeats.mjs` — assert daily shift advances exactly +1 local day, weekly
+  +7, in a UTC+3 tz. (Note: monthly overflow-repair 1617-1644, leap Feb-29, weektime
+  rollover, and `checkCycleResets` return-to-active + no-double-fire all probed CORRECT.)
+- **Cross-app:** task recurring deadlines. Minor cross-ref: the export "today" headers
+  (`08-quickadd-export-init.ts:257/284/305`) also use `new Date().toISOString().slice(0,10)`
+  → a cosmetic off-by-one in the export date near midnight east of UTC (display-only).

@@ -13,7 +13,8 @@ B6 — ядро безопасности данных всего аудита. �
 Сырьё: `audit-v2/shots/s4/*.json`. Probe-скрипты: `D:\tmp\pw\b1\s4_*.mjs` (переиспользуемы
 на fix-этапе).
 
-Статус: **Tier 0 (безопасность данных) ЗАКРЫТ.** Tier 1 (движки P9–P18) — следующая сессия.
+Статус: **Tier 0 (безопасность данных) ЗАКРЫТ.** Tier 1 (движки): **P11 + P9 сделаны**
+(1 finding + sibling-sweep clean); P10/P12–P18 — следующая сессия.
 
 ---
 
@@ -103,6 +104,26 @@ Seed по одной записи каждого вида → `openQuarantine()`
 
 ---
 
+## Tier 1 — движки (частично: P11, P9)
+
+**P11 — quick-add parser sibling sweep + battery.** Директива: сначала проверить, не
+заражает ли `\b`-после-кириллицы (B1-11, priority-regex 08:38) сиблингов `*`/`%`. Прямые
+вызовы `parseQuickInput`/`extractTags` (raw `p11_quickadd.json`): **дефект ИЗОЛИРОВАН в
+priority-regex.** Date `%` (08:43, `\S+`) и tag `*` (07:1197, `[\wа-яёА-ЯЁ]+u`) —
+**кириллице-безопасны** (verified: `%завтра/%сегодня/%пн/%15/%12.07/%+3d/%+2нед/%20:30` все
+парсятся; `*молоко/*тег` тоже; junk `%мусор` корректно не парсится и остаётся в тексте;
+false-триггеры `50%`, `важно!` не парсятся; multitag дедуп+lowercase). B1-11 подтверждён
+(RU `!высокий`→null, EN `!high`→high). **Новых finding нет — sweep очищает сиблингов.**
+
+**P9 — repeats/cycle clock battery** (инъекция Date, raw `p9_repeats.json`). Корректно:
+**monthly-31 overflow-repair** (1617-1644) — все переходы садятся на месяц С 31-м, пропуская
+короткие (Jan31→Mar31, Apr15→May31, May31→Jul31); **leap Feb-29** (2028→Feb29, 2027→Mar29);
+weektime rollover; `checkCycleResets` возврат-в-активное + без double-fire. **НАЙДЕНО
+V2-B6-06:** `shiftDeadline` (04:1658) чеканит дату через `toISOString()` (UTC) при том, что
+всё приложение использует локальные даты (`_ymd`) → date-mode повторяющийся дедлайн едет на
+день КОРОЧЕ восточнее UTC (**UTC+3 юзера**: daily → вообще не сдвигается/заморожен; weekly →
++6 вместо +7). Snooze (`_ymd`) и reset-тайминг (`getTime()`) — корректны; баг изолирован.
+
 ## ROI-ledger (что пропущено и почему)
 
 - **P3 LS/IDB backups-ring divergence** — не отдельная проба: тот же IDB-first класс, что
@@ -112,9 +133,10 @@ Seed по одной записи каждого вида → `openQuarantine()`
   пишет loser+bump updatedAt; dismiss→resolved). Runtime-клик низкого риска, не гонялся
   (ROI). Grimuar callout-класс round-trip перенесён в **P15** (Tier 1, тест санитайзера).
 - **P2 частота** — E-вопрос пользователю (две вкладки?), severity от ответа.
-- **Tier 1 (P9–P18)** — engine-матрицы (repeats/deadline/quick-add sibling sweep/undo-census/
-  view-combos/DnD/Grimuar/notifications/mobile-taps/reconcile-fuzz) НЕ начаты — следующая
-  сессия. Boundary-insurance: Tier 0 закоммичен отдельно.
+- **Tier 1 остаток (P10, P12–P18)** — deadline-status-transitions (P10; частично покрыт
+  P9 — shiftDeadline/reset), undo-census (P12), view-combos (P13), DnD (P14), Grimuar-battery
+  (P15, +callout round-trip из P8), notifications (P16), mobile-taps (P17), reconcile-fuzz
+  (P18) — следующая сессия. Boundary-insurance: Tier 0 + Tier1(P9/P11) закоммичены отдельно.
 
 ## Probe-artefact ledger (`D:\tmp\pw\b1\`)
 
@@ -129,6 +151,8 @@ Seed по одной записи каждого вида → `openQuarantine()`
 | `fakecloud.mjs` + `s4_p6_sync.mjs` | P6 a-f | `p6_sync.json` |
 | `s4_p5_undo.mjs` | P5 | `p5_undo.json` |
 | `s4_p8_quar.mjs` | P8 | `p8_quar.json` |
+| `s4_p11_quickadd.mjs` | P11 | `p11_quickadd.json` |
+| `s4_p9_repeats.mjs` + `s4_tzcheck.mjs` | P9 (V2-B6-06) | `p9_repeats.json` |
 
 Запуск node-мерж-проб: скопировать `s4_merge_probes.test.mjs` в `tests/` (правильный
 relative-import), `npx vitest run <path>` (vitest фильтрует файлы вне корня — отсюда копия).
