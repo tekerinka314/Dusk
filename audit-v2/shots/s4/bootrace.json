@@ -1,0 +1,12 @@
+[
+  {
+    "name": "P6-RACE A: empty-Drive boot wipes local 14→0",
+    "pass": true,
+    "detail": "final task counts across 5 runs = [0,0,0,0,0] ; wiped(0) in 5/5"
+  },
+  {
+    "name": "P6-RACE B: populated-Drive reload loses unsynced local add",
+    "pass": true,
+    "detail": "LOCAL-UNSYNCED survived across 3 runs = [false,false,false] ; lost in 3/3"
+  }
+]

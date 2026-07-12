@@ -1,0 +1,25 @@
+[
+  {
+    "name": "P5 undo-over-merge machine (design verdict — record only)",
+    "machine": {
+      "afterMerge": {
+        "userEdit": true,
+        "remote": true
+      },
+      "afterUndo": {
+        "userEdit": false,
+        "remote": false
+      },
+      "driveRemoteStillThereAfterResync": true,
+      "redoExists": true,
+      "afterRedo": {
+        "userEdit": true,
+        "remote": true
+      }
+    },
+    "interpretation": {
+      "undoRevertsRemote": true,
+      "resyncDeletesPeerContribution": false
+    }
+  }
+]

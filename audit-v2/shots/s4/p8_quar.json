@@ -1,0 +1,72 @@
+{
+  "results": [
+    {
+      "uid": "e-field-str",
+      "what": "поле «text» — «Задача один»",
+      "shows": "проигравший текст",
+      "pusto": false
+    },
+    {
+      "uid": "e-field-obj",
+      "what": "поле «deadline»",
+      "shows": "{\"mode\":\"date\",\"value\":\"2026-07-01\"}",
+      "pusto": false
+    },
+    {
+      "uid": "e-field-false",
+      "what": "поле «pinned»",
+      "shows": "false",
+      "pusto": false
+    },
+    {
+      "uid": "e-field-empty",
+      "what": "поле «note»",
+      "shows": "«ПУСТО»",
+      "pusto": true
+    },
+    {
+      "uid": "e-subtask",
+      "what": "подпункт в «Задача один»",
+      "shows": "проигравший подпункт",
+      "pusto": false
+    },
+    {
+      "uid": "e-subtask-notext",
+      "what": "подпункт в «Задача один»",
+      "shows": "«ПУСТО»",
+      "pusto": true
+    },
+    {
+      "uid": "e-note-titled",
+      "what": "заметка изменена на двух устройствах",
+      "shows": "Озаглавленная",
+      "pusto": false
+    },
+    {
+      "uid": "e-note-notitle",
+      "what": "заметка изменена на двух устройствах",
+      "shows": "«ПУСТО»",
+      "pusto": true
+    },
+    {
+      "uid": "e-dve-task",
+      "what": "удалённая запись «удалённая задача»",
+      "shows": "удалённая задача",
+      "pusto": false
+    },
+    {
+      "uid": "e-dve-note-notitle",
+      "what": "удалённая запись",
+      "shows": "«ПУСТО»",
+      "pusto": true
+    },
+    {
+      "uid": "e-inject",
+      "what": "поле «text»",
+      "shows": "злая",
+      "pusto": false,
+      "injectionInert": true
+    }
+  ],
+  "xssFired": false
+}

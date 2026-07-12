@@ -20,7 +20,13 @@ guardrail sweep runs during B0 rather than being deferred.
 ---
 
 ### V2-B0-01 — `grimEmptyCrypt` deletes notes WITHOUT tombstones → deleted notes resurrect on next sync
-- **Evidence:** A (code) — runtime merge probe queued for B6 to promote to B.
+- **Evidence:** A (code) **+ B (B6 runtime, 2026-07-12): PROMOTED A→B.** Node probe
+  against the real `mergeStates` (`D:\tmp\pw\b1\s4_merge_probes.test.mjs`, via vitest
+  .ts transform): base+remote hold an archived note (`_arch:true`), local absent, NO
+  tombstone → `merged.notes` re-contains the note (`P1 resurrection: merged.notes has na1=true`).
+  Control (same but with a note tombstone) → stays deleted (`P1 control: na1 gone=true`).
+  Confirms the `_changed` present→absent guard (09:136 `return false // stale/missing — NOT a delete`)
+  resurrects the wiped crypt. Raw: `audit-v2/shots/s4/p1_p7_merge.json`.
 - **Severity:** UI 2 · DL 1 (resurrection, not loss) · RR 1 · IC 1 · CF 3
 - **Where:** `dusk/02-grimoire.ts:1517` `grimEmptyCrypt()` sets
   `state.notesArchive = []` with NO `addTombstone`. Contrast: every other
@@ -53,8 +59,19 @@ guardrail sweep runs during B0 rather than being deferred.
   DUSK↔Grimuar parity gap where the task side is the reference implementation.
 
 ### V2-B0-02 — IDB-first boot can silently lose the last edit (no LS↔IDB recency check, no unload flush)
-- **Evidence:** D (inferred; **queued for an immediate B6 runtime probe** — data-loss claim).
-- **Severity:** UI 3 · DL 3 · RR 2 · IC 2 · CF 2
+- **Evidence:** D → **B (B6 runtime, 2026-07-12): PROMOTED, CONFIRMED (`[RATIFY-FABLE]`).**
+  Probe `D:\tmp\pw\b1\s4_p0_idbboot.mjs` (raw `audit-v2/shots/s4/p0_idbboot.json`),
+  3 variants on the real dist: **(a)** seed LS = 15 tasks (14 + marker «PROBE-LS-NEWER»),
+  IDB = 14 (stale, no marker), boot → in-memory has NO marker AND post-boot LS is
+  **clobbered to 14** (`inMem=false inLS=false lsCount=14`): the last edit is **silently,
+  permanently lost.** **(c) control:** IDB newer (marker) / LS stale → IDB correctly
+  wins, marker in state AND written to LS (`lsCount=15`) — proving the mechanism is
+  "IDB unconditionally wins," not "newer wins," and that migrate/normalize do NOT drop
+  the marker. **(b):** IDB fully broken → LS authoritative, edit survives reload
+  (`added=true inLS=true`) — the danger is IDB **present-but-stale**, not IDB-dead.
+  Refutation: (c) isolates the loss to the IDB-over-LS choice at `loadState` 01:1116-1123
+  (unconditional IDB read → `saveState()` at 1122 overwrites the fresher LS). Confirmed.
+- **Severity:** UI 3 · DL 3 · RR 2 · IC 2 · CF 3 (was CF 2 — runtime-confirmed) — **`[RATIFY-FABLE]`**
 - **Where:** `saveState` (01:1035) writes localStorage synchronously EVERY time but
   mirrors to IndexedDB fire-and-forget (`_idbSet(K_STATE, state).then(...)`, 01:1042)
   and swallows failures. `loadState` (01:1109-1124) prefers IDB unconditionally if
@@ -1398,3 +1415,189 @@ one cheap Fable pass owed.
 - **Tests:** re-run `s3_contrast.mjs`; assert secondary text ≥5.5:1 on-card; spot the
   bright-image regions.
 - **Cross-app:** shared token (both apps).
+
+---
+
+## Batch B6 — Functional correctness + Guardrail A (data-safety) deep-dive
+
+Method: static-first, runtime-probed. Harness `D:\tmp\pw\b1\` (playwright-core + system
+Chrome; fake Google Drive/Worker via `page.route` in `fakecloud.mjs`; pure-merge probes
+via vitest .ts transform). Seeded states only. Raw artefacts in `audit-v2/shots/s4/`.
+Tier-0 (data-safety) findings below; the syncNow loop (P6a–f), merge gaps (P7a–d) and
+the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no finding.
+
+### V2-B6-01 — ⚠ FLAGSHIP: boot-time race — the on-open auto-sync clobbers local state when `loadState` takes the slow IDB-absent path (empty Drive → TOTAL WIPE)
+- **Evidence:** A (code) + **B (runtime, deterministic).** Probes
+  `D:\tmp\pw\b1\s4_bootrace.mjs` + discriminator `s4_racetiming.mjs` (raw
+  `audit-v2/shots/s4/bootrace.json`, `racetiming.json`).
+- **Severity:** UI 3 · DL 3 · RR 2 · IC 2 · CF 3 — **`[RATIFY-FABLE]`** (DL 3)
+- **Where:** `dusk/11-sync-ui.ts:714-715` runs `_initSyncUI()` **synchronously in the
+  module body**; its comment (713) "11 loads after 08 (init done) — DOM + state ready"
+  is **false**: `init()` is async and NOT awaited (`08-quickadd-export-init.ts:1524`
+  `init().catch(...)`), so `await loadState()` (01:926, an IDB round-trip) has not
+  resolved when 11's body runs. `_initSyncUI` then (a) schedules the on-open sync
+  `setTimeout(() => syncNow({interactive:false}), 60)` (11:661-662, gated on
+  `_syncEnabled` which 11:76 restored from LS), and (b) — even with `_syncEnabled`
+  false — the `_exchangePromise.then` path (11:676-684) fires on **any cached token**
+  (worker mode always has an `_exchangePromise`), auto-enabling sync (679) and calling
+  `syncNow` (683). Inside `syncNow`, `getSyncSubset(state)` (11:279) reads the **still-empty
+  initial `state`**, merges empty-local against the (empty or staler) remote, and
+  `applySyncSubset`+`saveState` (11:285-287) writes that merge to **LS and IDB**, landing
+  AFTER `loadState` — overwriting the data `loadState` was about to load.
+- **Failure scenario:** A reload with sync enabled + a cached/refreshable token (the
+  normal state after the user set up sync — `_restoreToken` runs at module load,
+  10-cloud:110) **when `loadState` must take the slow path** (the IDB object store does
+  not yet exist, or IDB is unavailable/evicted → the app falls back to LS). Measured:
+  **(A)** empty Drive + LS holds 14 tasks → boot wipes local to **0 tasks, 5/5 runs**
+  (`counts=[0,0,0,0,0]`). **(B)** populated-but-staler Drive + a local-only unsynced add
+  → the unsynced task is **lost, 3/3 runs**. Silent, permanent (the empty merge is
+  written to both LS and IDB and the baseline advances).
+- **Refutation attempted (§2, independent 2nd pass — data-loss claim):** "It's the seed
+  page's pending `indexedDB.deleteDatabase` blocking the app's open (harness artifact)."
+  → Discriminator `racetiming.json`: **Case 1** (fresh empty IDB, NO deleteDatabase) still
+  wipes **5/5**; **Case 3** (delete pending) 5/5; **Case 2 (IDB SEEDED = production
+  steady-state reload) survives 14/14, 0 wipes.** So the clobber is real and is gated on
+  the IDB-**absent** slow path, NOT on the delete. "It needs my forced `_syncReady`." →
+  `s4dbg2`/`s4dbg3` reproduce with pure app boot (no `_syncReady` forcing), driven only
+  by the app's own on-open / exchange-promise sync. "Production uses the real Worker, not
+  the seam." → same `cloudIsConfigured()==true` worker path; production network is SLOWER
+  than the fake, widening the race. All refutations fail → confirmed. **Honest scope:**
+  the common steady-state reload (IDB store present) is SAFE (Case 2); the danger window
+  is IDB-absent/unavailable — private/incognito mode (IDB blocked → LS path EVERY boot),
+  storage eviction (common on mobile — compounds V2-B0-02/V2-B1-10), a first boot before
+  the IDB store exists, or import-only-into-LS — combined with an empty or staler Drive.
+- **Root cause:** two independent async writers to `state` (`loadState`'s IDB read and
+  `syncNow`'s merge-landing) with NO ordering guard; the on-open sync assumes `state` is
+  loaded but nothing enforces it. The Этап-4 IDB-first boot (V2-B0-02) made `loadState`
+  async; sync's on-open trigger was never gated behind it.
+- **Fix strategy (options — data-safety, `[RATIFY-FABLE]`):** (i) a `_stateLoaded` flag
+  set at the end of `loadState`; `syncNow` early-returns (stays pending) until it's true;
+  (ii) have `_initSyncUI` / the on-open + exchange-promise syncs `await` the init/loadState
+  promise before the first `syncNow`; (iii) capture `getSyncSubset(state)` only after
+  asserting `state` is the loaded blob (guard in `syncNow` against an empty/unloaded state
+  merging against a non-empty baseline). Low IC, low RR.
+- **Change together:** `dusk/11-sync-ui.ts` (gate the on-open/exchange syncs) + a boot
+  handshake with `01-core.ts` `loadState`.
+- **Tests:** `s4_bootrace.mjs` (assert local survives the on-open sync when IDB-absent) +
+  `s4_racetiming.mjs` regression (all cases must keep local).
+- **Cross-app:** whole `state` blob (both apps).
+
+### V2-B6-02 — Multi-tab same-origin: a stale in-memory save silently erases the other tab's committed edit (no `storage`/BroadcastChannel reconciliation)
+- **Evidence:** A (no cross-tab listener — grep) + **B (runtime).** Probe
+  `D:\tmp\pw\b1\s4_p2_multitab.mjs` (raw `audit-v2/shots/s4/p2_multitab.json`).
+- **Severity:** UI 2 · DL 2 · RR 1 · IC 2 · CF 3 — **`[RATIFY-FABLE]`** (DL 2) — frequency
+  is an **E (needs-user)** question (see below).
+- **Where:** `saveState` (01:1035) writes the whole in-memory `state` blob to LS; there is
+  **no `window.addEventListener('storage', …)` and no `BroadcastChannel`** anywhere in
+  `dusk/` (grep clean). Two tabs on one origin share LS but each holds an independent
+  in-memory `state`; the last `saveState` wins with its full (possibly stale) blob.
+- **Failure scenario:** Tab 2 edits task B and saves; tab 1 (whose in-memory state never
+  saw tab 2's edit) then edits task A and saves → tab 1's blob overwrites LS, reverting
+  task B. Measured: `task1="TAB1-EDIT"` kept, `task2` **reverted to its original text**
+  (tab 2's edit erased). For a NON-sync user (no Drive) this is silent, permanent loss.
+- **Refutation attempted (§2):** "Sync's 3-way merge recovers it." → Only for sync users,
+  and only after a round-trip; the LS-level loss happens before any sync, and a non-sync
+  user has no recovery. "Nobody keeps two tabs open." → unknown; recorded as an E-question.
+  "A `storage` event would reconcile." → there is none. Refutation stands.
+- **Root cause:** whole-blob LWW persistence with no multi-tab awareness.
+- **Fix strategy:** a `storage`-event listener that reloads/merges the incoming blob before
+  the next save, OR a `BroadcastChannel` leader-election, OR route multi-tab through the
+  same 3-way merge used for sync. Medium IC.
+- **Change together:** `01-core.ts` (`saveState`/boot: add a `storage` listener).
+- **Tests:** `s4_p2_multitab.mjs` — assert tab 2's edit survives tab 1's later save.
+- **Cross-app:** whole `state` blob (both apps).
+- **E (needs-user):** does the user ever keep DUSK open in two tabs/windows? Severity
+  UI/DL scales with that answer; recorded here pending it.
+
+### V2-B6-03 — `saveState` swallows a `QuotaExceededError` silently: edit not persisted, no toast, lost on reload
+- **Evidence:** A (code) + **B (runtime).** Probe `D:\tmp\pw\b1\s4_p4_quota.mjs` (raw
+  `audit-v2/shots/s4/p4_quota.json`).
+- **Severity:** UI 2 · DL 3 (silent-loss path, §6) · RR 1 · IC 1 · CF 3 — **`[RATIFY-FABLE]`**
+- **Where:** `saveState` (01:1038) `localStorage.setItem(K_STATE, json)` has **no try/catch
+  and no user messaging** — the one state-write that doesn't (the backups ring 01:1078,
+  sync baseline 09:560, note-versions 02:279 all `try{}catch{}` quota silently, and the
+  ring even shrinks-and-retries). The IDB mirror (01:1042) is scheduled AFTER the throwing
+  line, so it never runs either.
+- **Failure scenario:** LS at quota (constrained device, or the 10-snapshot backups ring +
+  notes filling the ~5 MB budget) → an edit's `saveState` throws `QuotaExceededError`.
+  Measured: `threw=QuotaExceededError`, **no toast** (`toast=null`), edit **not present
+  after reload** (`survivedReload=false`), and **`pageErrors=0`** — the delegated dispatcher
+  swallows the throw, so there is not even a console error. Total silence; both persistence
+  layers miss the edit.
+- **Refutation attempted (§2):** "Some global handler toasts it." → No — `pageErrors=0` and
+  `toast=null`; the throw is swallowed by the event dispatcher. "Quota never happens." → LS
+  is ~5 MB; the backups ring holds 10 full-state snapshots plus notes — realistic on mobile;
+  and the failure is silent whenever it does. Per §6 a reproducible silent-loss path is
+  DL 3 regardless of trigger rarity. Refutation fails.
+- **Root cause:** the main state write predates the quota-hardening that the backups path
+  got; it was never wrapped or surfaced.
+- **Fix strategy:** wrap the `setItem` in try/catch; on failure surface a persistent
+  "storage full — data not saved" toast/state AND still attempt the IDB mirror (which has
+  no comparable quota ceiling) so at least IDB captures the edit. Low IC.
+- **Change together:** `01-core.ts` (`saveState`), a toast string.
+- **Tests:** `s4_p4_quota.mjs` — assert a visible signal on quota AND that IDB carried the
+  edit / it survives reload.
+- **Cross-app:** whole `state` blob (both apps).
+
+### V2-B6-04 — Quarantine review panel under-reports recoverable content → «пусто» for body-only notes, note-only subtasks, and delete-vs-edit notes (owed to V2-B4-07)
+- **Evidence:** A (code) + **B (runtime).** Probe `D:\tmp\pw\b1\s4_p8_quar.mjs` (raw
+  `audit-v2/shots/s4/p8_quar.json`).
+- **Severity:** UI 2 · DL 1 (→ 2 via mis-informed dismissal) · RR 1 · IC 1 · CF 3
+- **Where:** `_entryLoserPreview` (11:586-588): for every non-`field` kind the preview is
+  `loser.text || loser.name || loser.title || ''` — it **never falls back to `loser.body`
+  (notes) or `loser.note` (subtask memo)**. So a losing record whose primary label is empty
+  but which carries content elsewhere renders as `<i>пусто</i>` (11:616).
+- **Failure scenario:** Seeding one journal entry of every kind, the panel shows «ПУСТО» for
+  **3 content-carrying kinds** (measured): a **subtask** whose `text` is empty but `note` is
+  set (this reproduces the S2 jq3 «пусто»); a **note-both** loser with empty title but a real
+  body («важное тело без заголовка»); a **delete-vs-edit** note with empty title. The user
+  sees «пусто», believes there is nothing to recover, and may press «Отклонить» → the entry
+  is marked resolved and GC-collected after 90 days (`JOURNAL_TTL_MS`) → **the recoverable
+  version is lost through a mis-informed dismissal** (DL escalates to 2 on that path).
+- **Refutation attempted (§2):** "The loser really is empty." → No — the seeds carry
+  `note`/`body` content that «Восстановить» would bring back (`restoreQuarantineEntry`
+  11:508 writes the full `entry.loser`); only the PREVIEW is blind to those fields. "Field
+  entries are fine." → Yes: field/string shows text, field/object shows JSON, field/false
+  shows `false` (all present); only the label-less records mislead. Refutation confirms the
+  preview-only defect.
+- **Root cause:** the preview helper enumerates only label fields; notes are body-first and
+  subtasks can be note-only, so the label can legitimately be empty while content exists.
+- **Fix strategy:** extend `_entryLoserPreview` to fall back to `loser.body` (stripped) for
+  notes and `loser.note` for subtasks, and only render «пусто» when ALL are empty; consider
+  a kind-aware label. Also cross-refs V2-B4-07 (the row copy leaks internal field names).
+  Low IC.
+- **Change together:** `dusk/11-sync-ui.ts` (`_entryLoserPreview`).
+- **Tests:** `s4_p8_quar.mjs` — assert 0 content-carrying kinds render «пусто».
+- **Cross-app:** quarantine panel (shared; notes + subtasks are the affected kinds).
+- **Injection (cross-tag B11):** VERIFIED INERT — a loser value `<img src=x onerror=…>`
+  renders as escaped text (HTML stripped at 11:590 + `_esc` at 11:594), `window.__XSS`
+  never fired. No XSS finding.
+
+### V2-B6-05 — Undo reaches ACROSS a landed sync merge: Ctrl+Z reverts remote-landed changes locally (self-healing on next sync) — design verdict
+- **Evidence:** A (code) + **B (runtime machine, recorded — not self-graded).** Probe
+  `D:\tmp\pw\b1\s4_p5_undo.mjs` (raw `audit-v2/shots/s4/p5_undo.json`). **`[RATIFY-FABLE]`
+  (mandatory per directive P5).**
+- **Severity:** UI 1 · DL 0 (self-healing — no permanent loss) · RR 1 · IC 1 · CF 3
+- **Where:** `syncNow`'s merge-landing (`11:283-288` `applySyncSubset`+`saveState` under
+  `_applyingMerge`) does **NOT** `pushUndo`. Undo/redo operate on whole-state snapshots
+  pushed by USER actions (`pushUndo` before a mutation). So a merge that lands remote
+  changes leaves the undo top pointing at a PRE-merge user snapshot.
+- **Observed machine:** after a merge lands a peer's new task, `Ctrl+Z` reverts **both** the
+  user's own edit AND the remote-landed task locally (`afterUndo: userEdit=false,
+  remote=false`) — undo appears to "undo" a peer's change the user never made. **But** the
+  peer's task is still on Drive; the next sync re-pulls it (`driveRemoteStillThereAfterResync
+  =true`, merge treats local-absent as not-a-delete) → **self-healing, no permanent peer-data
+  loss.** Redo exists and restores both (`redoExists=true, afterRedo: both true`). The user's
+  own edit is correctly reverted globally on the next sync (it's a real local change vs
+  baseline).
+- **Options (Fable ratifies — no self-graded sync-semantics verdict):** (i) **leave as-is**
+  — self-healing; the only cost is a transient "the peer's change flickered away then came
+  back" and an undo that reaches further than the user's own action; (ii) **clear the undo
+  stack on a merge landing** so Ctrl+Z can't reach across a sync (loses cross-merge undo of
+  the user's own pre-merge actions); (iii) **push a merge-landing snapshot** so undo stops at
+  the post-merge state (changes undo granularity). Recommend (i) unless the flicker/scope is
+  judged confusing.
+- **Change together:** `dusk/11-sync-ui.ts` (merge-landing) / `01-core.ts` (undo stack) —
+  only if a non-(i) option is chosen.
+- **Tests:** `s4_p5_undo.mjs` — pin the chosen semantics.
+- **Cross-app:** undo + sync (both apps).
