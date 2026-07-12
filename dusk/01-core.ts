@@ -8,6 +8,7 @@
 declare var _idbKvGet: any;
 declare var _idbKvSet: any;
 declare var _lastIdbStateJson: any;
+declare var _quotaWarned: any;
 declare var _dragHandleObserver: any;
 declare var state: any;
 declare var isFiltered: any;
@@ -108,6 +109,7 @@ async function _idbSet(key, value) {
 // saves. Only updated on a CONFIRMED write, so a failed mirror can't poison the
 // dedup (the next save re-attempts). LS still writes every time (cheap, in-place).
 globalThis._lastIdbStateJson = undefined;
+globalThis._quotaWarned = false;   // V2-B6-03: one persistent quota toast per outage, re-armed on recovery
 
 
 const K_SOUND  = 'soundEnabled';
@@ -1035,7 +1037,21 @@ function playLoadAnimations() {
 function saveState() {
     try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
     const json = JSON.stringify(state);                     // serialize once — reused for LS + the IDB dedup check
-    localStorage.setItem(K_STATE, json);                    // K_STATE === v4 — LS stays the live fallback forever
+    // V2-B6-03: the main state write must never fail SILENTLY (rule #1 — silent
+    // loss is worse than a visible error). On quota: tell the user once
+    // (persistent toast, re-armed after a later successful write) and still fall
+    // through to the IDB mirror below — IDB has no comparable ceiling, so the
+    // edit survives there and the next boot can recover it.
+    try {
+        localStorage.setItem(K_STATE, json);                // K_STATE === v4 — LS stays the live fallback forever
+        _quotaWarned = false;                               // storage writable again — re-arm the warning
+    } catch (e) {
+        if (!_quotaWarned) {
+            _quotaWarned = true;
+            try { if (typeof showToast === 'function') showToast('Хранилище переполнено — изменения могут не сохраниться', { persist: true }); } catch (_) {}
+        }
+        try { console.error('[dusk] saveState: localStorage write failed', e); } catch (_) {}
+    }
     // Этап 4: fire-and-forget IDB mirror, skipped when byte-identical to the last
     // confirmed write (dedup — kills LevelDB churn from repeat/no-op saves). Cache
     // advances only on success, so a failed mirror never blocks a later re-attempt.
