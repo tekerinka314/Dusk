@@ -15,10 +15,11 @@ B6 — ядро безопасности данных всего аудита. �
 
 Статус: **B6 ЗАКРЫТ.** Tier 0 (безопасность данных) — 10 проб, 5 finding + 2 промоушена +
 design-вердикт. Tier 1 (движки): P11/P9 рантайм (1 finding V2-B6-06 + sibling-sweep clean),
-P10/P12/P15/P16 статик-ценз (все чисты, callout-долг закрыт), **P14/P18 углублены статикой
-→ verified clean** (int-id reconcile×sync снята `_reindex`; DnD correct-by-construction),
-P13/P17 DL 0 UI покрыты B4/B5. **Итог B6: 6 finding (V2-B6-01..06) + 2 промоушена
-(B0-01/02) + 1 design-вердикт.**
+P10/P12/P15/P16 статик-ценз (все чисты, callout-долг закрыт), **P14/P18 статик-deep verified
+clean** (int-id reconcile×sync снята `_reindex`; DnD correct-by-construction), **P13/P17
+отрантаймлены полностью** (23-combo матрица + функц-touch-тапы зелёные; tap-размеры кросс-реф
+B1-09). **Итог B6: 6 finding (V2-B6-01..06) + 2 промоушена (B0-01/02) + 1 design-вердикт;
+Tier 1 без остатка.**
 
 ---
 
@@ -184,10 +185,31 @@ transient anim) + priority + deadline-flag + ink + `_mainHTML` + `subsHtml` — 
 `order` (возможны дубли значений). `order` — лишь ключ сортировки со стабильным фолбэком,
 самолечится на след. полном reorder; не потеря данных.
 
-**Итог Tier 1:** новых finding сверх V2-B6-06 нет. **P14/P18 углублены статикой → verified
-clean** (механизмы процитированы выше — deferred-неизвестность конвертирована в закрытый
-риск). P13 (view-combos), P17 (mobile-taps) — DL 0 UI, покрыты B4/B5 UX-аудитом, оставлены
-на том уровне (budget); рантайм-fuzz по ним ROI-отрицателен.
+**P13 — view-mode COMBINATION matrix (рантайм, 23 combo, `p13_viewcombos.json`).** Драйв
+реального приложения через глобалы + `render()` по осям normal/split/schedule/schedule+split
+× sort(created/deadline/manual) × focus(10/11/12) × color(3 цвета) × today × 2 форс-пустых.
+Инварианты — **все зелёные:** (1) **0 JS/page-ошибок** во всех 23; (2) **структурные тумблеры
+СОХРАНЯЮТ все 14 задач** (ни одна не исчезает — 8/8 combo count=14); (3) **empty-state
+plaque виден IFF 0 задач** во всех 23 (V-2 class-регрессия держится, включая 2 форс-пустых);
+(4) фильтры **только сужают** (focus=10→4·11→4·12→2 по groupId; color→1 по цвету; visible ⊆
+matching). V-1 (color×schedule) + V-2 (empty под focus/color) — старые фиксы подтверждены
+рантаймом. **Находок нет.**
+
+**P17 — mobile FUNCTIONAL taps (рантайм, coarse-emul Pixel-7, `p17_mobile.json` +
+`p17b_hit.json`).** §9-caveat соблюдён (доверяем POSITIVE-тапам). `matchMedia`:
+`(pointer:coarse)`+`(hover:none)` **matched** → 6g активен (`.task-actions` opacity=1,
+deadline-pill открыт). **Реальные touch-тапы работают end-to-end:** check-toggle ON→OFF
+(task 12: false→true→false ✓), subtask-toggle flip ✓, note-toggle → открывает инлайн-редактор
+(`task-note-wrapper visible`+`task-note-text editing`, input-count 1→2; `noteOpen=false`
+корректно — ставится лишь при сохранении контента = add-flow, НЕ баг). **0 page-ошибок.**
+Tap-target реальные hit-зоны: action 30×30, sub-action/deadline 26×26 (≥ WCAG AA 24) —
+намеренный 6g; **check-col 21px-шириной, sub-check 16×20 (< AA 24)** — но это **подмножество
+уже задокументированного `V2-B1-09`** (полный census 88 элементов <24px), кросс-реф, не
+новый finding. **Функционально чисто; размерная a11y = существующий B1-09.**
+
+**Итог Tier 1:** новых finding сверх V2-B6-06 нет. P14/P18 verified clean статик-deep
+(механизмы выше); **P13/P17 отрантаймлены ПОЛНОСТЬЮ** (23-combo матрица + функц-тапы —
+всё зелёное, tap-размеры = кросс-реф B1-09). Tier 1 закрыт с рантайм-доказательствами.
 
 ## ROI-ledger (что пропущено и почему)
 
@@ -198,11 +220,11 @@ clean** (механизмы процитированы выше — deferred-н�
   пишет loser+bump updatedAt; dismiss→resolved). Runtime-клик низкого риска, не гонялся
   (ROI). Grimuar callout-класс round-trip перенесён в **P15** (Tier 1, тест санитайзера).
 - **P2 частота** — E-вопрос пользователю (две вкладки?), severity от ответа.
-- **Tier 1 остаток — ЗАКРЫТ статикой:** P10/P12/P15/P16 статик-ценз (все чисты);
-  **P14 (DnD) + P18 (reconcile) углублены статикой → verified clean** (int-id коллизия
-  reconcile×sync снята `_reindex`; task/subtask-DnD correct-by-construction). P13
-  (view-combos), P17 (mobile-taps) — DL 0 UI, покрыты B4/B5, оставлены на том уровне
-  (budget-мандат юзера 2026-07-12: «пропускай опциональное»); рантайм-fuzz ROI-отрицателен.
+- **Tier 1 остаток — ЗАКРЫТ ПОЛНОСТЬЮ:** P10/P12/P15/P16 статик-ценз (все чисты);
+  P14 (DnD) + P18 (reconcile) статик-deep verified clean (int-id коллизия reconcile×sync
+  снята `_reindex`; DnD correct-by-construction); **P13 (view-combos) + P17 (mobile-taps)
+  отрантаймлены полностью** (23-combo матрица сохранности/empty-state + функц-touch-тапы —
+  всё зелёное; tap-размеры = кросс-реф V2-B1-09). Ноль остатка.
 
 ## Probe-artefact ledger (`D:\tmp\pw\b1\`)
 
@@ -219,6 +241,8 @@ clean** (механизмы процитированы выше — deferred-н�
 | `s4_p8_quar.mjs` | P8 | `p8_quar.json` |
 | `s4_p11_quickadd.mjs` | P11 | `p11_quickadd.json` |
 | `s4_p9_repeats.mjs` + `s4_tzcheck.mjs` | P9 (V2-B6-06) | `p9_repeats.json` |
+| `s4_p13_viewcombos.mjs` | P13 (23-combo матрица) | `p13_viewcombos.json` |
+| `s4_p17_mobile.mjs` + `s4_p17b_hit.mjs` | P17 (mobile taps + hit-зоны) | `p17_mobile.json`, `p17b_hit.json` |
 
 Запуск node-мерж-проб: скопировать `s4_merge_probes.test.mjs` в `tests/` (правильный
 relative-import), `npx vitest run <path>` (vitest фильтрует файлы вне корня — отсюда копия).
