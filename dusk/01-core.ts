@@ -9,6 +9,7 @@ declare var _idbKvGet: any;
 declare var _idbKvSet: any;
 declare var _lastIdbStateJson: any;
 declare var _quotaWarned: any;
+declare var _lastSaveSeq: any;
 declare var _dragHandleObserver: any;
 declare var state: any;
 declare var isFiltered: any;
@@ -110,6 +111,7 @@ async function _idbSet(key, value) {
 // dedup (the next save re-attempts). LS still writes every time (cheap, in-place).
 globalThis._lastIdbStateJson = undefined;
 globalThis._quotaWarned = false;   // V2-B6-03: one persistent quota toast per outage, re-armed on recovery
+globalThis._lastSaveSeq = 0;       // V2-B0-02: session-high save counter (keeps _saveSeq monotonic across undo restores)
 
 
 const K_SOUND  = 'soundEnabled';
@@ -1036,7 +1038,21 @@ function playLoadAnimations() {
 // ============================================================
 function saveState() {
     try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
-    const json = JSON.stringify(state);                     // serialize once — reused for LS + the IDB dedup check
+    // V2-B0-02: blob-level monotonic save counter. loadState compares it across
+    // the two persistence layers so the NEWER of LS/IDB wins at boot (IDB used
+    // to win unconditionally and could clobber a fresher LS). The seq bumps
+    // ONLY when content actually changed (probe against the last mirrored
+    // json BEFORE bumping) — otherwise the stamp itself would defeat the IDB
+    // write-dedup below. max() with the session-high keeps it monotonic even
+    // when an undo restores an older snapshot carrying a lower seq. Local-
+    // persistence semantics only — it rides through sync harmlessly.
+    let json = JSON.stringify(state);                       // probe with the CURRENT seq
+    if (json !== _lastIdbStateJson) {
+        const _seq = Math.max(Number(state._saveSeq) || 0, Number(_lastSaveSeq) || 0) + 1;
+        state._saveSeq = _seq;
+        _lastSaveSeq   = _seq;
+        json = JSON.stringify(state);                       // final blob with the new seq
+    }
     // V2-B6-03: the main state write must never fail SILENTLY (rule #1 — silent
     // loss is worse than a visible error). On quota: tell the user once
     // (persistent toast, re-armed after a later successful write) and still fall
@@ -1062,6 +1078,21 @@ function saveState() {
     // Sync Phase 3: notify the sync layer (debounced push). Guarded — undefined until
     // 11-sync-ui.js loads, and a no-op until sync is enabled + ready (never blocks a save).
     try { if (typeof _afterSaveState === 'function') _afterSaveState(); } catch (_) {}
+}
+
+// V2-B0-02 belt: edit-then-close is exactly the save whose fire-and-forget IDB
+// mirror can be killed with the tab. On pagehide, if the dedup cache says IDB
+// is behind the last serialized state, re-kick the write (best-effort — the
+// _saveSeq newer-wins boot above is the actual safety net if even this loses).
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('pagehide', () => {
+        try {
+            const json = JSON.stringify(state);
+            if (json !== _lastIdbStateJson) {
+                _idbSet(K_STATE, state).then(ok => { if (ok) _lastIdbStateJson = json; });
+            }
+        } catch (_) {}
+    });
 }
 
 // ============================================================
@@ -1128,31 +1159,47 @@ async function loadState() {
     // frozen one-time snapshot — so a failed/unavailable/empty IDB always has
     // a fresh LS fallback (rule #1: never lose data). Any error here must
     // fall through to the LS path below, never leave the app un-booted.
+    //
+    // V2-B0-02: IDB no longer wins UNCONDITIONALLY. The fire-and-forget IDB
+    // mirror can be a save (or many) behind LS — killed tab before the txn
+    // committed, private mode, quota — and booting the stale IDB used to
+    // clobber the fresher LS via the saveState() below. Both layers are read,
+    // their _saveSeq counters compared, and the NEWER one boots; the loser is
+    // refreshed by saveState() right after (legacy blobs without _saveSeq
+    // compare as 0 → IDB keeps its old priority — behavior unchanged for them).
+    let idbState = null;
     try {
-        const idbState = await _idbGet(K_STATE);
-        if (idbState && typeof idbState === 'object') {
-            state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...idbState };
-            migrateTasks(state.tasks);
-            migrateTasks(state.archive);
-            normalizeState();
-            saveState();   // keeps the LS mirror fresh + persists any one-time normalization
-            return;
-        }
-    } catch (_) { /* IDB unavailable/corrupt — fall through to the LS path below */ }
+        const v = await _idbGet(K_STATE);
+        if (v && typeof v === 'object') idbState = v;
+    } catch (_) { /* IDB unavailable/corrupt — LS path below */ }
+
+    const rawV4 = localStorage.getItem(K_STATE_V4);
+    let lsState = null;
+    if (rawV4) { try { lsState = JSON.parse(rawV4); } catch (_) { /* corrupt LS — ignored */ } }
+
+    const _seqOf = (s) => (s && Number(s._saveSeq)) || 0;
+    if (idbState && lsState && _seqOf(lsState) > _seqOf(idbState)) idbState = null;   // LS is fresher
+
+    if (idbState) {
+        state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...idbState };
+        migrateTasks(state.tasks);
+        migrateTasks(state.archive);
+        normalizeState();
+        saveState();   // keeps the LS mirror fresh + persists any one-time normalization
+        return;
+    }
 
     // Idea 8: prefer the v4 key. If it's absent, do the one-time v3→v4 upgrade
     // (which keeps v3 frozen as a fallback). Only if neither exists fall back to
     // the legacy migrators.
-    const rawV4 = localStorage.getItem(K_STATE_V4);
     if (rawV4) {
-        try {
-            const loaded = JSON.parse(rawV4);
-            state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...loaded };
+        if (lsState) {
+            state = { tasks: [], groups: [], archive: [], nextId: 1, nextGroupId: 1, nextSubId: 1, ...lsState };
             migrateTasks(state.tasks);
             migrateTasks(state.archive);
             normalizeState();
-            saveState();   // persist note plain→HTML migration once; also seeds the IDB mirror
-        } catch(e) { if (!_migrateV3toV4()) migrateFromOld(); }
+            saveState();   // persist note plain→HTML migration once; also re-seeds the (stale/empty) IDB mirror
+        } else if (!_migrateV3toV4()) migrateFromOld();   // v4 present but unparsable
         return;
     }
     if (_migrateV3toV4()) return;
