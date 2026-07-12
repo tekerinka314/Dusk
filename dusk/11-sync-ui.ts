@@ -245,6 +245,18 @@ function _flushIfPending() {
 async function syncNow(opts) {
     opts = opts || {};
     const interactive = !!opts.interactive, manual = !!opts.manual;
+    // V2-B6-01: NEVER sync against a not-yet-loaded state. 11's module body
+    // runs before 08's un-awaited async init()/loadState() resolves, so the
+    // on-open sync (and the exchange-promise sync, and any early visibility/
+    // focus/online trigger) could read the pristine initial `state`, merge
+    // "empty local" against an empty/staler Drive, and WIPE the real data by
+    // landing that merge over it (probe-proven: empty Drive → 0 tasks, 5/5).
+    // Gating INSIDE syncNow covers every trigger, present and future.
+    if (typeof _stateLoaded !== 'undefined' && !_stateLoaded) {
+        try {
+            if (typeof _stateLoadedPromise !== 'undefined' && _stateLoadedPromise) await _stateLoadedPromise;
+        } catch (_) {}
+    }
     if (typeof cloudIsConfigured !== 'function' || !cloudIsConfigured()) {
         refreshStatus();
         if (manual) _toastErr('Офлайн — синхронизация недоступна');
@@ -262,6 +274,30 @@ async function syncNow(opts) {
     }
     // A live token ⇒ sync is in use → enable (gates the on-open auto-sync) + persist.
     if (!_syncEnabled) { _syncEnabled = true; try { localStorage.setItem(K_SYNC_ENABLED, '1'); } catch (_) {} }
+
+    // V2-B6-01 belt — pristine-state fuse. A state with NO data AND NO
+    // tombstones/journal is a virgin boot state, not a user's "I deleted
+    // everything" (mass-delete leaves tombstones). If a non-empty baseline
+    // exists, some earlier sync saw real data → merging this pristine state
+    // would register it all as deletions. Refuse — cheap insurance against
+    // any future path that reaches syncNow before the state is truly loaded.
+    let _fuseTripped = false;
+    try {
+        const _n = (a) => (Array.isArray(a) ? a.length : 0);
+        const _s = state || {};
+        const _pristine = !_n(_s.tasks) && !_n(_s.groups) && !_n(_s.archive)
+            && !_n(_s.notes) && !_n(_s.notesArchive)
+            && !_n(_s.tombstones) && !_n(_s.syncJournal);
+        const _bl = typeof loadBaseline === 'function' ? loadBaseline() : null;
+        _fuseTripped = !!(_pristine && _bl
+            && (_n(_bl.tasks) || _n(_bl.groups) || _n(_bl.notes) || _n(_bl.notesArchive)));
+    } catch (_) { /* the fuse must never break a legitimate sync */ }
+    if (_fuseTripped) {
+        try { console.warn('[dusk-sync] pristine-state fuse: empty state with a non-empty baseline — sync skipped (boot-order guard)'); } catch (_) {}
+        try { _log('⛔ предохранитель: пустой state при непустом baseline — синк пропущен'); } catch (_) {}
+        try { refreshStatus(); } catch (_) {}
+        return;
+    }
 
     _syncing = true; _lastError = null; setSyncStatus('syncing');
     _log('▶ ' + (opts.via || (manual ? 'ручной' : 'авто')) + (loadBaseline() ? '' : ' · нет baseline'));

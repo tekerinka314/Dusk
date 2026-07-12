@@ -26,6 +26,15 @@ only after W2, budget permitting.
 5+6 are one session (same boot path); regression probes: `s4_bootrace.mjs`,
 `s4_racetiming.mjs`, `s4_p0_idbboot.mjs`, `s4_p4_quota.mjs` (D:\tmp\pw\b1\) —
 all must show local data SURVIVING. `npm test` fully green after each commit.
+**W0 EXECUTED by Fable 2026-07-12** — all 6 fixes landed (commits: B6-06
+`9b87915`, B6-03 `5ddb75c`, B6-04 `f2422d4`, B0-01 `eb28720`, B0-02 `4b18b42`,
+B6-01 — see git log), each with a vitest regression. Runtime evidence:
+`s4_racetiming.mjs` post-fix = **0 wipes in 15/15 boots** (was 5/5 wiped).
+**Probe caveat:** `s4_p0_idbboot.mjs` seeds legacy blobs WITHOUT `_saveSeq`, so
+it still shows the documented legacy IDB-priority path, not the fix; for
+regression duty it needs seq-aware seeds (LS `_saveSeq:2` vs IDB `_saveSeq:1`
+→ marker must survive) — small Opus follow-up. `tests/boot-recency.test.mjs`
+covers the mechanism meanwhile.
 NOTE: V2-B6-05 needs NO fix (ratified design verdict: leave as-is).
 V2-B1-19 (PWA launch) already fixed + deployed 2026-07-08.
 

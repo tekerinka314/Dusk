@@ -10,6 +10,9 @@ declare var _idbKvSet: any;
 declare var _lastIdbStateJson: any;
 declare var _quotaWarned: any;
 declare var _lastSaveSeq: any;
+declare var _stateLoaded: any;
+declare var _stateLoadedResolve: any;
+declare var _stateLoadedPromise: any;
 declare var _dragHandleObserver: any;
 declare var state: any;
 declare var isFiltered: any;
@@ -112,6 +115,13 @@ async function _idbSet(key, value) {
 globalThis._lastIdbStateJson = undefined;
 globalThis._quotaWarned = false;   // V2-B6-03: one persistent quota toast per outage, re-armed on recovery
 globalThis._lastSaveSeq = 0;       // V2-B0-02: session-high save counter (keeps _saveSeq monotonic across undo restores)
+// V2-B6-01: boot handshake — syncNow must never run against the pristine
+// pre-loadState `state` (an on-open sync merging an empty local against an
+// empty/staler Drive used to WIPE the data loadState was about to load).
+// loadState resolves this promise (and sets the flag) on EVERY exit path.
+globalThis._stateLoaded = false;
+globalThis._stateLoadedResolve = null;
+globalThis._stateLoadedPromise = new Promise(res => { globalThis._stateLoadedResolve = res; });
 
 
 const K_SOUND  = 'soundEnabled';
@@ -1154,6 +1164,16 @@ async function maybeBackup() {
 }
 
 async function loadState() {
+    // V2-B6-01: whatever path the load takes (or even if it throws), the boot
+    // handshake must fire — a hung promise would freeze sync forever.
+    try { await _loadStateInner(); }
+    finally {
+        _stateLoaded = true;
+        try { if (typeof _stateLoadedResolve === 'function') _stateLoadedResolve(); } catch (_) {}
+    }
+}
+
+async function _loadStateInner() {
     // Этап 4: IndexedDB is the primary read source at boot. localStorage keeps
     // receiving a live, full copy on every saveState() (step 1) — never a
     // frozen one-time snapshot — so a failed/unavailable/empty IDB always has
