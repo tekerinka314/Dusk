@@ -9,6 +9,15 @@ Inputs: `audit-v2/B1-mobile.md` (28 findings, 4 root-cause themes, good-surface 
 gothic identity, or data logic. This is a LAYOUT + ACTION-MODEL rework, zero
 state-model changes.
 
+**TASTE REFERENCE (Fable, 2026-07-12): `audit-v2/mobile-preview.html`** — open
+in a browser. Interactive target look for slices 1–3: the 3-row task card, the
+2-row group header, and the bottom-sheet «crypt slab» (tap ⋯), at 412/360 px,
+built from the app's REAL palette tokens and IC glyphs. It is the visual
+ground truth for those slices — when the text spec and the preview disagree on
+look-and-feel, the preview wins; exact px paddings may be tuned to the
+acceptance criteria. If the user requests visual changes after viewing it,
+update the preview file first, then implement.
+
 ---
 
 ## 0. Hard rules for the executor
