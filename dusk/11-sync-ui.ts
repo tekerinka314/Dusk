@@ -394,6 +394,12 @@ function scheduleSyncPush() {
     // went out on the next unrelated trigger.)
     if (_syncing) { _syncQueued = true; return; }
     if (typeof cloudIsConfigured !== 'function' || !cloudIsConfigured() || !cloudStatus().signedIn) return; // stays pending; flushed on next open/online/manual
+    // V2-B6-07: don't fire a sync WHILE an inline editor is focused — the merge
+    // landing's render is deferred anyway (03 render-guard), but not pushing
+    // avoids landing a merge mid-edit at all. Stays pending; the note/title
+    // commit re-runs saveState (editor already blurred → push arms), and the
+    // hidden-tab flush + 120 s periodic guarantee convergence regardless.
+    if (typeof _inlineEditActive === 'function' && _inlineEditActive()) return;
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => syncNow({ interactive: false }), SYNC_DEBOUNCE_MS);
 }

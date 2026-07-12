@@ -1699,10 +1699,20 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
   (`08-quickadd-export-init.ts:257/284/305`) also use `new Date().toISOString().slice(0,10)`
   → a cosmetic off-by-one in the export date near midnight east of UTC (display-only).
 
-### V2-B6-07 — ⚠ CRITICAL (user-reported 2026-07-12): sync-triggered render kills in-flight task-note editing every ~2 s AND silently discards uncommitted keystrokes
-- **Evidence:** A (complete code chain) + E (user report — ground truth: "при
-  написании заметки она сворачивается (unfocus) каждые несколько секунд").
-  Runtime probe still owed (fake-cloud + typing) — Opus, cheap.
+### V2-B6-07 — ⚠ CRITICAL (user-reported 2026-07-12): sync-triggered render kills in-flight task-note editing every ~2 s AND silently discards uncommitted keystrokes — **FIXED + probe-proven 2026-07-12 (Opus)**
+- **FIXED 2026-07-12 (Opus, per Fable's two-guard spec):** (i) `_inlineEditActive()`
+  (03-render.ts) → `render()`/`renderListOnly()` defer (500 ms retry, mirrors the
+  is-dragging pattern) while a `.task-item` contenteditable is focused; (ii)
+  `scheduleSyncPush` (11) does not arm the debounce while editing (`_pendingPush`
+  stays true; commit/hidden-flush/periodic converge). **End-to-end probe on the
+  real dist** `D:\tmp\pw\b1\s4_b607_noteedit.mjs` (raw `shots/s4/b607_noteedit.json`):
+  with sync enabled, a forced `render()` AND a forced `syncNow()` merge-landing
+  fired MID-EDIT both left the editor **focused + editable**, the full typed text
+  intact, and the note persisted across a reload (`pass:true`). Unit:
+  `tests/inline-edit-render-guard.test.mjs` (truth table, render-defer, push-guard).
+  Regression suite 33/33 green. version.json 2026-07-12-6.
+- **Evidence:** A (complete code chain) + **B (runtime, dist, deterministic).**
+  Probe `D:\tmp\pw\b1\s4_b607_noteedit.mjs`.
 - **Severity:** UI 3 (a core flow breaks every few seconds while sync is on) ·
   DL 2 (typed-but-uncommitted text is silently discarded on every occurrence)
   · RR 1 · IC 1-2 · CF 3 (chain is airtight; cadence matches the report).

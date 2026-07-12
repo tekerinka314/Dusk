@@ -2,6 +2,7 @@
 // `declare` emits nothing — the single storage slot stays globalThis.*.
 declare var _rendering: any;
 declare var _renderQueued: any;
+declare var _renderDeferT: any;
 declare var _subCache: any;
 declare var _liCache: any;
 declare var _openSortPicker: any;
@@ -32,7 +33,7 @@ Object.assign(globalThis, {
     _checkDeadlineNotifications, initGroupDnD, _requireSelection, bulkSetPriority, bulkSetGroup, bulkSetColor, bulkSetDeadline, openBulkColorModal,
     openBulkDeadlineModal, openBulkGroupModal, closeBulkGroupModal, _renderBulkGroupList, renderGroupBar, renderGroupSelect, renderGroupChips, selectGroupChip,
     registerGothicPicker, initGroupPicker, renderArchive, toggleSelectMode, toggleArchiveSelection, updateSelectBar, restoreSelected, restoreAll,
-    updateArchiveBadge, getGroupColor, taskFromArchive,
+    updateArchiveBadge, getGroupColor, taskFromArchive, _inlineEditActive,
 });
 
 // ============================================================
@@ -47,7 +48,32 @@ Object.assign(globalThis, {
 // follow-up render after the current one finishes, never run nested.
 globalThis._rendering = false;
 globalThis._renderQueued = false;
+globalThis._renderDeferT = null;   // V2-B6-07: pending render deferred while an inline editor is focused
+
+// V2-B6-07: how long a render waits before re-checking whether the inline
+// editor is still focused (short → catches up quickly once the edit ends).
+const RENDER_DEFER_MS = 500;
+
+// V2-B6-07: is an inline text editor (task title / task note / subtask text)
+// currently focused? An ASYNC render — a sync merge landing, a periodic pull, a
+// peer wake, a cycle-reset — that rebuilds the card mid-edit tears down the
+// contenteditable node: focus dies AND every keystroke typed since the last
+// debounce commit (which lives only in that DOM node) is discarded. render()/
+// renderListOnly() defer while this holds — the same class the drag path
+// already guards (checkCycleResets defers on `is-dragging`, IMP-3). Scoped to
+// `.task-item` so the Grimuar editor (its own render path) is never affected.
+function _inlineEditActive() {
+    const a: any = document.activeElement;
+    if (!a || typeof a.closest !== 'function' || !a.closest('.task-item')) return false;
+    // isContentEditable in real browsers; attribute fallback keeps the guard
+    // correct where isContentEditable isn't implemented (test env). Our editors
+    // always set contenteditable="true" on the focused element itself.
+    return a.isContentEditable === true || (typeof a.getAttribute === 'function' && a.getAttribute('contenteditable') === 'true');
+}
 function render() {
+    // V2-B6-07: never rebuild the list out from under a focused inline editor —
+    // reschedule and let the edit finish (blur/commit fires its own refresh).
+    if (_inlineEditActive()) { clearTimeout(_renderDeferT); _renderDeferT = setTimeout(render, RENDER_DEFER_MS); return; }
     if (_rendering) { _renderQueued = true; return; }
     _rendering = true;
     try {
@@ -76,6 +102,7 @@ function render() {
 // updateArchiveBadge — those depend on data these ops never touch (group names,
 // task text/tags, archive), so rebuilding them every time was wasted work.
 function renderListOnly() {
+    if (_inlineEditActive()) { clearTimeout(_renderDeferT); _renderDeferT = setTimeout(render, RENDER_DEFER_MS); return; }   // V2-B6-07: defer to a full render after the edit ends
     if (_rendering) { _renderQueued = true; return; }   // re-entrant → coalesce into a follow-up full render
     _rendering = true;
     try {
