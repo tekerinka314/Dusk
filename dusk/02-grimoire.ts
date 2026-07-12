@@ -1521,6 +1521,10 @@ function grimEmptyCrypt(btn) {
     pushUndo();
     // Open archived note (if any) loses its detail pane.
     if (currentNoteId && (state.notesArchive || []).some(x => x.id === currentNoteId)) currentNoteId = null;
+    // V2-B0-01: permanent delete must leave tombstones (notes sync by `id`) —
+    // without them a stale device's copy resurrects every emptied note on the
+    // next merge. Same convention as grimDeleteForever / grimBulkDelete.
+    (state.notesArchive || []).forEach(x => addTombstone(x.id, 'note'));
     state.notesArchive = [];
     saveState();
     renderNotes();
