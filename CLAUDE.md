@@ -38,6 +38,42 @@ Commands: `npm test` (vitest), `npm run dev` (Vite dev server), `npm run build`
 (→ dist/, stable names `app.js`/`style.css` — the hand-rolled network-first
 `sw.js` precaches by exact name, CACHE `dusk-shell-v8`), `npm run preview`.
 
+## Skill usage — auto-invoke BEFORE responding (MANDATORY)
+
+Before starting any substantive **task** (a real unit of work — implement, debug,
+design, research, review, configure), match it against the **entire** installed-
+skills list already loaded in this session's context and invoke whichever skill
+fits — do not wait for the user to name it explicitly. This check is cheap: the
+skill names+descriptions are ALREADY in context, so "scan all skills" costs no
+extra tokens; a skill's body loads only when it actually fires. Follow the
+`using-superpowers` discipline: if there's a real chance a skill applies, invoke
+it before responding, including before clarifying questions.
+
+"Task" ≠ every message. Skip the check for conversational replies, trivial
+one-liners, quick factual answers, and chit-chat — anything with no code, design,
+research, or config surface. One request may contain several tasks; judge per task.
+
+Do NOT restrict yourself to a hardcoded shortlist. Match each task against the
+current descriptions of ALL skills (including ones added or updated later) and
+pick the best fit yourself. The mappings below are **illustrative examples only**,
+not the allowed set:
+
+- New feature / component / behavior change → `brainstorming` (MUST, before code).
+- Any bug, test failure, unexpected behavior → `systematic-debugging` (before any fix).
+- Implementing a feature or bugfix → `test-driven-development` (before writing impl).
+- Multi-step task with a spec → `writing-plans`, then `executing-plans`.
+- Any visual / UI / UX work → `impeccable` (gothic aesthetic below still governs).
+- Before claiming done / committing → `verification-before-completion` + `verify`.
+- Reviewing a diff / branch / PR → `code-review` (or `caveman:caveman-review`).
+- Don't know / can't find the right skill → `find-skills`.
+
+These examples don't cover every skill — many others exist (research, docs,
+Cloudflare/infra, dataviz, typography, config, scheduling, etc.); consider them
+all. If two skills overlap, pick the most specific; process skills (brainstorming,
+systematic-debugging) run before implementation skills. State which skill you
+invoked and why. Skip only for trivial one-line answers with no code, design, or
+research surface.
+
 ## Design & UX — gothic aesthetic is MANDATORY
 
 The gothic aesthetic is a hard requirement for **all** design and UX, not an

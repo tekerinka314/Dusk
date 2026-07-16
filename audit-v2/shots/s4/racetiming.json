@@ -2,13 +2,13 @@
   {
     "case": "1 fresh-empty-IDB, LS=14 (no delete)",
     "counts": [
-      0,
-      0,
-      0,
-      0,
-      0
+      14,
+      14,
+      14,
+      14,
+      14
     ],
-    "wiped": 5
+    "wiped": 0
   },
   {
     "case": "2 IDB-seeded=14 (production reload)",
@@ -24,12 +24,12 @@
   {
     "case": "3 deleteDatabase pending (orig harness)",
     "counts": [
-      0,
-      0,
-      0,
-      0,
-      0
+      14,
+      14,
+      14,
+      14,
+      14
     ],
-    "wiped": 5
+    "wiped": 0
   }
 ]
