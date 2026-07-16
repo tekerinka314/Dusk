@@ -79,7 +79,7 @@ declare var _recSig: any;
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
 Object.assign(globalThis, {
-    coffinSVG, cycleCoffinSVG, subCoffinSVG, hexToRgb, prefersReducedMotion, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
+    coffinSVG, cycleCoffinSVG, subCoffinSVG, hexToRgb, prefersReducedMotion, _pickerOpenUp, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
     _resetDragHandle, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
     loadState, _migrateV3toV4, migrateTasks, uid, nowTs, _contentSig, _trackedRecords, primeRecSig,
     bumpUpdatedAt, addTombstone, _delegate, normalizeState, migrateFromOld, loadUiState, saveUiState, pushUndo,
@@ -615,6 +615,19 @@ const DRAG_HANDLE_H       = 13;
 const DRAG_HANDLE_MIN_GAP = 5;
 
 globalThis._dragHandleObserver = null;
+
+// S1-7 refined (B1-06): should a gothic-picker list open upward? The upward
+// room now stops at the top edge of the containing .modal — the modal is a
+// scroll container (overflow-y: auto), so a list poking above its top edge
+// lands in unreachable NEGATIVE overflow and gets clipped. Downward overflow
+// stays reachable (it extends the modal's scroll range), so prefer it.
+function _pickerOpenUp(trigger, listH) {
+    const rect = trigger.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const modal = trigger.closest('.modal');
+    const topLimit = modal ? Math.max(modal.getBoundingClientRect().top, 0) : 0;
+    return spaceBelow < listH && (rect.top - topLimit) > listH;
+}
 
 // B1 mobile rework: cached coarse-pointer flag — the JS twin of the CSS
 // `@media (hover: none) and (pointer: coarse)` layer. Queried ONCE: it must

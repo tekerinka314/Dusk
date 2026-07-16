@@ -1265,12 +1265,9 @@ function initMonthPicker() {
     function openPicker() {
         if (isOpen) return;
         isOpen = true;
-        // S1-7: open upward when there isn't room below but there is above,
-        // so the list never spills past the viewport bottom on short screens.
-        const rect = trigger.getBoundingClientRect();
-        const listH = 224; // matches .dl-month-list max-height
-        const spaceBelow = window.innerHeight - rect.bottom;
-        picker.classList.toggle('open-up', spaceBelow < listH && rect.top > listH);
+        // S1-7: open upward when there isn't room below but there is above
+        // (bounded by the scrollable modal's top edge — see _pickerOpenUp).
+        picker.classList.toggle('open-up', _pickerOpenUp(trigger, 224 /* .dl-month-list max-height */));
         picker.classList.add('open');
         trigger.setAttribute('aria-expanded', 'true');
         list.setAttribute('aria-hidden', 'false');

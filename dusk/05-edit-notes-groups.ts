@@ -1240,14 +1240,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const isNowOpen = !repeatWdPicker.classList.contains('open');
             if (isNowOpen) {
                 // Determine if list should open upward to avoid viewport clipping
-                const rect = repeatWdTrigger.getBoundingClientRect();
-                const listH = 290; // approx height for 8 options
-                const spaceBelow = window.innerHeight - rect.bottom;
-                if (spaceBelow < listH && rect.top > listH) {
-                    repeatWdPicker.classList.add('open-up');
-                } else {
-                    repeatWdPicker.classList.remove('open-up');
-                }
+                // (bounded by the scrollable modal's top edge — see _pickerOpenUp)
+                repeatWdPicker.classList.toggle('open-up', _pickerOpenUp(repeatWdTrigger, 290 /* ~8 options */));
             }
             repeatWdPicker.classList.toggle('open');
             repeatWdTrigger.setAttribute('aria-expanded', repeatWdPicker.classList.contains('open'));

@@ -4249,6 +4249,12 @@ textarea:focus-visible {
     padding: 24px 26px;
     width: 370px;
     max-width: calc(100vw - 28px);
+    /* B1-06: a modal may never outgrow the viewport — the confirm button must
+       stay reachable inside the scrollable box (portrait, landscape, keyboard).
+       vh line = fallback for pre-dvh WebViews. */
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow-y: auto;
     box-shadow: var(--shadow-lg), 0 0 50px rgba(80, 0, 180, 0.22);
     border: 1px solid var(--border-mid);
     animation: modalIn var(--dur-standard) var(--ease-emerge);
@@ -5683,6 +5689,17 @@ kbd {
     .brand-name { font-size: 20px; letter-spacing: 7px; }
     .brand-emblem { display: none; }
     .dl-mode-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* B1-06 (slice 4): landscape phones — vertical space is scarce; tighten the
+   modals' vertical rhythm so more content fits before the box scrolls.
+   The .modal max-height + overflow rule keeps the confirm buttons reachable. */
+@media (max-height: 500px) {
+    .modal { padding: 14px 18px; }
+    .modal-title { margin-bottom: 10px; }
+    .modal-row { gap: 8px; margin-bottom: 10px; }
+    .dl-mode-grid { margin-bottom: 10px; }
+    .modal-color .modal-actions { margin-top: 8px; }
 }
 
 /* 6g: touch devices have no reliable hover — reveal row/subtask actions instead

@@ -1869,10 +1869,8 @@ function initGroupPicker() {
     function openPicker() {
         if (isOpen) return;
         isOpen = true;
-        const rect = trigger.getBoundingClientRect();
         const listH = Math.min(224, 80 + state.groups.length * 40);
-        const spaceBelow = window.innerHeight - rect.bottom;
-        picker.classList.toggle('open-up', spaceBelow < listH && rect.top > listH);
+        picker.classList.toggle('open-up', _pickerOpenUp(trigger, listH));
         picker.classList.add('open');
         extraFields && extraFields.classList.add('dropdown-open');
         trigger.setAttribute('aria-expanded', 'true');
