@@ -1152,6 +1152,7 @@ body::after {
 .fm-scrim.closing { animation: fmScrimOut 0.18s ease-in both; }
 @keyframes fmScrimOut { from { opacity: 1; } to { opacity: 0; } }
 
+.snooze-menu.action-sheet:focus { outline: none; }
 .snooze-menu.action-sheet {
     top: auto;
     left: 0;
@@ -1193,6 +1194,55 @@ body::after {
     .snooze-menu.action-sheet.float-menu-closing { animation: fmScrimOut 0.12s ease both !important; }
     .fm-scrim, .fm-scrim.closing { animation: none; }
 }
+/* ── F2: quick bar at the top of the task-⋯ / sub-⋯ sheets (coarse only) ────
+   The six former inline card sigils as labelled 2-tap targets. Grid row of
+   icon-over-label buttons; .fm-quick-4 = the subtask priority radio strip. */
+.snooze-menu.action-sheet .fm-quick {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    padding: 0 0 8px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(120, 60, 220, 0.22);
+}
+.snooze-menu.action-sheet .fm-quick-4 { grid-template-columns: repeat(4, 1fr); }
+.snooze-menu.action-sheet .fm-q {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 60px;
+    padding: 9px 2px 7px;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.12s ease, transform 0.12s ease, color 0.12s ease;
+}
+.snooze-menu.action-sheet .fm-q:active { background: rgba(120, 60, 220, 0.16); transform: scale(0.96); }
+.snooze-menu.action-sheet .fm-q svg { width: 20px; height: 20px; }
+.snooze-menu.action-sheet .fm-q > span:last-child {
+    font-family: var(--font-label);
+    font-size: 9.5px;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+}
+.snooze-menu.action-sheet .fm-q.active { color: var(--accent-hover); }
+/* subtask priority dots (radio strip) */
+.fm-prio-dot { width: 11px; height: 11px; border-radius: 50%; background: rgba(150, 130, 190, 0.45); flex: none; }
+.fm-q.active .fm-prio-dot { box-shadow: 0 0 8px currentColor; }
+.fm-prio-dot.p-low    { background: var(--prio-low); }
+.fm-prio-dot.p-medium { background: var(--prio-medium); }
+.fm-prio-dot.p-high   { background: var(--prio-high); }
+.fm-q-prio.active { color: var(--text-primary); background: rgba(120, 60, 220, 0.12); }
+/* checked (toggle-on) sheet rows — sundial/focus in the group-⋯ */
+.snooze-menu button.fm-on { color: var(--accent-hover); }
+
 /* Idea 3: demote parent-picker uses the same floating menu, scrollable task list */
 .snooze-menu.demote-menu { max-width: 250px; max-height: 320px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent; }
 .float-menu-head {
@@ -5729,28 +5779,23 @@ kbd {
     .sub-deadline-inner   { opacity: 1; }
     .drag-handle { opacity: 0.3; }
 
-    /* ── B1-13 (slice 2): group header wraps to 2 rows ──────────────────
-       Row 1: drag · colour dot · title (ellipsis, gets the width) · count ·
-       sword chevron. Row 2: the action buttons at 40px. `order` keeps the
-       chevron on row 1 even though .group-actions precedes it in the DOM. */
-    .group-header { flex-wrap: wrap; row-gap: 2px; }
-    /* flex-basis 0 — with wrap enabled a flex item wraps by its BASE (content)
-       size before it is allowed to shrink, so a long title would otherwise take
-       a whole row of its own and push count+chevron onto extra rows (4-row
-       header). Basis 0 pins row 1 to: drag · dot · title(ellipsis) · count · ⚔ */
-    .group-title { flex: 1 1 0%; }
+    /* ── F2: single-row group header ─────────────────────────────────────
+       drag · colour dot · title (ellipsis) · count · ⋯ · sword chevron.
+       Every group action lives in the group-⋯ sheet, so row 2 is gone. */
+    .group-header { min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
+    .group-title {
+        flex: 1 1 0%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     .group-count { flex-shrink: 0; }
     /* touch has no hover — group reorder handle must stay reachable
        (Sortable for sections is handle-only, unlike task cards) */
     .group-drag-handle { width: 16px; opacity: 0.4; pointer-events: auto; }
-    .group-actions {
-        order: 10;
-        flex-basis: 100%;
-        justify-content: flex-end;
-        gap: 6px;
-    }
-    .btn-group-action { width: 40px; height: 40px; }
-    .btn-group-action svg { width: 16px; height: 16px; }
+    .group-actions { gap: 0; }
+    .btn-group-action { width: 40px; height: 40px; border-radius: 10px; }
+    .btn-group-action svg { width: 18px; height: 18px; }
 
     /* B1-14: bulk-select bar becomes two tidy rows — «N отмечено … Отмена»
        on row 1, the action clusters wrapping below. display:contents lifts
@@ -5803,71 +5848,83 @@ kbd {
         vertical-align: middle;
     }
 
-    /* ── B1-01/02 (mobile rework slice 1): 3-row task card ─────────────────
-       Title takes the full card width and wraps; the meta row follows; the
-       action buttons drop to their own wrapping row of 40px targets. Markup
-       is untouched — .task-head dissolves (display: contents) and explicit
-       `order` lays out the .task-content flex column. Archive cards keep
-       their own compact layout (no .task-head there to dissolve). */
-    .task-item:not(.archive-item) .task-content {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .task-item:not(.archive-item) .task-head { display: contents; }
-    .task-item:not(.archive-item) .task-text { order: 0; flex: none; }
-    .task-item:not(.archive-item) .task-meta { order: 1; }
-    .task-item:not(.archive-item) .task-meta:empty { display: none; }
-    .task-item:not(.archive-item) .task-actions {
-        order: 2;
-        margin-top: 7px;
-        /* full-bleed under the coffin column (40px col + 8px flex gap) — the extra
-           48px lets all 7 of the 40px actions sit on ONE row at 412/360 instead of
-           wrapping into a ragged 6+1 / 5+2 pair of rows on every card */
-        margin-left: -48px;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-    .task-item:not(.archive-item) .task-note-wrapper { order: 3; }
-    .task-item:not(.archive-item) .subtask-section { order: 4; }
-
-    .btn-task-action  { width: 40px; height: 40px; }
+    /* ── F2: calm task card — [coffin] title [⋯] / info chips ───────────────
+       The always-visible 7-sigil row is gone; ALL configuration lives in the
+       task-⋯ sheet (quick bar + verbs). The card row keeps the natural desktop
+       structure (.task-head flex row), just with one 40px ⋯ target. */
+    .btn-task-action  { width: 40px; height: 40px; border-radius: 10px; }
     .btn-task-action svg { width: 18px; height: 18px; }
     .btn-task-action.btn-task-more svg { width: 20px; height: 20px; }
-    /* icon-only on coarse — a padded auto width would break the 7-on-one-row fit */
-    .btn-task-action.edit-note-btn { width: 40px; padding: 0; }
+    .task-head > .task-actions { margin-top: -4px; margin-right: -6px; }
+    .task-text { line-height: 1.45; padding-top: 2px; }
     /* Coffin checkbox: same icon, comfortable tap target */
-    .task-check { width: 40px; min-width: 40px; height: 40px; }
+    .task-check { width: 40px; min-width: 40px; height: 40px; border-radius: 10px; }
 
-    /* ── B1-03: subtask actions wrap onto their own row under the text ── */
-    .sub-main-row { flex-wrap: wrap; row-gap: 2px; }
-    .sub-actions {
-        flex-basis: 100%;
-        justify-content: flex-end;
-        gap: 4px;
+    /* Info chips: one unified vocabulary — deadline/repeat pills + the note/
+       subtask toggles get the same pill body so the row reads as ONE row of
+       chips, not scattered labels. */
+    .task-meta { gap: 6px; margin-top: 6px; }
+    .task-meta:empty { display: none; }
+    .meta-tag { font-size: 12px; padding: 4px 10px; min-height: 26px; }
+    .meta-tag svg { width: 12px; height: 12px; }
+    .dl-countdown { font-size: 12px; }
+    .dl-absolute  { font-size: 11px; }
+    .btn-note-toggle,
+    .btn-subtask-toggle {
+        font-size: 11px;
+        min-height: 26px;
+        padding: 4px 10px;
+        background: var(--bg-tag);
+        border-radius: 99px;
+        border: 1px solid transparent;
     }
-    .btn-sub-action { width: 36px; height: 36px; }
-    .btn-sub-action svg { width: 14px; height: 14px; }
-    .sub-check { min-width: 32px; min-height: 32px; }
+    .btn-note-toggle svg,
+    .btn-subtask-toggle svg { width: 12px; height: 12px; }
+    .btn-sub-notes-always { min-width: 26px; min-height: 26px; }
+    .btn-sub-notes-always svg { width: 13px; height: 13px; }
+
+    /* ── F2: one-line subtask row — [handle][check][text][badge][⋯] ────── */
+    .sub-main-row { gap: 7px; }
+    .subtask-item { min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
+    .sub-actions { gap: 0; margin-left: auto; }
+    .btn-sub-action { width: 40px; height: 40px; border-radius: 10px; }
+    .btn-sub-action svg { width: 16px; height: 16px; }
+    .btn-sub-action.btn-sub-more svg { width: 18px; height: 18px; }
+    .sub-check { min-width: 36px; min-height: 36px; border-radius: 10px; }
+    .sub-text { font-size: 14.5px; }
     /* touch has no hover — keep the subtask drag handle reachable */
     .subtask-item:not(.checked):not(.cycle-checked) .sub-drag-handle {
         width: 14px;
         opacity: 0.45;
         pointer-events: auto;
     }
+
+    /* ── F2: touch feedback — every bare-glyph target presses like a key ──
+       transform+background only; colour transitions stay as declared above. */
+    .btn-task-action:active,
+    .btn-sub-action:active,
+    .btn-group-action:active,
+    .task-check:active,
+    .sub-check:active {
+        background: rgba(120, 60, 220, 0.16);
+        transform: scale(0.94);
+    }
+    .btn-task-action, .btn-sub-action, .btn-group-action, .task-check, .sub-check {
+        transition: background 0.12s ease, transform 0.12s ease,
+                    color var(--transition), opacity var(--transition);
+    }
+    .meta-tag[role="button"]:active,
+    .btn-note-toggle:active,
+    .btn-subtask-toggle:active { transform: scale(0.96); border-color: var(--border-mid); }
 }
 
-/* 360px-class phones: keep the 7-action row on ONE line and the toolbar inside
-   the viewport. Budget (360 − app padding − borders = 338px): card row gets
-   7×38 + 6×4 = 290px inside the (310−16−48+48)=294px full-bleed row; the ВИД
-   toolbar cluster 7×38+6×5+12+24 = 332px ≤ 338px. Without this the toolbar
-   forced the layout viewport to ~378px and the whole page rendered zoomed-out. */
+/* 360px-class phones: keep the toolbar inside the viewport. The ВИД cluster
+   7×38+6×5+12+24 = 332px ≤ 338px budget (360 − app padding − borders). Without
+   this the toolbar forced the layout viewport to ~378px and the whole page
+   rendered zoomed-out. (The old 7-action card-row budget died with F2 — the
+   card keeps a single ⋯.) */
 @media (hover: none) and (pointer: coarse) and (max-width: 380px) {
     .task-item:not(.archive-item) { padding-left: 8px; padding-right: 8px; }
-    .task-item:not(.archive-item) .task-actions { gap: 4px; }
-    /* 36px (grouped cards lose another 14px to .group-body padding: 7×36+6×4 =
-       276 ≤ 280). Height stays 40 — the tap target survives. */
-    .btn-task-action, .btn-task-action.edit-note-btn { width: 36px; }
     .toolbar { padding: 10px; }
     .toolbar-group { padding: 0 4px; }
     .toolbar-group-btns { gap: 4px; }

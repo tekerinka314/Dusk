@@ -28,6 +28,7 @@ Object.assign(globalThis, {
     toggleSubtask, _animateSubCycleThenRefresh, _animateSubThenRefresh, deleteSubtask, promoteSubtask, openTaskMoreMenu, _taskMore, _openSubModeMenu,
     setTaskSubMode, openSubAnyModeMenu, setGlobalSubMode, updateSubAnyModeBtn, openDemoteMenu, _openDemoteMenuAt, _pickDemoteTarget, demoteTask,
     cycleSubPriority, toggleSubSplitDone, toggleSubSplitActive, openSubRepeatModal, openSubDeadlineModal, clearSubDeadline, deleteSubNote, startSubEdit,
+    openSubMoreMenu, _subMore, _setSubPriority,
 });
 
 // ============================================================
@@ -169,25 +170,22 @@ function createTaskEl(task, showDlSide) {
         <div class="task-content">
             <div class="task-head">
                 <span class="task-text" data-id="${task.id}" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startInlineEdit">${displayText}</span>
-                <div class="task-actions">
+                ${IS_COARSE ? `<div class="task-actions">
+                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
+                </div>` : `<div class="task-actions">
                     <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" data-act="togglePin" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
                     <button class="btn-task-action btn-task-color" data-act="openTaskColorModal" title="Цветовая метка" style="${task.color ? `color:${taskInk}` : ''}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z" ${task.color ? `fill="${taskInk}" opacity="0.9"` : 'fill="none"'}/>
-                            <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
-                            <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
-                            ${task.color ? '' : '<circle cx="12" cy="10.5" r="1.3" fill="currentColor" stroke="none" opacity="0.55"/>'}
-                        </svg>
+                        ${taskColorGlyph(task.color ? taskInk : null)}
                     </button>
                     <button class="btn-task-action" data-act="openDeadlineModal" title="Дедлайн">${IC.window}</button>
-                    ${(!IS_COARSE && task.deadline) ? `<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
+                    ${task.deadline ? `<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
                     <button class="btn-task-action" data-act="openRepeatModal" title="Повтор">${IC.ouroboros}</button>
                     <button class="btn-task-action" data-act="openPrioModal" title="Приоритет">${IC.spires}</button>
                     ${addNoteBtn}
                     <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
-                    ${IS_COARSE ? '' : `<button class="btn-task-action archive-btn" data-act="removeTask" title="В архив">${IC.archive}</button>
-                    <button class="btn-task-action danger" data-act="deleteTaskForever" title="Удалить навсегда">${IC.skull}</button>`}
-                </div>
+                    <button class="btn-task-action archive-btn" data-act="removeTask" title="В архив">${IC.archive}</button>
+                    <button class="btn-task-action danger" data-act="deleteTaskForever" title="Удалить навсегда">${IC.skull}</button>
+                </div>`}
             </div>
             <div class="task-meta">${deadlineHtml}${rptHtml}${cycleUntilHtml}${noteToggle}${subToggle}${subNotesAlwaysBtn}</div>
             <div class="task-note-wrapper${(hasNote && task.noteOpen) ? ' visible' : ''}${hasNote ? ' has-note' : ''}" id="note-wrapper-${task.id}">
@@ -559,14 +557,16 @@ function buildSubtaskItemHTML(taskId, s) {
                     >${subCheckIcon}</button>
             <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startSubEdit">${subDisplayText}</span>
             ${subDlBadge}
-            <div class="sub-actions">
+            ${IS_COARSE ? `<div class="sub-actions">
+                <button type="button" class="btn-sub-action btn-sub-more" data-act="openSubMoreMenu" title="Действия" aria-haspopup="menu">${IC.more}</button>
+            </div>` : `<div class="sub-actions">
                 <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleSubPriority" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
                 ${subRepeatBtn}
                 ${subDlSetBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleSubNote" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
                 <button type="button" class="btn-sub-action" data-act="promoteSubtask" title="Сделать самостоятельной задачей">${IC.promote}</button>
                 <button type="button" class="btn-sub-action danger" data-act="deleteSubtask" title="Удалить подпункт">${IC.skull}</button>
-            </div>
+            </div>`}
         </div>
         ${subDlWrap}
         <div class="sub-note-wrapper ${noteWrapClass}" id="subnote-${taskId}-${s.id}">
@@ -2253,6 +2253,17 @@ function promoteSubtask(taskId, subId) {
 // Overflow «…» on a task row — declutters the action row by holding the rarely
 // used actions (template / duplicate / demote) behind one gothic trigger.
 globalThis._taskMoreAnchor = null;
+// Colour-mark crystal glyph — shared by the inline action button (desktop) and
+// the task-⋯ sheet quick bar (coarse). Filled with the task's ink when set.
+function taskColorGlyph(ink) {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z" ${ink ? `fill="${ink}" opacity="0.9"` : 'fill="none"'}/>
+        <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
+        <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
+        ${ink ? '' : '<circle cx="12" cy="10.5" r="1.3" fill="currentColor" stroke="none" opacity="0.55"/>'}
+    </svg>`;
+}
+
 function openTaskMoreMenu(event, id) {
     event.stopPropagation();
     _taskMoreAnchor = event.currentTarget;
@@ -2269,12 +2280,21 @@ function openTaskMoreMenu(event, id) {
                   : (state.subAnyMode ? IC.g4any : IC.g4all);
         subModeItem = `<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Чек по подпунктам</span></button>`;
     }
-    // B1-01/02 (coarse): the inline action row keeps only the 7 everyday buttons;
-    // edit + snooze + archive + delete live here instead. Archive/delete were the
-    // two RIGHTMOST inline buttons — exactly the ones that clipped off-card and
-    // caught accidental taps. Desktop keeps all of them inline (no extras here).
+    // F2 (coarse): the card keeps a single ⋯ — ALL configuration moved here.
+    // Quick bar = the six former inline sigils as labelled 2-tap targets; the
+    // list below keeps the verb actions. Desktop menu is unchanged (no extras).
+    const hasNoteNow = !!(task && task.note && task.note.trim());
+    const taskInkNow = (task && task.color) ? _grimInk(task.color) : null;
     const coarseHead = IS_COARSE
-        ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>`
+        ? `<div class="fm-quick" role="group" aria-label="Свойства задачи">
+            <button type="button" class="fm-q${task && task.pinned ? ' active' : ''}" data-act="_taskMore" data-more="pin" data-id="${id}">${IC.pin}<span>${task && task.pinned ? 'Открепить' : 'Закрепить'}</span></button>
+            <button type="button" class="fm-q" data-act="_taskMore" data-more="prio" data-id="${id}">${IC.spires}<span>Приоритет</span></button>
+            <button type="button" class="fm-q${task && task.deadline ? ' active' : ''}" data-act="_taskMore" data-more="deadline" data-id="${id}">${IC.window}<span>Дедлайн</span></button>
+            <button type="button" class="fm-q${task && task.repeat && task.repeat !== 'none' ? ' active' : ''}" data-act="_taskMore" data-more="repeat" data-id="${id}">${IC.ouroboros}<span>Повтор</span></button>
+            <button type="button" class="fm-q" data-act="_taskMore" data-more="color" data-id="${id}" style="${taskInkNow ? `color:${taskInkNow}` : ''}">${taskColorGlyph(taskInkNow)}<span>Цвет</span></button>
+            <button type="button" class="fm-q${hasNoteNow ? ' active' : ''}" data-act="_taskMore" data-more="notewin" data-id="${id}">${hasNoteNow ? IC.editNote : IC.addNote}<span>Заметка</span></button>
+        </div>
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>`
         : '';
     const coarseTail = IS_COARSE ? `
         ${task && task.deadline ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отложить дедлайн</span></button>` : ''}
@@ -2300,6 +2320,16 @@ function _taskMore(act, id) {
     else if (act === 'snooze')  _openSnoozeMenuAt(anchor, id);
     else if (act === 'archive') removeTask(id);
     else if (act === 'delete')  deleteTaskForever(id);
+    // F2 quick bar (coarse) — the former inline card sigils
+    else if (act === 'pin')      togglePin(id);
+    else if (act === 'prio')     openPrioModal(id);
+    else if (act === 'deadline') openDeadlineModal(id);
+    else if (act === 'repeat')   openRepeatModal(id);
+    else if (act === 'color')    openTaskColorModal(id);
+    else if (act === 'notewin') {
+        const t = state.tasks.find(x => x.id === id);
+        if (t && t.note && t.note.trim()) openEditNoteModal(id); else openNoteModal(id);
+    }
 }
 
 // Per-task compact selector for "parent checks by subtasks" (3 options incl. inherit).
@@ -2455,6 +2485,51 @@ function cycleSubPriority(taskId, subId) {
     const cycle = ['none', 'low', 'medium', 'high'];
     sub.priority = cycle[(cycle.indexOf(sub.priority || 'none') + 1) % cycle.length];
     // Re-sort subtasks by new priority and refresh list (handles split layout).
+    const sorted = sortSubtasks(task.subtasks);
+    sorted.forEach((s, i) => { s.order = i; });
+    renderSubList(taskId);
+    saveState();
+}
+
+// F2 (coarse): the subtask ⋯ sheet — the six former inline sub-actions. Body-portal
+// sheet items can't resolve tid/sid from ancestors, so every item carries both.
+function openSubMoreMenu(event, taskId, subId) {
+    event.stopPropagation();
+    const task = state.tasks.find(t => t.id === taskId);
+    const sub  = task && (task.subtasks || []).find(s => s.id === subId);
+    if (!sub) return;
+    const curP = sub.priority || 'none';
+    const ds   = `data-tid="${taskId}" data-sid="${subId}"`;
+    const pOpt = (val, label) =>
+        `<button type="button" role="menuitemradio" aria-checked="${curP === val}" class="fm-q fm-q-prio${curP === val ? ' active' : ''}" data-act="_subMore" data-more="prio" data-p="${val}" ${ds}><span class="fm-prio-dot p-${val}"></span><span>${label}</span></button>`;
+    const repeatSet = sub.repeat && sub.repeat !== 'none';
+    _openFloatMenu(event.currentTarget, `
+        <div class="fm-quick fm-quick-4" role="group" aria-label="Приоритет подпункта">
+            ${pOpt('none', 'Нет')}${pOpt('low', 'Низкий')}${pOpt('medium', 'Средний')}${pOpt('high', 'Высокий')}
+        </div>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="repeat" ${ds}>${IC.ouroboros}<span>Повтор${repeatSet ? ` · ${repeatLabel(sub.repeat)}` : ''}</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="deadline" ${ds}>${IC.window}<span>${sub.deadline ? 'Изменить дедлайн' : 'Дедлайн'}</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="note" ${ds}>${sub.note ? IC.editNote : IC.addNote}<span>${sub.note ? 'Изменить заметку' : 'Заметка'}</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="promote" ${ds}>${IC.promote}<span>Сделать задачей</span></button>
+        <button type="button" role="menuitem" class="fm-danger" data-act="_subMore" data-more="delete" ${ds}>${IC.skull}<span>Удалить подпункт</span></button>`,
+        'sub-more-menu');
+}
+function _subMore(act, taskId, subId, p) {
+    closeFloatMenu();
+    if (act === 'prio')          _setSubPriority(taskId, subId, p || 'none');
+    else if (act === 'repeat')   openSubRepeatModal(taskId, subId);
+    else if (act === 'deadline') openSubDeadlineModal(taskId, subId);
+    else if (act === 'note')     toggleSubNote(taskId, subId);
+    else if (act === 'promote')  promoteSubtask(taskId, subId);
+    else if (act === 'delete')   deleteSubtask(taskId, subId);
+}
+// Direct setter twin of cycleSubPriority — the sheet picks a value instead of cycling.
+function _setSubPriority(taskId, subId, p) {
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const sub = task.subtasks.find(s => s.id === subId);
+    if (!sub) return;
+    sub.priority = p;
     const sorted = sortSubtasks(task.subtasks);
     sorted.forEach((s, i) => { s.order = i; });
     renderSubList(taskId);

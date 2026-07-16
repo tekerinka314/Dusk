@@ -20,12 +20,13 @@ declare var bulkDeadlineActive: any;
 declare var formColorActive: any;
 declare var selectMode: any;
 declare var mainSelectMode: any;
+declare var _groupMoreAnchor: any;
 
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
 Object.assign(globalThis, {
-    render, renderListOnly, _reconcile, _groupHeaderHTML, openGroupMoreMenu, _groupMore, _ensureSplitZone, _ensureKeyed, _pinnedNodes, _splitZoneNodes,
+    render, renderListOnly, _reconcile, _groupHeaderHTML, openGroupMoreMenu, _groupMore, _openGroupSortSheet, _grpSortPick, _ensureSplitZone, _ensureKeyed, _pinnedNodes, _splitZoneNodes,
     _renderSplitBody, _renderScheduleBody, _renderScheduleSplitBody, renderTasks, appendScheduleSection, _visibleUnderFilter, extractPinned, appendPinnedBlock,
     getEffectiveSortMode, isDueTodayOrOverdue, filterAndSort, filterAndSortDeadline, scheduleActive, _taskSortIcon, _taskSortLabel, _taskSortOptions,
     _groupSortPicker, _renderTaskSortControl, toggleSortPicker, _sortPickerOutside, _closeSortPicker, setTaskSort, setGroupSort, toggleSortMode,
@@ -176,27 +177,29 @@ function _reconcile(parent, desired) {
 // Rebuilt in place on a reused section shell — the header has no backdrop-filter so
 // replacing its content does not flash, while the section frame itself stays put.
 function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride) {
-    // B1-13 (coarse): duplicate/rename/delete collapse into a group-⋯ float menu —
-    // the destructive tombstone leaves the always-visible row and the action row
-    // shortens to 4 comfortable targets. Desktop keeps all 6 inline as before.
-    const tail = IS_COARSE ? `
-                    <button class="btn-group-action" data-act="openGroupMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>`
+    // F2 (coarse): a single-row header — EVERY group action lives in the group-⋯
+    // sheet (sundial/sort/focus/dup/rename/delete); the header keeps drag · dot ·
+    // title · count · ⋯ · chevron. Desktop keeps all 6 inline as before.
+    const actions = IS_COARSE ? `
+                <div class="group-actions" data-act="noop">
+                    <button class="btn-group-action${(grpSched || focusGroupId === group.id) ? ' active-sched' : ''}" data-act="openGroupMoreMenu" title="Действия группы" aria-haspopup="menu">${IC.more}</button>
+                </div>`
         : `
-                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
-                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
-                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>`;
-    return `
-                <div class="group-drag-handle" data-act="noop" title="Перетащить группу">${IC.drag}</div>
-                <div class="group-color-dot" style="background:${group.color}"></div>
-                <span class="group-title">${escHtml(group.name)}</span>
-                <span class="group-count">${done}/${total}</span>
                 <div class="group-actions" data-act="noop">
                     <button class="btn-group-action${grpSched ? ' active-sched' : ''}"
                             data-act="toggleScheduleMode" title="Сортировка по дедлайну">${IC.sundial}</button>
                     ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
-                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>${tail}
-                </div>
+                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
+                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
+                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
+                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>
+                </div>`;
+    return `
+                <div class="group-drag-handle" data-act="noop" title="Перетащить группу">${IC.drag}</div>
+                <div class="group-color-dot" style="background:${group.color}"></div>
+                <span class="group-title">${escHtml(group.name)}</span>
+                <span class="group-count">${done}/${total}</span>${actions}
                 <span class="group-chevron">${IC.sword}</span>`;
 }
 
@@ -205,15 +208,43 @@ function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride
 // deleteGroup's setArmed targets .fm-group-del[data-gid] so the glow lands here.
 function openGroupMoreMenu(event, id) {
     event.stopPropagation();
+    _groupMoreAnchor = event.currentTarget;
+    // F2 (coarse): the whole former inline row lives here — sundial toggle, sort
+    // submenu, focus toggle — above the dup/rename/delete verbs.
+    const grpSched = scheduleModeGroups.has(id);
+    const grpSortMode = getEffectiveSortMode(id);
     _openFloatMenu(event.currentTarget, `
+        <button type="button" role="menuitemcheckbox" aria-checked="${grpSched}" class="${grpSched ? 'fm-on' : ''}" data-act="_groupMore" data-more="sched" data-gid="${id}">${IC.sundial}<span>Сортировка по дедлайну</span></button>
+        <button type="button" role="menuitem" data-act="_groupMore" data-more="sort" data-gid="${id}">${_taskSortIcon(grpSortMode)}<span>Порядок: ${_taskSortLabel(grpSortMode).toLowerCase()}</span></button>
+        <button type="button" role="menuitemcheckbox" aria-checked="${focusGroupId === id}" class="${focusGroupId === id ? 'fm-on' : ''}" data-act="_groupMore" data-more="focus" data-gid="${id}">${IC.focusMode}<span>${focusGroupId === id ? 'Снять фокус' : 'Фокус на этой группе'}</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="dup" data-gid="${id}">${IC.twinCoffin}<span>Дублировать группу</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="rename" data-gid="${id}">${IC.quill}<span>Переименовать</span></button>
         <button type="button" role="menuitem" class="fm-danger fm-group-del" data-act="_groupMore" data-more="delete" data-gid="${id}">${IC.tombstone}<span>Удалить группу</span></button>`,
         'group-more-menu');
 }
+globalThis._groupMoreAnchor = null;
+
+// F2 (coarse): sort submenu chained from the group-⋯ sheet; mirrors the desktop
+// _groupSortPicker options, but as sheet rows (the portal picker needs a header
+// ancestor the body-portal sheet doesn't have).
+function _openGroupSortSheet(anchorEl, gid) {
+    const cur = getEffectiveSortMode(gid);
+    const rows = TASK_SORTS.map(s =>
+        `<button type="button" role="menuitemradio" aria-checked="${s.k === cur}" class="${s.k === cur ? 'fm-on' : ''}" data-act="_grpSortPick" data-gid="${gid}" data-k="${s.k}">${_taskSortIcon(s.k)}<span>${s.label}</span></button>`
+    ).join('');
+    _openFloatMenu(anchorEl, `<div class="float-menu-head">Порядок задач</div>${rows}`, 'group-sort-menu');
+}
+function _grpSortPick(gid, k) {
+    closeFloatMenu();
+    setGroupSort(gid, k);
+}
+
 function _groupMore(act, id) {
     if (act === 'dup')         { closeFloatMenu(); duplicateGroup(id); }
     else if (act === 'rename') { closeFloatMenu(); openRenameGroupModal(id); }
+    else if (act === 'sched')  { closeFloatMenu(); toggleScheduleMode(id); }
+    else if (act === 'focus')  { closeFloatMenu(); toggleFocusGroup(id); }
+    else if (act === 'sort')   { const a = _groupMoreAnchor; closeFloatMenu(); _openGroupSortSheet(a, id); }
     else if (act === 'delete') {
         deleteGroup(id);   // arm on first tap; fire on second
         if (!state.groups.some(g => g.id === id)) closeFloatMenu();
@@ -1136,8 +1167,11 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
         document.body.appendChild(menu);
         _fmPrevBodyOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';    // lock the list behind the sheet
-        const first: any = menu.querySelector('[role="menuitem"], button, input');
-        if (first) first.focus({ preventScroll: true });
+        // F2: focus the SHEET, not its first item — programmatic focus on a
+        // button painted a focus ring on every open (visible on device, not
+        // just in the harness). Tab still reaches the items; Esc still closes.
+        menu.tabIndex = -1;
+        menu.focus({ preventScroll: true });
     } else {
         document.body.appendChild(menu);
         const r  = btn.getBoundingClientRect();

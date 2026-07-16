@@ -1515,6 +1515,7 @@ const _gid = el => { const s = el && el.closest('.group-section'); return s ? +s
 Object.assign(ACT, {
     noop:                () => {},
     openGroupMoreMenu:   (el, e) => openGroupMoreMenu(_synEv(el, e), _gid(el)),
+    _grpSortPick:        el => _grpSortPick(+el.dataset.gid, el.dataset.k),
     _groupMore:          el => _groupMore(el.dataset.more, +el.dataset.gid),
     toggleGroupCollapse: el => toggleGroupCollapse(_gid(el)),
     toggleScheduleMode:  el => toggleScheduleMode(_gid(el)),
@@ -1546,6 +1547,8 @@ Object.assign(ACT, {
     _snoozeUnitPick:   el => _snoozeUnitPick(el),
     _snoozeCustomApply: el => _snoozeCustomApply(+el.dataset.id),
     _taskMore:         el => _taskMore(el.dataset.more, +el.dataset.id),
+    openSubMoreMenu:   (el, e) => openSubMoreMenu(_synEv(el, e), _sTid(el), _sSid(el)),
+    _subMore:          el => _subMore(el.dataset.more, +el.dataset.tid, +el.dataset.sid, el.dataset.p),
     setTaskSubMode:    el => setTaskSubMode(+el.dataset.id, el.dataset.mode),
     setGlobalSubMode:  el => setGlobalSubMode(el.dataset.mode),
     _pickDemoteTarget: el => _pickDemoteTarget(+el.dataset.id, +el.dataset.target),
