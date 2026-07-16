@@ -5682,6 +5682,21 @@ kbd {
     }
     .tag-cloud::-webkit-scrollbar { display: none; }
     .tag-chip { flex-shrink: 0; }
+    /* B1-15: wide note tables scroll inside themselves instead of stretching
+       the page (display:block turns the table into its own scroll container —
+       pure CSS, so note.body and the callout/table round-trip stay untouched). */
+    .grim-body table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* B1-04: grim bar actions go icon-only on narrow screens — the four glyphs
+       fit without scrolling (an overflow-x strip would clip the io popover). */
+    .grim-bar-acts .grim-ghost-btn > span,
+    .grim-bar-acts .grim-new-btn > span { display: none; }
+    .grim-bar-acts .grim-ghost-btn,
+    .grim-bar-acts .grim-new-btn { flex-shrink: 0; }
 }
 
 @media (max-width:360px) {
@@ -5730,6 +5745,24 @@ kbd {
     }
     .btn-group-action { width: 40px; height: 40px; }
     .btn-group-action svg { width: 16px; height: 16px; }
+
+    /* B1-14: bulk-select bar becomes two tidy rows — «N отмечено … Отмена»
+       on row 1, the action clusters wrapping below. display:contents lifts
+       the actions container so its children join the bar's own flex flow. */
+    .main-select-bar { flex-wrap: wrap; row-gap: 8px; }
+    .main-select-bar .select-bar-count { order: 0; flex: 1 1 auto; }
+    .main-select-bar .select-bar-actions { display: contents; }
+    .main-select-bar .btn-select-bar-cancel { order: 1; margin-left: auto; flex-shrink: 0; }
+    .main-select-bar .select-bar-group { order: 2; }
+
+    /* B1-22: on touch the date/time segments are native-picker triggers —
+       give them a subtle pressable look so the affordance reads
+       (.seg-input prefix outranks the base .seg rule further down the file) */
+    .seg-input .seg {
+        background: rgba(110, 40, 200, 0.14);
+        padding: 2px 5px;
+    }
+    .seg-input .seg:active { background: rgba(100, 25, 210, 0.38); }
 
     /* ── B1-07/08 (slice 5): the bottom FABs (sync eye, sound/pen stack) float
        over content — reserve a scroll gutter so the last card / paragraph can

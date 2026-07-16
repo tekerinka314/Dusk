@@ -386,6 +386,7 @@ function initSubSortable(taskId) {
         delay: 120,
         delayOnTouchOnly: false,
         fallbackTolerance: 5,
+        fallbackOnBody: true,
         filter: '.sub-check, .sub-prio-btn, .sub-actions, .btn-sub-action, [contenteditable="true"], .sub-note-wrapper, .sub-deadline-badge, .sub-deadline-wrapper',
         preventOnFilter: false,
         ghostClass: 'sortable-ghost',

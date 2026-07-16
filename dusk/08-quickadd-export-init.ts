@@ -171,10 +171,36 @@ function _qaRenderMenu() {
             <span class="qa-label">${escHtml(it.label)}</span>
             ${it.hint ? `<span class="qa-hint">${escHtml(it.hint)}</span>` : ''}
         </button>`).join('');
-    const r = inputBox.getBoundingClientRect();
+    _qaPosition();
+}
+
+// B1-27/28: clamp the typeahead into the VISUAL viewport (the mobile keyboard
+// shrinks it) — flip above the input when the space below can't fit the menu —
+// and keep it glued to the input across scroll / keyboard resize. The menu is
+// position:fixed, so without repositioning it detached on any page scroll
+// (a desktop bug too, not just mobile).
+function _qaPosition() {
+    if (!_qaMenuEl) return;
+    const r  = inputBox.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const vvTop    = vv ? vv.offsetTop : 0;
+    const vvBottom = vvTop + (vv ? vv.height : window.innerHeight);
     _qaMenuEl.style.left  = Math.round(r.left) + 'px';
-    _qaMenuEl.style.top   = Math.round(r.bottom + 5) + 'px';
     _qaMenuEl.style.width = Math.round(r.width) + 'px';
+    const mh = _qaMenuEl.offsetHeight || 200;
+    const spaceBelow = vvBottom - r.bottom - 5;
+    if (spaceBelow < mh && (r.top - vvTop) > mh + 5) {
+        _qaMenuEl.style.top = Math.round(r.top - mh - 5) + 'px';   // flip above the input
+    } else {
+        _qaMenuEl.style.top = Math.round(r.bottom + 5) + 'px';
+    }
+}
+const _qaReposition = () => { if (_qaMenuEl) _qaPosition(); };
+window.addEventListener('scroll', _qaReposition, true);
+window.addEventListener('resize', _qaReposition);
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _qaReposition);
+    window.visualViewport.addEventListener('scroll', _qaReposition);
 }
 
 function _qaHover(i) {
@@ -895,7 +921,7 @@ function toggleShortcutsHint() {
 const segInputs = {}; // { inputId: SegmentedInput }
 
 class SegmentedInput {
-    input: any; type: any; activeIdx: any; _pending: any; _todayMin: any; defs: any; segs: any; el: any;
+    input: any; type: any; activeIdx: any; _pending: any; _todayMin: any; defs: any; segs: any; el: any; _openNativePicker: any;
     constructor(inputId, type) {
         this.input = document.getElementById(inputId);
         if (!this.input) return;
@@ -949,9 +975,18 @@ class SegmentedInput {
 
         this.el = wrap;
 
+        // B1-22 (coarse): typing digits into segments is miserable on touch —
+        // tapping ANYWHERE on the widget routes to the native picker instead
+        // (same path as the picker button). Desktop keeps per-segment typing.
+        this._openNativePicker = () => {
+            if (this._todayMin) this.input.min = this._todayMin;
+            try { this.input.showPicker(); } catch (_) { /* showPicker not supported in this env */ }
+        };
+
         wrap.addEventListener('mousedown', e => {
             const target = (e.target as any).closest('.seg');
             e.preventDefault(); // prevent blur on wrap
+            if (IS_COARSE) { this._openNativePicker(); return; }
             const idx = target ? parseInt(target.dataset.idx ?? this.segs.indexOf(this.segs.find(s => s.el === target))) : -1;
             this._focus(idx >= 0 ? idx : (this.activeIdx >= 0 ? this.activeIdx : 0));
         });
@@ -967,7 +1002,11 @@ class SegmentedInput {
         // Bind each seg click explicitly for reliability
         this.segs.forEach((seg, i) => {
             seg.el.dataset.idx = i;
-            seg.el.addEventListener('mousedown', e => { e.stopPropagation(); e.preventDefault(); this._focus(i); });
+            seg.el.addEventListener('mousedown', e => {
+                e.stopPropagation(); e.preventDefault();
+                if (IS_COARSE) { this._openNativePicker(); return; }   // B1-22
+                this._focus(i);
+            });
         });
 
         // ── Native picker trigger button (calendar / clock icon) ──────────────

@@ -105,7 +105,7 @@
             <!-- Input Section -->
             <div class="input-section">
                 <div class="row" id="input-row">
-                    <input type="text" id="input-box" placeholder="Новая задача..." autocomplete="off" spellcheck="false" maxlength="200">
+                    <input type="text" id="input-box" placeholder="Новая задача..." autocomplete="off" spellcheck="false" maxlength="200" autocapitalize="off" autocorrect="off" enterkeyhint="done">
                     <button class="btn-add" id="btn-add" data-act="addTask" title="Добавить задачу">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                             <line x1="12" y1="3" x2="12" y2="21"/>
@@ -360,7 +360,7 @@
                         <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
                         <line x1="14.5" y1="16" x2="21" y2="21"/>
                     </svg>
-                    <input type="text" id="search-box" placeholder="Поиск..." autocomplete="off" spellcheck="false">
+                    <input type="text" id="search-box" placeholder="Поиск..." autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search">
                     <!-- #3 (порт NA-13): очистка поиска — скрещённые кинжалы, выезжает изнутри пилюли, видна только при вводе. -->
                     <button type="button" class="search-x" tabindex="-1" data-act="clearMainSearch" title="Очистить" aria-label="Очистить поиск">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
@@ -637,6 +637,7 @@
                     </svg>
                     <input type="text" id="archive-search-box"
                            placeholder="Поиск в архиве..." autocomplete="off" spellcheck="false"
+                           autocapitalize="off" autocorrect="off" enterkeyhint="search"
                            data-actinput="archiveSearchInput">
                     <!-- #3 (порт NA-13): очистка архив-поиска — скрещённые кинжалы. -->
                     <button type="button" class="search-x" tabindex="-1" data-act="clearArchiveSearch" title="Очистить" aria-label="Очистить поиск">
@@ -753,7 +754,8 @@
                     <line x1="14.5" y1="16" x2="21" y2="21"/>
                 </svg>
                 <input type="text" id="notes-search-box" placeholder="Искать в гримуаре…"
-                       autocomplete="off" spellcheck="false" data-actinput="grimSearchInput">
+                       autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off"
+                       enterkeyhint="search" data-actinput="grimSearchInput">
                 <!-- NA-13: clear button — two crossed gothic daggers (GIC.dismiss); slides out
                      from inside the search pill (shares its background), shown only when typed in. -->
                 <button type="button" class="grim-search-x" tabindex="-1"

@@ -952,6 +952,7 @@ function _grimInitListSortable() {
         delay: 120,
         delayOnTouchOnly: false,
         fallbackTolerance: 5,
+        fallbackOnBody: true,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',

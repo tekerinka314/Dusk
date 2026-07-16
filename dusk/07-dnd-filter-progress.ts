@@ -10,6 +10,7 @@ declare var _emptyWasVisible: any;
 declare var _cathedralFlashAbort: any;
 declare var audioCtx: any;
 declare var _penUIWired: any;
+declare var _penLastKeyT: any;
 declare var toastTimer: any;
 declare var toastHideTimer: any;
 
@@ -1028,6 +1029,7 @@ function _penIsField(el) {
 }
 
 // Global keydown — sound a grain while typing in a writing field.
+globalThis._penLastKeyT = 0;
 document.addEventListener('keydown', e => {
     if (!penSoundEnabled) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -1035,9 +1037,29 @@ document.addEventListener('keydown', e => {
     const soft = e.key === ' ' || e.key === 'Backspace' || e.key === 'Enter';
     const printable = e.key && e.key.length === 1;
     if (!soft && !printable) return;
+    _penLastKeyT = performance.now();
     if (_penBuf) _penPlay(soft ? 'hand' : 'letter');
     else _penLoad();                                  // first keystroke warms the buffer (gesture)
 }, true);
+
+// B1-20 (coarse): mobile IMEs commit letters via input events — keydown arrives
+// as 'Unidentified' (or not at all), so the quill fell silent on touch keyboards.
+// Mirror the same grain on beforeinput; the timestamp guard swallows the double
+// grain when a hardware keyboard fires BOTH events (e.g. a tablet with a keyboard).
+if (typeof matchMedia === 'function' && matchMedia('(hover: none) and (pointer: coarse)').matches) {
+    document.addEventListener('beforeinput', (e: any) => {
+        if (!penSoundEnabled) return;
+        if (!_penIsField(e.target)) return;
+        if (performance.now() - _penLastKeyT < 50) return;
+        const t = e.inputType || '';
+        let kind = null;
+        if (t === 'insertText' || t === 'insertCompositionText') kind = 'letter';
+        else if (t === 'insertParagraph' || t === 'insertLineBreak' || t.startsWith('delete')) kind = 'hand';
+        if (!kind) return;
+        if (_penBuf) _penPlay(kind);
+        else _penLoad();
+    }, true);
+}
 
 // Build the button's inner UI once: the morphing body holds a volume channel
 // (revealed on hover when sound is on) + the quill icon pinned in the round base.

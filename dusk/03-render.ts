@@ -1605,6 +1605,7 @@ function initGroupDnD() {
         animation: 200,
         delay: 120,
         delayOnTouchOnly: false,
+        fallbackOnBody: true,
         handle: '.group-pill-wrap',
         onEnd: (evt) => {
             const oldIdx = evt.oldIndex;
@@ -1624,6 +1625,7 @@ function initGroupDnD() {
             animation: 220,
             delay: 100,
             delayOnTouchOnly: false,
+            fallbackOnBody: true,
             handle: '.group-drag-handle',
             filter: '.group-actions',
             ghostClass: 'sortable-ghost',

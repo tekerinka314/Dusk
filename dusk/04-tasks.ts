@@ -302,6 +302,7 @@ function buildSubtaskSection(task, forceOpen) {
             <div class="subtask-add-row">
                 <input class="subtask-add-input" id="sub-input-${task.id}"
                        placeholder="Новый подпункт..." autocomplete="off" maxlength="200"
+                       autocapitalize="off" autocorrect="off" enterkeyhint="done"
                        data-actkey="subAddKey">
                 <button class="btn-subtask-confirm" data-act="addSubtask" title="Добавить">
                     ${IC.crossSm}
@@ -769,6 +770,7 @@ function initFormSubSortable() {
         delay: 120,
         delayOnTouchOnly: false,
         fallbackTolerance: 5,
+        fallbackOnBody: true,
         // Keep clicks on actions / inline edit fields from starting a drag.
         filter: '.sub-actions, .btn-sub-action, .sub-note-wrapper, .sub-deadline-badge, .sub-deadline-wrapper, [contenteditable="true"]',
         preventOnFilter: false,

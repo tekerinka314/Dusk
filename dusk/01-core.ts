@@ -875,6 +875,7 @@ const SORTABLE_OPTS = {
     delay: 120,
     delayOnTouchOnly: false,
     fallbackTolerance: 5,
+    fallbackOnBody: true,   // B1-21: append the touch-drag ghost to <body> so transformed ancestors cannot offset it
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
