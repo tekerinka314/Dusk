@@ -35,10 +35,15 @@ Object.assign(globalThis, {
 // ============================================================
 function createTaskEl(task, showDlSide) {
     const li = document.createElement('li');
+    // Coarse: no side deadline column in schedule mode — the 54px stretch column
+    // steals a fifth of the card width and, on a card with subtasks, renders as a
+    // near-empty full-height tunnel; the meta pill (same countdown + date) does
+    // the job instead and schedule mode stays a pure sort.
+    const _dlSideOn = showDlSide && !IS_COARSE;
     let cls = 'task-item';
     if (task.checked)      cls += ' checked';
     if (task.cycleChecked) cls += ' cycle-checked';
-    if (showDlSide && task.deadline) cls += ' has-dl-side';
+    if (_dlSideOn && task.deadline) cls += ' has-dl-side';
     // IMP-1: only animate tasks that were just added/restored — not all tasks on every render
     if (_newTaskIds.has(task.id)) {
         cls += ' entering';
@@ -54,9 +59,9 @@ function createTaskEl(task, showDlSide) {
     const taskInk = task.color ? _grimInk(task.color) : null;
     if (taskInk) li.style.setProperty('--task-color', taskInk);
 
-    // ── Left deadline panel (schedule mode) ──
+    // ── Left deadline panel (schedule mode; desktop only — see _dlSideOn above) ──
     let dlSideHtml = '';
-    if (showDlSide && task.deadline) {
+    if (_dlSideOn && task.deadline) {
         const status    = deadlineStatus(task.deadline);
         const countdown = formatDeadlineCountdown(task.deadline);
         const absolute  = formatDeadlineAbsolute(task.deadline, true);  // bare: real date, no 'завтра' overlap
@@ -67,7 +72,7 @@ function createTaskEl(task, showDlSide) {
 
     // ── Deadline badge (meta row — hidden in schedule mode if side panel shown) ──
     let deadlineHtml = '';
-    if (task.deadline && !showDlSide) {
+    if (task.deadline && !_dlSideOn) {
         const status    = deadlineStatus(task.deadline);
         const countdown = formatDeadlineCountdown(task.deadline);
         const absolute  = formatDeadlineAbsolute(task.deadline, true);
