@@ -14,6 +14,7 @@ declare var _stateLoaded: any;
 declare var _stateLoadedResolve: any;
 declare var _stateLoadedPromise: any;
 declare var _dragHandleObserver: any;
+declare var IS_COARSE: any;
 declare var state: any;
 declare var isFiltered: any;
 declare var searchQuery: any;
@@ -614,6 +615,13 @@ const DRAG_HANDLE_H       = 13;
 const DRAG_HANDLE_MIN_GAP = 5;
 
 globalThis._dragHandleObserver = null;
+
+// B1 mobile rework: cached coarse-pointer flag — the JS twin of the CSS
+// `@media (hover: none) and (pointer: coarse)` layer. Queried ONCE: it must
+// stay stable for the whole session so coarse-branched markup keeps a stable
+// `_liSig` card-reuse signature (a mid-session flip would desync cards).
+globalThis.IS_COARSE = typeof matchMedia === 'function'
+    && matchMedia('(hover: none) and (pointer: coarse)').matches;
 
 function _positionOneHandle(item) {
     const col     = item.querySelector('.task-check-col');

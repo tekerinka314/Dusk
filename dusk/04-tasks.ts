@@ -175,13 +175,13 @@ function createTaskEl(task, showDlSide) {
                         </svg>
                     </button>
                     <button class="btn-task-action" data-act="openDeadlineModal" title="Дедлайн">${IC.window}</button>
-                    ${task.deadline ? `<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
+                    ${(!IS_COARSE && task.deadline) ? `<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
                     <button class="btn-task-action" data-act="openRepeatModal" title="Повтор">${IC.ouroboros}</button>
                     <button class="btn-task-action" data-act="openPrioModal" title="Приоритет">${IC.spires}</button>
                     ${addNoteBtn}
                     <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
-                    <button class="btn-task-action archive-btn" data-act="removeTask" title="В архив">${IC.archive}</button>
-                    <button class="btn-task-action danger" data-act="deleteTaskForever" title="Удалить навсегда">${IC.skull}</button>
+                    ${IS_COARSE ? '' : `<button class="btn-task-action archive-btn" data-act="removeTask" title="В архив">${IC.archive}</button>
+                    <button class="btn-task-action danger" data-act="deleteTaskForever" title="Удалить навсегда">${IC.skull}</button>`}
                 </div>
             </div>
             <div class="task-meta">${deadlineHtml}${rptHtml}${cycleUntilHtml}${noteToggle}${subToggle}${subNotesAlwaysBtn}</div>
@@ -2262,11 +2262,24 @@ function openTaskMoreMenu(event, id) {
                   : (state.subAnyMode ? IC.g4any : IC.g4all);
         subModeItem = `<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Чек по подпунктам</span></button>`;
     }
+    // B1-01/02 (coarse): the inline action row keeps only the 7 everyday buttons;
+    // edit + snooze + archive + delete live here instead. Archive/delete were the
+    // two RIGHTMOST inline buttons — exactly the ones that clipped off-card and
+    // caught accidental taps. Desktop keeps all of them inline (no extras here).
+    const coarseHead = IS_COARSE
+        ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>`
+        : '';
+    const coarseTail = IS_COARSE ? `
+        ${task && task.deadline ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отложить дедлайн</span></button>` : ''}
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="archive" data-id="${id}">${IC.archive}<span>В архив</span></button>
+        <button type="button" role="menuitem" class="fm-danger" data-act="_taskMore" data-more="delete" data-id="${id}">${IC.skull}<span>Удалить навсегда</span></button>` : '';
     _openFloatMenu(event.currentTarget, `
+        ${coarseHead}
         <button type="button" role="menuitem" data-act="_taskMore" data-more="tpl" data-id="${id}">${IC.template}<span>Сохранить как шаблон</span></button>
         <button type="button" role="menuitem" data-act="_taskMore" data-more="dup" data-id="${id}">${IC.twinCoffin}<span>Дублировать задачу</span></button>
         ${subModeItem}
-        ${canDemote ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="demote" data-id="${id}">${IC.demote}<span>Сделать подпунктом</span></button>` : ''}`,
+        ${canDemote ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="demote" data-id="${id}">${IC.demote}<span>Сделать подпунктом</span></button>` : ''}
+        ${coarseTail}`,
         'task-more-menu');
 }
 function _taskMore(act, id) {
@@ -2276,6 +2289,10 @@ function _taskMore(act, id) {
     else if (act === 'dup')     duplicateTask(id);
     else if (act === 'submode') _openSubModeMenu(anchor, id);
     else if (act === 'demote')  _openDemoteMenuAt(anchor, id);
+    else if (act === 'edit')    startInlineEdit({ stopPropagation() {} }, id);
+    else if (act === 'snooze')  _openSnoozeMenuAt(anchor, id);
+    else if (act === 'archive') removeTask(id);
+    else if (act === 'delete')  deleteTaskForever(id);
 }
 
 // Per-task compact selector for "parent checks by subtasks" (3 options incl. inherit).

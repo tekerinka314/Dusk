@@ -1123,6 +1123,10 @@ body::after {
 }
 .snooze-menu button svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.8; }
 .snooze-menu button:hover { background: rgba(100, 25, 200, 0.20); color: var(--text-primary); }
+/* Destructive menu item (coarse task-⋯: «Удалить навсегда») — danger red is the
+   only warm accent, reserved for destructive actions (matches .btn-task-action.danger). */
+.snooze-menu button.fm-danger:hover,
+.snooze-menu button.fm-danger:active { background: var(--prio-high-bg); color: var(--prio-high); }
 @media (prefers-reduced-motion: reduce) { .snooze-menu { animation: none; } }
 /* Idea 3: demote parent-picker uses the same floating menu, scrollable task list */
 .snooze-menu.demote-menu { max-width: 250px; max-height: 320px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent; }
@@ -5626,11 +5630,56 @@ kbd {
     /* P-E: no hover on touch — keep the deadline pill open so the countdown is visible */
     .sub-deadline-wrapper { grid-template-rows: 1fr; }
     .sub-deadline-inner   { opacity: 1; }
-    .btn-task-action  { width: 30px; height: 30px; }
-    .btn-task-action svg { width: 14px; height: 14px; }
-    .btn-sub-action   { width: 26px; height: 26px; }
     .btn-group-action { width: 30px; height: 30px; }
     .drag-handle { opacity: 0.3; }
+
+    /* ── B1-01/02 (mobile rework slice 1): 3-row task card ─────────────────
+       Title takes the full card width and wraps; the meta row follows; the
+       action buttons drop to their own wrapping row of 40px targets. Markup
+       is untouched — .task-head dissolves (display: contents) and explicit
+       `order` lays out the .task-content flex column. Archive cards keep
+       their own compact layout (no .task-head there to dissolve). */
+    .task-item:not(.archive-item) .task-content {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .task-item:not(.archive-item) .task-head { display: contents; }
+    .task-item:not(.archive-item) .task-text { order: 0; flex: none; }
+    .task-item:not(.archive-item) .task-meta { order: 1; }
+    .task-item:not(.archive-item) .task-meta:empty { display: none; }
+    .task-item:not(.archive-item) .task-actions {
+        order: 2;
+        margin-top: 7px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .task-item:not(.archive-item) .task-note-wrapper { order: 3; }
+    .task-item:not(.archive-item) .subtask-section { order: 4; }
+
+    .btn-task-action  { width: 40px; height: 40px; }
+    .btn-task-action svg { width: 18px; height: 18px; }
+    .btn-task-action.btn-task-more svg { width: 20px; height: 20px; }
+    .btn-task-action.edit-note-btn { width: auto; min-width: 40px; padding: 0 10px; font-size: 10.5px; }
+    /* Coffin checkbox: same icon, comfortable tap target */
+    .task-check { width: 40px; min-width: 40px; height: 40px; }
+
+    /* ── B1-03: subtask actions wrap onto their own row under the text ── */
+    .sub-main-row { flex-wrap: wrap; row-gap: 2px; }
+    .sub-actions {
+        flex-basis: 100%;
+        justify-content: flex-end;
+        gap: 4px;
+    }
+    .btn-sub-action { width: 36px; height: 36px; }
+    .btn-sub-action svg { width: 14px; height: 14px; }
+    .sub-check { min-width: 32px; min-height: 32px; }
+    /* touch has no hover — keep the subtask drag handle reachable */
+    .subtask-item:not(.checked):not(.cycle-checked) .sub-drag-handle {
+        width: 14px;
+        opacity: 0.45;
+        pointer-events: auto;
+    }
 }
 
 /* ===================================================

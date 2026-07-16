@@ -28,7 +28,7 @@ Object.assign(globalThis, {
     getEffectiveSortMode, isDueTodayOrOverdue, filterAndSort, filterAndSortDeadline, scheduleActive, _taskSortIcon, _taskSortLabel, _taskSortOptions,
     _groupSortPicker, _renderTaskSortControl, toggleSortPicker, _sortPickerOutside, _closeSortPicker, setTaskSort, setGroupSort, toggleSortMode,
     toggleGroupSortMode, toggleFocusGroup, clearTaskRepeat, clearTaskDeadline, _deadlineTimeOfDay, snoozeDeadline, closeFloatMenu, _floatMenuOutside,
-    _openFloatMenu, openSnoozeMenu, _snoozeUnitPick, _snoozeCustomApply, snoozeByRelative, _labelColorSwatches, _syncListboxActive, _syncColorFilterUI,
+    _openFloatMenu, openSnoozeMenu, _openSnoozeMenuAt, _snoozeUnitPick, _snoozeCustomApply, snoozeByRelative, _labelColorSwatches, _syncListboxActive, _syncColorFilterUI,
     setColorFilter, openColorFilterModal, closeColorFilterModal, _populateColorFilterModal, _applyArchiveSearch, importData, _showImportChoiceModal, requestNotificationPermission,
     _checkDeadlineNotifications, initGroupDnD, _requireSelection, bulkSetPriority, bulkSetGroup, bulkSetColor, bulkSetDeadline, openBulkColorModal,
     openBulkDeadlineModal, openBulkGroupModal, closeBulkGroupModal, _renderBulkGroupList, renderGroupBar, renderGroupSelect, renderGroupChips, selectGroupChip,
@@ -1104,7 +1104,12 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
 
 function openSnoozeMenu(event, id) {
     event.stopPropagation();
-    _openFloatMenu(event.currentTarget, `
+    _openSnoozeMenuAt(event.currentTarget, id);
+}
+// Anchor-based twin: the coarse-pointer task-⋯ menu re-anchors the snooze
+// picker to the ⋯ button (no live event there — the menu item is already gone).
+function _openSnoozeMenuAt(anchorEl, id) {
+    _openFloatMenu(anchorEl, `
         <button type="button" role="menuitem" data-act="snoozeDeadline" data-id="${id}" data-snz="1h">${IC.snooze}<span>+1 час</span></button>
         <button type="button" role="menuitem" data-act="snoozeDeadline" data-id="${id}" data-snz="tomorrow">${IC.moon}<span>До завтра</span></button>
         <button type="button" role="menuitem" data-act="snoozeDeadline" data-id="${id}" data-snz="week">${IC.sundial}<span>+1 неделя</span></button>
