@@ -1128,12 +1128,13 @@ body::after {
 .snooze-menu button.fm-danger:hover,
 .snooze-menu button.fm-danger:active { background: var(--prio-high-bg); color: var(--prio-high); }
 /* Two-step group delete armed INSIDE the group-⋯ menu (same pulse as the inline button) */
-.snooze-menu button.fm-group-del.confirm-armed {
+.snooze-menu button.fm-group-del.confirm-armed,
+.snooze-menu button.fm-clear-all.confirm-armed {
     background: var(--prio-high-bg);
     color: var(--prio-high);
     animation: armedPulse 0.8s ease-in-out infinite;
 }
-@media (prefers-reduced-motion: reduce) { .snooze-menu button.fm-group-del.confirm-armed { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .snooze-menu button.fm-group-del.confirm-armed, .snooze-menu button.fm-clear-all.confirm-armed { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .snooze-menu { animation: none; } }
 
 /* ── B1-17/28 (slice 3): bottom action-sheet — the «crypt slab» ────────────
@@ -1479,6 +1480,8 @@ body::after {
     user-select: none;
     pointer-events: none;
 }
+/* F2: the toolbar-⋯ (data sheet trigger) exists only on coarse pointers */
+.btn-tool.btn-tool-more { display: none; }
 .btn-tool {
     width: 33px;
     height: 33px;
@@ -5815,22 +5818,35 @@ kbd {
     }
     .seg-input .seg:active { background: rgba(100, 25, 210, 0.38); }
 
-    /* Toolbar tool buttons: 33px (30px ≤640px) is below the comfortable touch
-       target — 42px with a bigger glyph. The clusters wrap to 3 labelled rows
-       at 412; Fitts beats compactness on touch. */
+    /* ── F2: toolbar = search + 2 quiet rows ─────────────────────────────
+       42px targets; the ВИД cluster rides row 1, ФИЛЬТР+ВЫБОР+⋯ row 2. The
+       ДАННЫЕ cluster moved into the toolbar-⋯ sheet; word-labels and the
+       mid-row divider stubs are gone (the sheet carries the labels now). */
     .btn-tool { width: 42px; height: 42px; }
     .btn-tool svg { width: 17px; height: 17px; }
-    .toolbar-group { padding: 0 10px; }
+    .toolbar-group { padding: 0 8px; }
+    .toolbar-group-label { display: none; }
+    .toolbar-group + .toolbar-group::before { top: 6px; bottom: 6px; }
+    .toolbar-group-data { display: none; }
+    .btn-tool.btn-tool-more { display: flex; }
+    .btn-tool:active { transform: scale(0.94); background: rgba(120, 60, 220, 0.22); }
+
+    /* «+ГРУППА / ШАБЛОНЫ»: solid ghost instead of the draft-looking dashes */
+    .btn-add-group { border-style: solid; background: var(--bg-tag); min-height: 40px; }
 
     /* Keyboard-shortcuts FAB is meaningless without a physical keyboard —
        drop it and let the pen-sound FAB take its slot in the right stack. */
     .btn-shortcuts-toggle { display: none; }
     .btn-pen-sound { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
 
-    /* Branding header: identity stays, dead vertical air goes — a phone
-       viewport shows ~1.5 more task rows for free. */
-    .app-header { gap: 16px; margin-bottom: 14px; padding-bottom: 16px; }
-    .page-nav { margin-bottom: 16px; }
+    /* ── F2: compact branding — one calm row, ~60px saved ────────────────
+       DUSK + emblems in a single tight row; the tagline (and its typewriter
+       cascade) is desktop theater. The ornament divider stays as the seam. */
+    .app-header { gap: 12px; margin-bottom: 10px; padding-bottom: 10px; }
+    .brand-tagline { display: none; }
+    .brand-name { font-size: 26px; letter-spacing: 6px; }
+    .brand-svg { width: 22px; height: 27px; }
+    .page-nav { margin-bottom: 12px; }
 
     /* ── B1-07/08 (slice 5): the bottom FABs (sync eye, sound/pen stack) float
        over content — reserve a scroll gutter so the last card / paragraph can

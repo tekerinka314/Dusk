@@ -474,8 +474,18 @@
                             <circle cx="9" cy="9.5" r="0.9" fill="currentColor" stroke="none"/>
                         </svg>
                     </button>
+                    <!-- F2 (coarse only, hidden on desktop): the ДАННЫЕ cluster lives in a
+                         bottom sheet behind this ⋯ — same lozenge glyph as the card ⋯ -->
+                    <button class="btn-tool btn-tool-more" id="btn-tool-more" data-act="openToolsMenu" title="Данные" aria-haspopup="menu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 8.5V9.5M12 14.5V15.5" opacity=".55"/>
+                            <path d="M12 3L15.5 6L12 9L8.5 6Z"/>
+                            <path d="M12 9L15.5 12L12 15L8.5 12Z"/>
+                            <path d="M12 15L15.5 18L12 21L8.5 18Z"/>
+                        </svg>
+                    </button>
                     </div><span class="toolbar-group-label">выбор</span></div>
-                    <div class="toolbar-group"><div class="toolbar-group-btns">
+                    <div class="toolbar-group toolbar-group-data"><div class="toolbar-group-btns">
                     <!-- Export data (gothic scroll leaving the vault) -->
                     <button class="btn-tool" id="btn-export" data-act="openExportMenu" title="Экспорт: только задачи / всё" aria-haspopup="menu">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">

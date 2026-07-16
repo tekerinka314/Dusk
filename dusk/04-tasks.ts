@@ -1172,7 +1172,10 @@ globalThis._clearAllTimer = null;
 
 // "Удалить всё навсегда" — permanently destroys (two-step confirm)
 function clearAll() {
-    const btn = document.querySelector<HTMLElement>('.btn-tool.btn-danger[data-act="clearAll"]');
+    // F2: the trigger can be the toolbar button (desktop) OR the tools-sheet row
+    // (coarse) — arm whichever is live; the sheet row exists only while open.
+    const btn = document.querySelector<HTMLElement>('.fm-clear-all')
+             || document.querySelector<HTMLElement>('.btn-tool.btn-danger[data-act="clearAll"]');
 
     // I-6: if list is empty while armed, disarm cleanly and bail
     if (!state.tasks.length) {
@@ -1201,6 +1204,7 @@ function clearAll() {
     clearTimeout(_clearAllTimer);
     _clearAllArmed = false;
     if (btn) { btn.classList.remove('confirm-armed'); btn.title = 'Удалить всё навсегда'; }
+    if (btn && btn.classList.contains('fm-clear-all')) closeFloatMenu();   // F2: fired from the tools sheet
 
     pushUndo();
     // IMP-9: Clear all orphaned localStorage keys for groups before wiping tasks

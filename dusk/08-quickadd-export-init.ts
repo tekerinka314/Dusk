@@ -7,13 +7,14 @@ declare var _focusedByKeyboard: any;
 declare var _focusedArchiveId: any;
 declare var _shortcutsHintOpen: any;
 declare var _taskHintHTML: any;
+declare var _toolsMenuAnchor: any;
 
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
 Object.assign(globalThis, {
     parseQuickInput, _parseQuickDate, _qaDetect, _qaSuggest, _qaUpdate, _qaRenderMenu, _qaHover, _qaMove,
-    _qaAccept, _qaClose, _qaKeydown, openExportMenu, exportData, _tasksToMarkdown, _exportTasksMarkdown, triggerImport,
+    _qaAccept, _qaClose, _qaKeydown, openExportMenu, openToolsMenu, _toolsMore, exportData, _tasksToMarkdown, _exportTasksMarkdown, triggerImport,
     duplicateTask, togglePin, toggleMainSelectMode, toggleMainSelectTask, _updateMainSelectBar, bulkArchive, bulkDelete, _visibleTaskEls,
     getVisibleTaskIds, _matchKey, highlightFocusedTask, _visibleArchiveIds, _highlightFocusedArchive, setupEventListeners, _shortcutsHintHTML, _refreshShortcutsHint,
     toggleShortcutsHint, initMonthPicker, initWeekdayPicker, initSegmentedInputs, initFormWeekdayPicker,
@@ -271,6 +272,34 @@ function openExportMenu(event) {
         <button type="button" role="menuitem" data-act="exportData" data-exp="all">${GRIM_IO_IC.full}<span>Всё — полный бэкап</span></button>
         <button type="button" role="menuitem" data-act="exportData" data-exp="md">${_EXPORT_MD_IC}<span>Задачи — markdown-чеклист</span></button>`,
         'export-menu');
+}
+
+// F2 (coarse): the toolbar-⋯ sheet — the former always-visible ДАННЫЕ cluster.
+// Same gothic glyphs as the toolbar buttons; destructive actions at the bottom,
+// «Удалить всё» keeps its two-step arm (clearAll arms the .fm-clear-all row).
+const _TOOLS_IMPORT_IC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2H17V16L12 20L7 16V2Z"/><path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/><line x1="12" y1="7" x2="12" y2="15"/><path d="M9.5 9.5L12 6.5L14.5 9.5"/></svg>`;
+const _TOOLS_EXPORT_IC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2H17V16L12 20L7 16V2Z"/><path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/><line x1="12" y1="8" x2="12" y2="16"/><path d="M9.5 13.5L12 16.5L14.5 13.5"/></svg>`;
+const _TOOLS_BACKUP_IC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3.5" x2="18" y2="3.5"/><line x1="6" y1="20.5" x2="18" y2="20.5"/><path d="M7.5 3.5 C7.5 3.5 11 8.5 12 12 C13 15.5 16.5 20.5 16.5 20.5"/><path d="M16.5 3.5 C16.5 3.5 13 8.5 12 12 C11 15.5 7.5 20.5 7.5 20.5"/><path d="M8.8 19 Q12 14.8 15.2 19" fill="currentColor" stroke="none" opacity="0.8"/></svg>`;
+globalThis._toolsMenuAnchor = null;
+function openToolsMenu(event) {
+    event.stopPropagation();
+    _toolsMenuAnchor = event.currentTarget;
+    _openFloatMenu(event.currentTarget, `
+        <div class="float-menu-head">Данные</div>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="export">${_TOOLS_EXPORT_IC}<span>Экспорт…</span></button>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="import">${_TOOLS_IMPORT_IC}<span>Импорт бэкапа (.json)</span></button>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="backups">${_TOOLS_BACKUP_IC}<span>Точки восстановления</span></button>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="archiveAll">${IC.archive}<span>Архивировать всё</span></button>
+        <button type="button" role="menuitem" class="fm-danger fm-clear-all" data-act="clearAll" title="Удалить всё навсегда">${IC.skull}<span>Удалить всё навсегда</span></button>`,
+        'tools-menu');
+}
+function _toolsMore(act) {
+    const a = _toolsMenuAnchor;
+    closeFloatMenu();
+    if (act === 'export')          openExportMenu({ currentTarget: a, stopPropagation() {} });
+    else if (act === 'import')     triggerImport();
+    else if (act === 'backups')    openBackupModal();
+    else if (act === 'archiveAll') archiveAll();
 }
 
 /** Export DUSK data as a timestamped JSON file.

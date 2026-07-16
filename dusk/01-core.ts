@@ -1755,6 +1755,8 @@ Object.assign(ACT, {
     requestNotificationPermission: () => requestNotificationPermission(),
     openSubAnyModeMenu:  (el, e) => openSubAnyModeMenu(_synEv(el, e)),
     openExportMenu:      (el, e) => openExportMenu(_synEv(el, e)),
+    openToolsMenu:       (el, e) => openToolsMenu(_synEv(el, e)),
+    _toolsMore:          el => _toolsMore(el.dataset.more),
     clearAll:            () => clearAll(),
     bulkSetPriority:     el => bulkSetPriority(el.dataset.prio),
     openBulkGroupModal:  () => openBulkGroupModal(),
