@@ -5430,7 +5430,7 @@ textarea:focus-visible {
 
 .btn-sound {
     position: fixed;
-    bottom: 22px;
+    bottom: calc(22px + env(safe-area-inset-bottom, 0px));
     right: 22px;
     width: 40px;
     height: 40px;
@@ -5457,7 +5457,7 @@ textarea:focus-visible {
 /* ── Shortcuts toggle button (UX-3) ──────────────────────────────────────── */
 .btn-shortcuts-toggle {
     position: fixed;
-    bottom: 68px; /* stacked above btn-sound (22px bottom + 40px height + 6px gap) */
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px)); /* stacked above btn-sound (22px bottom + 40px height + 6px gap) */
     right: 22px;
     width: 40px;
     height: 40px;
@@ -5494,7 +5494,7 @@ textarea:focus-visible {
 /* ── п.17 Звук пера toggle — stacked above the shortcuts button ──────────────── */
 .btn-pen-sound {
     position: fixed;
-    bottom: 114px; /* 22 + 2×(40+6) */
+    bottom: calc(114px + env(safe-area-inset-bottom, 0px)); /* 22 + 2×(40+6) */
     right: 22px;
     width: 40px;
     height: 40px;
@@ -5730,6 +5730,12 @@ kbd {
     }
     .btn-group-action { width: 40px; height: 40px; }
     .btn-group-action svg { width: 16px; height: 16px; }
+
+    /* ── B1-07/08 (slice 5): the bottom FABs (sync eye, sound/pen stack) float
+       over content — reserve a scroll gutter so the last card / paragraph can
+       always scroll clear of them, plus the gesture-nav safe area. */
+    .todo-app { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    .grim-page { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 
     /* B1-05: toolbar group pill must not push the bar off-screen */
     .group-pill-wrap .meta-tag.group-pill {
@@ -7509,7 +7515,7 @@ kbd {
 /* A: floating find bar — fixed at the viewport bottom-centre (body-level singleton so a
    transformed .grim-page can't break its fixed positioning). Counter + prev/next + close. */
 .grim-find {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(8px);
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(8px);
     display: inline-flex; align-items: center; gap: 2px; z-index: 60;
     background: rgba(20, 14, 32, 0.94); border: 1px solid var(--border-mid); border-radius: 9px;
     padding: 5px 7px; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5), 0 0 16px rgba(120, 40, 220, 0.16);
@@ -8152,7 +8158,7 @@ kbd {
    EYE's stroke colour + opacity reflect the sync state (so "offline/asleep" dims
    the eye inside a still-visible ring rather than fading the whole button out). */
 .sync-glyph {
-    position: fixed; bottom: 22px; left: 22px; z-index: 50;
+    position: fixed; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); left: 22px; z-index: 50;
     width: 46px; height: 46px; padding: 5px;          /* 46 − 2×5 ⇒ a 36px eye */
     border-radius: 50%;
     background: var(--bg-app);
@@ -8272,6 +8278,6 @@ kbd {
 .sync-quar-empty { color: var(--text-muted); font-size: 12.5px; padding: 16px; text-align: center; }
 
 @media (max-width: 560px) {
-    .sync-glyph { bottom: 18px; left: 16px; width: 46px; height: 46px; }
+    .sync-glyph { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 16px; width: 46px; height: 46px; }
 }
 
