@@ -8,6 +8,8 @@ declare var _liCache: any;
 declare var _openSortPicker: any;
 declare var _portaledList: any;
 declare var _floatMenuEl: any;
+declare var _fmScrim: any;
+declare var _fmPrevBodyOverflow: any;
 declare var _floatMenuAnchor: any;
 declare var _suppressReopenAnchor: any;
 declare var _suppressReopenAt: any;
@@ -1063,11 +1065,23 @@ globalThis._floatMenuEl = null;
 globalThis._floatMenuAnchor = null;// the trigger button the open menu belongs to
 globalThis._suppressReopenAnchor = null;// set on a toggle-close so the trailing click doesn't reopen
 globalThis._suppressReopenAt = 0;
+globalThis._fmScrim = null;        // B1-17/28: dim scrim behind the coarse bottom sheet
+globalThis._fmPrevBodyOverflow = '';
 function closeFloatMenu() {
     const m = _floatMenuEl;
+    const anchor = _floatMenuAnchor;
+    const scrim = _fmScrim;
     _floatMenuEl = null;            // clear refs first so an immediate reopen makes a fresh element
     _floatMenuAnchor = null;
+    _fmScrim = null;
     document.removeEventListener('pointerdown', _floatMenuOutside, true);
+    if (scrim) {
+        scrim.classList.add('closing');
+        let sGone = false;
+        const sDrop = () => { if (sGone) return; sGone = true; scrim.remove(); };
+        scrim.addEventListener('animationend', sDrop, { once: true });
+        setTimeout(sDrop, 240);
+    }
     if (m) {
         // Smooth exit: fade/scale the old element out, then remove it.
         m.classList.add('float-menu-closing');
@@ -1075,8 +1089,17 @@ function closeFloatMenu() {
         const drop = () => { if (gone) return; gone = true; m.remove(); };
         m.addEventListener('animationend', drop, { once: true });
         setTimeout(drop, 240);      // safety net if animationend never fires
+        if (m.classList.contains('action-sheet')) {
+            document.body.style.overflow = _fmPrevBodyOverflow || '';
+            // a11y: hand focus back to the button that opened the sheet
+            if (anchor && document.contains(anchor) && anchor.focus) anchor.focus({ preventScroll: true });
+        }
     }
 }
+// Esc closes the open float menu / action sheet (helps keyboard users everywhere).
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && _floatMenuEl) closeFloatMenu();
+});
 function _floatMenuOutside(e) {
     if (!_floatMenuEl || _floatMenuEl.contains(e.target)) return;
     // A pointerdown on the very anchor that opened the menu is a toggle-close: the
@@ -1101,26 +1124,42 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
     menu.className = 'snooze-menu' + (extraClass ? ' ' + extraClass : '');
     menu.setAttribute('role', 'menu');
     menu.innerHTML = innerHTML;
-    document.body.appendChild(menu);
-    const r  = btn.getBoundingClientRect();
-    const mw = menu.offsetWidth || 160;
-    const mh = menu.offsetHeight || 0;
-    const pad = 8;
-    const spaceBelow = window.innerHeight - r.bottom - pad;
-    const spaceAbove = r.top - pad;
-    // Open below by default; flip ABOVE when there's more room there (e.g. the sync
-    // eye is pinned to the bottom-left). When opening above, anchor by BOTTOM so the
-    // panel grows UPWARD — a <details>/log expanding then can't push it off-screen —
-    // and cap the height to the available space with internal scroll either way.
-    if (spaceBelow >= mh || spaceBelow >= spaceAbove) {
-        menu.style.top = Math.round(r.bottom + 5) + 'px';
-        menu.style.maxHeight = Math.round(Math.max(120, spaceBelow)) + 'px';
+    if (IS_COARSE) {
+        // B1-17/28 (slice 3): on touch the SAME item HTML renders as a bottom
+        // action-sheet («crypt slab») instead of an anchored popover — kills the
+        // right-edge clipping and scroll-detach class defects in one change point.
+        const scrim = document.createElement('div');
+        scrim.className = 'fm-scrim';
+        document.body.appendChild(scrim);
+        _fmScrim = scrim;
+        menu.classList.add('action-sheet');
+        document.body.appendChild(menu);
+        _fmPrevBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';    // lock the list behind the sheet
+        const first: any = menu.querySelector('[role="menuitem"], button, input');
+        if (first) first.focus({ preventScroll: true });
     } else {
-        menu.style.bottom = Math.round(window.innerHeight - r.top + 5) + 'px';
-        menu.style.maxHeight = Math.round(Math.max(120, spaceAbove)) + 'px';
+        document.body.appendChild(menu);
+        const r  = btn.getBoundingClientRect();
+        const mw = menu.offsetWidth || 160;
+        const mh = menu.offsetHeight || 0;
+        const pad = 8;
+        const spaceBelow = window.innerHeight - r.bottom - pad;
+        const spaceAbove = r.top - pad;
+        // Open below by default; flip ABOVE when there's more room there (e.g. the sync
+        // eye is pinned to the bottom-left). When opening above, anchor by BOTTOM so the
+        // panel grows UPWARD — a <details>/log expanding then can't push it off-screen —
+        // and cap the height to the available space with internal scroll either way.
+        if (spaceBelow >= mh || spaceBelow >= spaceAbove) {
+            menu.style.top = Math.round(r.bottom + 5) + 'px';
+            menu.style.maxHeight = Math.round(Math.max(120, spaceBelow)) + 'px';
+        } else {
+            menu.style.bottom = Math.round(window.innerHeight - r.top + 5) + 'px';
+            menu.style.maxHeight = Math.round(Math.max(120, spaceAbove)) + 'px';
+        }
+        menu.style.overflowY = 'auto';
+        menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
     }
-    menu.style.overflowY = 'auto';
-    menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
     _floatMenuEl = menu;
     _floatMenuAnchor = btn;
     // Defer so this same click doesn't immediately close it
