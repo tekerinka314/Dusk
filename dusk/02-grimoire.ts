@@ -1885,7 +1885,11 @@ function _grimFlattenSnippet(html) {
             case 'PRE':   pushGlyph('code'); break;               // block code (stage 8)
             case 'HR':    break;                                  // a rule carries no content
             case 'BLOCKQUOTE': pushGlyph('quote'); pushText(el.textContent); break;
-            case 'UL': case 'OL': pushGlyph(el.classList.contains('task') ? 'task' : 'list'); pushText(el.textContent); break;
+            // textContent glues adjacent <li> texts into one run («купить свечинайти котёл»)
+            // — join the items with a middot so the snippet stays readable.
+            case 'UL': case 'OL': pushGlyph(el.classList.contains('task') ? 'task' : 'list');
+                pushText([...el.querySelectorAll(':scope > li')].map(li => _grimCollapse(li.textContent)).filter(Boolean).join(' · '));
+                break;
             default: pushText(el.textContent);
         }
     });

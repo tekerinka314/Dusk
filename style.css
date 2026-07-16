@@ -5734,6 +5734,12 @@ kbd {
        sword chevron. Row 2: the action buttons at 40px. `order` keeps the
        chevron on row 1 even though .group-actions precedes it in the DOM. */
     .group-header { flex-wrap: wrap; row-gap: 2px; }
+    /* flex-basis 0 — with wrap enabled a flex item wraps by its BASE (content)
+       size before it is allowed to shrink, so a long title would otherwise take
+       a whole row of its own and push count+chevron onto extra rows (4-row
+       header). Basis 0 pins row 1 to: drag · dot · title(ellipsis) · count · ⚔ */
+    .group-title { flex: 1 1 0%; }
+    .group-count { flex-shrink: 0; }
     /* touch has no hover — group reorder handle must stay reachable
        (Sortable for sections is handle-only, unlike task cards) */
     .group-drag-handle { width: 16px; opacity: 0.4; pointer-events: auto; }
@@ -5763,6 +5769,23 @@ kbd {
         padding: 2px 5px;
     }
     .seg-input .seg:active { background: rgba(100, 25, 210, 0.38); }
+
+    /* Toolbar tool buttons: 33px (30px ≤640px) is below the comfortable touch
+       target — 42px with a bigger glyph. The clusters wrap to 3 labelled rows
+       at 412; Fitts beats compactness on touch. */
+    .btn-tool { width: 42px; height: 42px; }
+    .btn-tool svg { width: 17px; height: 17px; }
+    .toolbar-group { padding: 0 10px; }
+
+    /* Keyboard-shortcuts FAB is meaningless without a physical keyboard —
+       drop it and let the pen-sound FAB take its slot in the right stack. */
+    .btn-shortcuts-toggle { display: none; }
+    .btn-pen-sound { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+
+    /* Branding header: identity stays, dead vertical air goes — a phone
+       viewport shows ~1.5 more task rows for free. */
+    .app-header { gap: 16px; margin-bottom: 14px; padding-bottom: 16px; }
+    .page-nav { margin-bottom: 16px; }
 
     /* ── B1-07/08 (slice 5): the bottom FABs (sync eye, sound/pen stack) float
        over content — reserve a scroll gutter so the last card / paragraph can
@@ -5798,6 +5821,10 @@ kbd {
     .task-item:not(.archive-item) .task-actions {
         order: 2;
         margin-top: 7px;
+        /* full-bleed under the coffin column (40px col + 8px flex gap) — the extra
+           48px lets all 7 of the 40px actions sit on ONE row at 412/360 instead of
+           wrapping into a ragged 6+1 / 5+2 pair of rows on every card */
+        margin-left: -48px;
         flex-wrap: wrap;
         gap: 6px;
     }
@@ -5807,7 +5834,8 @@ kbd {
     .btn-task-action  { width: 40px; height: 40px; }
     .btn-task-action svg { width: 18px; height: 18px; }
     .btn-task-action.btn-task-more svg { width: 20px; height: 20px; }
-    .btn-task-action.edit-note-btn { width: auto; min-width: 40px; padding: 0 10px; font-size: 10.5px; }
+    /* icon-only on coarse — a padded auto width would break the 7-on-one-row fit */
+    .btn-task-action.edit-note-btn { width: 40px; padding: 0; }
     /* Coffin checkbox: same icon, comfortable tap target */
     .task-check { width: 40px; min-width: 40px; height: 40px; }
 
@@ -5827,6 +5855,24 @@ kbd {
         opacity: 0.45;
         pointer-events: auto;
     }
+}
+
+/* 360px-class phones: keep the 7-action row on ONE line and the toolbar inside
+   the viewport. Budget (360 − app padding − borders = 338px): card row gets
+   7×38 + 6×4 = 290px inside the (310−16−48+48)=294px full-bleed row; the ВИД
+   toolbar cluster 7×38+6×5+12+24 = 332px ≤ 338px. Without this the toolbar
+   forced the layout viewport to ~378px and the whole page rendered zoomed-out. */
+@media (hover: none) and (pointer: coarse) and (max-width: 380px) {
+    .task-item:not(.archive-item) { padding-left: 8px; padding-right: 8px; }
+    .task-item:not(.archive-item) .task-actions { gap: 4px; }
+    /* 36px (grouped cards lose another 14px to .group-body padding: 7×36+6×4 =
+       276 ≤ 280). Height stays 40 — the tap target survives. */
+    .btn-task-action, .btn-task-action.edit-note-btn { width: 36px; }
+    .toolbar { padding: 10px; }
+    .toolbar-group { padding: 0 4px; }
+    .toolbar-group-btns { gap: 4px; }
+    .btn-tool { width: 38px; height: 38px; }
+    .btn-tool svg { width: 16px; height: 16px; }
 }
 
 /* ===================================================
