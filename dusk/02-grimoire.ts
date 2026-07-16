@@ -447,6 +447,8 @@ function grimOpenHistory(id) {
     _grimRenderHistory();
     requestAnimationFrame(() => requestAnimationFrame(() => {
         ov.classList.add('open');
+        // F2 (coarse): focus the overlay, not the first button — no focus ring on open
+        if (IS_COARSE) { ov.tabIndex = -1; ov.focus({ preventScroll: true }); return; }
         const focusable = (Array.from(ov.querySelectorAll(FOCUSABLE)) as any[]);
         if (focusable.length) focusable[0].focus();
     }));

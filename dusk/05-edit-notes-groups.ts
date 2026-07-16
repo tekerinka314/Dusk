@@ -1334,10 +1334,17 @@ function openModalWithFocus(overlayId) {
 
     overlay.style.display = 'flex';
 
-    // Focus first focusable element after the animation starts
+    // Focus first focusable element after the animation starts.
+    // F2 (coarse): focus the dialog panel itself instead — programmatic focus
+    // on the first button painted a focus ring on every open (same defect the
+    // action sheets had). Keyboard/desktop keeps the first-control focus.
     requestAnimationFrame(() => {
         const focusable: any[] = Array.from(overlay.querySelectorAll(FOCUSABLE));
-        if (focusable.length) focusable[0].focus();
+        if (IS_COARSE) {
+            const panel: any = overlay.querySelector('.modal') || overlay;
+            panel.tabIndex = -1;
+            panel.focus({ preventScroll: true });
+        } else if (focusable.length) focusable[0].focus();
 
         // Install focus trap
         (overlay as any)._trapHandler = (e) => {

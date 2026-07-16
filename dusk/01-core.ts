@@ -695,12 +695,15 @@ function _resetDragHandle(handle, col) {
  * Caps stagger at first STAGGER_MAX items so long lists don't feel slow.
  */
 const STAGGER_MAX  = 8;
-const STAGGER_STEP = 42; // ms between each item
+const STAGGER_STEP = 42; // ms between each item (desktop)
 
 function applyListStagger() {
     // IMP-1: only stagger items that actually have the entrance animation (.entering)
     // Non-entering items have no animation, so setting animationDelay on them is a no-op
     // but adding animationend listeners to hundreds of items every render was wasteful.
+    // F2: on coarse the whole cascade must stay tight (~180ms of delays) — the phone
+    // boot shouldn't feel like watching a procession.
+    const step = IS_COARSE ? 26 : STAGGER_STEP;
     const items = Array.from(
         document.querySelectorAll<HTMLElement>(
             '#list-container > .task-item.entering, .group-body > .task-item.entering'
@@ -711,7 +714,7 @@ function applyListStagger() {
             el.style.animationDelay = '0ms';
             return;
         }
-        el.style.animationDelay = `${i * STAGGER_STEP}ms`;
+        el.style.animationDelay = `${i * step}ms`;
         // Clean up after the animation so hover/transition aren't affected
         el.addEventListener('animationend', () => {
             el.style.animationDelay = '';

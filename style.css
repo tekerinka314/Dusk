@@ -1154,6 +1154,7 @@ body::after {
 @keyframes fmScrimOut { from { opacity: 1; } to { opacity: 0; } }
 
 .snooze-menu.action-sheet:focus { outline: none; }
+.modal:focus { outline: none; }
 .snooze-menu.action-sheet {
     top: auto;
     left: 0;
