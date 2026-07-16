@@ -1500,6 +1500,8 @@ Object.assign(ACT_KEY,   { _noteKeydown: (el, e) => _noteKeydown(e, el) });
 const _gid = el => { const s = el && el.closest('.group-section'); return s ? +s.dataset.groupId : null; };
 Object.assign(ACT, {
     noop:                () => {},
+    openGroupMoreMenu:   (el, e) => openGroupMoreMenu(_synEv(el, e), _gid(el)),
+    _groupMore:          el => _groupMore(el.dataset.more, +el.dataset.gid),
     toggleGroupCollapse: el => toggleGroupCollapse(_gid(el)),
     toggleScheduleMode:  el => toggleScheduleMode(_gid(el)),
     toggleFocusGroup:    el => toggleFocusGroup(_gid(el)),

@@ -1215,7 +1215,7 @@ const _deleteGroupArmed = new Map(); // groupId → timerId
 function deleteGroup(id) {
     // Find every danger button for this group: the group-bar one AND the params dropdown one.
     const setArmed = on => document.querySelectorAll(
-        `.group-section[data-group-id="${id}"] .btn-group-action.danger, .grp-dd-del[data-gid="${id}"]`
+        `.group-section[data-group-id="${id}"] .btn-group-action.danger, .grp-dd-del[data-gid="${id}"], .fm-group-del[data-gid="${id}"]`
     ).forEach(b => b.classList.toggle('confirm-armed', on));
 
     if (!_deleteGroupArmed.has(id)) {

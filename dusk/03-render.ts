@@ -23,7 +23,7 @@ declare var mainSelectMode: any;
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
 Object.assign(globalThis, {
-    render, renderListOnly, _reconcile, _groupHeaderHTML, _ensureSplitZone, _ensureKeyed, _pinnedNodes, _splitZoneNodes,
+    render, renderListOnly, _reconcile, _groupHeaderHTML, openGroupMoreMenu, _groupMore, _ensureSplitZone, _ensureKeyed, _pinnedNodes, _splitZoneNodes,
     _renderSplitBody, _renderScheduleBody, _renderScheduleSplitBody, renderTasks, appendScheduleSection, _visibleUnderFilter, extractPinned, appendPinnedBlock,
     getEffectiveSortMode, isDueTodayOrOverdue, filterAndSort, filterAndSortDeadline, scheduleActive, _taskSortIcon, _taskSortLabel, _taskSortOptions,
     _groupSortPicker, _renderTaskSortControl, toggleSortPicker, _sortPickerOutside, _closeSortPicker, setTaskSort, setGroupSort, toggleSortMode,
@@ -174,6 +174,15 @@ function _reconcile(parent, desired) {
 // Rebuilt in place on a reused section shell — the header has no backdrop-filter so
 // replacing its content does not flash, while the section frame itself stays put.
 function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride) {
+    // B1-13 (coarse): duplicate/rename/delete collapse into a group-⋯ float menu —
+    // the destructive tombstone leaves the always-visible row and the action row
+    // shortens to 4 comfortable targets. Desktop keeps all 6 inline as before.
+    const tail = IS_COARSE ? `
+                    <button class="btn-group-action" data-act="openGroupMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>`
+        : `
+                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
+                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
+                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>`;
     return `
                 <div class="group-drag-handle" data-act="noop" title="Перетащить группу">${IC.drag}</div>
                 <div class="group-color-dot" style="background:${group.color}"></div>
@@ -184,12 +193,29 @@ function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride
                             data-act="toggleScheduleMode" title="Сортировка по дедлайну">${IC.sundial}</button>
                     ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
-                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
-                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
-                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
-                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>
+                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>${tail}
                 </div>
                 <span class="group-chevron">${IC.sword}</span>`;
+}
+
+// B1-13 (coarse): the group-⋯ menu. Delete keeps its two-step arm/fire confirm:
+// the first tap arms (menu stays open, item glows danger), the second fires —
+// deleteGroup's setArmed targets .fm-group-del[data-gid] so the glow lands here.
+function openGroupMoreMenu(event, id) {
+    event.stopPropagation();
+    _openFloatMenu(event.currentTarget, `
+        <button type="button" role="menuitem" data-act="_groupMore" data-more="dup" data-gid="${id}">${IC.twinCoffin}<span>Дублировать группу</span></button>
+        <button type="button" role="menuitem" data-act="_groupMore" data-more="rename" data-gid="${id}">${IC.quill}<span>Переименовать</span></button>
+        <button type="button" role="menuitem" class="fm-danger fm-group-del" data-act="_groupMore" data-more="delete" data-gid="${id}">${IC.tombstone}<span>Удалить группу</span></button>`,
+        'group-more-menu');
+}
+function _groupMore(act, id) {
+    if (act === 'dup')         { closeFloatMenu(); duplicateGroup(id); }
+    else if (act === 'rename') { closeFloatMenu(); openRenameGroupModal(id); }
+    else if (act === 'delete') {
+        deleteGroup(id);   // arm on first tap; fire on second
+        if (!state.groups.some(g => g.id === id)) closeFloatMenu();
+    }
 }
 
 // Gothic zone glyphs (active = candle, done = coffin). Lifted verbatim from

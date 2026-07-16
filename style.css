@@ -1127,6 +1127,13 @@ body::after {
    only warm accent, reserved for destructive actions (matches .btn-task-action.danger). */
 .snooze-menu button.fm-danger:hover,
 .snooze-menu button.fm-danger:active { background: var(--prio-high-bg); color: var(--prio-high); }
+/* Two-step group delete armed INSIDE the group-⋯ menu (same pulse as the inline button) */
+.snooze-menu button.fm-group-del.confirm-armed {
+    background: var(--prio-high-bg);
+    color: var(--prio-high);
+    animation: armedPulse 0.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .snooze-menu button.fm-group-del.confirm-armed { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .snooze-menu { animation: none; } }
 /* Idea 3: demote parent-picker uses the same floating menu, scrollable task list */
 .snooze-menu.demote-menu { max-width: 250px; max-height: 320px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent; }
@@ -5630,8 +5637,34 @@ kbd {
     /* P-E: no hover on touch — keep the deadline pill open so the countdown is visible */
     .sub-deadline-wrapper { grid-template-rows: 1fr; }
     .sub-deadline-inner   { opacity: 1; }
-    .btn-group-action { width: 30px; height: 30px; }
     .drag-handle { opacity: 0.3; }
+
+    /* ── B1-13 (slice 2): group header wraps to 2 rows ──────────────────
+       Row 1: drag · colour dot · title (ellipsis, gets the width) · count ·
+       sword chevron. Row 2: the action buttons at 40px. `order` keeps the
+       chevron on row 1 even though .group-actions precedes it in the DOM. */
+    .group-header { flex-wrap: wrap; row-gap: 2px; }
+    /* touch has no hover — group reorder handle must stay reachable
+       (Sortable for sections is handle-only, unlike task cards) */
+    .group-drag-handle { width: 16px; opacity: 0.4; pointer-events: auto; }
+    .group-actions {
+        order: 10;
+        flex-basis: 100%;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+    .btn-group-action { width: 40px; height: 40px; }
+    .btn-group-action svg { width: 16px; height: 16px; }
+
+    /* B1-05: toolbar group pill must not push the bar off-screen */
+    .group-pill-wrap .meta-tag.group-pill {
+        display: inline-block;
+        max-width: 45vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+    }
 
     /* ── B1-01/02 (mobile rework slice 1): 3-row task card ─────────────────
        Title takes the full card width and wraps; the meta row follows; the
