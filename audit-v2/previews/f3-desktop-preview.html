@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>DUSK — Ф3 превью: large-screen tier (B4-01)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700&family=Cormorant+SC:wght@400;600;700&display=swap');
+
+/* ── Реальные токены DUSK (style.css :root) ── */
+:root {
+    color-scheme: dark;
+    --bg-page: #03010a; --bg-app: rgba(5,2,20,.87); --bg-input: rgba(8,3,30,.94);
+    --bg-item: rgba(7,2,22,.80); --bg-item-hover: rgba(18,6,52,.93);
+    --bg-toolbar: rgba(5,2,18,.92); --bg-group-header: rgba(9,3,28,.90);
+    --bg-tag: rgba(28,8,72,.68);
+    --text-primary:#f0e8ff; --text-secondary:#b880e8; --text-muted:#9068c0;
+    --border: rgba(88,30,160,.32); --border-mid: rgba(130,50,220,.48);
+    --border-bright: rgba(170,90,255,.68); --border-input: rgba(100,35,170,.40);
+    --accent:#a060ff; --accent-soft: rgba(110,30,210,.20); --accent-hover:#c898ff;
+    --accent-glow: rgba(150,70,255,.30); --accent-dim: rgba(110,30,210,.10);
+    --prio-high:#e03060; --prio-medium:#d09020; --prio-low:#3cc870;
+    --deadline-urgent:#d09020; --deadline-urgent-bg: rgba(110,55,5,.38);
+    --deadline-critical:#e03060; --deadline-critical-bg: rgba(120,5,35,.40);
+    --radius-sm:6px; --radius-md:10px; --radius-lg:16px; --radius-xl:20px;
+    --font-main:'Cormorant',Georgia,serif; --font-title:'Cinzel',serif; --font-label:'Cormorant SC',serif;
+    --ease-gothic: cubic-bezier(.16,1,.3,1); --dur:.3s;
+    --shadow-lg: 0 16px 60px rgba(0,0,0,.92), 0 0 40px rgba(70,0,160,.18);
+}
+* { box-sizing:border-box; margin:0; }
+html,body { min-height:100%; }
+body {
+    background:
+        radial-gradient(1400px 600px at 60% -5%, rgba(70,20,140,.22), transparent 60%),
+        radial-gradient(900px 500px at 15% 40%, rgba(40,8,90,.18), transparent 65%),
+        var(--bg-page);
+    color: var(--text-primary);
+    font: 16px/1.45 var(--font-main);
+    padding: 24px 12px 120px;
+    display:flex; flex-direction:column; align-items:center;
+}
+
+/* ── Панель выбора варианта (fixed) ── */
+#switch {
+    position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 50;
+    display:flex; gap:8px; align-items:center;
+    background: rgba(6,2,22,.96); border:1px solid var(--border-mid); border-radius: 12px;
+    padding: 8px 12px; box-shadow: 0 6px 28px rgba(0,0,0,.78);
+    font-family: var(--font-label);
+}
+#switch button {
+    background: var(--bg-item); color: var(--text-secondary);
+    border:1px solid var(--border); border-radius:8px;
+    padding:6px 14px; font: 600 13px var(--font-label); letter-spacing:.08em;
+    cursor:pointer; transition: all .15s ease;
+}
+#switch button:hover { border-color: var(--border-bright); color: var(--accent-hover); }
+#switch button.on { border-color: var(--border-bright); color: var(--accent-hover); background: var(--accent-soft); box-shadow: 0 0 12px var(--accent-glow); }
+#vw { color: var(--text-muted); font-size: 12px; letter-spacing:.06em; padding-left:6px; border-left:1px solid var(--border); }
+
+/* Пояснение под свитчером */
+#explain {
+    margin: 62px auto 20px; max-width: 760px; text-align:center;
+    color: var(--text-muted); font-size: 15.5px; line-height: 1.5;
+}
+#explain b { color: var(--text-secondary); font-family: var(--font-label); letter-spacing:.05em; }
+
+/* ═══════════ МАКЕТ ПРИЛОЖЕНИЯ ═══════════ */
+.todo-app {
+    width:100%; max-width: 780px;   /* текущий продакшен */
+    background: var(--bg-app);
+    border-radius: var(--radius-xl);
+    padding: 34px 36px 38px;
+    border:1px solid rgba(140,55,220,.50);
+    position:relative;
+    backdrop-filter: blur(22px);
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(130,50,240,.22),
+        inset 0 1px 0 rgba(200,140,255,.10), inset 0 0 75px rgba(65,5,145,.13),
+        0 0 90px rgba(115,32,238,.12);
+    transition: max-width var(--dur) var(--ease-gothic);
+}
+
+/* Шапка */
+.app-header { text-align:center; margin-bottom: 22px; }
+.brand-title { font-family: var(--font-title); font-size: 40px; font-weight:700; letter-spacing:.32em; padding-left:.32em; }
+.brand-sub { font-family: var(--font-label); font-size: 12px; letter-spacing:.55em; padding-left:.55em; color: var(--text-muted); margin-top:2px; }
+.brand-rule { width: 210px; height:1px; margin: 12px auto 0; background: linear-gradient(90deg, transparent, var(--border-mid), transparent); position:relative; }
+.brand-rule::after { content:'◆ ◆ ◆'; position:absolute; left:50%; top:-7px; transform:translateX(-50%); font-size:8px; color:var(--text-muted); background:transparent; letter-spacing:.5em; padding-left:.5em; }
+
+.page-nav { display:flex; gap:8px; margin-bottom: 20px; }
+.nav-tab {
+    flex:1; padding: 11px 8px; border-radius: var(--radius-md);
+    border:1px solid var(--border); background:transparent; color: var(--text-secondary);
+    font: 600 13.5px var(--font-label); letter-spacing:.14em; cursor:pointer;
+}
+.nav-tab.active { background: var(--accent-soft); border-color: var(--border-bright); color: var(--accent-hover); }
+
+/* Прогресс */
+.progress-section { margin-bottom:16px; }
+.progress-head { display:flex; justify-content:space-between; font-family: var(--font-label); font-size:12.5px; letter-spacing:.16em; color: var(--text-muted); margin-bottom:6px; }
+.progress-bar-wrap { height:5px; border-radius:3px; background: rgba(30,10,70,.6); overflow:hidden; }
+.progress-bar-fill { height:100%; width: 22%; border-radius:3px; background: linear-gradient(90deg,#5a18b8,#a060ff); box-shadow: 0 0 10px var(--accent-glow); }
+
+/* Инпут */
+.input-section { display:flex; gap:10px; margin-bottom: 10px; }
+.input-box {
+    flex:1; background: var(--bg-input); border:1px solid var(--border-input);
+    border-radius: var(--radius-md); padding: 13px 16px;
+    color: var(--text-muted); font: italic 400 16.5px var(--font-main);
+}
+.btn-add {
+    width: 48px; border-radius: var(--radius-md); border:1px solid var(--border-mid);
+    background: linear-gradient(160deg, rgba(90,24,184,.85), rgba(56,10,120,.85));
+    color:#fff; font-size:22px; cursor:pointer;
+}
+.params-seam { text-align:center; margin: 4px 0 16px; }
+.params-btn {
+    background:transparent; border:1px dashed var(--border); border-radius: 8px;
+    color: var(--text-muted); font: 600 11.5px var(--font-label); letter-spacing:.28em; padding-left:.28em;
+    padding: 5px 22px; cursor:pointer;
+}
+
+/* Тулбар (поиск + группы кнопок) */
+.toolbar {
+    background: var(--bg-toolbar); border:1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 13px 14px; margin-bottom: 16px;
+}
+.search-box {
+    width:100%; background: var(--bg-input); border:1px solid var(--border-input);
+    border-radius: var(--radius-md); padding: 9px 14px;
+    color: var(--text-muted); font: italic 400 15px var(--font-main); margin-bottom: 12px;
+}
+.toolbar-actions { display:flex; gap: 14px; justify-content:space-between; flex-wrap:wrap; }
+.toolbar-group { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.toolbar-group-btns { display:flex; gap:5px; }
+.tb {
+    width:34px; height:32px; border-radius: var(--radius-sm);
+    border:1px solid var(--border); background: var(--bg-item); color: var(--text-secondary);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px;
+}
+.tb:hover { border-color: var(--border-bright); color: var(--accent-hover); }
+.toolbar-group-label { font: 600 10px var(--font-label); letter-spacing:.22em; padding-left:.22em; color: var(--text-muted); text-transform:uppercase; }
+
+/* Группы-бар + чипы */
+.groups-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom: 14px; }
+.btn-add-group {
+    display:inline-flex; align-items:center; gap:7px;
+    background:transparent; border:1px dashed var(--border-mid); border-radius: 9px;
+    color: var(--text-secondary); font: 600 12.5px var(--font-label); letter-spacing:.12em;
+    padding: 6px 14px; cursor:pointer;
+}
+.gchip {
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; padding: 5px 12px;
+    border-radius: 7px; border:1px solid; cursor:pointer;
+}
+.gchip.violet { color:#c9a2ff; border-color: rgba(150,70,255,.45); background: rgba(80,20,180,.18); }
+.gchip.red    { color:#ff9db0; border-color: rgba(220,60,90,.45); background: rgba(150,20,50,.18); }
+.gchip.green  { color:#9fe8b8; border-color: rgba(50,180,100,.4); background: rgba(20,110,55,.16); }
+
+/* Карточка задачи */
+.task-list { list-style:none; padding:0; display:flex; flex-direction:column; gap:12px; }
+.task-item {
+    position:relative; background: var(--bg-item); border:1px solid var(--border);
+    border-radius: var(--radius-md); padding: 15px 16px 13px 22px; overflow:hidden;
+}
+.task-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius: 4px 0 0 4px; background: var(--tcol, transparent); }
+.task-row { display:flex; align-items:flex-start; gap: 12px; }
+.coffin {
+    flex:none; width:22px; height:26px; margin-top:1px;
+    clip-path: polygon(50% 0, 88% 26%, 74% 100%, 26% 100%, 12% 26%);
+    border:1.6px solid var(--border-mid); background: rgba(10,3,30,.8);
+}
+.task-title { flex:1; font-size: 17.5px; line-height:1.35; }
+.task-meta { display:flex; gap: 12px; margin-top:8px; padding-left: 34px; align-items:center; flex-wrap:wrap; }
+.meta-link { font: 600 11px var(--font-label); letter-spacing:.14em; color: var(--text-muted); text-transform:uppercase; }
+.dl-badge {
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:6px;
+    display:inline-flex; gap:6px; align-items:center;
+}
+.dl-badge.warn { color:#a8a8f8; background: rgba(20,20,120,.4); border:1px solid rgba(90,90,220,.4); }
+.dl-badge.crit { color:#ff7d9c; background: var(--deadline-critical-bg); border:1px solid rgba(220,30,70,.5); }
+.repeat-pill { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#b880e8; background: rgba(60,15,140,.3); border:1px solid var(--border); padding:3px 9px; border-radius:6px; }
+
+/* Подзадачи-сетка */
+.sub-section { margin-top: 12px; padding-left: 34px; }
+.sub-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; transition: grid-template-columns var(--dur) var(--ease-gothic); }
+.sub-item {
+    display:flex; gap:9px; align-items:center;
+    background: rgba(5,1,16,.6); border-radius: 8px; padding: 9px 11px;
+    box-shadow: inset 0 0 0 1px var(--border); font-size: 15px; position:relative;
+}
+.sub-item::before { content:''; position:absolute; left:0; top:15%; bottom:15%; width:3px; border-radius:3px; background: var(--sprio, transparent); filter: blur(1px); opacity:.8; }
+.sub-coffin { flex:none; width:15px; height:18px; clip-path: polygon(50% 0, 88% 26%, 74% 100%, 26% 100%, 12% 26%); border:1.4px solid var(--border-mid); background: rgba(10,3,30,.8); }
+.sub-add { color: var(--text-muted); font-style:italic; box-shadow: inset 0 0 0 1px transparent; border:1px dashed var(--border); background:transparent; }
+
+/* Группа-хедер */
+.group-h {
+    display:flex; align-items:center; gap:10px; margin-top: 22px; margin-bottom: 10px;
+    background: var(--bg-group-header); border:1px solid var(--border); border-radius: var(--radius-md);
+    padding: 10px 14px; font: 600 14px var(--font-label); letter-spacing:.18em; text-transform:uppercase;
+}
+.group-dot { width:10px; height:10px; border-radius:50%; }
+.group-count { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--text-muted); letter-spacing:0; }
+
+/* ═══════════ ВАРИАНТ A — «шире неф» ═══════════
+   ≥1600px: колонна 780→960; ≥2200px: →1040. Подзадачи 3 колонки. */
+body.vA .todo-app { max-width: 960px; }
+body.vA .sub-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+@media (min-width: 2200px) {
+    body.vA .todo-app { max-width: 1040px; }
+}
+
+/* ═══════════ ВАРИАНТ B — «боковой придел» (рельса) ═══════════
+   ≥1440px: #main-page становится grid: главная колонна (прогресс, ввод,
+   список) + правая рельса (тулбар, группы) — те же блоки, CSS-переселение.
+   Карта не шире 1220px; список получает назад ~240px вертикали. */
+body.vB .todo-app { max-width: 1220px; }
+body.vB #main-page {
+    display:grid;
+    grid-template-columns: minmax(0, 1fr) 336px;
+    grid-template-areas:
+        "progress rail"
+        "input    rail"
+        "list     rail";
+    column-gap: 30px;
+    align-items: start;
+}
+body.vB .progress-section { grid-area: progress; }
+body.vB .input-wrap { grid-area: input; }
+body.vB .list-zone { grid-area: list; }
+body.vB .rail { grid-area: rail; display:flex; flex-direction:column; gap:14px; position:sticky; top:18px; }
+/* Тулбар в рельсе: вертикальная компоновка групп */
+body.vB .toolbar { margin-bottom:0; }
+body.vB .toolbar-actions { flex-direction:column; align-items:stretch; gap:12px; }
+body.vB .toolbar-group { flex-direction:row; justify-content:space-between; align-items:center; }
+body.vB .toolbar-group-btns { order:2; }
+body.vB .toolbar-group-label { order:1; font-size:11px; }
+/* Группы в рельсе: вертикальный столбец с полными именами */
+body.vB .groups-bar {
+    flex-direction:column; align-items:stretch; margin-bottom:0;
+    background: var(--bg-toolbar); border:1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 13px 14px;
+}
+body.vB .gchip { display:flex; justify-content:space-between; padding:8px 12px; }
+body.vB .gchip .gcount { opacity:.65; }
+body.vB .rail-head { font: 600 10.5px var(--font-label); letter-spacing:.24em; padding-left:.24em; color: var(--text-muted); text-transform:uppercase; margin-bottom:2px; }
+
+/* Вне варианта B рельса — обычный поток (тулбар над списком, как сейчас) */
+.rail { display:contents; }
+.gchip .gcount { display:none; }
+body.vB .gchip .gcount { display:inline; }
+.rail-head { display:none; }
+body.vB .rail-head { display:block; }
+
+/* ═══════════ ВАРИАНТ C — «скрипторий» (master-detail) ═══════════
+   Список слева (компактные ряды) + постоянная панель детали справа. */
+body.vC .todo-app { max-width: 1360px; }
+body.vC #main-page {
+    display:grid; grid-template-columns: minmax(300px, 420px) minmax(0,1fr);
+    grid-template-areas: "progress progress" "input input" "list detail";
+    column-gap: 26px; align-items:start;
+}
+body.vC .progress-section { grid-area: progress; }
+body.vC .input-wrap { grid-area: input; }
+body.vC .list-zone { grid-area: list; }
+body.vC .rail { display:none; }
+body.vC .detail-pane { display:block; grid-area: detail; position:sticky; top:18px; }
+/* Компактные ряды списка */
+body.vC .task-item { padding: 11px 13px 11px 19px; }
+body.vC .task-title { font-size: 15.5px; }
+body.vC .task-meta, body.vC .sub-section { display:none; }
+body.vC .task-item.sel { background: var(--bg-item-hover); border-color: var(--border-bright); box-shadow: 0 0 14px var(--accent-glow); }
+.detail-pane { display:none; }
+.detail-card {
+    background: var(--bg-group-header); border:1px solid var(--border-mid);
+    border-radius: var(--radius-lg); padding: 24px 26px;
+}
+.detail-title { font-size: 21px; margin-bottom: 14px; }
+.detail-note {
+    font-style:italic; color: var(--text-secondary); border-left:2px solid var(--border-mid);
+    padding: 6px 0 6px 14px; margin: 14px 0; font-size:15.5px;
+}
+.detail-sub-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px; margin-top:14px; }
+
+/* Подписи под вариантами */
+#verdicts { max-width: 860px; margin: 46px auto 0; display:flex; flex-direction:column; gap:16px; }
+.verdict {
+    background: rgba(6,2,22,.85); border:1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 18px 22px; font-size: 15.5px; line-height: 1.55; color: var(--text-secondary);
+}
+.verdict h3 { font: 700 15px var(--font-label); letter-spacing:.14em; color: var(--accent-hover); margin-bottom:8px; text-transform:uppercase; }
+.verdict .pro { color:#9fe8b8; } .verdict .con { color:#ff9db0; }
+.verdict p { margin-top:6px; }
+.verdict .rec { color: var(--text-primary); }
+</style>
+</head>
+<body class="vB">
+
+<div id="switch">
+    <button data-v="v0">Сейчас (780)</button>
+    <button data-v="vA">A · Шире неф</button>
+    <button data-v="vB" class="on">B · Рельса</button>
+    <button data-v="vC">C · Скрипторий</button>
+    <span id="vw"></span>
+</div>
+
+<p id="explain">Открой на своём мониторе в полном окне и переключай варианты —
+макет использует <b>реальную ширину окна</b>. Ниже под макетом — вердикты по каждому варианту.</p>
+
+<div class="todo-app">
+    <header class="app-header">
+        <div class="brand-title">DUSK</div>
+        <div class="brand-sub">TASK</div>
+        <div class="brand-rule"></div>
+    </header>
+    <nav class="page-nav">
+        <button class="nav-tab active">☩ ЗАДАЧИ</button>
+        <button class="nav-tab">⚰ АРХИВ</button>
+        <button class="nav-tab">✦ ГРИМУАР</button>
+    </nav>
+
+    <div id="main-page">
+        <div class="progress-section">
+            <div class="progress-head"><span>ЗАДАЧИ</span><span>2 / 14</span></div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill"></div></div>
+        </div>
+
+        <div class="input-wrap">
+            <div class="input-section">
+                <div class="input-box">Новая задача…</div>
+                <button class="btn-add">+</button>
+            </div>
+            <div class="params-seam"><button class="params-btn">─◇─ ПАРАМЕТРЫ ─◇─</button></div>
+        </div>
+
+        <!-- Рельса: тулбар + группы (в v0/vA — обычный поток над списком) -->
+        <div class="rail">
+            <div class="toolbar">
+                <div class="rail-head">Инструменты</div>
+                <div class="search-box">⌕ Поиск…</div>
+                <div class="toolbar-actions">
+                    <div class="toolbar-group">
+                        <div class="toolbar-group-btns"><button class="tb">☾</button><button class="tb">◫</button><button class="tb">♰</button><button class="tb">⇅</button><button class="tb">✥</button></div>
+                        <span class="toolbar-group-label">вид</span>
+                    </div>
+                    <div class="toolbar-group">
+                        <div class="toolbar-group-btns"><button class="tb">◉</button><button class="tb">⚗</button></div>
+                        <span class="toolbar-group-label">фильтр</span>
+                    </div>
+                    <div class="toolbar-group">
+                        <div class="toolbar-group-btns"><button class="tb">☑</button></div>
+                        <span class="toolbar-group-label">выбор</span>
+                    </div>
+                    <div class="toolbar-group">
+                        <div class="toolbar-group-btns"><button class="tb">⇓</button><button class="tb">⇑</button><button class="tb">⧗</button><button class="tb">✉</button></div>
+                        <span class="toolbar-group-label">данные</span>
+                    </div>
+                </div>
+            </div>
+            <div class="groups-bar">
+                <div class="rail-head">Группы</div>
+                <button class="btn-add-group">✝ Группа</button>
+                <span class="gchip violet">Ритуалы ночи <span class="gcount">2/4</span></span>
+                <span class="gchip red">Работа <span class="gcount">0/4</span></span>
+                <span class="gchip green">Дом и очень длинное имя группы <span class="gcount">0/2</span></span>
+            </div>
+        </div>
+
+        <div class="list-zone">
+            <ul class="task-list">
+                <li class="task-item sel" style="--tcol:#B06CF5">
+                    <div class="task-row"><div class="coffin"></div><div class="task-title">Задача со множеством подзадач (сетка подпунктов)</div></div>
+                    <div class="task-meta"><span class="meta-link">заметка</span><span class="meta-link">подпункты 2/8</span></div>
+                    <div class="sub-section">
+                        <div class="sub-grid">
+                            <div class="sub-item" style="--sprio:var(--prio-high)"><div class="sub-coffin"></div>седьмая с очень длинным текстом подзадачи</div>
+                            <div class="sub-item"><div class="sub-coffin"></div>первая</div>
+                            <div class="sub-item"><div class="sub-coffin"></div>третья</div>
+                            <div class="sub-item"><div class="sub-coffin"></div>пятая</div>
+                            <div class="sub-item"><div class="sub-coffin"></div>шестая</div>
+                            <div class="sub-item"><div class="sub-coffin"></div>восьмая</div>
+                            <div class="sub-item sub-add">Новый подпункт…</div>
+                        </div>
+                    </div>
+                </li>
+                <li class="task-item" style="--tcol:#F5D56C">
+                    <div class="task-row"><div class="coffin"></div><div class="task-title">Задача с заметкой в окне</div></div>
+                    <div class="task-meta"><span class="meta-link">заметка</span><span class="meta-link">подпункты</span></div>
+                </li>
+                <li class="task-item">
+                    <div class="task-row"><div class="coffin"></div><div class="task-title">Обычная задача без ничего</div></div>
+                    <div class="task-meta"><span class="meta-link">заметка</span><span class="meta-link">подпункты</span></div>
+                </li>
+            </ul>
+
+            <div class="group-h"><span class="group-dot" style="background:#7a3cf0; box-shadow:0 0 8px rgba(150,70,255,.5)"></span> Ритуалы ночи <span class="group-count">2/4</span></div>
+            <ul class="task-list">
+                <li class="task-item" style="--tcol:#B06CF5">
+                    <div class="task-row"><div class="coffin"></div><div class="task-title">Зажечь чёрные свечи перед алтарём</div></div>
+                    <div class="task-meta"><span class="dl-badge warn">⚱ через 2д 18:30</span><span class="meta-link">заметка</span><span class="meta-link">подпункты 1/4</span></div>
+                </li>
+                <li class="task-item" style="--tcol:#F56C6C">
+                    <div class="task-row"><div class="coffin"></div><div class="task-title">Просрочённый ритуал — должен гореть красным</div></div>
+                    <div class="task-meta"><span class="dl-badge crit">⚱ просрочено · 3ч</span><span class="meta-link">заметка</span></div>
+                </li>
+                <li class="task-item">
+                    <div class="task-row"><div class="coffin"></div><div class="task-title">Ежедневная медитация в полночь</div></div>
+                    <div class="task-meta"><span class="dl-badge warn">⚱ через 5ч 21м</span><span class="repeat-pill">∞ Ежедневно</span></div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Панель детали (только вариант C) -->
+        <div class="detail-pane">
+            <div class="detail-card">
+                <div class="task-row"><div class="coffin"></div><div class="detail-title">Задача со множеством подзадач (сетка подпунктов)</div></div>
+                <div class="task-meta" style="padding-left:0"><span class="dl-badge warn">⚱ через 2д 18:30</span><span class="repeat-pill">∞ Еженедельно</span></div>
+                <div class="detail-note">Это заметка задачи, открытая в панели детали. В скриптории она всегда на виду.</div>
+                <div class="detail-sub-grid">
+                    <div class="sub-item" style="--sprio:var(--prio-high)"><div class="sub-coffin"></div>седьмая с очень длинным текстом</div>
+                    <div class="sub-item"><div class="sub-coffin"></div>первая</div>
+                    <div class="sub-item"><div class="sub-coffin"></div>третья</div>
+                    <div class="sub-item"><div class="sub-coffin"></div>пятая</div>
+                    <div class="sub-item sub-add">Новый подпункт…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="verdicts">
+    <div class="verdict">
+        <h3>A · Шире неф — колонна 780→960 (≥1600px), подзадачи в 3 колонки</h3>
+        <p><span class="pro">За:</span> CSS-only, ноль риска, ничего не переучивать; подзадачи перестают быть «россыпью в пустоте».</p>
+        <p><span class="con">Против:</span> на 2560 всё ещё ~60% фона впустую; строки задач длиннее — глазу дальше ходить от чекбокса до метаданных.</p>
+    </div>
+    <div class="verdict">
+        <h3>B · Боковой придел — тулбар и группы уходят в правую рельсу (≥1440px)</h3>
+        <p><span class="pro">За:</span> список получает ~240px вертикали назад (тулбар больше не над ним); поиск, фильтры и группы видны ПОСТОЯННО, а не за скроллом; колонна списка остаётся 780 — типографика не трогается; это те же существующие блоки, переставленные CSS-грид-областями — не редизайн, JS почти не нужен.</p>
+        <p><span class="con">Против:</span> тулбар-вертикаль надо один раз привыкнуть; ниже 1440 всё как сейчас (два режима существуют параллельно).</p>
+        <p class="rec">Рекомендация Fable: <b>B</b> — единственный вариант, где освобождённая ширина несёт функцию, а не просто растягивает карту. Совместим с A (можно и рельсу, и 3-кол подзадачи).</p>
+    </div>
+    <div class="verdict">
+        <h3>C · Скрипторий — master-detail как в Гримуаре</h3>
+        <p><span class="pro">За:</span> максимум использования ширины; деталь всегда открыта.</p>
+        <p><span class="con">Против:</span> это РЕДИЗАЙН взаимодействия — сейчас карточки раскрываются инлайн в списке, а тут пришлось бы выбирать задачу, чтобы увидеть подзадачи; ломает bulk-режим, DnD между группами, «взгляд на всё сразу» (главная ценность списка задач против заметок); большой пласт кода в 03-render. FIX-PLAN прямо говорит «NOT a redesign».</p>
+        <p class="rec">Fable не рекомендует. Показан для честного сравнения.</p>
+    </div>
+</div>
+
+<script>
+const sw = document.getElementById('switch');
+sw.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.body.className = b.dataset.v === 'v0' ? '' : b.dataset.v;
+    sw.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+});
+const vw = document.getElementById('vw');
+const upd = () => vw.textContent = innerWidth + 'px';
+addEventListener('resize', upd); upd();
+</script>
+</body>
+</html>
