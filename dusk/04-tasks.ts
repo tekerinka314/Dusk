@@ -1052,6 +1052,9 @@ function _leaveTaskThenRender(id, opts: any = {}) {
 }
 
 function toggleCheck(id) {
+    // Select mode: the coffin is the card's most prominent target — a tap on it
+    // must toggle SELECTION, not silently complete the task (F2 sweep finding).
+    if (mainSelectMode) { toggleMainSelectTask(id); return; }
     pushUndo();
     const task = state.tasks.find(t => t.id === id);
     if (!task) return;

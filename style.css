@@ -5816,6 +5816,11 @@ kbd {
     .main-select-bar .select-bar-actions { display: contents; }
     .main-select-bar .btn-select-bar-cancel { order: 1; margin-left: auto; flex-shrink: 0; }
     .main-select-bar .select-bar-group { order: 2; }
+    /* Wrapped cluster rows leave the between-cluster divider dangling at a
+       row's left edge (same stub disease as the toolbar) — buttons carry
+       their own borders, the hairline is desktop theater. Drop it. */
+    .main-select-bar .select-bar-group::before { display: none; }
+    .main-select-bar .select-bar-group { padding: 0 6px; }
 
     /* B1-22: on touch the date/time segments are native-picker triggers —
        give them a subtle pressable look so the affordance reads
@@ -5844,6 +5849,9 @@ kbd {
 
     /* «+ГРУППА / ШАБЛОНЫ»: solid ghost instead of the draft-looking dashes */
     .btn-add-group { border-style: solid; background: var(--bg-tag); min-height: 40px; }
+    /* Same language for the add-inputs: dashed hairlines render ragged on
+       mobile DPR and read as drafts next to the now-solid buttons. */
+    .subtask-add-input, .form-sub-input, .inline-note-input { border-style: solid; }
 
     /* ПАРАМЕТРЫ form actions: «Закрепить» floated centre / «Шаблон» floated
        right read as misalignment on narrow screens — stack them as two
