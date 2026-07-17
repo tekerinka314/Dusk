@@ -87,6 +87,10 @@ feature-shaped ones):**
   V2-B1-25 caret-adjacent toolbar (design first).
 
 **W4 — big-ticket, EACH needs explicit user approval before starting:**
+- Mobile drawer-nav (APPROVED direction 2026-07-17, design pending): свайп
+  слева / кнопка → выдвижная панель с группами+фильтрами+поиском — мобильный
+  аналог десктопной рельсы B4-01. Дизайн = Fable (после обкатки F2-тулбара);
+  вход: рельса-паттерн (пилюля=фокус, дайджест «Грядущее» кандидат туда же).
 - V2-B4-01 large-screen layout tier (UI 3 on the user's own monitor — the top
   W4 candidate; scope: an ≥1200px tier using the freed width for schedule
   side-rail/subtask 3-col, NOT a redesign).

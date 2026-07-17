@@ -38,6 +38,7 @@ Object.assign(globalThis, {
     registerGothicPicker, initGroupPicker, renderArchive, toggleSelectMode, toggleArchiveSelection, updateSelectBar, restoreSelected, restoreAll,
     updateArchiveBadge, getGroupColor, taskFromArchive, _inlineEditActive,
     _railDigestItems, _renderRailDigest, _tickRailDigest, railDigestGo,
+    _apAttach, _apDetach, _apMenuKeyNav, _fmPlace, _spPlace,
 });
 
 // ============================================================
@@ -924,7 +925,6 @@ function toggleSortPicker(e) {
     if (!willOpen) return;
     const lst = picker.querySelector('.dl-month-list');
     const r = picker.getBoundingClientRect();
-    const openUp = r.bottom > window.innerHeight - 260;
     picker.classList.add('open');
     const tr = picker.querySelector('[aria-haspopup]'); if (tr) tr.setAttribute('aria-expanded', 'true');
     if (lst) {
@@ -932,13 +932,21 @@ function toggleSortPicker(e) {
         document.body.appendChild(lst);          // escape transformed/clipped/stacked ancestors
         lst.classList.add('task-sort-portal');
         lst.setAttribute('aria-hidden', 'false');
-        // Anchor to the trigger; flip upward when it sits near the viewport bottom (S1-7).
-        lst.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
-        if (openUp) { lst.style.top = 'auto'; lst.style.bottom = (window.innerHeight - r.top + 6) + 'px'; }
-        else        { lst.style.bottom = 'auto'; lst.style.top = (r.bottom + 6) + 'px'; }
+        _spPlace(lst, r);
+        // B4-02: follow the picker on scroll/resize (this was the live-proven
+        // detach case), close when it scrolls away; single-open across families.
+        _apAttach(lst, picker, rr => _spPlace(lst, rr), _closeSortPicker);
     }
     _openSortPicker = picker;
     document.addEventListener('click', _sortPickerOutside);
+}
+// Anchor to the trigger; flip upward when it sits near the viewport bottom (S1-7).
+// Extracted (B4-02) so the engine re-runs it per scrolled frame.
+function _spPlace(lst, r) {
+    const openUp = r.bottom > window.innerHeight - 260;
+    lst.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    if (openUp) { lst.style.top = 'auto'; lst.style.bottom = (window.innerHeight - r.top + 6) + 'px'; }
+    else        { lst.style.bottom = 'auto'; lst.style.top = (r.bottom + 6) + 'px'; }
 }
 function _sortPickerOutside(e) {
     if (!_openSortPicker) return;
@@ -949,6 +957,7 @@ function _sortPickerOutside(e) {
 function _closeSortPicker() {
     if (!_openSortPicker) return;
     const pk = _openSortPicker;
+    if (_portaledList) _apDetach(_portaledList.el);   // B4-02: stop the follow
     pk.classList.remove('open', 'open-up');
     const tr = pk.querySelector('[aria-haspopup]'); if (tr) tr.setAttribute('aria-expanded', 'false');
     if (_portaledList) {
@@ -1094,6 +1103,64 @@ function snoozeDeadline(id, preset) {
     showToast(`Дедлайн отложен ${label}`.trim(), { undo: true });
 }
 
+// ═══ B4-02: anchored-popover engine — geometry + lifecycle only ═══════════════
+// ONE registry for every desktop body-portal popover (float-menu family + sort
+// portal; qa-typeahead has its own follow logic, gothic pickers live inside
+// modals — Opus adopts them later per POPOVER-ENGINE-SPEC). The engine owns:
+// scroll/resize FOLLOW (rAF-batched, capture-phase so nested scrollers count),
+// close-when-anchor-leaves-viewport, and cross-family single-open. Families
+// keep their own skins, open/close functions and outside-click handling.
+globalThis._apReg = null;   // { el, anchor, place, closeFn, onScroll, raf, dead }
+function _apAttach(el, anchor, place, closeFn) {
+    // single-open across families: opening any popover closes the previous one
+    const prev = globalThis._apReg;
+    if (prev && prev.el !== el) { _apDetach(prev.el); prev.closeFn(); }
+    const reg: any = { el, anchor, place, closeFn, raf: 0, dead: false };
+    reg.onScroll = () => {
+        if (reg.raf || reg.dead) return;
+        reg.raf = requestAnimationFrame(() => {
+            reg.raf = 0;
+            if (reg.dead) return;
+            if (!anchor.isConnected) { _apDetach(el); closeFn(); return; }
+            const r = anchor.getBoundingClientRect();
+            // anchor scrolled fully out of the viewport → the menu has nothing
+            // to hang from; close instead of floating detached (the live bug)
+            if (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth) {
+                _apDetach(el); closeFn(); return;
+            }
+            place(r);
+        });
+    };
+    window.addEventListener('scroll', reg.onScroll, true);
+    window.addEventListener('resize', reg.onScroll);
+    globalThis._apReg = reg;
+}
+function _apDetach(el?) {
+    const reg = globalThis._apReg;
+    if (!reg || (el && reg.el !== el)) return;
+    globalThis._apReg = null;
+    reg.dead = true;
+    if (reg.raf) cancelAnimationFrame(reg.raf);
+    window.removeEventListener('scroll', reg.onScroll, true);
+    window.removeEventListener('resize', reg.onScroll);
+}
+// Arrow-key navigation for open role=menu popovers (B4-02: role=menu had no
+// keyboard nav). ↑/↓ wrap, Home/End jump; Enter/Space stay native buttons.
+function _apMenuKeyNav(e, root) {
+    const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+    if (!keys.includes(e.key)) return;
+    const items = [...root.querySelectorAll('[role^="menuitem"]:not([disabled])')] as HTMLElement[];
+    if (!items.length) return;
+    e.preventDefault();
+    const cur = items.indexOf(document.activeElement as HTMLElement);
+    let next;
+    if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = items.length - 1;
+    else if (e.key === 'ArrowDown') next = cur < 0 ? 0 : (cur + 1) % items.length;
+    else next = cur <= 0 ? items.length - 1 : cur - 1;
+    items[next].focus({ preventScroll: true });
+}
+
 // ── Shared floating popup-menu (used by snooze + demote parent-picker) ───────
 globalThis._floatMenuEl = null;
 globalThis._floatMenuAnchor = null;// the trigger button the open menu belongs to
@@ -1108,6 +1175,7 @@ function closeFloatMenu() {
     _floatMenuEl = null;            // clear refs first so an immediate reopen makes a fresh element
     _floatMenuAnchor = null;
     _fmScrim = null;
+    if (m) _apDetach(m);            // B4-02: stop the scroll-follow for this menu
     document.removeEventListener('pointerdown', _floatMenuOutside, true);
     if (scrim) {
         scrim.classList.add('closing');
@@ -1130,9 +1198,19 @@ function closeFloatMenu() {
         }
     }
 }
-// Esc closes the open float menu / action sheet (helps keyboard users everywhere).
+// Esc closes the open float menu / action sheet (helps keyboard users everywhere);
+// B4-02: Esc now also covers the sort portal, and ↑/↓/Home/End walk open menus.
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && _floatMenuEl) closeFloatMenu();
+    if (e.key === 'Escape') {
+        if (_floatMenuEl) { closeFloatMenu(); return; }
+        if (_openSortPicker) {
+            const tr = _openSortPicker.querySelector('[aria-haspopup]');
+            _closeSortPicker();
+            if (tr && (tr as any).focus) (tr as any).focus({ preventScroll: true });
+        }
+        return;
+    }
+    if (_floatMenuEl && !_floatMenuEl.classList.contains('action-sheet')) _apMenuKeyNav(e, _floatMenuEl);
 });
 function _floatMenuOutside(e) {
     if (!_floatMenuEl || _floatMenuEl.contains(e.target)) return;
@@ -1145,6 +1223,30 @@ function _floatMenuOutside(e) {
     }
     closeFloatMenu();
 }
+// B4-02: the float-menu placement, extracted so the engine can re-run it every
+// scrolled frame. Open below by default; flip ABOVE when there's more room
+// (e.g. the sync eye pinned bottom-left). Opening above anchors by BOTTOM so
+// the panel grows UPWARD — an expanding <details>/log can't push it off-screen —
+// and the height caps to the available space with internal scroll either way.
+function _fmPlace(menu, r) {
+    const mw = menu.offsetWidth || 160;
+    const mh = menu.offsetHeight || 0;
+    const pad = 8;
+    const spaceBelow = window.innerHeight - r.bottom - pad;
+    const spaceAbove = r.top - pad;
+    if (spaceBelow >= mh || spaceBelow >= spaceAbove) {
+        menu.style.bottom = '';
+        menu.style.top = Math.round(r.bottom + 5) + 'px';
+        menu.style.maxHeight = Math.round(Math.max(120, spaceBelow)) + 'px';
+    } else {
+        menu.style.top = '';
+        menu.style.bottom = Math.round(window.innerHeight - r.top + 5) + 'px';
+        menu.style.maxHeight = Math.round(Math.max(120, spaceAbove)) + 'px';
+    }
+    menu.style.overflowY = 'auto';
+    menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
+}
+
 // Opens a body-level menu anchored under `btn`. Returns false if it just toggled
 // an already-open menu closed (incl. the same-anchor re-click toggle).
 function _openFloatMenu(btn, innerHTML, extraClass) {
@@ -1177,25 +1279,10 @@ function _openFloatMenu(btn, innerHTML, extraClass) {
         menu.focus({ preventScroll: true });
     } else {
         document.body.appendChild(menu);
-        const r  = btn.getBoundingClientRect();
-        const mw = menu.offsetWidth || 160;
-        const mh = menu.offsetHeight || 0;
-        const pad = 8;
-        const spaceBelow = window.innerHeight - r.bottom - pad;
-        const spaceAbove = r.top - pad;
-        // Open below by default; flip ABOVE when there's more room there (e.g. the sync
-        // eye is pinned to the bottom-left). When opening above, anchor by BOTTOM so the
-        // panel grows UPWARD — a <details>/log expanding then can't push it off-screen —
-        // and cap the height to the available space with internal scroll either way.
-        if (spaceBelow >= mh || spaceBelow >= spaceAbove) {
-            menu.style.top = Math.round(r.bottom + 5) + 'px';
-            menu.style.maxHeight = Math.round(Math.max(120, spaceBelow)) + 'px';
-        } else {
-            menu.style.bottom = Math.round(window.innerHeight - r.top + 5) + 'px';
-            menu.style.maxHeight = Math.round(Math.max(120, spaceAbove)) + 'px';
-        }
-        menu.style.overflowY = 'auto';
-        menu.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - mw - 8))) + 'px';
+        _fmPlace(menu, btn.getBoundingClientRect());
+        // B4-02: follow the anchor on scroll/resize; close when it leaves the
+        // viewport. Also enforces single-open across popover families.
+        _apAttach(menu, btn, r => _fmPlace(menu, r), closeFloatMenu);
     }
     _floatMenuEl = menu;
     _floatMenuAnchor = btn;
