@@ -5867,11 +5867,13 @@ kbd {
     /* ── F2: compact branding — one calm row, ~60px saved ────────────────
        DUSK + emblems in a single tight row; the tagline (and its typewriter
        cascade) is desktop theater. The ornament divider stays as the seam. */
-    .app-header { gap: 12px; margin-bottom: 10px; padding-bottom: 10px; }
+    /* User verdict: the one-row branding got squeezed too hard — give the
+       DUSK row and the tabs back some air (still far below the old ~290px). */
+    .app-header { gap: 14px; margin-bottom: 18px; padding-bottom: 14px; }
     .brand-tagline { display: none; }
-    .brand-name { font-size: 26px; letter-spacing: 6px; }
-    .brand-svg { width: 22px; height: 27px; }
-    .page-nav { margin-bottom: 12px; }
+    .brand-name { font-size: 28px; letter-spacing: 7px; }
+    .brand-svg { width: 24px; height: 29px; }
+    .page-nav { margin-bottom: 18px; }
 
     /* ── B1-07/08 (slice 5): the bottom FABs (sync eye, sound/pen stack) float
        over content — reserve a scroll gutter so the last card / paragraph can
@@ -5928,7 +5930,7 @@ kbd {
     .btn-sub-notes-always svg { width: 13px; height: 13px; }
 
     /* ── F2: one-line subtask row — [handle][check][text][badge][⋯] ────── */
-    .sub-main-row { gap: 4px; }
+    .sub-main-row { gap: 3px; }
     .subtask-item { min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
     .sub-actions { gap: 0; margin-left: auto; }
     .btn-sub-action { width: 40px; height: 40px; border-radius: 10px; }
@@ -5942,6 +5944,19 @@ kbd {
         opacity: 0.45;
         pointer-events: auto;
     }
+    /* Sticky :hover on touch was adding the desktop 2px/-2px margin pair on
+       tap — the handle visibly jumped. Neutralize on coarse. */
+    .subtask-item:not(.checked):not(.cycle-checked):hover .sub-drag-handle {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    /* Checked rows hide the handle by width:0 — but a zero-width flex item
+       still owns a gap slot (double gap before the coffin). Drop it fully. */
+    .subtask-item.checked .sub-drag-handle,
+    .subtask-item.cycle-checked .sub-drag-handle { display: none; }
+    /* Narrower coffin box pulls glyph/text visually closer (height stays 36
+       for the tap target; the 48px row carries the rest). */
+    .sub-check { min-width: 32px; }
 
     /* ── F2: touch feedback — every bare-glyph target presses like a key ──
        transform+background only; colour transitions stay as declared above. */
