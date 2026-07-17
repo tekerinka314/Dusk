@@ -944,7 +944,11 @@ function toggleSortPicker(e) {
 // Extracted (B4-02) so the engine re-runs it per scrolled frame.
 function _spPlace(lst, r) {
     const openUp = r.bottom > window.innerHeight - 260;
-    lst.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    // Anchored to the trigger's right edge, but clamped on BOTH sides — a
+    // left-side trigger (mobile toolbar) must not push the list off-screen.
+    const right = Math.min(Math.max(8, window.innerWidth - r.right),
+                           Math.max(8, window.innerWidth - lst.offsetWidth - 8));
+    lst.style.right = right + 'px';
     if (openUp) { lst.style.top = 'auto'; lst.style.bottom = (window.innerHeight - r.top + 6) + 'px'; }
     else        { lst.style.bottom = 'auto'; lst.style.top = (r.bottom + 6) + 'px'; }
 }

@@ -1637,9 +1637,11 @@ document.addEventListener('pointerdown', e => {
 }, true);
 document.addEventListener('pointermove', e => {
     if (!_lpStart || e.pointerType !== 'touch') return;
+    // Once the hint has fired the finger inevitably rolls a few px on release —
+    // the slop rule only guards the HOLD phase, it must not kill a shown hint.
+    if (_lpSuppressUntil === Infinity) return;
     if (Math.hypot(e.clientX - _lpStart.x, e.clientY - _lpStart.y) > LP_SLOP_PX) {
         _lpCancel();                          // it's a scroll/drag, not a hold
-        if (_lpSuppressUntil === Infinity) _lpSuppressUntil = 0;
         _lpHide();
     }
 }, true);
@@ -1652,7 +1654,13 @@ const _lpUp = e => {
     _lpCancel();
 };
 document.addEventListener('pointerup', _lpUp, true);
-document.addEventListener('pointercancel', e => { _lpCancel(); _lpHide(); if (_lpSuppressUntil === Infinity) _lpSuppressUntil = 0; }, true);
+document.addEventListener('pointercancel', () => {
+    _lpCancel();
+    if (_lpSuppressUntil === Infinity) {      // hint fired → behave like a release:
+        _lpSuppressUntil = performance.now() + 500;   // no click, plate lingers
+        setTimeout(() => _lpHide(), LP_LINGER_MS);
+    } else _lpHide();
+}, true);
 document.addEventListener('click', e => {
     if (performance.now() < _lpSuppressUntil) { e.stopPropagation(); e.preventDefault(); }
 }, true);

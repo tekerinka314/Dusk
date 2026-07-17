@@ -3490,6 +3490,7 @@ function grimToggleIoMenu(event) {
     _grimCloseIoMenu();
     if (wasOpen) return;
     _grimRenderIoMenu();
+    _gtpClampX(w);
     requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
     const b = document.getElementById('grim-io') as any; if (b) b.setAttribute('aria-expanded', 'true');
 }
@@ -3500,6 +3501,7 @@ function grimToggleIoSelMenu(event) {
     _grimCloseIoMenu();
     if (wasOpen) return;
     _grimRenderIoSelMenu();
+    _gtpClampX(w);
     requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
     const b = document.getElementById('grim-bulk-export') as any; if (b) b.setAttribute('aria-expanded', 'true');
 }
@@ -3990,12 +3992,25 @@ function grimDeleteTpl(id, event) {
 }
 
 // ── popover open/close + render ──
+// The .grim-tpl-pop family anchors right:0 to its trigger wrap; left-side
+// triggers (mobile bar) would push the 322px plate off the left edge. Shift it
+// back into the viewport via a negative right offset, measured per open (the
+// clamp resets first, so no cleanup is needed on close).
+function _gtpClampX(wrap) {
+    const pop = wrap && wrap.querySelector('.grim-tpl-pop');
+    if (!pop) return;
+    pop.style.right = '';
+    const w = pop.offsetWidth, c = wrap.getBoundingClientRect(), vw = window.innerWidth;
+    const overflow = 8 - (c.right - w);           // how far the left edge sticks out
+    if (overflow > 0) pop.style.right = -Math.min(overflow, Math.max(0, vw - 8 - c.right)) + 'px';
+}
 function grimToggleTplMenu(event) {
     if (event) event.stopPropagation();
     const split = document.getElementById('grim-new-split') as any;
     if (!split) return;
     if (split.classList.contains('open')) { _grimCloseTplMenu(); return; }
     _grimRenderTplMenu();
+    _gtpClampX(split);
     // Paint the closed base state first, THEN flip .open next frame so the
     // opacity/transform transition actually runs (same-tick add skips it).
     requestAnimationFrame(() => requestAnimationFrame(() => split.classList.add('open')));
