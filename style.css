@@ -8600,6 +8600,9 @@ kbd {
    Scope: tasks page only — archive/grimoire keep the 780px shell.
    ============================================================ */
 .side-rail, .rail-inner { display: contents; }   /* inert below the tier — zero layout change */
+/* The digest exists ONLY in the ≥1440px rail — below the tier it must stay
+   dead even when JS clears its inline display (it toggles it for emptiness). */
+.rail-digest { display: none; }
 
 /* Group pill is now a real <button> everywhere (click = toggle group focus);
    the done/total count inside it only shows in the ≥1440px rail. */
@@ -8859,4 +8862,32 @@ kbd {
 }
 @media (min-width: 2200px) {
     body[data-page="main"] .todo-app { max-width: 1460px; }
+}
+
+/* ============================================================
+   O-3 — long-press hint plate (coarse pointers): hold an icon button
+   ~480ms → its label appears; release swallows the click. JS in 08.
+   ============================================================ */
+.lp-hint {
+    position: fixed;
+    z-index: 4100;   /* above sheets/modals/toast — a hint may name any of them */
+    max-width: min(78vw, 340px);
+    background: var(--bg-modal);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.78), 0 0 14px var(--accent-glow);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--dur-quick) var(--ease-emerge), transform var(--dur-quick) var(--ease-emerge);
+}
+.lp-hint-in  { opacity: 1; transform: translateY(0); }
+.lp-hint-out { opacity: 0 !important; transform: translateY(2px); }
+@media (prefers-reduced-motion: reduce) {
+    .lp-hint { transition: none; transform: none; }
 }

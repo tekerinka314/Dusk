@@ -1577,6 +1577,86 @@ function initFormWeekdayPicker() {
 }
 
 
+// ═══ O-3: long-press hints on coarse pointers ════════════════════════════════
+// On touch there is no hover → icon buttons are mute. Hold a button ~480ms
+// without moving → a gothic plate with its title/aria-label appears above it;
+// releasing AFTER the hint fired swallows the click (the finger «asked», it
+// didn't «press»). Release before 480ms = a normal tap. Excluded: drag handles
+// (long-press means drag there) and two-step .confirm-armed buttons.
+globalThis._lpTimer = 0;
+globalThis._lpBtn = null;
+globalThis._lpStart = null;
+globalThis._lpSuppressUntil = 0;
+globalThis._lpHintEl = null;
+const LP_HOLD_MS = 480, LP_SLOP_PX = 8, LP_LINGER_MS = 1200;
+function _lpCancel() {
+    clearTimeout(_lpTimer); _lpTimer = 0; _lpBtn = null; _lpStart = null;
+}
+function _lpHide(immediate = false) {
+    const el = _lpHintEl;
+    if (!el) return;
+    _lpHintEl = null;
+    if (immediate || prefersReducedMotion()) { el.remove(); return; }
+    el.classList.add('lp-hint-out');
+    el.addEventListener('transitionend', () => el.remove(), { once: true });
+    setTimeout(() => el.remove(), 400);   // safety net
+}
+function _lpShow(btn, label) {
+    _lpHide(true);
+    const el = document.createElement('div');
+    el.className = 'lp-hint';
+    el.textContent = label;
+    document.body.appendChild(el);
+    const r = btn.getBoundingClientRect();
+    const w = el.offsetWidth;
+    el.style.left = Math.round(Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8))) + 'px';
+    // above the button; below when there's no room (top-of-screen buttons)
+    const top = r.top - el.offsetHeight - 10;
+    el.style.top = Math.round(top >= 8 ? top : r.bottom + 10) + 'px';
+    requestAnimationFrame(() => el.classList.add('lp-hint-in'));
+    _lpHintEl = el;
+}
+document.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch') return;
+    _lpHide(true);
+    const t = e.target as Element;
+    if (!t || typeof t.closest !== 'function') return;
+    const btn = t.closest('[title], [aria-label]');
+    if (!btn || btn.closest('.drag-handle, .group-drag-handle, .sub-drag-handle, .confirm-armed')) return;
+    const label = btn.getAttribute('aria-label') || btn.getAttribute('title');
+    if (!label) return;
+    _lpBtn = btn;
+    _lpStart = { x: e.clientX, y: e.clientY };
+    clearTimeout(_lpTimer);
+    _lpTimer = setTimeout(() => {
+        _lpTimer = 0;
+        if (!_lpBtn) return;
+        _lpSuppressUntil = Infinity;         // armed: the release must not click
+        _lpShow(_lpBtn, label);
+    }, LP_HOLD_MS);
+}, true);
+document.addEventListener('pointermove', e => {
+    if (!_lpStart || e.pointerType !== 'touch') return;
+    if (Math.hypot(e.clientX - _lpStart.x, e.clientY - _lpStart.y) > LP_SLOP_PX) {
+        _lpCancel();                          // it's a scroll/drag, not a hold
+        if (_lpSuppressUntil === Infinity) _lpSuppressUntil = 0;
+        _lpHide();
+    }
+}, true);
+const _lpUp = e => {
+    if (e.pointerType !== 'touch') return;
+    if (_lpSuppressUntil === Infinity) {      // hint fired → swallow the click,
+        _lpSuppressUntil = performance.now() + 500;   // let the plate linger
+        setTimeout(() => _lpHide(), LP_LINGER_MS);
+    }
+    _lpCancel();
+};
+document.addEventListener('pointerup', _lpUp, true);
+document.addEventListener('pointercancel', e => { _lpCancel(); _lpHide(); if (_lpSuppressUntil === Infinity) _lpSuppressUntil = 0; }, true);
+document.addEventListener('click', e => {
+    if (performance.now() < _lpSuppressUntil) { e.stopPropagation(); e.preventDefault(); }
+}, true);
+
 // Этап 4: init() is now async (loadState() awaits an IndexedDB round-trip
 // first). Deliberately NOT `await`-ed at top level here — a top-level await
 // would make TypeScript/bundlers treat 08 as an async module, and per the ES
