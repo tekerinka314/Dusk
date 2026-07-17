@@ -2299,7 +2299,7 @@ function openTaskMoreMenu(event, id) {
             <button type="button" class="fm-q${hasNoteNow ? ' active' : ''}" data-act="_taskMore" data-more="notewin" data-id="${id}">${hasNoteNow ? IC.editNote : IC.addNote}<span>Заметка</span></button>
         </div>
         <button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>`
-        : '';
+        : `<button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>`;
     const coarseTail = IS_COARSE ? `
         ${task && task.deadline ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отложить дедлайн</span></button>` : ''}
         <button type="button" role="menuitem" data-act="_taskMore" data-more="archive" data-id="${id}">${IC.archive}<span>В архив</span></button>
@@ -2511,6 +2511,7 @@ function openSubMoreMenu(event, taskId, subId) {
         <div class="fm-quick fm-quick-4" role="group" aria-label="Приоритет подпункта">
             ${pOpt('none', 'Нет')}${pOpt('low', 'Низкий')}${pOpt('medium', 'Средний')}${pOpt('high', 'Высокий')}
         </div>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="edit" ${ds}>${IC.quill}<span>Редактировать</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="repeat" ${ds}>${IC.ouroboros}<span>Повтор${repeatSet ? ` · ${repeatLabel(sub.repeat)}` : ''}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="deadline" ${ds}>${IC.window}<span>${sub.deadline ? 'Изменить дедлайн' : 'Дедлайн'}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="note" ${ds}>${sub.note ? IC.editNote : IC.addNote}<span>${sub.note ? 'Изменить заметку' : 'Заметка'}</span></button>
@@ -2521,6 +2522,10 @@ function openSubMoreMenu(event, taskId, subId) {
 function _subMore(act, taskId, subId, p) {
     closeFloatMenu();
     if (act === 'prio')          _setSubPriority(taskId, subId, p || 'none');
+    else if (act === 'edit') {
+        const span = document.querySelector(`.subtask-item[data-tid="${taskId}"][data-sid="${subId}"] .sub-text`);
+        if (span) startSubEdit({ stopPropagation() {}, target: span }, taskId, subId);
+    }
     else if (act === 'repeat')   openSubRepeatModal(taskId, subId);
     else if (act === 'deadline') openSubDeadlineModal(taskId, subId);
     else if (act === 'note')     toggleSubNote(taskId, subId);

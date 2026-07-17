@@ -6,6 +6,11 @@
 
 /* ===== GOTHIC PURPLE PALETTE ===== */
 :root {
+    /* Declare the page as natively dark — opts out of Chrome's Auto Dark Mode
+       ("dark theme for all websites"), which otherwise inverts light SVG glyphs
+       (white coffin checkbox) and mangles the palette. Paired with the
+       <meta name="color-scheme" content="dark"> in index.html. */
+    color-scheme: dark;
     --bg-page:         #03010a;
     --bg-app:          rgba(5, 2, 20, 0.87);
     --bg-input:        rgba(8, 3, 30, 0.94);
@@ -1182,6 +1187,8 @@ body::after {
 @keyframes sheetOut { from { transform: translateY(0); } to { transform: translateY(100%); } }
 /* comfortable 48px rows with larger glyphs */
 .snooze-menu.action-sheet button[role="menuitem"],
+.snooze-menu.action-sheet button[role="menuitemcheckbox"],
+.snooze-menu.action-sheet button[role="menuitemradio"]:not(.fm-q),
 .snooze-menu.action-sheet .submode-opt {
     min-height: 48px;
     padding: 10px 12px;
@@ -5828,12 +5835,21 @@ kbd {
     .toolbar-group { padding: 0 8px; }
     .toolbar-group-label { display: none; }
     .toolbar-group + .toolbar-group::before { top: 6px; bottom: 6px; }
+    /* Row 2 starts with the ФИЛЬТР cluster — its inherited between-cluster
+       divider dangles at the row's left edge (stray stub). Kill it. */
+    .toolbar-group:has(#btn-filter)::before { display: none; }
     .toolbar-group-data { display: none; }
     .btn-tool.btn-tool-more { display: flex; }
     .btn-tool:active { transform: scale(0.94); background: rgba(120, 60, 220, 0.22); }
 
     /* «+ГРУППА / ШАБЛОНЫ»: solid ghost instead of the draft-looking dashes */
     .btn-add-group { border-style: solid; background: var(--bg-tag); min-height: 40px; }
+
+    /* ПАРАМЕТРЫ form actions: «Закрепить» floated centre / «Шаблон» floated
+       right read as misalignment on narrow screens — stack them as two
+       identical full-width capsule rows instead. */
+    .form-action-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .form-flag-toggle, .form-tpl-btn { margin: 0; justify-content: center; min-height: 42px; }
 
     /* Keyboard-shortcuts FAB is meaningless without a physical keyboard —
        drop it and let the pen-sound FAB take its slot in the right stack. */
@@ -5872,10 +5888,13 @@ kbd {
     .btn-task-action  { width: 40px; height: 40px; border-radius: 10px; }
     .btn-task-action svg { width: 18px; height: 18px; }
     .btn-task-action.btn-task-more svg { width: 20px; height: 20px; }
-    .task-head > .task-actions { margin-top: -4px; margin-right: -6px; }
+    .task-head > .task-actions { margin-top: -7px; margin-right: -6px; }
     .task-text { line-height: 1.45; padding-top: 2px; }
-    /* Coffin checkbox: same icon, comfortable tap target */
+    /* Coffin checkbox: same icon, comfortable tap target. The -7px lifts the
+       40px box so its centre sits on the title's first text line (measured:
+       line cy 620.6 vs box cy 628 — user-reported asymmetry). */
     .task-check { width: 40px; min-width: 40px; height: 40px; border-radius: 10px; }
+    .task-check-col { margin-top: -7px; }
 
     /* Info chips: one unified vocabulary — deadline/repeat pills + the note/
        subtask toggles get the same pill body so the row reads as ONE row of
@@ -5901,7 +5920,7 @@ kbd {
     .btn-sub-notes-always svg { width: 13px; height: 13px; }
 
     /* ── F2: one-line subtask row — [handle][check][text][badge][⋯] ────── */
-    .sub-main-row { gap: 7px; }
+    .sub-main-row { gap: 4px; }
     .subtask-item { min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
     .sub-actions { gap: 0; margin-left: auto; }
     .btn-sub-action { width: 40px; height: 40px; border-radius: 10px; }
