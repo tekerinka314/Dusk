@@ -94,7 +94,16 @@ function _inlineEditActive() {
 // so note-body editing is safe by absence; if a periodic renderNotes is ever
 // added, it must gain the same guard.)
 function _liveInteractionActive() {
-    return _inlineEditActive() || document.body.classList.contains('is-dragging');
+    // Ф-А: open transient chrome joins the class — an async (sync/cycle/wake)
+    // render replaces the anchor button, and the B4-02 engine rightly closes
+    // the orphaned popover/sheet; a long-press in flight loses its target the
+    // same way (the browser fires pointercancel when the pressed node is
+    // replaced). Defer instead — the retry loop below catches up once closed.
+    return _inlineEditActive()
+        || document.body.classList.contains('is-dragging')
+        || !!_floatMenuEl                                   // open ⋯/snooze menu or coarse bottom sheet
+        || !!_openSortPicker                                // open sort dropdown (portaled)
+        || !!((globalThis as any)._lpBtn || (globalThis as any)._lpHintEl);  // long-press hold / hint showing
 }
 function render() {
     // V2-B6-07 (class-level): never rebuild the list out from under a live
