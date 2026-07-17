@@ -41,22 +41,33 @@ Commands: `npm test` (vitest), `npm run dev` (Vite dev server), `npm run build`
 ## Skill usage — auto-invoke BEFORE responding (MANDATORY)
 
 Before starting any substantive **task** (a real unit of work — implement, debug,
-design, research, review, configure), match it against the **entire** installed-
-skills list already loaded in this session's context and invoke whichever skill
-fits — do not wait for the user to name it explicitly. This check is cheap: the
-skill names+descriptions are ALREADY in context, so "scan all skills" costs no
-extra tokens; a skill's body loads only when it actually fires. Follow the
-`using-superpowers` discipline: if there's a real chance a skill applies, invoke
-it before responding, including before clarifying questions.
+design, research, review, configure), run this cycle (user-mandated 2026-07-17;
+also recorded in memory `skill-cycle-mandatory`):
 
-"Task" ≠ every message. Skip the check for conversational replies, trivial
+1. **Scan ALL installed skills** — the full list already in this session's
+   context (names+descriptions cost no extra tokens; a body loads only when it
+   fires). Never work from a remembered shortlist; re-scan per task, including
+   skills added or updated mid-session.
+2. **Load EVERY skill that would genuinely add value to THIS task — not just
+   the single best fit.** A design task may need `impeccable` + a typography
+   skill + a review skill together; load all of them. The bar is "would its
+   content actually change or improve the work", not "is it the topical match".
+   Process skills (brainstorming, systematic-debugging, writing-plans) fire
+   before implementation skills.
+3. **Gap → `find-skills` (MANDATORY).** If step 1 found no skill (or a weak
+   one) for some aspect of the task, invoke `find-skills` to search for one.
+   Found something valuable → install it, then feed it back through this same
+   cycle (scan → load-all-applicable) before proceeding.
+4. State which skills you invoked and why (one line).
+
+Follow the `using-superpowers` discipline: if there's a real chance a skill
+applies, invoke it before responding, including before clarifying questions.
+
+"Task" ≠ every message. Skip the cycle for conversational replies, trivial
 one-liners, quick factual answers, and chit-chat — anything with no code, design,
 research, or config surface. One request may contain several tasks; judge per task.
 
-Do NOT restrict yourself to a hardcoded shortlist. Match each task against the
-current descriptions of ALL skills (including ones added or updated later) and
-pick the best fit yourself. The mappings below are **illustrative examples only**,
-not the allowed set:
+The mappings below are **illustrative examples only**, not the allowed set:
 
 - New feature / component / behavior change → `brainstorming` (MUST, before code).
 - Any bug, test failure, unexpected behavior → `systematic-debugging` (before any fix).
