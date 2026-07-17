@@ -1,9 +1,37 @@
-# OPUS-QUEUE — передача от Fable (2026-07-17, после мотион-перестройки W1-W4)
+# OPUS-QUEUE — передача от Fable (обновлено 2026-07-17 после пересборки плана)
 
 Ритуал и запреты — OPUS-BRIEF.md. Ф1/Ф2 закрыты: запрет на style.css/03/04/05/
 index.html СНЯТ, но правки — хирургические, готика неприкосновенна (CLAUDE.md).
 Вердикт Fable: всё ниже Opus тянет без потери качества — это механика по
 готовому диагнозу/плану. Дизайн-развилки НЕ решать: в REVIEW-QUEUE.md.
+
+**ПОРЯДОК (STRATEGY.md, утверждён юзером 2026-07-17).**
+Сейчас (окна кулдауна Fable, до 19.07): **O-4 TWA → O-1 (ТОЛЬКО замер,
+п.1) → seq-сиды idbboot + скелет Этапа 5**. После 19.07: W2 целиком
+(FIX-PLAN) → O-1 фиксы (п.2-5) → O-5 → W3 cut-line → синк-стресс → Этап 5.
+O-2 У OPUS'А ИЗЪЯТ — поповер-баги на девайсе дебажит Fable (Ф-А),
+движок его.
+
+## O-4 — Android TWA (Ф4) — ПЕРВЫЙ, файлово изолирован
+
+По `ANDROID-PRENOTES.md` (binding): **TWA-first**, Bubblewrap; НЕ WebView-обёртка
+(OAuth-капкан: GIS в WebView запрещён Google — TWA использует Custom Tabs,
+поэтому синк работает). Прод-origin `https://dusk-du4.pages.dev`.
+- Новая папка (напр. `android-twa/`), НИЧЕГО в веб-коде не менять; если
+  manifest.json требует правок (id/scope/иконки maskable) — минимальный дифф.
+- `twa-manifest.json`: **navigationBarColor / navigationBarColorDark = #150933**
+  (настоящий фикс системной полосы — см. §Safe-area), themeColor #0a0420,
+  display standalone, orientation default.
+- assetlinks: юзер-шаги (SHA-256 подписи → `public/.well-known/assetlinks.json`)
+  расписать пошагово, юзер — новичок в инфре.
+- Выход: сборочный скрипт + инструкция сайдлоада APK; подписанный APK юзеру.
+
+## O-5 — B11+B12 экспресс-аудит + adversarial-линзы (ПОСЛЕ 19.07, слито в одно)
+
+Adversarial-воркфлоу (5 линз sonnet-5 medium + судья opus-4.8 high, план F2 §4)
+НЕ отдельная задача — это метод прохода B11+B12 по новым поверхностям
+(F2-мобайл, Ф3 рельса/поповеры/хинты, иконки Ф-B, drawer Ф-C). Находки →
+FINDINGS.md реестр, вкусовое → REVIEW-QUEUE.md.
 
 ## O-1 — Мотион, JS-фаза (по audit-v2/MOTION-PLAN.md «Отложено»)
 
