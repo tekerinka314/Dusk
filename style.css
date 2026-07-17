@@ -116,10 +116,22 @@
 
     --dur-micro:     80ms;
     --dur-quick:     220ms;
-    --dur-standard:  340ms;
+    --dur-standard:  300ms;   /* MOTION-W4: 340→300 — frequent UI stays under the
+                                 ~300ms responsiveness ceiling; rituals keep 520 */
     --dur-collapse:  280ms;   /* S1-6/U-3: one tempo for every collapse/expand section */
     --dur-ritual:    520ms;
     --dur-ambient:   6000ms;
+}
+
+/* MOTION-W4: touch devices read the same motion as slower — fingers expect the
+   UI to keep up with them. One lever: shorter tokens on coarse pointers.
+   Rituals (--dur-ritual) and ambience deliberately keep the gothic tempo. */
+@media (pointer: coarse) {
+    :root {
+        --dur-quick:    170ms;
+        --dur-standard: 260ms;
+        --dur-collapse: 230ms;
+    }
 }
 
 /* ===== RESET ===== */
@@ -224,6 +236,22 @@ body::after {
        Previous: SVG opacity=0.022 × CSS opacity=0.7 = effective 0.0154. Now explicit. */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.016'/%3E%3C/svg%3E");
     opacity: 1;
+}
+
+/* Android edge-to-edge (Chrome 135+): with gesture navigation the browser no
+   longer paints the bottom bar from theme-color — the PAGE draws under it.
+   Down there body::before ends in a near-black gradient, so the chin read as
+   black no matter what theme-color said. Paint the inset strip explicitly in
+   the theme violet; height is 0 (invisible) wherever there is no inset. */
+html::after {
+    content: '';
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: env(safe-area-inset-bottom, 0px);
+    background: #150933;
+    z-index: 120; /* above page content, below overlays/sheets (200+) — an open
+                     sheet owns its own inset padding and reaches the edge */
+    pointer-events: none;
 }
 
 /* ===== LAYOUT ===== */
@@ -353,14 +381,16 @@ body::after {
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    filter: drop-shadow(0 0 8px rgba(150,60,255,0.35));
+    /* MOTION-W1: the glow is a STATIC drop-shadow; only opacity breathes.
+       Animating the filter itself repainted the header every frame, forever. */
+    filter: drop-shadow(0 0 11px rgba(175, 85, 250, 0.52));
     animation: emblemPulse 4.5s ease-in-out infinite;
 }
 .brand-emblem-r { animation-delay: -2.25s; }
 .brand-svg { display: block; width: 30px; height: 36px; }
 @keyframes emblemPulse {
-    0%, 100% { filter: drop-shadow(0 0 6px rgba(140,50,240,0.28)); opacity: 0.80; }
-    50%       { filter: drop-shadow(0 0 16px rgba(190,100,255,0.65)); opacity: 1.0; }
+    0%, 100% { opacity: 0.70; }
+    50%       { opacity: 1; }
 }
 
 .brand-content { text-align: center; }
@@ -415,7 +445,7 @@ body::after {
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1px;
     text-transform: uppercase;
 }
@@ -627,7 +657,7 @@ body::after {
     justify-content: center;
     color: var(--accent);
     flex-shrink: 0;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     margin: 0;
 }
 .btn-add:hover {
@@ -676,7 +706,7 @@ body::after {
 .btn-expand:hover::before { border-color: rgba(150, 80, 230, 0.32); }
 
 /* corner studs */
-.be-stud { position: absolute; width: 3px; height: 3px; background: var(--border-mid); transform: rotate(45deg); opacity: 0.6; transition: all var(--transition); }
+.be-stud { position: absolute; width: 3px; height: 3px; background: var(--border-mid); transform: rotate(45deg); opacity: 0.6; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition); }
 .be-stud.tl { left: 6px; top: 6px; }
 .be-stud.tr { right: 6px; top: 6px; }
 .be-stud.bl { left: 6px; bottom: 6px; }
@@ -778,7 +808,7 @@ body::after {
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     background: var(--bg-input);
     color: var(--text-secondary);
     white-space: nowrap;
@@ -817,7 +847,7 @@ body::after {
     font-size: 10.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     background: var(--bg-input);
     color: var(--text-secondary);
     letter-spacing: 1.5px;
@@ -953,7 +983,7 @@ body::after {
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     background: var(--bg-input);
     color: var(--text-secondary);
     letter-spacing: 1.5px;
@@ -979,7 +1009,7 @@ body::after {
     font-family: var(--font-main);
     font-size: 15px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     width: 100%;
     text-align: left;
 }
@@ -998,7 +1028,7 @@ body::after {
     color: var(--text-muted);
     cursor: pointer;
     flex-shrink: 0;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     border: none;
     padding: 0;
 }
@@ -1073,7 +1103,7 @@ body::after {
     text-transform: uppercase;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .toast-undo-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
 .toast-undo-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 10px rgba(140, 60, 255, 0.3); }
@@ -1386,7 +1416,7 @@ body::after {
     flex: 1; padding: 4px 2px; border: 1px solid var(--border);
     background: transparent; color: var(--text-muted);
     border-radius: var(--radius-xs); cursor: pointer;
-    font-family: var(--font-label); font-size: 9.5px; transition: all var(--transition);
+    font-family: var(--font-label); font-size: 9.5px; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .snooze-unit:hover { color: var(--text-secondary); border-color: var(--border-mid); }
 .snooze-unit.active { background: var(--accent-soft); color: var(--accent-hover); border-color: rgba(140,60,255,0.4); }
@@ -1394,7 +1424,7 @@ body::after {
     flex-shrink: 0; padding: 4px 9px; border: 1px solid rgba(140,60,255,0.4);
     background: var(--accent-soft); color: var(--accent-hover);
     border-radius: var(--radius-xs); cursor: pointer;
-    font-family: var(--font-label); font-size: 9.5px; letter-spacing: 0.5px; transition: all var(--transition);
+    font-family: var(--font-label); font-size: 9.5px; letter-spacing: 0.5px; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .snooze-custom-go:hover { background: var(--accent); color: #fff; }
 
@@ -1501,7 +1531,7 @@ body::after {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     padding: 0;
 }
 .btn-tool svg { width: 14px; height: 14px; }
@@ -1530,7 +1560,7 @@ body::after {
     font-family: var(--font-label);
     font-size: 11px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 2px;
     text-transform: uppercase;
 }
@@ -1625,7 +1655,7 @@ body::after {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     padding: 0;
 }
 .btn-group-action svg { width: 12px; height: 12px; }
@@ -1853,7 +1883,7 @@ body::after {
    runeShimmer   — single light-sweep across brand name on load
    taglineAppear — each letter of "task journal" fades in staggered
    cycleSpin     — full 360° rotation of coffin on cycle-complete
-   portalPulse   — pulsing border-glow on a group-body while dragging over it
+   (drag-over glow on a group-body is a STATIC box-shadow since MOTION-W1)
    ──────────────────────────────────────────────────────────────── */
 
 /* One-shot shimmer sweep across the DUSK logotype */
@@ -1912,16 +1942,12 @@ body::after {
 }
 
 /* Drop-zone portal glow: group-body glows while a task is dragged over it */
-@keyframes portalPulse {
-    0%, 100% { box-shadow: inset 0 0 0 1px rgba(140, 60, 255, 0.25), 0 0 12px rgba(120, 40, 240, 0.12); }
-    50%       { box-shadow: inset 0 0 0 1px rgba(180, 90, 255, 0.55), 0 0 28px rgba(140, 55, 255, 0.28); }
-}
+/* MOTION-W1: the pulse repainted the whole group area every frame WHILE
+   dragging — exactly when the main thread is busiest. The state signal
+   (glow = valid drop zone) works statically; no animation needed. */
 .group-body.drag-over {
-    animation: portalPulse 0.9s ease-in-out infinite;
+    box-shadow: inset 0 0 0 1px rgba(165, 78, 255, 0.42), 0 0 20px rgba(130, 48, 250, 0.20);
     border-radius: 0 0 var(--radius-md) var(--radius-md);
-}
-@media (prefers-reduced-motion: reduce) {
-    .group-body.drag-over { animation: none; box-shadow: inset 0 0 0 1px rgba(140,60,255,0.4); }
 }
 
 /* ─── END BATCH-4 KEYFRAMES ───────────────────────────────────── */
@@ -1946,7 +1972,9 @@ body::after {
     transition: background var(--transition), border-color var(--transition),
                 box-shadow var(--transition), opacity 0.25s ease;
     position: relative;
-    backdrop-filter: blur(4px);
+    /* MOTION-W2: backdrop-filter removed — one blur region PER ROW re-blurred
+       on every scroll frame, and the backdrop here is just the card's own
+       near-uniform dark fill: invisible effect, real GPU cost. */
     overflow: hidden;
     cursor: grab;
     /* Critical for reliable drag: prevent text selection */
@@ -2211,7 +2239,7 @@ body::after {
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     white-space: nowrap;
 }
 .grgb-apply:hover { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 12px rgba(140,60,255,0.3); }
@@ -2229,7 +2257,7 @@ body::after {
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     white-space: nowrap;
 }
 .grgb-clear svg { width: 13px; height: 13px; flex-shrink: 0; }
@@ -2482,7 +2510,18 @@ body::after {
 .dl-side-panel.dl-side-critical {
     border-right-color: var(--deadline-critical);
     background: rgba(120,5,35,0.22);
-    animation: pulseSide 1.6s ease infinite;
+    /* MOTION-W1: static inset glow on ::after, opacity-only blink (was a
+       box-shadow keyframe = full-row repaint every frame, forever). */
+    position: relative;
+}
+.dl-side-panel.dl-side-critical::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 10px rgba(220,30,70,0.18);
+    animation: glowBlink 1.6s ease infinite;
+    animation-delay: var(--pulse-delay, 0s);
 }
 .dl-side-panel.dl-side-critical .dl-side-countdown { color: var(--deadline-critical); }
 .dl-side-panel.dl-side-urgent {
@@ -2492,9 +2531,17 @@ body::after {
 .dl-side-panel.dl-side-urgent .dl-side-countdown { color: var(--deadline-urgent); }
 .dl-side-panel.dl-side-warn   { border-right-color: var(--deadline-warn); }
 .dl-side-panel.dl-side-warn   .dl-side-countdown { color: var(--deadline-warn); }
-@keyframes pulseSide {
-    0%, 100% { box-shadow: none; }
-    50%       { box-shadow: inset 0 0 10px rgba(220,30,70,0.18); }
+/* MOTION-W1: shared opacity-only pulse curves. The glow itself is always a
+   STATIC box-shadow on a pseudo-layer; only the layer's opacity animates
+   (compositor-only, zero repaint). glowBlink = none→peak→none rhythm
+   (critical urgency); glowBreathe = never fully off (live ritual). */
+@keyframes glowBlink {
+    0%, 100% { opacity: 0; }
+    50%       { opacity: 1; }
+}
+@keyframes glowBreathe {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 1; }
 }
 
 /* ── Schedule mode subgroup dividers ── */
@@ -2596,12 +2643,13 @@ body::after {
     cursor: pointer;
     flex-shrink: 0;
     margin-top: 0;
-    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                background-color 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
     background: transparent;
     border: none;
     padding: 0;
 }
-.task-check svg { transition: all 0.22s ease; }
+.task-check svg { transition: transform 0.22s ease, filter 0.22s ease; }
 .task-check:hover svg { filter: drop-shadow(0 0 4px rgba(160, 80, 255, 0.6)); transform: scale(1.1); }
 
 /* Checked: filled coffin — purple */
@@ -2625,7 +2673,7 @@ body::after {
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.18s ease;
+    transition: transform 0.18s ease, background-color 0.18s ease;
     border: none;
     background: transparent;
     padding: 0;
@@ -2676,7 +2724,7 @@ body::after {
     border-left: none;
     cursor: pointer;
     opacity: 0;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     line-height: 1;
 }
 .group-pill-wrap:hover .btn-pill-delete {
@@ -2728,7 +2776,7 @@ body::after {
         transition: none !important;
     }
     /* P-E: no pulsing critical glyph under reduced motion */
-    .sub-deadline-badge.sub-dl-critical { animation: none !important; }
+    .sub-deadline-badge.sub-dl-critical::after { animation: none !important; opacity: 0.5; }
 }
 
 /* ── Item 1: subtask progress bar ── */
@@ -3013,7 +3061,7 @@ body::after {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     padding: 0;
 }
 .btn-sub-action svg { width: 11px; height: 11px; pointer-events: none; }
@@ -3139,7 +3187,7 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     padding: 0;
     flex-shrink: 0;
     margin-top: 1px; /* visual centre correction for 3px top margin on sub-note-text */
@@ -3202,7 +3250,16 @@ textarea:focus-visible {
 .sub-deadline-badge.sub-dl-critical {
     color: var(--deadline-critical);
     border-radius: 50%;
-    animation: pulseCritical 1.6s ease infinite;
+    position: relative;
+}
+.sub-deadline-badge.sub-dl-critical::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: 0 0 0 3px rgba(220, 30, 70, 0.22), 0 0 12px rgba(220, 30, 70, 0.15);
+    animation: glowBlink 1.6s ease infinite;
 }
 
 /* Hover-reveal countdown pill — grid-rows 0fr↔1fr, identical model to .sub-note-wrapper */
@@ -3316,7 +3373,7 @@ textarea:focus-visible {
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     padding: 0;
 }
 .btn-subtask-confirm svg { width: 12px; height: 12px; pointer-events: none; }
@@ -3344,7 +3401,7 @@ textarea:focus-visible {
     font-weight: 500;
     letter-spacing: 1px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .form-flag-toggle svg,
 .form-tpl-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
@@ -3398,7 +3455,7 @@ textarea:focus-visible {
     background: var(--bg-input);
     color: var(--accent);
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     flex-shrink: 0;
     padding: 0;
 }
@@ -3544,10 +3601,8 @@ textarea:focus-visible {
 }
 .deadline-tag.over { background: var(--deadline-over-bg); color: var(--deadline-over); border-color: rgba(170, 15, 30, 0.5); font-weight: 700; }
 
-@keyframes pulseCritical {
-    0%, 100% { box-shadow: none; }
-    50%       { box-shadow: 0 0 0 3px rgba(220, 30, 70, 0.22), 0 0 12px rgba(220, 30, 70, 0.15); }
-}
+/* MOTION-W1: critical/live pill glow — static box-shadow on the wrap's ::after,
+   opacity-only pulse (glowBlink/glowBreathe, defined near .dl-side-panel). */
 
 /* X-7: «идёт сейчас» — event in progress. Steady luminous violet glow (an active
    ritual), deliberately distinct from critical's red urgency pulse. */
@@ -3557,11 +3612,16 @@ textarea:focus-visible {
     border-color: rgba(150, 70, 255, 0.5);
     /* #3: pulse glow lives on .meta-tag-wrap (whole pill incl. clear button). */
 }
-@keyframes pulseLive {
-    0%, 100% { box-shadow: 0 0 0 1px rgba(150, 70, 255, 0.22), 0 0 6px rgba(150, 70, 255, 0.16); }
-    50%      { box-shadow: 0 0 0 3px rgba(150, 70, 255, 0.34), 0 0 16px rgba(150, 70, 255, 0.30); }
+.meta-tag-wrap:has(> .deadline-tag.live)   { background: var(--accent-soft); border-color: rgba(150, 70, 255, 0.45); }
+.meta-tag-wrap:has(> .deadline-tag.live)::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: 0 0 0 2px rgba(150, 70, 255, 0.30), 0 0 14px rgba(150, 70, 255, 0.26);
+    animation: glowBreathe 2.4s var(--ease-gothic) infinite;
 }
-.meta-tag-wrap:has(> .deadline-tag.live)   { background: var(--accent-soft); border-color: rgba(150, 70, 255, 0.45); animation: pulseLive 2.4s var(--ease-gothic) infinite; }
 .meta-tag-wrap:has(> .deadline-tag.live) .btn-tag-clear { color: var(--accent-hover); }
 /* schedule-mode side panel + subtask variants of the live state */
 .dl-side-panel.dl-side-live { border-right-color: var(--accent-hover); }
@@ -3571,8 +3631,10 @@ textarea:focus-visible {
     background: var(--accent-soft); color: var(--accent-hover); border-color: rgba(150, 70, 255, 0.4);
 }
 @media (prefers-reduced-motion: reduce) {
-    .meta-tag-wrap:has(> .deadline-tag.live),
-    .meta-tag-wrap:has(> .deadline-tag.critical) { animation: none; }
+    .meta-tag-wrap:has(> .deadline-tag.live)::after,
+    .meta-tag-wrap:has(> .deadline-tag.critical)::after,
+    .sub-deadline-badge.sub-dl-critical::after,
+    .dl-side-panel.dl-side-critical::after { animation: none; opacity: 0.5; }
 }
 
 .repeat-tag { color: var(--accent-hover); background: var(--accent-soft); border-color: rgba(130, 50, 230, 0.35); }
@@ -3671,7 +3733,17 @@ textarea:focus-visible {
 .meta-tag-wrap:has(> .deadline-tag.warn) .btn-tag-clear     { color: var(--deadline-warn); }
 .meta-tag-wrap:has(> .deadline-tag.urgent)   { background: var(--deadline-urgent-bg);   border-color: rgba(210, 120, 20, 0.4); }
 .meta-tag-wrap:has(> .deadline-tag.urgent) .btn-tag-clear   { color: var(--deadline-urgent); }
-.meta-tag-wrap:has(> .deadline-tag.critical) { background: var(--deadline-critical-bg); border-color: rgba(220, 30, 70, 0.45); animation: pulseCritical 1.6s ease infinite; }
+.meta-tag-wrap:has(> .deadline-tag.critical) { background: var(--deadline-critical-bg); border-color: rgba(220, 30, 70, 0.45); }
+.meta-tag-wrap:has(> .deadline-tag.critical)::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: 0 0 0 3px rgba(220, 30, 70, 0.22), 0 0 12px rgba(220, 30, 70, 0.15);
+    animation: glowBlink 1.6s ease infinite;
+    animation-delay: var(--pulse-delay, 0s);
+}
 .meta-tag-wrap:has(> .deadline-tag.critical) .btn-tag-clear { color: var(--deadline-critical); }
 .meta-tag-wrap:has(> .deadline-tag.over)     { background: var(--deadline-over-bg);     border-color: rgba(170, 15, 30, 0.5); }
 .meta-tag-wrap:has(> .deadline-tag.over) .btn-tag-clear     { color: var(--deadline-over); }
@@ -3725,7 +3797,7 @@ textarea:focus-visible {
     font-size: 9.5px;
     letter-spacing: 0.7px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .tag-chip:hover {
     border-color: var(--accent-hover);
@@ -3851,7 +3923,7 @@ textarea:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     line-height: 1;
     flex-shrink: 0;
 }
@@ -3923,7 +3995,7 @@ textarea:focus-visible {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     padding: 0;
 }
 .btn-task-action svg { width: 13px; height: 13px; }
@@ -3973,7 +4045,7 @@ textarea:focus-visible {
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .empty-add-btn:hover { border-color: var(--border-bright); box-shadow: 0 0 16px rgba(120, 40, 220, 0.28); color: var(--text-primary); }
 .empty-add-btn svg { width: 14px; height: 14px; }
@@ -4063,7 +4135,7 @@ textarea:focus-visible {
     font-family: var(--font-label);
     font-size: 10.5px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1px;
     text-transform: uppercase;
     white-space: nowrap;
@@ -4171,7 +4243,7 @@ textarea:focus-visible {
     font-family: var(--font-label);
     font-size: 10.5px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1px;
     text-transform: uppercase;
 }
@@ -4260,7 +4332,7 @@ textarea:focus-visible {
     font-family: var(--font-label);
     font-size: 10.5px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1px;
     text-transform: uppercase;
 }
@@ -4278,7 +4350,7 @@ textarea:focus-visible {
     font-size: 10.5px;
     font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1px;
     text-transform: uppercase;
     white-space: nowrap; /* keep multi-word labels ("В архив") on one line so the button never grows taller than its row-mates */
@@ -4492,7 +4564,7 @@ textarea:focus-visible {
     font-family: var(--font-label);
     font-size: 11.5px;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1.5px;
     text-transform: uppercase;
 }
@@ -4513,7 +4585,7 @@ textarea:focus-visible {
     font-size: 11.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1.5px;
     text-transform: uppercase;
 }
@@ -4552,7 +4624,7 @@ textarea:focus-visible {
     font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1.5px;
     text-transform: uppercase;
 }
@@ -4575,7 +4647,7 @@ textarea:focus-visible {
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     text-align: center;
     white-space: nowrap;
     line-height: 1.3;
@@ -5081,7 +5153,7 @@ textarea:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     flex-shrink: 0;
     line-height: 1;
     padding-bottom: 2px;
@@ -5124,7 +5196,7 @@ textarea:focus-visible {
     font-size: 10.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     letter-spacing: 1.5px;
     text-transform: uppercase;
 }
@@ -5504,7 +5576,7 @@ textarea:focus-visible {
     justify-content: center;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     z-index: 50;
     padding: 0;
     backdrop-filter: blur(10px);
@@ -5531,7 +5603,7 @@ textarea:focus-visible {
     justify-content: center;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     z-index: 50;
     padding: 0;
     backdrop-filter: blur(10px);
@@ -5568,7 +5640,7 @@ textarea:focus-visible {
     justify-content: center;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     z-index: 50;
     padding: 0;
     backdrop-filter: blur(10px);
@@ -6480,7 +6552,7 @@ kbd {
     padding: 9px 12px; text-align: left;
     background: var(--bg-input); border: 1px solid var(--border);
     border-radius: var(--radius-sm); color: var(--text-primary);
-    cursor: pointer; transition: all var(--transition); font-family: var(--font-main);
+    cursor: pointer; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition); font-family: var(--font-main);
 }
 .template-create:hover { border-color: var(--border-mid); background: var(--accent-dim); }
 .template-name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -6500,7 +6572,7 @@ kbd {
     flex-shrink: 0; width: 36px;
     border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: transparent; color: var(--text-muted); cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: all var(--transition);
+    display: flex; align-items: center; justify-content: center; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .template-del svg { width: 15px; height: 15px; }
 .template-del:hover { background: var(--prio-high-bg); color: var(--prio-high); border-color: var(--prio-high-border); }
@@ -6527,7 +6599,7 @@ kbd {
     padding: 9px 13px; text-align: left;
     background: var(--bg-input); border: 1px solid var(--border);
     border-radius: var(--radius-sm); color: var(--text-primary);
-    cursor: pointer; transition: all var(--transition); font-family: var(--font-main);
+    cursor: pointer; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition); font-family: var(--font-main);
 }
 .backup-restore:hover { border-color: var(--border-mid); background: var(--accent-dim); }
 .backup-when { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -6808,7 +6880,7 @@ kbd {
     text-transform: uppercase;
     border-radius: calc(var(--radius-md) - 4px);
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-seg svg { width: 14px; height: 14px; }
 .grim-seg:hover { color: var(--text-secondary); }
@@ -6841,7 +6913,7 @@ kbd {
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-new-btn:hover { border-color: var(--border-bright); box-shadow: 0 0 16px rgba(120, 40, 220, 0.28); color: var(--text-primary); }
 .grim-new-btn svg { width: 14px; height: 14px; }
@@ -6854,7 +6926,7 @@ kbd {
     background: linear-gradient(135deg, rgba(110, 30, 220, 0.18), rgba(80, 15, 180, 0.10));
     color: var(--accent); border: 1px solid var(--border-mid);
     border-radius: 0 var(--radius-md) var(--radius-md) 0; cursor: pointer;
-    transition: all var(--transition); position: relative;
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition); position: relative;
 }
 .grim-tpl-trigger::before { content: ""; position: absolute; left: 0; top: 22%; bottom: 22%; width: 1px; background: var(--border); }
 /* animated two-state book: clasped tome (menu closed) ⇄ open tome (menu open),
@@ -6886,7 +6958,7 @@ kbd {
 .grim-tpl-name { font-family: var(--font-label); font-size: 12px; letter-spacing: 0.4px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grim-tpl-desc { font-size: 13.5px; color: var(--text-muted); font-style: italic; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grim-tpl-item.user .grim-tpl-ic { color: var(--text-secondary); }
-.grim-tpl-del { flex: none; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0; transition: all var(--transition); border-radius: var(--radius-xs); background: transparent; border: none; cursor: pointer; }
+.grim-tpl-del { flex: none; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition); border-radius: var(--radius-xs); background: transparent; border: none; cursor: pointer; }
 .grim-tpl-item.user:hover .grim-tpl-del { opacity: 0.6; }
 .grim-tpl-del:hover { color: var(--prio-high); opacity: 1; }
 .grim-tpl-del svg { width: 15px; height: 15px; }
@@ -7138,7 +7210,7 @@ kbd {
     align-items: center; justify-content: center;
     border-radius: 50%; border: 1px solid var(--border);
     background: var(--bg-item); color: var(--text-secondary);
-    cursor: pointer; transition: all var(--transition);
+    cursor: pointer; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-focus-toggle svg { width: 18px; height: 18px; transition: opacity var(--dur-quick) var(--ease-gothic); }
 .grim-focus-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
@@ -7153,7 +7225,7 @@ kbd {
     align-items: center; justify-content: center;
     border-radius: 50%; border: 1px solid var(--border);
     background: var(--bg-item); color: var(--text-secondary);
-    cursor: pointer; transition: all var(--transition);
+    cursor: pointer; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-bar-toggle svg { width: 18px; height: 18px; }
 .grim-bar-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
@@ -7166,7 +7238,7 @@ kbd {
     align-items: center; justify-content: center;
     border-radius: 50%; border: 1px solid var(--border);
     background: var(--bg-item); color: var(--text-secondary);
-    cursor: pointer; transition: all var(--transition);
+    cursor: pointer; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-toc-toggle svg { width: 18px; height: 18px; }
 .grim-toc-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
@@ -7401,7 +7473,7 @@ kbd {
     padding: 7px 14px; border: 1px solid var(--border-mid); border-radius: var(--radius-md);
     background: var(--accent-soft); color: var(--accent-hover); cursor: pointer;
     font-family: var(--font-label); text-transform: uppercase; letter-spacing: 1.2px; font-size: 11px;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-hist-restore svg { width: 16px; height: 16px; }
 .grim-hist-restore:hover {
@@ -7724,7 +7796,7 @@ kbd {
 .grim-find .gf-btn {
     width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
     border: 1px solid transparent; border-radius: 5px; color: var(--text-muted); cursor: pointer;
-    background: none; transition: all var(--transition);
+    background: none; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-find .gf-btn:hover { color: var(--accent-hover); border-color: var(--border-bright); background: var(--accent-soft); }
 .grim-find .gf-btn svg { width: 15px; height: 15px; }
@@ -8164,7 +8236,7 @@ kbd {
 .fmt-btn {
     min-width: 30px; height: 28px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center;
     background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--text-muted);
-    cursor: pointer; transition: all var(--transition);
+    cursor: pointer; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     font-family: var(--font-label); font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
 }
 .fmt-btn svg { width: 16px; height: 16px; }
@@ -8183,7 +8255,7 @@ kbd {
     background: transparent; border: 1px solid var(--border); border-radius: var(--radius-md);
     color: var(--text-muted); cursor: pointer; padding: 9px 13px;
     font-family: var(--font-label); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-ghost-btn svg { width: 14px; height: 14px; }
 .grim-ghost-btn:hover { color: var(--accent-hover); border-color: var(--border-mid); background: var(--accent-soft); }
@@ -8237,7 +8309,7 @@ kbd {
     background: var(--bg-item); border: 1px solid var(--border); border-radius: var(--radius-sm);
     color: var(--text-secondary); cursor: pointer; padding: 6px 12px;
     font-family: var(--font-label); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
-    transition: all var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
 .grim-act svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-muted); transition: color var(--transition); }
 .grim-act:hover { color: var(--text-primary); border-color: var(--border-bright); background: var(--accent-soft); box-shadow: 0 0 12px rgba(120, 40, 220, 0.18); }
@@ -8305,7 +8377,7 @@ kbd {
     width: 30px; height: 30px;
     border-radius: 50%; border: 1px solid var(--border);
     background: var(--bg-item); color: var(--text-secondary);
-    align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition);
+    align-items: center; justify-content: center; cursor: pointer; transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     z-index: 2;
 }
 .grim-back svg { width: 14px; height: 16px; transform: rotate(-90deg); }
@@ -8476,3 +8548,45 @@ kbd {
     .sync-glyph { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 16px; width: 46px; height: 46px; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOTION-W2 — backdrop-filter diet on phones (see audit-v2/MOTION-PLAN.md).
+   backdrop-filter re-blurs its whole region on every frame anything behind it
+   moves (scrolling included). On a phone the app card fills the viewport, so
+   blur(22px) meant a full-screen blur per scroll frame; in-card glass (toolbar,
+   page-nav, group headers) blurs the card's own near-uniform fill — invisible
+   effect, real GPU cost. Desktop keeps the full glass look.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+    .todo-app {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        /* denser fill stands in for the lost blur — same perceived depth */
+        background: rgba(4, 2, 16, 0.94);
+    }
+    .page-nav,
+    .toolbar,
+    .group-header {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    /* full-screen scrims: a darker wash reads the same as a 3-6px blur */
+    .modal-overlay {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(3, 1, 12, 0.80);
+    }
+    .grim-hist-ov {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(4, 1, 14, 0.80);
+    }
+    /* floating glass keeps the effect at half the radius */
+    .modal { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .toast { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .archive-select-bar { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .btn-sound,
+    .btn-shortcuts-toggle,
+    .btn-pen-sound,
+    .sync-glyph { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+}

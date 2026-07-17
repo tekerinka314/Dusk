@@ -1183,12 +1183,14 @@ function updateCycleUntilLabels() {
 // 1.6s loop whenever it's (re)applied — so newly-rendered badges join the same
 // rhythm with no collective jump, instead of each starting from a random phase.
 const _PULSE_EPOCH = Date.now();
-const _PULSE_MS = 1600; // must match pulseCritical / pulseSide duration in CSS
+const _PULSE_MS = 1600; // must match the glowBlink duration on critical glows in CSS
 function _syncCriticalPulse() {
     if (prefersReducedMotion()) return;
     const delay = `-${(Date.now() - _PULSE_EPOCH) % _PULSE_MS}ms`;
+    // MOTION-W1: the pulse now lives on the ::after pseudo-layer (opacity-only);
+    // inline animation-delay can't reach a pseudo — pass it through a CSS var.
     document.querySelectorAll<HTMLElement>('.meta-tag-wrap:has(> .deadline-tag.critical), .dl-side-panel.dl-side-critical')
-        .forEach(el => { el.style.animationDelay = delay; });
+        .forEach(el => { el.style.setProperty('--pulse-delay', delay); });
 }
 
 function updateDeadlineBadges() {
