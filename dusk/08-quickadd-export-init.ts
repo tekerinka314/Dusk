@@ -1664,6 +1664,13 @@ document.addEventListener('pointercancel', () => {
 document.addEventListener('click', e => {
     if (performance.now() < _lpSuppressUntil) { e.stopPropagation(); e.preventDefault(); }
 }, true);
+// Android fires contextmenu ~500ms into a native long-press; left unprevented
+// the browser takes the gesture and pointercancels the touch stream — the hint
+// dies mid-hold. While a long-press is engaged the hint IS the context menu.
+// Mouse right-click never sets _lpBtn (touch-only), so desktop stays native.
+document.addEventListener('contextmenu', e => {
+    if (_lpBtn) e.preventDefault();
+}, true);
 
 // Этап 4: init() is now async (loadState() awaits an IndexedDB round-trip
 // first). Deliberately NOT `await`-ed at top level here — a top-level await
