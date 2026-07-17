@@ -1207,7 +1207,11 @@ document.addEventListener('keydown', e => {
             const tr = _openSortPicker.querySelector('[aria-haspopup]');
             _closeSortPicker();
             if (tr && (tr as any).focus) (tr as any).focus({ preventScroll: true });
+            return;
         }
+        // B4-02: gothic pickers too — their own Esc only fired with focus ON the
+        // trigger; the registry close is a no-op for already-closed pickers.
+        _gothicPickers.forEach(({ close }) => close());
         return;
     }
     if (_floatMenuEl && !_floatMenuEl.classList.contains('action-sheet')) _apMenuKeyNav(e, _floatMenuEl);
