@@ -1608,6 +1608,9 @@ Object.assign(ACT, {
     bulkSetGroup:    el => bulkSetGroup('gid' in el.dataset ? +el.dataset.gid : null),
     deleteGroupById: el => deleteGroup(+el.dataset.gid),
     selectGroupChip: el => selectGroupChip(el.dataset.chip),
+    // B4-01 rail: pill = focus-navigation; digest row = scroll-to-task
+    focusGroupById:  el => toggleFocusGroup(+el.dataset.gid),
+    railDigestGo:    el => railDigestGo(+el.dataset.id),
 });
 Object.assign(ACT_OVER, { hoverBg: el => { el.style.background = el.dataset.bghov; } });
 Object.assign(ACT_OUT,  { outBg:   el => { el.style.background = el.dataset.bg; } });

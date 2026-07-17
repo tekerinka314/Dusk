@@ -362,6 +362,7 @@
             <!-- B4-01: toolbar + groups share one wrapper so the ≥1440px tier can
                  dock them as a sticky side rail (display:contents below the tier). -->
             <div class="side-rail" id="side-rail">
+            <div class="rail-inner">
             <!-- Toolbar -->
             <div class="toolbar" id="toolbar" style="display:none">
                 <div class="search-wrap">
@@ -562,6 +563,10 @@
                 </button>
                 <div class="groups-list" id="groups-list"></div>
             </div>
+            <!-- B4-01: rail deadline digest — filled by _renderRailDigest(); the
+                 ≥1440px tier reveals it (display:none uses JS only for emptiness) -->
+            <div class="rail-digest" id="rail-digest" style="display:none"></div>
+            </div><!-- /rail-inner -->
             </div><!-- /side-rail -->
 
             <!-- Main list bulk-select bar (mirrors archive-select-bar pattern) -->

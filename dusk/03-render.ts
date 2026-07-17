@@ -37,6 +37,7 @@ Object.assign(globalThis, {
     openBulkDeadlineModal, openBulkGroupModal, closeBulkGroupModal, _renderBulkGroupList, renderGroupBar, renderGroupSelect, renderGroupChips, selectGroupChip,
     registerGothicPicker, initGroupPicker, renderArchive, toggleSelectMode, toggleArchiveSelection, updateSelectBar, restoreSelected, restoreAll,
     updateArchiveBadge, getGroupColor, taskFromArchive, _inlineEditActive,
+    _railDigestItems, _renderRailDigest, _tickRailDigest, railDigestGo,
 });
 
 // ============================================================
@@ -114,6 +115,7 @@ function render() {
         positionDragHandles();
         updateCollapseAllBtn();
         renderTagCloud();
+        _renderRailDigest();
         _syncCriticalPulse();
         updateTemplatesBtn();
     } finally {
@@ -139,6 +141,7 @@ function renderListOnly() {
         attachPlainPasteHandlers();
         positionDragHandles();
         updateCollapseAllBtn();
+        _renderRailDigest();   // B4-01: check/pin change the digest's source set
         _syncCriticalPulse();
     } finally {
         _rendering = false;
@@ -1807,13 +1810,69 @@ function renderGroupBar() {
         const bg  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.13)` : 'rgba(110,40,200,0.13)';
         const bd  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.32)` : 'rgba(110,40,200,0.32)';
         const bgHov = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.22)` : 'rgba(110,40,200,0.22)';
+        // B4-01 rail: the pill doubles as focus-navigation (button, not span) and
+        // carries a done/total count that only the ≥1440px rail reveals.
+        const inGroup = state.tasks.filter(t => t.groupId === g.id);
+        const done    = inGroup.filter(t => t.checked).length;
+        const focused = focusGroupId === g.id;
         const wrap = document.createElement('div');
         wrap.className = 'group-pill-wrap';
         wrap.innerHTML = `
-            <span class="meta-tag group-pill" style="background:${bg};color:${g.color};border-color:${bd}">${escHtml(g.name)}</span>
+            <button type="button" class="meta-tag group-pill${focused ? ' pill-focused' : ''}" style="background:${bg};color:${g.color};border-color:${bd}"
+                data-act="focusGroupById" data-gid="${g.id}" aria-pressed="${focused}"
+                title="${focused ? 'Снять фокус' : 'Фокус на этой группе'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
             <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
         groupsList.appendChild(wrap);
     });
+}
+
+// ── B4-01: rail deadline digest («Грядущее») — fills the side rail's void with
+// the nearest deadlines; click = scroll to the task + pulse. Markup lives in
+// #rail-digest inside .side-rail; CSS shows it only at the ≥1440px tier. ──
+function _railDigestItems() {
+    return state.tasks
+        .filter(t => t.deadline && !t.checked && !(t.cycleChecked && t.repeat && t.repeat !== 'none'))
+        .map(t => ({ t, ts: getDeadlineTimestamp(t.deadline) }))
+        .filter(x => x.ts !== null)
+        .sort((a, b) => a.ts - b.ts)
+        .slice(0, 6);
+}
+function _renderRailDigest() {
+    const box = document.getElementById('rail-digest');
+    if (!box) return;
+    const items = _railDigestItems();
+    if (!items.length) { (box as any).style.display = 'none'; box.innerHTML = ''; return; }
+    (box as any).style.display = '';
+    box.innerHTML = `<div class="rail-head">Грядущее</div>` + items.map(({ t }) => {
+        const st = deadlineStatus(t.deadline);
+        const cd = formatDeadlineCountdown(t.deadline) || formatDeadlineAbsolute(t.deadline, true);
+        return `<button type="button" class="rd-row" data-act="railDigestGo" data-id="${t.id}" title="${formatDeadlineAbsolute(t.deadline, true)}">
+            <span class="rd-name">${escHtml(t.text)}</span>
+            <span class="rd-cd${st ? ' rd-' + st : ''}">${escHtml(cd)}</span></button>`;
+    }).join('');
+}
+// Live countdown tick (called from updateDeadlineBadges' timer) — text/status
+// only, no rebuild, so hover states survive.
+function _tickRailDigest() {
+    const box = document.getElementById('rail-digest');
+    if (!box || !box.childElementCount) return;
+    box.querySelectorAll<HTMLElement>('.rd-row[data-id]').forEach(row => {
+        const t = state.tasks.find(x => x.id === parseInt(row.dataset.id));
+        if (!t || !t.deadline) return;
+        const cdEl = row.querySelector<HTMLElement>('.rd-cd');
+        if (!cdEl) return;
+        const st = deadlineStatus(t.deadline);
+        cdEl.className = 'rd-cd' + (st ? ' rd-' + st : '');
+        cdEl.textContent = formatDeadlineCountdown(t.deadline) || formatDeadlineAbsolute(t.deadline, true);
+    });
+}
+function railDigestGo(id) {
+    const li = document.querySelector(`.task-item[data-id="${id}"]`);
+    if (!li) { showToast('Задача сейчас скрыта (фильтр/фокус/свёрнутая группа)'); return; }
+    li.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
+    li.classList.remove('rail-target-pulse'); void (li as HTMLElement).offsetWidth;
+    li.classList.add('rail-target-pulse');
+    li.addEventListener('animationend', () => li.classList.remove('rail-target-pulse'), { once: true });
 }
 
 function renderGroupSelect() {

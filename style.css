@@ -8599,13 +8599,31 @@ kbd {
    ≥1600px: the column widens and subtask grids go 3-up (the A half).
    Scope: tasks page only — archive/grimoire keep the 780px shell.
    ============================================================ */
-.side-rail { display: contents; }   /* inert below the tier — zero layout change */
+.side-rail, .rail-inner { display: contents; }   /* inert below the tier — zero layout change */
+
+/* Group pill is now a real <button> everywhere (click = toggle group focus);
+   the done/total count inside it only shows in the ≥1440px rail. */
+.meta-tag.group-pill { cursor: pointer; }
+.group-pill .gp-count { display: none; font-family: var(--font-mono); font-size: 9.5px; opacity: 0.75; }
+.group-pill.pill-focused {
+    box-shadow: 0 0 0 1px var(--border-bright), 0 0 12px var(--accent-glow);
+}
+
+/* Digest click → the target card pulses once (transient, ≤1.4s) */
+@keyframes railTargetPulse {
+    0%   { box-shadow: 0 0 0 1px var(--border-bright), 0 0 30px var(--accent-glow); }
+    100% { box-shadow: 0 0 0 1px transparent, 0 0 0 rgba(0,0,0,0); }
+}
+.task-item.rail-target-pulse { animation: railTargetPulse 1.4s var(--ease-emerge) 1; }
+@media (prefers-reduced-motion: reduce) {
+    .task-item.rail-target-pulse { animation: none; }
+}
 
 @media (min-width: 1440px) {
     body[data-page="main"] .todo-app { max-width: 1220px; }
     body[data-page="main"] #main-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 336px;
+        grid-template-columns: minmax(0, 1fr) 352px;
         grid-template-areas:
             "progress rail"
             "input    rail"
@@ -8613,7 +8631,8 @@ kbd {
             "list     rail"
             "empty    rail"
             "done     rail";
-        column-gap: 30px;
+        /* the rail's own 26px seam padding carries the visual gap */
+        column-gap: 8px;
         align-items: start;
     }
     body[data-page="main"] .progress-section   { grid-area: progress; }
@@ -8622,8 +8641,27 @@ kbd {
     body[data-page="main"] #list-wrapper       { grid-area: list; }
     body[data-page="main"] #main-grid > .empty-state { grid-area: empty; }
     body[data-page="main"] #main-grid > .all-done    { grid-area: done; }
+    /* Outer rail: stretches the full column height (architectural aisle with a
+       fading seam at its edge); the INNER wrapper is the sticky scroller — a
+       stretched element has no room left to stick. */
     body[data-page="main"] .side-rail {
         grid-area: rail;
+        display: block;
+        align-self: stretch;
+        position: relative;
+        min-width: 0;
+        padding-left: 26px;
+    }
+    body[data-page="main"] .side-rail::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 6px;
+        bottom: 6px;
+        width: 1px;
+        background: linear-gradient(180deg, transparent, rgba(160, 80, 255, 0.28) 12%, rgba(160, 80, 255, 0.28) 88%, transparent);
+    }
+    body[data-page="main"] .rail-inner {
         display: flex;
         flex-direction: column;
         gap: 14px;
@@ -8651,6 +8689,14 @@ kbd {
     .side-rail .toolbar-group:last-child  { padding-right: 2px; }
     .side-rail .toolbar-group-label { order: -1; font-size: 10px; }
     .side-rail .toolbar-group-btns { flex-wrap: wrap; justify-content: flex-end; }
+    /* Big clusters (6+ buttons) don't fit beside their label — stack the label
+       above and let the buttons wrap left, instead of orphaning one button. */
+    .side-rail .toolbar-group:has(.btn-tool:nth-child(6)) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    .side-rail .toolbar-group:has(.btn-tool:nth-child(6)) .toolbar-group-btns { justify-content: flex-start; }
     .side-rail .toolbar-group + .toolbar-group::before {
         left: 8%;
         right: 8%;
@@ -8696,12 +8742,97 @@ kbd {
     .side-rail .group-pill-wrap .meta-tag.group-pill {
         flex: 1 1 auto;
         min-width: 0;
-        /* block, not inline-flex: text-overflow never fires on a flex container */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        cursor: pointer;
+    }
+    /* the name span is a block so ellipsis fires (never on a flex container) */
+    .side-rail .group-pill .gp-name {
         display: block;
-        line-height: 18px;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
+    .side-rail .group-pill .gp-count { display: inline; }
+    /* Delete tombstone: statically present in the rail (the 0→26px slide-out
+       jitters on full-width rows) — dim at rest, wakes on row hover. */
+    .side-rail .btn-pill-delete {
+        width: 26px;
+        min-width: 26px;
+        padding: 4px 7px 4px 5px;
+        opacity: 0.38;
+    }
+    .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
+
+    /* ── Rail deadline digest «Грядущее» ── */
+    .rail-digest {
+        display: block;
+        background: var(--bg-input);
+        border: 1px solid var(--border-mid);
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        box-shadow: inset 0 1px 0 rgba(200, 140, 255, 0.05);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        min-width: 0;
+    }
+    .rd-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        min-width: 0;
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 6px 8px;
+        cursor: pointer;
+        font-family: var(--font-main);
+        text-align: left;
+        transition: background-color var(--transition);
+    }
+    .rd-row:hover { background: var(--accent-dim); }
+    .rd-row + .rd-row { margin-top: 2px; }
+    .rd-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text-secondary);
+        font-size: 14.5px;
+    }
+    .rd-row:hover .rd-name { color: var(--text-primary); }
+    .rd-cd {
+        flex: none;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.3px;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+    .rd-cd.rd-warn     { color: var(--deadline-warn); }
+    .rd-cd.rd-urgent   { color: var(--deadline-urgent); }
+    .rd-cd.rd-critical { color: var(--deadline-critical); }
+    .rd-cd.rd-live     { color: var(--deadline-critical); }
+    .rd-cd.rd-over     { color: var(--deadline-over); }
+    .rail-head {
+        font-family: var(--font-label);
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        padding-left: 0.24em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        user-select: none;
+    }
+
+    /* ── B4-01 direction for the other pages: Grimuar inherits the wide shell
+       (its own master-detail eats the width); Archive stays 780 until 1600. ── */
+    body[data-page="notes"] .todo-app { max-width: 1220px; }
 }
 
 /* A half of the combo: wider column once there is room, subtasks 3-up. */
@@ -8721,6 +8852,10 @@ kbd {
     body[data-page="main"] .sub-split-inner > .subtask-item:last-child:nth-child(3n+1) {
         grid-column: 1 / -1;
     }
+}
+@media (min-width: 1600px) {
+    body[data-page="notes"] .todo-app { max-width: 1400px; }
+    body[data-page="archive"] .todo-app { max-width: 920px; }
 }
 @media (min-width: 2200px) {
     body[data-page="main"] .todo-app { max-width: 1460px; }

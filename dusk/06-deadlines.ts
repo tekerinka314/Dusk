@@ -1194,6 +1194,7 @@ function _syncCriticalPulse() {
 }
 
 function updateDeadlineBadges() {
+    _tickRailDigest();   // B4-01: rail digest countdowns tick on the same timer
     const tasksWithDl = state.tasks.filter(t => t.deadline);
     if (tasksWithDl.length) {
         // Build id → task map once (O(n)) instead of find() per DOM node (O(n²))
