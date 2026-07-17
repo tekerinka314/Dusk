@@ -8590,3 +8590,138 @@ kbd {
     .btn-pen-sound,
     .sync-glyph { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 }
+
+/* ============================================================
+   B4-01 — LARGE-SCREEN TIER (Ф3 2026-07-17, вариант B+A)
+   ≥1440px: the tasks page becomes two panels — the task column plus a
+   sticky side rail (toolbar + groups), re-slotted purely with CSS grid
+   areas over the same DOM (.side-rail is display:contents below the tier).
+   ≥1600px: the column widens and subtask grids go 3-up (the A half).
+   Scope: tasks page only — archive/grimoire keep the 780px shell.
+   ============================================================ */
+.side-rail { display: contents; }   /* inert below the tier — zero layout change */
+
+@media (min-width: 1440px) {
+    body[data-page="main"] .todo-app { max-width: 1220px; }
+    body[data-page="main"] #main-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 336px;
+        grid-template-areas:
+            "progress rail"
+            "input    rail"
+            "select   rail"
+            "list     rail"
+            "empty    rail"
+            "done     rail";
+        column-gap: 30px;
+        align-items: start;
+    }
+    body[data-page="main"] .progress-section   { grid-area: progress; }
+    body[data-page="main"] .input-section      { grid-area: input; }
+    body[data-page="main"] .main-select-bar    { grid-area: select; }
+    body[data-page="main"] #list-wrapper       { grid-area: list; }
+    body[data-page="main"] #main-grid > .empty-state { grid-area: empty; }
+    body[data-page="main"] #main-grid > .all-done    { grid-area: done; }
+    body[data-page="main"] .side-rail {
+        grid-area: rail;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        position: sticky;
+        top: 18px;
+        min-width: 0;
+    }
+
+    /* Toolbar re-flows vertically inside the rail: label left, buttons right,
+       the cluster hairlines rotate to horizontal seams. */
+    .side-rail .toolbar { margin-bottom: 0; }
+    .side-rail .toolbar-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 13px;
+    }
+    .side-rail .toolbar-group {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 0 2px;
+    }
+    .side-rail .toolbar-group:first-child { padding-left: 2px; }
+    .side-rail .toolbar-group:last-child  { padding-right: 2px; }
+    .side-rail .toolbar-group-label { order: -1; font-size: 10px; }
+    .side-rail .toolbar-group-btns { flex-wrap: wrap; justify-content: flex-end; }
+    .side-rail .toolbar-group + .toolbar-group::before {
+        left: 8%;
+        right: 8%;
+        top: -7px;
+        bottom: auto;
+        width: auto;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(160, 80, 255, 0.32) 30%, rgba(160, 80, 255, 0.32) 70%, transparent);
+    }
+
+    /* Groups become a plate matching the toolbar's surface; pills stack as rows. */
+    .side-rail .groups-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-bottom: 0;
+        background: var(--bg-input);
+        border: 1px solid var(--border-mid);
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        box-shadow: inset 0 1px 0 rgba(200, 140, 255, 0.05);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .side-rail .btn-add-group { justify-content: center; }
+    /* min-width:0 down the whole chain — flex's min-width:auto floor otherwise
+       lets the longest nowrap pill push every row past the plate edge. */
+    .side-rail .groups-bar,
+    .side-rail .groups-list,
+    .side-rail .group-pill-wrap { min-width: 0; }
+    /* Explicit 100% (not stretch) — the nowrap pills otherwise size the column
+       to their max-content and every row pokes past the plate edge. */
+    .side-rail .groups-list,
+    .side-rail .groups-bar > .btn-add-group,
+    .side-rail .group-pill-wrap { width: 100%; max-width: 100%; }
+    .side-rail .groups-bar { overflow: hidden; }
+    .side-rail .groups-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .side-rail .group-pill-wrap { display: flex; }
+    .side-rail .group-pill-wrap .meta-tag.group-pill {
+        flex: 1 1 auto;
+        min-width: 0;
+        /* block, not inline-flex: text-overflow never fires on a flex container */
+        display: block;
+        line-height: 18px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* A half of the combo: wider column once there is room, subtasks 3-up. */
+@media (min-width: 1600px) {
+    body[data-page="main"] .todo-app { max-width: 1360px; }
+    body[data-page="main"] .subtask-list:not(.sub-split-mode),
+    body[data-page="main"] .sub-split-inner {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    /* The 2-col "lone last item stretches" rule keys off :nth-child(odd) —
+       retune it for 3 columns: stretch only an item sitting alone in its row. */
+    body[data-page="main"] .subtask-list:not(.sub-split-mode) > .subtask-item:last-child:nth-child(odd),
+    body[data-page="main"] .sub-split-inner > .subtask-item:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
+    body[data-page="main"] .subtask-list:not(.sub-split-mode) > .subtask-item:last-child:nth-child(3n+1),
+    body[data-page="main"] .sub-split-inner > .subtask-item:last-child:nth-child(3n+1) {
+        grid-column: 1 / -1;
+    }
+}
+@media (min-width: 2200px) {
+    body[data-page="main"] .todo-app { max-width: 1460px; }
+}

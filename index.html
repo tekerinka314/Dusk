@@ -31,7 +31,7 @@
          (cloudIsConfigured()→false). NOT cached by the SW (cross-origin). -->
     <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
-<body>
+<body data-page="main">
 <!-- Screen-reader live region — populated by JS announce() on every action -->
 <div id="live-region" role="status" aria-live="polite" aria-atomic="true"></div>
 <div class="container">
@@ -88,6 +88,9 @@
 
         <!-- ======== MAIN PAGE ======== -->
         <div id="main-page">
+            <!-- B4-01: inner layout wrapper — switchPage owns #main-page's inline
+                 display, so the ≥1440px grid lives on this untouched child. -->
+            <div id="main-grid">
 
             <!-- Progress -->
             <!-- P3 (variant A): dominant tasks bar on top, secondary thin subtasks bar below -->
@@ -356,6 +359,9 @@
                 </button>
             </div>
 
+            <!-- B4-01: toolbar + groups share one wrapper so the ≥1440px tier can
+                 dock them as a sticky side rail (display:contents below the tier). -->
+            <div class="side-rail" id="side-rail">
             <!-- Toolbar -->
             <div class="toolbar" id="toolbar" style="display:none">
                 <div class="search-wrap">
@@ -556,6 +562,7 @@
                 </button>
                 <div class="groups-list" id="groups-list"></div>
             </div>
+            </div><!-- /side-rail -->
 
             <!-- Main list bulk-select bar (mirrors archive-select-bar pattern) -->
             <div class="archive-select-bar main-select-bar" id="main-select-bar" style="display:none">
@@ -634,6 +641,7 @@
                 <p>Все задачи выполнены</p>
             </div>
 
+            </div><!-- /main-grid -->
         </div><!-- /main-page -->
 
         <!-- ======== ARCHIVE PAGE ======== -->

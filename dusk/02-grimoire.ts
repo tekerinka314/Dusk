@@ -112,6 +112,8 @@ function switchPage(page) {
 
     // Update nav tabs immediately — tab responds at the moment of click
     currentPage = page; saveUiState();
+    // B4-01: page-scoped CSS hook (the ≥1440px side-rail tier applies to main only)
+    document.body.dataset.page = page;
     _updatePageTabs(page);
     _refreshShortcutsHint();   // keep an open hint in sync with the active tab (no stale set)
 

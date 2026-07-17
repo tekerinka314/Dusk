@@ -1929,6 +1929,8 @@ function loadUiState() {
     searchQuery = localStorage.getItem(K_SEARCH) || '';
     expandOpen  = localStorage.getItem(K_EXPAND) === '1';
     currentPage = localStorage.getItem(K_PAGE)   || 'main';
+    // B4-01: stamp the restored page for page-scoped CSS (markup defaults to "main")
+    document.body.dataset.page = currentPage;
     isScheduleMode = localStorage.getItem('scheduleMode') === '1';
     isGroupSplitMode = localStorage.getItem('groupSplitMode') === '1';
     isTodayMode = localStorage.getItem('todayMode') === '1';
