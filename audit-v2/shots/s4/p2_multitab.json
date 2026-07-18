@@ -1,7 +1,0 @@
-[
-  {
-    "name": "P2 stale tab1 save erases tab2 edit (silent LWW loss)",
-    "pass": true,
-    "detail": "e1=true e2=true finalLS: task1=\"TAB1-EDIT\" task2=\"Просрочённый ритуал — должен гореть красным\" (expected task2 reverted)"
-  }
-]

@@ -1,7 +1,0 @@
-[
-  {
-    "name": "P4 quota on saveState = silent loss (no toast, edit gone)",
-    "pass": true,
-    "detail": "threw=QuotaExceededError toast=null survivedReload=false pageErrors=0"
-  }
-]
