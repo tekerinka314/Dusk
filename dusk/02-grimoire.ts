@@ -185,7 +185,7 @@ const GIC = {
     // Ornate hourglass with sand funnels.
     hourglass: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3 H17.5 M6.5 21 H17.5"/><path d="M8 3.5 V6.5 L12 11 L16 6.5 V3.5"/><path d="M8 20.5 V17.5 L12 13 L16 17.5 V20.5"/></svg>`,
     // Gothic sword glyph (the app's .dl-month-chevron) — CSS rotates it to point left.
-    back:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,
+    back:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.6L13.25 5.4V13.6H10.75V5.4Z" stroke-width="1.4"/><line x1="12" y1="4.6" x2="12" y2="12.8" stroke-width="0.8" opacity="0.45"/><path d="M7.6 14.9C9.5 14.05 14.5 14.05 16.4 14.9" stroke-width="1.5"/><circle cx="7.1" cy="15.05" r="0.72" stroke-width="1.15"/><circle cx="16.9" cy="15.05" r="0.72" stroke-width="1.15"/><line x1="12" y1="15.1" x2="12" y2="19.1" stroke-width="1.7"/><line x1="11.15" y1="16.05" x2="12.85" y2="16.55" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="17.1" x2="12.85" y2="17.6" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="18.15" x2="12.85" y2="18.65" stroke-width="0.75" opacity="0.55"/><circle cx="12" cy="20.75" r="1.15" stroke-width="1.3"/><circle cx="12" cy="20.75" r="0.3" fill="currentColor" stroke="none"/></svg>`,
     // Fold affordance — a gothic grimoire that opens/closes. Expanded = open tome
     // (pages + ribbon bookmark); collapsed = clasped tome (spine bands, cross-sigil,
     // strap). CSS crossfades between the two by the .grim-note-collapsed state.
@@ -830,7 +830,7 @@ const GRIM_SORTS = [
     { k: 'created', label: 'По созданию'  },
     { k: 'title',   label: 'По заглавию'  },
 ];
-const GRIM_SORT_SWORD = `<svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/><path d="M11 17L10 20H14L13 17"/><circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/></svg>`;
+const GRIM_SORT_SWORD = `<svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1.6L13.25 5.4V13.6H10.75V5.4Z" stroke-width="1.4"/><line x1="12" y1="4.6" x2="12" y2="12.8" stroke-width="0.8" opacity="0.45"/><path d="M7.6 14.9C9.5 14.05 14.5 14.05 16.4 14.9" stroke-width="1.5"/><circle cx="7.1" cy="15.05" r="0.72" stroke-width="1.15"/><circle cx="16.9" cy="15.05" r="0.72" stroke-width="1.15"/><line x1="12" y1="15.1" x2="12" y2="19.1" stroke-width="1.7"/><line x1="11.15" y1="16.05" x2="12.85" y2="16.55" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="17.1" x2="12.85" y2="17.6" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="18.15" x2="12.85" y2="18.65" stroke-width="0.75" opacity="0.55"/><circle cx="12" cy="20.75" r="1.15" stroke-width="1.3"/><circle cx="12" cy="20.75" r="0.3" fill="currentColor" stroke="none"/></svg>`;
 
 // The compact sort dropdown for the active list head (reuses .dl-month-* visuals).
 function _grimSortControl() {
@@ -1087,7 +1087,7 @@ function _grimCryptMonthsHTML(notes, q, animate, filtering) {
                 <span class="grim-crypt-month-name">${heading}</span>
                 <span class="grim-crypt-month-count">${g.items.length}</span>
                 <svg class="grim-crypt-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="2" x2="12" y2="17"/><path d="M9 5L12 2L15 5"/><line x1="10" y1="14" x2="14" y2="14"/><path d="M11 17L10 20H14L13 17"/><circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
+                    <path d="M12 1.6L13.25 5.4V13.6H10.75V5.4Z" stroke-width="1.4"/><line x1="12" y1="4.6" x2="12" y2="12.8" stroke-width="0.8" opacity="0.45"/><path d="M7.6 14.9C9.5 14.05 14.5 14.05 16.4 14.9" stroke-width="1.5"/><circle cx="7.1" cy="15.05" r="0.72" stroke-width="1.15"/><circle cx="16.9" cy="15.05" r="0.72" stroke-width="1.15"/><line x1="12" y1="15.1" x2="12" y2="19.1" stroke-width="1.7"/><line x1="11.15" y1="16.05" x2="12.85" y2="16.55" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="17.1" x2="12.85" y2="17.6" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="18.15" x2="12.85" y2="18.65" stroke-width="0.75" opacity="0.55"/><circle cx="12" cy="20.75" r="1.15" stroke-width="1.3"/><circle cx="12" cy="20.75" r="0.3" fill="currentColor" stroke="none"/>
                 </svg>
             </button>
             <div class="grim-crypt-month-body"><div class="grim-crypt-month-inner">${leaves}</div></div>

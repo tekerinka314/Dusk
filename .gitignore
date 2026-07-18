@@ -1,2 +1,5 @@
 node_modules/
 dist/
+
+# transient game-mod scratch (never DUSK)
+.codex_tmp/
