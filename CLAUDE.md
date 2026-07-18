@@ -48,17 +48,30 @@ also recorded in memory `skill-cycle-mandatory`):
    context (names+descriptions cost no extra tokens; a body loads only when it
    fires). Never work from a remembered shortlist; re-scan per task, including
    skills added or updated mid-session.
-2. **Load EVERY skill that would genuinely add value to THIS task — not just
-   the single best fit.** A design task may need `impeccable` + a typography
-   skill + a review skill together; load all of them. The bar is "would its
-   content actually change or improve the work", not "is it the topical match".
-   Process skills (brainstorming, systematic-debugging, writing-plans) fire
-   before implementation skills.
-3. **Gap → `find-skills` (MANDATORY).** If step 1 found no skill (or a weak
-   one) for some aspect of the task, invoke `find-skills` to search for one.
-   Found something valuable → install it, then feed it back through this same
-   cycle (scan → load-all-applicable) before proceeding.
-4. State which skills you invoked and why (one line).
+2. **Load EVERY skill that would genuinely add value to THIS task — ALL of
+   them, not the single best fit, not a shortlist of two.** A design task may
+   need `impeccable` + `frontend-design` + `brainstorming` + a typography skill
+   + a review skill TOGETHER; load them all. The bar is "would its content
+   actually change or improve the work", not "is it the topical match".
+   **Loading only one skill when several pass that bar is a VIOLATION of this
+   rule** — when in doubt about a borderline skill, LOAD it (a loaded body you
+   end up not needing costs little; a missed skill costs quality). Process
+   skills (brainstorming, systematic-debugging, writing-plans) fire before
+   implementation skills.
+3. **`find-skills` — MANDATORY EVERY task, not only on gaps.** For each new
+   task, invoke `find-skills` to search for skills covering any aspect of the
+   task that installed skills don't cover perfectly. Found something valuable →
+   install it, then feed it back through this same cycle (scan →
+   load-all-applicable) before proceeding. The ONLY permitted skip: this
+   session already ran `find-skills` for the SAME class of task (same search
+   would repeat verbatim) — say so explicitly in step 4 instead.
+4. State which skills you loaded and why, that `find-skills` ran (or the
+   same-class exemption), and which borderline skills you deliberately skipped
+   with a one-line reason each.
+
+Steps 1-3 are NOT advisory. Doing the work with fewer skills than pass the
+step-2 bar, or skipping `find-skills` without the exemption, means the task
+was started WRONG — stop and run the cycle before continuing.
 
 Follow the `using-superpowers` discipline: if there's a real chance a skill
 applies, invoke it before responding, including before clarifying questions.
