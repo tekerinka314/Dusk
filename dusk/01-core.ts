@@ -237,15 +237,7 @@ const IC = {
     // Overflow «…» — gothic vine of lozenges (more actions). Lozenges widened a
     // touch (±2.65) + a small CSS size bump (.btn-task-more) so the thin column
     // reads as substantial as its neighbours without overpowering them.
-    more: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 8.5V9.5M12 14.5V15.5" opacity=".55"/>
-        <path d="M12 3L15.5 6L12 9L8.5 6Z"/>
-        <path d="M12 9L15.5 12L12 15L8.5 12Z"/>
-        <path d="M12 15L15.5 18L12 21L8.5 18Z"/>
-        <circle cx="12" cy="6" r=".66" fill="currentColor" stroke="none"/>
-        <circle cx="12" cy="12" r=".66" fill="currentColor" stroke="none"/>
-        <circle cx="12" cy="18" r=".66" fill="currentColor" stroke="none"/>
-    </svg>`,
+    more: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.6C13.7 2.7 14.4 3.7 14.4 4.4C14.4 5.1 13.7 6.1 12 7.2C10.3 6.1 9.6 5.1 9.6 4.4C9.6 3.7 10.3 2.7 12 1.6Z"/><path d="M12 3C12.8 3.6 13.1 4.1 13.1 4.4C13.1 4.7 12.8 5.2 12 5.8C11.2 5.2 10.9 4.7 10.9 4.4C10.9 4.1 11.2 3.6 12 3Z" stroke-width="0.7" opacity="0.45"/><path d="M12 3.9L12.45 4.4L12 4.9L11.55 4.4Z" fill="currentColor" stroke="none" opacity="0.55"/><path d="M10.6 3.1C10.85 2.7 11.2 2.35 11.5 2.1" stroke-width="0.65" opacity="0.8"/><path d="M13.4 5.7C13.15 6.1 12.8 6.45 12.5 6.7" stroke-width="0.65" opacity="0.3"/><ellipse cx="12" cy="8.2" rx="1.05" ry="1.6" stroke-width="1.15"/><ellipse cx="12" cy="8.2" rx="0.45" ry="0.95" stroke-width="0.6" opacity="0.4"/><path d="M12 9.4C13.7 10.5 14.4 11.5 14.4 12.2C14.4 12.9 13.7 13.9 12 15C10.3 13.9 9.6 12.9 9.6 12.2C9.6 11.5 10.3 10.5 12 9.4Z"/><path d="M12 10.8C12.8 11.4 13.1 11.9 13.1 12.2C13.1 12.5 12.8 13 12 13.6C11.2 13 10.9 12.5 10.9 12.2C10.9 11.9 11.2 11.4 12 10.8Z" stroke-width="0.7" opacity="0.45"/><path d="M12 11.7L12.45 12.2L12 12.7L11.55 12.2Z" fill="currentColor" stroke="none" opacity="0.55"/><path d="M10.6 10.9C10.85 10.5 11.2 10.15 11.5 9.9" stroke-width="0.65" opacity="0.8"/><path d="M13.4 13.5C13.15 13.9 12.8 14.25 12.5 14.5" stroke-width="0.65" opacity="0.3"/><ellipse cx="12" cy="16" rx="1.05" ry="1.6" stroke-width="1.15"/><ellipse cx="12" cy="16" rx="0.45" ry="0.95" stroke-width="0.6" opacity="0.4"/><path d="M12 17.2C13.7 18.3 14.4 19.3 14.4 20C14.4 20.7 13.7 21.7 12 22.8C10.3 21.7 9.6 20.7 9.6 20C9.6 19.3 10.3 18.3 12 17.2Z"/><path d="M12 18.6C12.8 19.2 13.1 19.7 13.1 20C13.1 20.3 12.8 20.8 12 21.4C11.2 20.8 10.9 20.3 10.9 20C10.9 19.7 11.2 19.2 12 18.6Z" stroke-width="0.7" opacity="0.45"/><path d="M12 19.5L12.45 20L12 20.5L11.55 20Z" fill="currentColor" stroke="none" opacity="0.55"/><path d="M10.6 18.7C10.85 18.3 11.2 17.95 11.5 17.7" stroke-width="0.65" opacity="0.8"/><path d="M13.4 21.3C13.15 21.7 12.8 22.05 12.5 22.3" stroke-width="0.65" opacity="0.3"/></svg>`,
     // Gothic rosette (quatrefoil) — "parent checks by subtasks" motif. Three fill
     // variants light progressively: g4 = inherit (outline), g4any = one petal +
     // core lit ("any one → the whole"), g4all = every petal lit ("all → whole").
@@ -267,21 +259,11 @@ const IC = {
         <circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none" opacity=".9"/>
     </svg>`,
     // Skull (delete forever)
-    skull: `<svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
-        <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
-        <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
-        <ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-        <ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-        <line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/>
-    </svg>`,
+    skull: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>`,
     // Sarcophagus icon — inline paths, no <use> dependency
     archive: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9L12 4.5L21 9"/><rect x="3" y="9" width="18" height="11" rx="1.8"/><line x1="12" y1="10.5" x2="12" y2="13.5"/><line x1="10.5" y1="12" x2="13.5" y2="12"/></svg>`,
     // Gothic quill (edit / rename)
-    quill: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 3C16.5 7 8 13 5.5 21.5"/>
-        <path d="M20 3C18.5 8 13.5 13.5 5.5 21.5"/>
-        <path d="M5.5 21.5L3.5 23.5L7.5 22.5" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
-    </svg>`,
+    quill: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.8 3.2C13.8 4.4 9 8.4 6.4 14.9L5 19L9.1 17.6C15.6 15 19 10 19.8 3.2Z"/><path d="M17.6 5.6C13.4 8.2 10.2 11.8 8 16" stroke-width="1" opacity="0.55"/><path d="M15.4 6.2L13.9 5.4M13.5 8.1L12 7.3M11.8 10L10.4 9.2M10.3 12L9 11.3" stroke-width="0.95" opacity="0.45"/><path d="M6.1 16.1L5 19L7.9 17.9" stroke-width="1.2"/><line x1="5.6" y1="18.4" x2="4.2" y2="19.8" stroke-width="1.1"/><circle cx="3.4" cy="21.2" r="0.8" fill="currentColor" stroke="none" opacity="0.85"/></svg>`,
     // Lancet window (deadline)
     window: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/><line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/><path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/><line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/><line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/><path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/><line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/></svg>`,
     // Three gothic spires (priority)
@@ -312,20 +294,8 @@ const IC = {
         <line x1="15.5" y1="4.5" x2="15.5" y2="19"/><path d="M13 16.3 L15.5 19 L18 16.3"/>
     </svg>`,
     // Focus mode — gothic single lancet arch with rays (spotlight on one group)
-    focusMode: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3C9.5 3 7.5 6 7.5 10V18H16.5V10C16.5 6 14.5 3 12 3Z"/>
-        <line x1="12" y1="18" x2="12" y2="21"/>
-        <line x1="9" y1="21" x2="15" y2="21"/>
-        <line x1="4" y1="7"  x2="6.5" y2="9" stroke-width="1.2" opacity="0.55"/>
-        <line x1="20" y1="7" x2="17.5" y2="9" stroke-width="1.2" opacity="0.55"/>
-        <line x1="12" y1="0.5" x2="12" y2="2.2" stroke-width="1.2" opacity="0.55"/>
-    </svg>`,
-    dagger: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2L13.5 9H10.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
-        <path d="M10.5 9H13.5L14 18H10Z"/>
-        <line x1="9" y1="11" x2="15" y2="11"/>
-        <circle cx="12" cy="20.5" r="1.7" stroke-width="1.5"/>
-    </svg>`,
+    focusMode: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 0.8L12.6 1.6L12 2.4L11.4 1.6Z" fill="currentColor" stroke="none" opacity="0.85"/><line x1="12" y1="2.4" x2="12" y2="3.2" stroke-width="1"/><path d="M7.8 7L12 3.2L16.2 7"/><line x1="9.9" y1="5.1" x2="10.4" y2="5.7" stroke-width="0.8" opacity="0.5"/><line x1="14.1" y1="5.1" x2="13.6" y2="5.7" stroke-width="0.8" opacity="0.5"/><line x1="7" y1="7" x2="17" y2="7" stroke-width="1.4"/><path d="M8.4 7H15.6V16.6H8.4Z"/><line x1="10.9" y1="7" x2="10.9" y2="16.6" stroke-width="0.85" opacity="0.4"/><line x1="13.1" y1="7" x2="13.1" y2="16.6" stroke-width="0.85" opacity="0.4"/><path d="M10.9 9.6C11.2 8.6 12.8 8.6 13.1 9.6" stroke-width="0.8" opacity="0.5"/><path d="M12 9.8C10.9 11.4 11.2 13.3 12 13.55C12.8 13.3 13.1 11.4 12 9.8Z" fill="currentColor" stroke="currentColor" stroke-width="0.8"/><line x1="10.7" y1="15" x2="13.3" y2="15" stroke-width="0.85" opacity="0.5"/><line x1="7.6" y1="16.6" x2="16.4" y2="16.6" stroke-width="1.4"/><path d="M9.2 16.6V18.3H14.8V16.6" stroke-width="1.2"/><line x1="7.9" y1="18.3" x2="16.1" y2="18.3" stroke-width="1.3"/><line x1="6.6" y1="20" x2="17.4" y2="20" stroke-width="1" opacity="0.5"/><line x1="4.6" y1="9.4" x2="6.4" y2="10.2" stroke-width="1.1" opacity="0.5"/><line x1="19.4" y1="9.4" x2="17.6" y2="10.2" stroke-width="1.1" opacity="0.5"/><line x1="4.2" y1="13.6" x2="6.1" y2="13.6" stroke-width="1.1" opacity="0.5"/><line x1="19.8" y1="13.6" x2="17.9" y2="13.6" stroke-width="1.1" opacity="0.5"/></svg>`,
+    dagger: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 16.6V4.2H15.8" stroke-width="1.2" opacity="0.5"/><path d="M4.4 4.2C3.4 4.2 3 3.5 3.4 2.8" stroke-width="0.9" opacity="0.5"/><path d="M4.4 16.6C5.5 16.6 6.1 17.2 6 18.2" stroke-width="0.9" opacity="0.5"/><path d="M5.9 15.1V5.7H14.2" stroke-width="0.7" opacity="0.28"/><circle cx="7.2" cy="7.4" r="0.35" fill="currentColor" stroke="none" opacity="0.45"/><line x1="8.1" y1="7.4" x2="12.4" y2="7.4" stroke-width="1" opacity="0.38"/><circle cx="7.2" cy="10" r="0.35" fill="currentColor" stroke="none" opacity="0.45"/><line x1="8.1" y1="10" x2="10.6" y2="10" stroke-width="1" opacity="0.38"/><line x1="7.2" y1="12.6" x2="9.2" y2="12.6" stroke-width="1" opacity="0.38"/><circle cx="19.6" cy="4.4" r="1.15" stroke-width="1.3"/><circle cx="19.6" cy="4.4" r="0.3" fill="currentColor" stroke="none"/><line x1="18.75" y1="5.25" x2="17.3" y2="6.7" stroke-width="1.6"/><line x1="17.85" y1="5.45" x2="18.55" y2="6.15" stroke-width="0.8" opacity="0.6"/><line x1="17.15" y1="6.15" x2="17.85" y2="6.85" stroke-width="0.8" opacity="0.6"/><line x1="15.6" y1="5" x2="18.8" y2="8.2" stroke-width="1.5"/><circle cx="15.25" cy="4.65" r="0.6" stroke-width="1"/><circle cx="19.15" cy="8.55" r="0.6" stroke-width="1"/><path d="M15.1 6.9L5.4 18.6L16.9 8.7" stroke-width="1.5"/><line x1="14.1" y1="9.5" x2="8.1" y2="15.5" stroke-width="0.85" opacity="0.5"/></svg>`,
     // Gothic sword (collapse/expand arrows) — AU1 «Полуторный меч»: клинок с телом
     // и долом, изогнутая гарда с шарами (язык J-кинжала), обмотка рукояти,
     // кольцо-навершие с точкой. Самый тиражный глиф — все дропдауны/раскрытия.
@@ -343,16 +313,7 @@ const IC = {
         <circle cx="12" cy="20.75" r="0.3" fill="currentColor" stroke="none"/>
     </svg>`,
     // Two crossed swords (clear / dismiss). Bold crossguards visible even at 9px.
-    crossedSwords: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="4" y1="4" x2="20" y2="20"/>
-        <line x1="3" y1="6" x2="6" y2="3"/>
-        <line x1="6" y1="3" x2="9" y2="6"/>
-        <circle cx="20" cy="20" r="1.4" fill="currentColor" stroke="none"/>
-        <line x1="20" y1="4" x2="4" y2="20"/>
-        <line x1="21" y1="6" x2="18" y2="3"/>
-        <line x1="18" y1="3" x2="15" y2="6"/>
-        <circle cx="4" cy="20" r="1.4" fill="currentColor" stroke="none"/>
-    </svg>`,
+    crossedSwords: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="9.2" y1="14.8" x2="19.6" y2="4.4" stroke-width="1.7"/><path d="M18.2 4.2L20.2 3.8L19.8 5.8" stroke-width="0.9" opacity="0.7"/><line x1="10.6" y1="13.4" x2="17.6" y2="6.4" stroke-width="0.8" opacity="0.5"/><line x1="7.1" y1="13.9" x2="10.1" y2="16.9" stroke-width="1.5"/><circle cx="6.7" cy="13.5" r="0.6" stroke-width="1"/><circle cx="10.5" cy="17.3" r="0.6" stroke-width="1"/><line x1="8.2" y1="15.8" x2="6.9" y2="17.1" stroke-width="1.6"/><line x1="7.3" y1="15.9" x2="8.1" y2="16.7" stroke-width="0.7" opacity="0.6"/><circle cx="6.3" cy="17.7" r="0.95" stroke-width="1.2"/><circle cx="6.3" cy="17.7" r="0.28" fill="currentColor" stroke="none"/><line x1="14.8" y1="14.8" x2="4.4" y2="4.4" stroke-width="1.7"/><path d="M5.8 4.2L3.8 3.8L4.2 5.8" stroke-width="0.9" opacity="0.7"/><line x1="13.4" y1="13.4" x2="6.4" y2="6.4" stroke-width="0.8" opacity="0.5"/><line x1="16.9" y1="13.9" x2="13.9" y2="16.9" stroke-width="1.5"/><circle cx="17.3" cy="13.5" r="0.6" stroke-width="1"/><circle cx="13.5" cy="17.3" r="0.6" stroke-width="1"/><line x1="15.8" y1="15.8" x2="17.1" y2="17.1" stroke-width="1.6"/><line x1="16.7" y1="15.9" x2="15.9" y2="16.7" stroke-width="0.7" opacity="0.6"/><circle cx="17.7" cy="17.7" r="0.95" stroke-width="1.2"/><circle cx="17.7" cy="17.7" r="0.28" fill="currentColor" stroke="none"/></svg>`,
     // Gothic rune circle (archive select indicator — unchecked)
     runeCircle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 3 L21 8.5 L21 15.5 L12 21 L3 15.5 L3 8.5 Z" opacity="0.55"/>
@@ -370,13 +331,7 @@ const IC = {
         <circle cx="12" cy="12" r="3.5" fill="rgba(180,80,255,0.80)" stroke="rgba(230,180,255,0.95)" stroke-width="1.2"/>
     </svg>`,
     // Gothic rising coffin (restore from archive)
-    restore: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
-        <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
-        <line x1="10" y1="11" x2="14" y2="11" stroke-width="1.2" opacity="0.7"/>
-        <line x1="12" y1="2" x2="12" y2="7"/>
-        <path d="M9.5 4.5L12 2L14.5 4.5"/>
-    </svg>`,
+    restore: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20H16L17.5 22H6.5L8 20Z"/><path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/><path d="M7.4 10.2C6.4 10 5.8 10.6 6 11.4" stroke-width="1" opacity="0.6"/><path d="M16.6 10.2C17.6 10 18.2 10.6 18 11.4" stroke-width="1" opacity="0.6"/><path d="M9.6 11L10.3 10.3L11 11L10.3 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/><path d="M11.3 11L12 10.3L12.7 11L12 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/><path d="M13 11L13.7 10.3L14.4 11L13.7 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/><line x1="10.2" y1="15.4" x2="13.8" y2="15.4" stroke-width="1" opacity="0.45"/><line x1="12" y1="1.8" x2="12" y2="6.8" stroke-width="1.6"/><path d="M9.7 4.1L12 1.8L14.3 4.1"/><path d="M8.9 6.4C9.5 5.2 10.4 4.5 11 4.3" stroke-width="0.95" opacity="0.5"/><path d="M15.1 6.4C14.5 5.2 13.6 4.5 13 4.3" stroke-width="0.95" opacity="0.5"/></svg>`,
     // Gothic eye/rune (search)
     search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
         <ellipse cx="11" cy="11" rx="5" ry="7.5" transform="rotate(-30 11 11)"/>
@@ -385,14 +340,7 @@ const IC = {
     </svg>`,
     // Repeat monthly — gothic tablet with notch marks (calendar page / lunar cycle by month).
     // Lancet-arch top, three horizontal tally lines inside = "numbered day of month".
-    repeatMonthly: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 21V9C5 6.24 8 4 12 4C16 4 19 6.24 19 9V21"/>
-        <path d="M12 4C12 4 11 2.5 12 1.5C13 2.5 12 4 12 4"/>
-        <line x1="3" y1="21" x2="21" y2="21" stroke-width="1.4"/>
-        <line x1="8"  y1="12" x2="16" y2="12" stroke-width="1.2" opacity="0.85"/>
-        <line x1="8"  y1="15" x2="16" y2="15" stroke-width="1.2" opacity="0.65"/>
-        <line x1="8"  y1="18" x2="13" y2="18" stroke-width="1.2" opacity="0.45"/>
-    </svg>`,
+    repeatMonthly: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13.6A8.8 8.8 0 1 1 10.4 3.2A7 7 0 0 0 20 13.6Z"/><path d="M11.9 7.3C11.1 7.7 10.9 8.5 11.4 9.1" stroke-width="1" opacity="0.65"/><circle cx="10.1" cy="8.5" r="0.6" fill="currentColor" stroke="none" opacity="0.75"/><path d="M11 11.2C11.7 11.5 12 12.2 11.5 12.9C11.2 13.3 10.6 13.4 10.2 13.2" stroke-width="1" opacity="0.65"/><path d="M10 15.2C10.7 15.6 11.5 15.5 12 15" stroke-width="1" opacity="0.6"/><path d="M18.3 4.4L18.75 5.55L19.9 6L18.75 6.45L18.3 7.6L17.85 6.45L16.7 6L17.85 5.55Z" fill="currentColor" stroke="none" opacity="0.85"/></svg>`,
     // Middle diamond at full opacity creates a natural gradient peak.
     // Thin stroke sharpens edges; fills provide the solid presence.
     // Drag handle — a gothic quatrefoil chain: two four-lobed (quatrefoil) links
@@ -433,12 +381,7 @@ const IC = {
     // Small gothic cross (add-subtask confirm button — same as IC.add but separate for clarity)
     crossSm:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4.8" x2="12" y2="19.2"/><line x1="4.8" y1="12" x2="19.2" y2="12"/><line x1="10.2" y1="6.4" x2="13.8" y2="6.4" stroke-width="1.4"/><line x1="10.2" y1="17.6" x2="13.8" y2="17.6" stroke-width="1.4"/><line x1="6.4" y1="10.2" x2="6.4" y2="13.8" stroke-width="1.4"/><line x1="17.6" y1="10.2" x2="17.6" y2="13.8" stroke-width="1.4"/><circle cx="12" cy="4" r="1" stroke-width="1.3"/><circle cx="12" cy="20" r="1" stroke-width="1.3"/><circle cx="4" cy="12" r="1" stroke-width="1.3"/><circle cx="20" cy="12" r="1" stroke-width="1.3"/><circle cx="12" cy="12" r="1.5" stroke-width="1.4"/></svg>`,
     // Gothic tombstone (group delete — intuitive "gone" symbol in gothic style)
-    tombstone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 21V10.5C7 7.46 9.24 5 12 5C14.76 5 17 7.46 17 10.5V21"/>
-        <line x1="4" y1="21" x2="20" y2="21"/>
-        <line x1="10" y1="10" x2="14" y2="10" stroke-width="1.2"/>
-        <line x1="12" y1="8" x2="12" y2="13" stroke-width="1.2"/>
-    </svg>`,
+    tombstone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V10.5C7 7.4 9.2 5 12 5C14.8 5 17 7.4 17 10.5V21"/><line x1="4.6" y1="21" x2="19.4" y2="21" stroke-width="1.5"/><path d="M12 7.4L12.9 9.5L15 10.4L12.9 11.3L12 13.4L11.1 11.3L9 10.4L11.1 9.5Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M7 14.6L9 15.8L8.2 17.4L9.6 18.6" stroke-width="1" opacity="0.6"/><line x1="10.4" y1="16.4" x2="14.8" y2="16.4" stroke-width="1" opacity="0.5"/><line x1="11" y1="18.2" x2="14.2" y2="18.2" stroke-width="1" opacity="0.4"/></svg>`,
 
     // "Ничего/отсутствие" — a pair of gothic crescent moons that flank the label on both
     // sides (horns toward the text). noneMoonL opens right; noneMoonR is its mirror.
@@ -502,12 +445,7 @@ const IC = {
     cycleReturn: `<svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M5 1.2L8.8 5L5 8.8L1.2 5L3.5 2.7"/><polyline points="3.5,1.2 5,1.2 5,2.7"/></svg>`,
     // Gothic twin-coffin (duplicate task) — two overlapping coffin silhouettes
     // The second one offset bottom-right = "copy" in medieval heraldic doubles
-    twinCoffin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 3H11.5L15 6.5V17.5Q10 20 5 17.5V6.5Z" opacity="0.55"/>
-        <path d="M9 6H15.5L19 9.5V20.5Q14 23 9 20.5V9.5Z"/>
-        <line x1="14" y1="13" x2="14" y2="17" stroke-width="1.1" opacity="0.7"/>
-        <line x1="12" y1="15" x2="16" y2="15" stroke-width="1.1" opacity="0.7"/>
-    </svg>`,
+    twinCoffin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3H11.5L15 6.5V17.5Q10 20 5 17.5V6.5Z" opacity="0.45"/><line x1="9.4" y1="7.2" x2="9.4" y2="11.4" stroke-width="1.1" opacity="0.35"/><line x1="7.6" y1="8.9" x2="11.2" y2="8.9" stroke-width="1.1" opacity="0.35"/><path d="M9 6H15.5L19 9.5V20.5Q14 23 9 20.5V9.5Z"/><line x1="14" y1="11" x2="14" y2="17.4" stroke-width="1.3"/><line x1="11.6" y1="13.2" x2="16.4" y2="13.2" stroke-width="1.3"/><circle cx="14" cy="10.1" r="0.5" fill="currentColor" stroke="none" opacity="0.8"/><circle cx="10.2" cy="10.6" r="0.45" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="17.8" cy="10.6" r="0.45" fill="currentColor" stroke="none" opacity="0.55"/></svg>`,
     // Gothic crescent moon — "Без дедлайна" (no deadline / open-ended)
     moon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 13.4A8.6 8.6 0 1 1 10.9 3.4A7 7 0 0 0 20.2 13.4Z"/><path d="M17.2 13.9A6.2 6.2 0 0 1 10.6 6.3" stroke-width="1.1" opacity="0.5"/><circle cx="8.3" cy="9.4" r="1.05" stroke-width="1.1" opacity="0.65"/><circle cx="7.4" cy="13.6" r="0.7" stroke-width="1" opacity="0.5"/><circle cx="10.4" cy="16.4" r="0.85" stroke-width="1" opacity="0.55"/><path d="M18.6 4.2L19.15 5.65L20.6 6.2L19.15 6.75L18.6 8.2L18.05 6.75L16.6 6.2L18.05 5.65Z" fill="currentColor" stroke="none"/></svg>`,
     // Gothic lancet-arch with a slash — "снять дедлайн" / cancel deadline.
@@ -522,12 +460,7 @@ const IC = {
     </svg>`,
 
     // Gothic dagger / pin — for pinning tasks to the top of their group.
-    pin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="3" x2="12" y2="19"/>
-        <path d="M9 7L12 3L15 7"/>
-        <line x1="8" y1="10" x2="16" y2="10"/>
-        <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
-    </svg>`,
+    pin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13V5.2C3 3.9 3.9 3 5.2 3H13" stroke-width="1.2" opacity="0.42"/><path d="M7 3.9L10.1 7L7 10.1L3.9 7Z"/><line x1="7" y1="3.9" x2="7" y2="10.1" stroke-width="0.9" opacity="0.4"/><line x1="9.3" y1="9.3" x2="19.6" y2="19.6" stroke-width="2"/><path d="M18.4 20.5L21 21L20.5 18.4Z" fill="currentColor" stroke="currentColor" stroke-width="1"/><circle cx="6" cy="5.1" r="0.6" fill="currentColor" stroke="none" opacity="0.8"/></svg>`,
 
     // Pinned-card mark — a forged iron spike driven diagonally into the top-left
     // corner. Built for VOLUME: the head + shaft are each split along their
@@ -560,19 +493,10 @@ const IC = {
     </svg>`,
 
     // Snooze (postpone deadline) — gothic tower-clock face + a forward "skip" arc.
-    snooze: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="13" r="7"/>
-        <path d="M11 9.5V13L13.4 14.4"/>
-        <path d="M16.5 3.5L20.5 4.5L19.5 8.5"/>
-        <path d="M20.5 4.5C20.5 4.5 18 6.5 15.5 6.7"/>
-    </svg>`,
+    snooze: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(-14 11 13)"><line x1="6.8" y1="6" x2="15.2" y2="6" stroke-width="1.4"/><line x1="7.6" y1="6" x2="7.6" y2="7.5" stroke-width="0.9" opacity="0.6"/><line x1="14.4" y1="6" x2="14.4" y2="7.5" stroke-width="0.9" opacity="0.6"/><path d="M8.3 6.8V9.3L11 13L13.7 9.3V6.8"/><path d="M8.3 19.2V16.7L11 13L13.7 16.7V19.2"/><line x1="6.8" y1="20" x2="15.2" y2="20" stroke-width="1.4"/><line x1="7.6" y1="20" x2="7.6" y2="18.5" stroke-width="0.9" opacity="0.6"/><line x1="14.4" y1="20" x2="14.4" y2="18.5" stroke-width="0.9" opacity="0.6"/><path d="M9.6 8.4H12.4L11 10.3Z" fill="currentColor" stroke="none" opacity="0.75"/><line x1="11" y1="13.3" x2="11" y2="16.4" stroke-width="0.85" opacity="0.55"/><path d="M9.4 18.8Q11 16.9 12.6 18.8Z" fill="currentColor" stroke="none" opacity="0.8"/></g><path d="M15.8 4.2C18.5 5 20.3 6.9 21 9.6" stroke-width="1.5"/><path d="M19.1 9.3L21.1 10L21.6 8" stroke-width="1.5"/></svg>`,
 
     // Template (save task as a reusable grimoire) — gothic tome with a ribbon bookmark.
-    template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
-        <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
-        <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
-    </svg>`,
+    template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 3.4H16.4C17.3 3.4 17.9 4 17.9 4.9V19.1C17.9 20 17.3 20.6 16.4 20.6H6.2Z"/><line x1="8.4" y1="3.4" x2="8.4" y2="20.6" stroke-width="1" opacity="0.5"/><line x1="6.2" y1="6.4" x2="8.4" y2="6.4" stroke-width="1.1" opacity="0.6"/><line x1="6.2" y1="17.6" x2="8.4" y2="17.6" stroke-width="1.1" opacity="0.6"/><path d="M17.9 9.6H19.9C20.3 9.6 20.5 9.9 20.5 10.3V13.7C20.5 14.1 20.3 14.4 19.9 14.4H17.9" stroke-width="1.3"/><path d="M18.6 12L19.3 11.3L20 12L19.3 12.7Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M13.1 8.2L13.55 9.35L14.7 9.8L13.55 10.25L13.1 11.4L12.65 10.25L11.5 9.8L12.65 9.35Z" fill="currentColor" stroke="none" opacity="0.85"/><circle cx="13.1" cy="9.8" r="2.5" stroke-width="0.9" opacity="0.45"/><path d="M11 20.6V23L12.2 21.9L13.4 23V20.6" stroke-width="1.2" opacity="0.75"/><line x1="10.4" y1="15.4" x2="15.8" y2="15.4" stroke-width="0.9" opacity="0.4"/><line x1="10.4" y1="17.2" x2="14.6" y2="17.2" stroke-width="0.9" opacity="0.4"/></svg>`,
 
     // Promote subtask → task: arrow rising to a top rule ("raise to top level").
     promote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
