@@ -3,3 +3,10 @@ dist/
 
 # transient game-mod scratch (never DUSK)
 .codex_tmp/
+
+# audit screenshots — heavy binary artifacts (~0.5GB), archived to Google Drive,
+# regenerable via the pw harness. Do NOT push (git bloats on binaries). Note: some
+# older shots (s1/s2/s3/s4) are already in history; this only blocks new ones.
+audit-v2/shots/
+# local zip archives of the above
+/*audit*shots*.zip
