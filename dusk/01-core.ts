@@ -283,11 +283,7 @@ const IC = {
         <path d="M5.5 21.5L3.5 23.5L7.5 22.5" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
     </svg>`,
     // Lancet window (deadline)
-    window: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <path d="M6 21V11.5C6 7.4 8.69 4 12 4C15.31 4 18 7.4 18 11.5V21"/>
-        <line x1="3" y1="21" x2="21" y2="21"/>
-        <path d="M9 21V15C9 12.8 10.34 11 12 11C13.66 11 15 12.8 15 15V21"/>
-    </svg>`,
+    window: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/><line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/><path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/><line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/><line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/><path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/><line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/></svg>`,
     // Three gothic spires (priority)
     spires: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <line x1="4.5" y1="20" x2="4.5" y2="16"/><path d="M3 16L4.5 11.5L6 16"/>
@@ -435,9 +431,7 @@ const IC = {
     // Gothic scroll with horizontal lines (edit note — visually distinct from addNote which has a cross)
     editNote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2H17V18L12 21.5L7 18V2Z"/><path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/><line x1="9.5" y1="7.5" x2="14.5" y2="7.5"/><line x1="9.5" y1="11" x2="14.5" y2="11"/><line x1="9.5" y1="14.5" x2="13" y2="14.5"/></svg>`,
     // Small gothic cross (add-subtask confirm button — same as IC.add but separate for clarity)
-    crossSm:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <line x1="12" y1="2" x2="12" y2="22"/><line x1="4.5" y1="8" x2="19.5" y2="8"/>
-    </svg>`,
+    crossSm:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4.8" x2="12" y2="19.2"/><line x1="4.8" y1="12" x2="19.2" y2="12"/><line x1="10.2" y1="6.4" x2="13.8" y2="6.4" stroke-width="1.4"/><line x1="10.2" y1="17.6" x2="13.8" y2="17.6" stroke-width="1.4"/><line x1="6.4" y1="10.2" x2="6.4" y2="13.8" stroke-width="1.4"/><line x1="17.6" y1="10.2" x2="17.6" y2="13.8" stroke-width="1.4"/><circle cx="12" cy="4" r="1" stroke-width="1.3"/><circle cx="12" cy="20" r="1" stroke-width="1.3"/><circle cx="4" cy="12" r="1" stroke-width="1.3"/><circle cx="20" cy="12" r="1" stroke-width="1.3"/><circle cx="12" cy="12" r="1.5" stroke-width="1.4"/></svg>`,
     // Gothic tombstone (group delete — intuitive "gone" symbol in gothic style)
     tombstone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M7 21V10.5C7 7.46 9.24 5 12 5C14.76 5 17 7.46 17 10.5V21"/>
@@ -452,10 +446,7 @@ const IC = {
     noneMoonR: `<svg class="none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>`,
 
     // Gothic Latin cross — the same "add" glyph as the toolbar's «Группа» button.
-    crossAdd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
-        <line x1="12" y1="2" x2="12" y2="22"/>
-        <line x1="4.5" y1="8" x2="19.5" y2="8"/>
-    </svg>`,
+    crossAdd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4.8" x2="12" y2="19.2"/><line x1="4.8" y1="12" x2="19.2" y2="12"/><line x1="10.2" y1="6.4" x2="13.8" y2="6.4" stroke-width="1.4"/><line x1="10.2" y1="17.6" x2="13.8" y2="17.6" stroke-width="1.4"/><line x1="6.4" y1="10.2" x2="6.4" y2="13.8" stroke-width="1.4"/><line x1="17.6" y1="10.2" x2="17.6" y2="13.8" stroke-width="1.4"/><circle cx="12" cy="4" r="1" stroke-width="1.3"/><circle cx="12" cy="20" r="1" stroke-width="1.3"/><circle cx="4" cy="12" r="1" stroke-width="1.3"/><circle cx="20" cy="12" r="1" stroke-width="1.3"/><circle cx="12" cy="12" r="1.5" stroke-width="1.4"/></svg>`,
 
     // ── NEW GOTHIC ICONS ──────────────────────────────────────
 
@@ -518,7 +509,7 @@ const IC = {
         <line x1="12" y1="15" x2="16" y2="15" stroke-width="1.1" opacity="0.7"/>
     </svg>`,
     // Gothic crescent moon — "Без дедлайна" (no deadline / open-ended)
-    moon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>`,
+    moon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 13.4A8.6 8.6 0 1 1 10.9 3.4A7 7 0 0 0 20.2 13.4Z"/><path d="M17.2 13.9A6.2 6.2 0 0 1 10.6 6.3" stroke-width="1.1" opacity="0.5"/><circle cx="8.3" cy="9.4" r="1.05" stroke-width="1.1" opacity="0.65"/><circle cx="7.4" cy="13.6" r="0.7" stroke-width="1" opacity="0.5"/><circle cx="10.4" cy="16.4" r="0.85" stroke-width="1" opacity="0.55"/><path d="M18.6 4.2L19.15 5.65L20.6 6.2L19.15 6.75L18.6 8.2L18.05 6.75L16.6 6.2L18.05 5.65Z" fill="currentColor" stroke="none"/></svg>`,
     // Gothic lancet-arch with a slash — "снять дедлайн" / cancel deadline.
     // The arch is the same as IC.window (deadline icon); the diagonal strike means removal.
     // Visually: "this deadline is cancelled / erased".
