@@ -8806,6 +8806,7 @@ kbd {
     .side-rail .group-pill-wrap .meta-tag.group-pill {
         flex: 1 1 auto;
         min-width: 0;
+        max-width: 100%;   /* перебивает coarse-кап 45vw (B1-05) */
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -8916,21 +8917,100 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         gap: 14px;
         min-width: 0;
     }
-    /* Тулбар-карта обязана жить в ширине панели: кластеры-кнопки переносятся
-       (coarse-тир растит их до 44px — 7 в ряд не влезает), у поиска снят
-       flex min-width:auto капкан. */
-    body[data-page="main"] .side-rail .toolbar,
-    body[data-page="main"] .side-rail .toolbar-actions,
-    body[data-page="main"] .side-rail .toolbar-group { min-width: 0; max-width: 100%; }
-    body[data-page="main"] .side-rail .toolbar-group-btns {
-        flex-wrap: wrap;
-        justify-content: center;
+    /* Полная реплика десктопной рельсы внутри створки (вердикт юзера: дизайн
+       рельсы повторяется на телефоне 1-в-1): кластеры-колонки с лейблом
+       сверху-слева, горизонтальные швы между кластерами, группы-плита рядами
+       со счётчиками. min-width-цепочки — тот же flex-капкан, что и на рельсе. */
+    .side-rail .toolbar { margin-bottom: 0; min-width: 0; max-width: 100%; }
+    .side-rail .toolbar-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 13px;
+        min-width: 0;
+        max-width: 100%;
     }
-    body[data-page="main"] .side-rail .search-wrap { width: 100%; }
-    body[data-page="main"] .side-rail #search-box { min-width: 0; }
+    .side-rail .toolbar-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 0 2px;
+        min-width: 0;
+        max-width: 100%;
+    }
+    .side-rail .toolbar-group:first-child { padding-left: 2px; }
+    .side-rail .toolbar-group:last-child  { padding-right: 2px; }
+    /* display:block перебивает coarse-медиа «label: none» (F2 прятала лейблы,
+       потому что данные жили в шите; в створке рельса-структура возвращает их). */
+    .side-rail .toolbar-group-label { order: -1; font-size: 10px; display: block; }
+    .side-rail .toolbar-group-btns { flex-wrap: wrap; justify-content: flex-start; }
+    .side-rail .toolbar-group + .toolbar-group::before {
+        display: block;   /* coarse-медиа глушила «обрубок» у ФИЛЬТРА (:has) — в колонке шов легитимен */
+        left: 8%;
+        right: 8%;
+        top: -7px;
+        bottom: auto;
+        width: auto;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(160, 80, 255, 0.32) 30%, rgba(160, 80, 255, 0.32) 70%, transparent);
+    }
+    /* coarse-глушилка несёт ID-специфичность через :has(#btn-filter) — перебиваем ею же */
+    .side-rail .toolbar-group:has(#btn-filter)::before { display: block; }
+    .side-rail .search-wrap { width: 100%; }
+    .side-rail #search-box { min-width: 0; }
 
-    /* Группы остаются мобильными пилюлями-обёрткой; счётчики здесь уместны. */
-    .group-pill .gp-count { display: inline; margin-left: 6px; }
+    .side-rail .groups-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-bottom: 0;
+        background: var(--bg-input);
+        border: 1px solid var(--border-mid);
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        box-shadow: inset 0 1px 0 rgba(200, 140, 255, 0.05);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        overflow: hidden;
+    }
+    .side-rail .btn-add-group { justify-content: center; }
+    .side-rail .groups-bar,
+    .side-rail .groups-list,
+    .side-rail .group-pill-wrap { min-width: 0; }
+    .side-rail .groups-list,
+    .side-rail .groups-bar > .btn-add-group,
+    .side-rail .group-pill-wrap { width: 100%; max-width: 100%; }
+    .side-rail .groups-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .side-rail .group-pill-wrap { display: flex; }
+    .side-rail .group-pill-wrap .meta-tag.group-pill {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: 100%;   /* перебивает coarse-кап 45vw (B1-05) */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        cursor: pointer;
+    }
+    .side-rail .group-pill .gp-name {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .group-pill .gp-count { display: inline; }
+    /* Тумбстоун статичен (как на рельсе), но на таче hover нет — чуть ярче. */
+    .side-rail .btn-pill-delete {
+        width: 26px;
+        min-width: 26px;
+        padding: 4px 7px 4px 5px;
+        opacity: 0.5;
+    }
+    .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
     /* Дайджест «Грядущее» входит в drawer (снимаем display-гейт, как рельса). */
     body[data-page="main"] .rail-digest { display: block; }
 
@@ -8962,12 +9042,14 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         height: 76px;
         padding: 0 0 0 env(safe-area-inset-left);
         z-index: 120;
-        background: linear-gradient(160deg, rgba(28, 13, 50, 0.92), rgba(13, 5, 25, 0.94));
+        background: linear-gradient(160deg, rgba(28, 13, 50, 0.55), rgba(13, 5, 25, 0.62));
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
         border: 1px solid var(--border-mid);
         border-left: none;
         border-radius: 0 var(--radius-md) var(--radius-md) 0;
         color: var(--text-secondary);
-        box-shadow: 3px 0 16px rgba(0, 0, 0, 0.45);
+        box-shadow: 3px 0 16px rgba(0, 0, 0, 0.35);
         cursor: pointer;
         transition: transform var(--dur-quick) var(--ease-gothic),
                     opacity var(--dur-quick) var(--ease-gothic),
