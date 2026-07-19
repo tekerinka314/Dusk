@@ -552,14 +552,8 @@
                     </button>
                     <button class="btn-tool" id="btn-archive-all" data-act="archiveAll" title="Архивировать всё"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive"/></svg></button>
                     <button class="btn-tool btn-danger" data-act="clearAll" title="Удалить всё навсегда">
-                        <!-- Skull icon inline -->
-                        <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
-                            <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
-                            <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
-                            <ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-                            <ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-                            <line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/>
-                        </svg>
+                        <!-- AT1 · Череп (удалить всё навсегда) -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>
                     </button>
                     </div><span class="toolbar-group-label">данные</span></div>
                 </div>
@@ -603,10 +597,19 @@
                     <!-- Cluster 2 — group / colour / deadline -->
                     <div class="select-bar-group">
                         <button class="sb-btn" data-act="openBulkGroupModal" title="Переместить в группу">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 21V11C4 8 6 6 8 6C10 6 12 8 12 11V21"/>
-                                <path d="M12 21V11C12 8 14 6 16 6C18 6 20 8 20 11V21"/>
-                                <line x1="2" y1="21" x2="22" y2="21" stroke-width="1.4"/>
+                            <!-- «В группу»: стрельчатая арка-ниша (=группа) с замковым финиалом,
+                                 нисходящая стрела вводит выбранное внутрь, ledger-строки на полу
+                                 ниши = собранные задачи. -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 21V12.5C5 8 8.1 4.8 12 4.8C15.9 4.8 19 8 19 12.5V21"/>
+                                <line x1="3.4" y1="21" x2="20.6" y2="21" stroke-width="1.5"/>
+                                <path d="M7.6 21V13.4C7.6 10 9.6 7.6 12 7.6C14.4 7.6 16.4 10 16.4 13.4V21" stroke-width="1" opacity="0.4"/>
+                                <path d="M12 2.3L12.85 3.5L12 4.7L11.15 3.5Z" fill="currentColor" stroke="none" opacity="0.8"/>
+                                <line x1="12" y1="5" x2="12" y2="6.6" stroke-width="1" opacity="0.5"/>
+                                <line x1="12" y1="10" x2="12" y2="15.2" stroke-width="1.6"/>
+                                <path d="M9.5 12.7L12 15.4L14.5 12.7" stroke-width="1.6"/>
+                                <line x1="8.8" y1="18" x2="15.2" y2="18" stroke-width="1.3"/>
+                                <line x1="10" y1="19.9" x2="14" y2="19.9" stroke-width="1.1" opacity="0.6"/>
                             </svg>
                         </button>
                         <button class="sb-btn" data-act="openBulkColorModal" title="Цветовая метка">
@@ -714,23 +717,20 @@
                         Вернуть всё
                     </button>
                     <button class="btn-archive-action btn-select-mode" id="btn-select-mode" data-act="toggleSelectMode" title="Отметить для восстановления">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3 L21 8.5 L21 15.5 L12 21 L3 15.5 L3 8.5 Z" opacity="0.7"/>
-                            <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.4"/>
-                            <line x1="3" y1="8.5" x2="21" y2="15.5" stroke-width="1" opacity="0.4"/>
-                            <line x1="21" y1="8.5" x2="3" y2="15.5" stroke-width="1" opacity="0.4"/>
-                            <circle cx="12" cy="12" r="2.2" opacity="0.5"/>
+                        <!-- K1 · Рунный круг (отметить для восстановления — как select везде) -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5.8"/>
+                            <line x1="12" y1="9.3" x2="12" y2="14.7" stroke-width="1.1" opacity="0.45"/>
+                            <line x1="12" y1="4.2" x2="12" y2="5.5" stroke-width="1" opacity="0.5"/>
+                            <line x1="12" y1="18.5" x2="12" y2="19.8" stroke-width="1" opacity="0.5"/>
+                            <line x1="4.2" y1="12" x2="5.5" y2="12" stroke-width="1" opacity="0.5"/>
+                            <line x1="18.5" y1="12" x2="19.8" y2="12" stroke-width="1" opacity="0.5"/>
                         </svg>
                         Отметить
                     </button>
                     <button class="btn-archive-action btn-clear-archive" id="btn-clear-archive" data-act="clearArchive" style="display:none">
-                        <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
-                            <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
-                            <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
-                            <ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-                            <ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-                            <line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/>
-                        </svg>
+                        <!-- AT1 · Череп (очистить архив навсегда) -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>
                         Очистить
                     </button>
                 </div>
@@ -863,7 +863,8 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V12C5 8 8 5 12 5C16 5 19 8 19 12V20"/><line x1="3" y1="20" x2="21" y2="20"/><path d="M12 4 L12 11" stroke-width="1.5"/><path d="M9 7 L12 4 L15 7" stroke-width="1.5"/></svg>
                         </button>
                         <button class="sb-btn" id="grim-bulk-color" data-act="openGrimBulkColorModal" title="Цвет выбранных" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/></svg>
+                            <!-- H2 · Алхимический фиал (цвет) -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/><line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/><line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/><path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/><path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7" stroke-width="1" opacity="0.45"/><circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/><path d="M15 7.4L15.35 8.35L16.3 8.7L15.35 9.05L15 10L14.65 9.05L13.7 8.7L14.65 8.35Z" fill="currentColor" stroke="none" opacity="0.75"/></svg>
                         </button>
                         <span class="grim-io-sel" id="grim-io-sel">
                             <button class="sb-btn" id="grim-bulk-export" data-act="grimToggleIoSelMenu" title="Экспорт выбранных" aria-haspopup="true" aria-expanded="false" disabled>
@@ -872,7 +873,7 @@
                             <div class="grim-tpl-pop grim-io-pop grim-io-sel-pop" id="grim-io-sel-pop" role="menu"></div>
                         </span>
                         <button class="sb-btn sb-delete" id="grim-bulk-delete" data-act="grimBulkDelete" title="Удалить навсегда" disabled>
-                            <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/><rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/><ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/><ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/><line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>
                         </button>
                     </span>
                     <button class="btn-select-bar-cancel" data-act="grimToggleSelectMode">Отмена</button>
@@ -1330,10 +1331,14 @@
         </div>
         <div class="modal-actions">
             <button class="btn-modal-cancel btn-modal-clear" data-act="commitColorClear" title="Убрать метку">
-                <!-- Struck gothic crystal — reuses the colour-label motif, negated -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 4L17 8.5L17 16L12 20L7 16L7 8.5Z"/>
-                    <line x1="5.5" y1="18.5" x2="18.5" y2="5.5"/>
+                <!-- H2 фиал, перечёркнутый — «убрать цвет» (тот же мотив, отрицание) -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/>
+                    <line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/>
+                    <line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/>
+                    <path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/>
+                    <circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/>
+                    <line x1="5.2" y1="19.4" x2="18.8" y2="4.6" stroke-width="1.6"/>
                 </svg>
                 Без цвета
             </button>
