@@ -281,27 +281,28 @@ const IC = {
     quill: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.8 3.2C13.8 4.4 9 8.4 6.4 14.9L5 19L9.1 17.6C15.6 15 19 10 19.8 3.2Z"/><path d="M17.6 5.6C13.4 8.2 10.2 11.8 8 16" stroke-width="1" opacity="0.55"/><path d="M15.4 6.2L13.9 5.4M13.5 8.1L12 7.3M11.8 10L10.4 9.2M10.3 12L9 11.3" stroke-width="0.95" opacity="0.45"/><path d="M6.1 16.1L5 19L7.9 17.9" stroke-width="1.2"/><line x1="5.6" y1="18.4" x2="4.2" y2="19.8" stroke-width="1.1"/><circle cx="3.4" cy="21.2" r="0.8" fill="currentColor" stroke="none" opacity="0.85"/></svg>`,
     // Lancet window (deadline)
     window: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/><line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/><path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/><line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/><line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/><path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/><line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/></svg>`,
-    // Task priority (M3) — same three descending gothic towers as sortPriority, so the
-    // per-task priority button and the sort-by-priority entry read as one glyph.
-    spires: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3.6 20V8.2H6.4V20"/>
-        <path d="M3.6 8.2L5 4.2L6.4 8.2"/>
-        <path d="M4.15 6.7L3.45 6.3M5.85 6.7L6.55 6.3" stroke-width="0.8" opacity="0.6"/>
-        <line x1="5" y1="4.2" x2="5" y2="2.1" stroke-width="1.1"/>
-        <line x1="4.2" y1="2.8" x2="5.8" y2="2.8" stroke-width="1.1"/>
-        <path d="M4.45 12.8V11C4.45 10.3 5.55 10.3 5.55 11V12.8" stroke-width="0.75" opacity="0.55"/>
-        <line x1="3.6" y1="15" x2="6.4" y2="15" stroke-width="0.75" opacity="0.45"/>
-        <path d="M10.6 20V11.6H13.4V20"/>
-        <path d="M10.6 11.6L12 7.9L13.4 11.6"/>
-        <path d="M11.15 10.2L10.45 9.8M12.85 10.2L13.55 9.8" stroke-width="0.8" opacity="0.6"/>
-        <circle cx="12" cy="7.2" r="0.55" fill="currentColor" stroke="none"/>
-        <path d="M11.45 15.6V14C11.45 13.3 12.55 13.3 12.55 14V15.6" stroke-width="0.75" opacity="0.55"/>
-        <path d="M17.6 20V14.8H20.4V20"/>
-        <path d="M17.6 14.8L19 11.6L20.4 14.8"/>
-        <path d="M19 10.2L19.6 11L19 11.8L18.4 11Z" fill="currentColor" stroke="none" opacity="0.85"/>
-        <circle cx="19" cy="17.2" r="0.55" stroke-width="0.75" opacity="0.5"/>
-        <line x1="2.6" y1="20" x2="21.4" y2="20" stroke-width="1.3"/>
-        <line x1="3.7" y1="21.7" x2="20.3" y2="21.7" stroke-width="0.95" opacity="0.5"/>
+    // AW1 · Task-priority towers (M3 language, distinct glyph) — three shafts with
+    // bodies, tent-roofs and varied finials. Deliberately its OWN drawing, decoupled
+    // from sortPriority (which keeps the M3 glyph) per user's split decision.
+    spires: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.4 20V13.2M6.6 20V13.2"/>
+        <path d="M3.1 13.2L5 9.6L6.9 13.2Z"/>
+        <line x1="5" y1="9.6" x2="5" y2="8.5" stroke-width="1"/>
+        <circle cx="5" cy="8" r="0.42" fill="currentColor" stroke="none"/>
+        <line x1="5" y1="15" x2="5" y2="17.2" stroke-width="0.8" opacity="0.5"/>
+        <path d="M10.4 20V9.8M13.6 20V9.8"/>
+        <path d="M10.1 9.8L12 5.6L13.9 9.8Z"/>
+        <line x1="12" y1="5.6" x2="12" y2="4.1" stroke-width="1"/>
+        <line x1="11.35" y1="4.7" x2="12.65" y2="4.7" stroke-width="0.85"/>
+        <path d="M12 12.4C11.55 12.9 11.55 14 12 14.5C12.45 14 12.45 12.9 12 12.4Z" stroke-width="0.75" opacity="0.6"/>
+        <line x1="12" y1="16.4" x2="12" y2="18" stroke-width="0.8" opacity="0.5"/>
+        <path d="M17.4 20V14.6M20.6 20V14.6"/>
+        <path d="M17.1 14.6L19 11.2L20.9 14.6Z"/>
+        <line x1="19" y1="11.2" x2="19" y2="10.1" stroke-width="1"/>
+        <path d="M19 9.3L19.45 9.85L19 10.4L18.55 9.85Z" fill="currentColor" stroke="none"/>
+        <line x1="19" y1="16.3" x2="19" y2="18.4" stroke-width="0.8" opacity="0.5"/>
+        <line x1="1.8" y1="20" x2="22.2" y2="20" stroke-width="1.4"/>
+        <line x1="2.8" y1="21.3" x2="21.2" y2="21.3" stroke-width="0.75" opacity="0.4"/>
     </svg>`,
     // Sort by priority (M3) — three gothic towers descending (tallest = highest priority):
     // shafts in double outline, crabbed spire roofs, lancet windows, tiered belt, stepped base.
@@ -377,8 +378,9 @@ const IC = {
     runeCircle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5.8"/><line x1="12" y1="9.3" x2="12" y2="14.7" stroke-width="1.1" opacity="0.45"/><line x1="12" y1="4.2" x2="12" y2="5.5" stroke-width="1" opacity="0.5"/><line x1="12" y1="18.5" x2="12" y2="19.8" stroke-width="1" opacity="0.5"/><line x1="4.2" y1="12" x2="5.5" y2="12" stroke-width="1" opacity="0.5"/><line x1="18.5" y1="12" x2="19.8" y2="12" stroke-width="1" opacity="0.5"/></svg>`,
     // K1-derive: checked = eight-rayed rune with a lit core (matches card/note checked).
     runeCircleChecked: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5.8" fill="rgba(130,50,255,0.20)" stroke="rgba(200,130,255,0.95)"/><line x1="12" y1="8.9" x2="12" y2="15.1" stroke="rgba(200,130,255,0.95)" stroke-width="1.6"/><line x1="8.9" y1="12" x2="15.1" y2="12" stroke="rgba(200,130,255,0.95)" stroke-width="1.6"/><line x1="9.9" y1="9.9" x2="14.1" y2="14.1" stroke="rgba(200,130,255,0.65)" stroke-width="1.1"/><line x1="14.1" y1="9.9" x2="9.9" y2="14.1" stroke="rgba(200,130,255,0.65)" stroke-width="1.1"/><circle cx="12" cy="12" r="0.85" fill="rgba(220,170,255,0.95)" stroke="none"/><line x1="12" y1="4.2" x2="12" y2="5.5" stroke="rgba(200,130,255,0.8)" stroke-width="1"/><line x1="12" y1="18.5" x2="12" y2="19.8" stroke="rgba(200,130,255,0.8)" stroke-width="1"/><line x1="4.2" y1="12" x2="5.5" y2="12" stroke="rgba(200,130,255,0.8)" stroke-width="1"/><line x1="18.5" y1="12" x2="19.8" y2="12" stroke="rgba(200,130,255,0.8)" stroke-width="1"/></svg>`,
-    // Gothic rising coffin (restore from archive)
-    restore: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20H16L17.5 22H6.5L8 20Z"/><path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/><path d="M7.4 10.2C6.4 10 5.8 10.6 6 11.4" stroke-width="1" opacity="0.6"/><path d="M16.6 10.2C17.6 10 18.2 10.6 18 11.4" stroke-width="1" opacity="0.6"/><path d="M9.6 11L10.3 10.3L11 11L10.3 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/><path d="M11.3 11L12 10.3L12.7 11L12 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/><path d="M13 11L13.7 10.3L14.4 11L13.7 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/><line x1="10.2" y1="15.4" x2="13.8" y2="15.4" stroke-width="1" opacity="0.45"/><line x1="12" y1="1.8" x2="12" y2="6.8" stroke-width="1.6"/><path d="M9.7 4.1L12 1.8L14.3 4.1"/><path d="M8.9 6.4C9.5 5.2 10.4 4.5 11 4.3" stroke-width="0.95" opacity="0.5"/><path d="M15.1 6.4C14.5 5.2 13.6 4.5 13 4.3" stroke-width="0.95" opacity="0.5"/></svg>`,
+    // AY1 · Toppled lid — coffin with its slab shoved aside and a plumed soul-arrow
+    // rising in arcs of light. One "rising" glyph unifying task AND grimoire restore.
+    restore: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 21V14.7L6.9 11.4L8.2 8.9H15.8L17.1 11.4L15.8 14.7V21"/><path d="M9.4 20V14.9L8.4 11.4L9.4 10.1" stroke-width="0.7" opacity="0.32"/><path d="M14.6 20V14.9L15.6 11.4L14.6 10.1" stroke-width="0.7" opacity="0.32"/><line x1="10.1" y1="12.6" x2="13.9" y2="12.6" stroke-width="1" opacity="0.6"/><circle cx="12" cy="15.6" r="0.45" fill="currentColor" stroke="none" opacity="0.5"/><path d="M7.1 21H16.9L18.3 22.9H5.7Z"/><path d="M15.4 8.9L19.9 6.4L20.7 7.8L16.4 10.2" stroke-width="1.2"/><line x1="17.7" y1="7.3" x2="18.3" y2="8.5" stroke-width="0.7" opacity="0.5"/><line x1="12" y1="1.4" x2="12" y2="6.8" stroke-width="1.6"/><path d="M10.5 3L12 1.4L13.5 3" stroke-width="1.6"/><path d="M11 5.7L12 6.8L13 5.7" stroke-width="0.9" opacity="0.6"/><path d="M9.2 4.6C8.7 3.7 8.8 2.7 9.4 1.9" stroke-width="0.8" opacity="0.4"/><path d="M14.8 4.6C15.3 3.7 15.2 2.7 14.6 1.9" stroke-width="0.8" opacity="0.4"/></svg>`,
     // S2 · Scrying orb on a clawed tripod bowl — gothic take on "search".
     search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.6" r="6"/><path d="M8.4 6.2C9.4 5.2 10.8 4.7 12.2 4.9" stroke-width="1" opacity="0.55"/><path d="M12.6 8L13 9.1L14.1 9.5L13 9.9L12.6 11L12.2 9.9L11.1 9.5L12.2 9.1Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M7 14.4C6 15 5.4 15.9 5.4 16.9C5.4 18.3 8.2 19.4 12 19.4C15.8 19.4 18.6 18.3 18.6 16.9C18.6 15.9 18 15 17 14.4" stroke-width="1.4"/><line x1="8.4" y1="19.4" x2="7.8" y2="21" stroke-width="1.2" opacity="0.7"/><line x1="12" y1="19.5" x2="12" y2="21.2" stroke-width="1.2" opacity="0.7"/><line x1="15.6" y1="19.4" x2="16.2" y2="21" stroke-width="1.2" opacity="0.7"/></svg>`,
     // Repeat monthly — gothic tablet with notch marks (calendar page / lunar cycle by month).
@@ -460,17 +462,28 @@ const IC = {
     // the X = voided / erased. Compact, does not overlap with any existing icon.
     // Gothic tower clock — for "sort by deadline"
     // Medieval mechanical tower clock: lancet arch casing + clock face + pendulum.
-    // The lancet arch is the defining gothic architectural form; the pendulum clock
-    // with visible hands = timekeeping = deadline ordering. Unambiguous at any size.
-    sundial: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 22V11.5C7 7 9.2 4 12 4C14.8 4 17 7 17 11.5V22"/>
-        <line x1="5" y1="22" x2="19" y2="22" stroke-width="1.6"/>
-        <circle cx="12" cy="13.5" r="3.8"/>
-        <line x1="12" y1="13.5" x2="10.2" y2="11.5" stroke-width="2"/>
-        <line x1="12" y1="13.5" x2="14.2" y2="11.5" stroke-width="1.3"/>
-        <circle cx="12" cy="13.5" r="0.85" fill="currentColor" stroke="none"/>
-        <line x1="12" y1="17.3" x2="12" y2="19.8" stroke-width="1.2" opacity="0.6"/>
-        <circle cx="12" cy="20.5" r="0.9" stroke-width="1.3" opacity="0.65"/>
+    // AV1 · Clock tower — the lancet arch is the defining gothic architectural form;
+    // the pendulum clock with visible hands = timekeeping = deadline ordering. Twin-
+    // walled body + crabbed base to sit in the same language as the M3 sort towers.
+    sundial: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6.6 22V10.8C6.6 6.6 8.9 3.9 12 3.9C15.1 3.9 17.4 6.6 17.4 10.8V22"/>
+        <path d="M8 22V11C8 7.6 9.8 5.4 12 5.4C14.2 5.4 16 7.6 16 11V22" stroke-width="0.75" opacity="0.32"/>
+        <line x1="4.6" y1="22" x2="19.4" y2="22" stroke-width="1.6"/>
+        <line x1="5.6" y1="23.3" x2="18.4" y2="23.3" stroke-width="0.8" opacity="0.4"/>
+        <line x1="12" y1="3.9" x2="12" y2="1.7" stroke-width="1.2"/>
+        <line x1="11.2" y1="2.5" x2="12.8" y2="2.5" stroke-width="1"/>
+        <path d="M9.1 5.7l-1 -0.6M14.9 5.7l1 -0.6" stroke-width="0.8" opacity="0.5"/>
+        <circle cx="12" cy="12.4" r="3.7"/>
+        <circle cx="12" cy="12.4" r="2.95" stroke-width="0.7" opacity="0.4"/>
+        <line x1="12" y1="9.2" x2="12" y2="9.9" stroke-width="0.8" opacity="0.6"/>
+        <line x1="12" y1="14.9" x2="12" y2="15.6" stroke-width="0.8" opacity="0.6"/>
+        <line x1="8.8" y1="12.4" x2="9.5" y2="12.4" stroke-width="0.8" opacity="0.6"/>
+        <line x1="14.5" y1="12.4" x2="15.2" y2="12.4" stroke-width="0.8" opacity="0.6"/>
+        <line x1="12" y1="12.4" x2="10.5" y2="10.7" stroke-width="1.8"/>
+        <line x1="12" y1="12.4" x2="13.5" y2="11.1" stroke-width="1.15"/>
+        <circle cx="12" cy="12.4" r="0.8" fill="currentColor" stroke="none"/>
+        <line x1="12" y1="16.1" x2="12" y2="19.3" stroke-width="0.95" opacity="0.6"/>
+        <path d="M12 18.7L12.85 19.8L12 20.9L11.15 19.8Z" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
 
     // Gothic eye of truth — for "filter / show only unchecked"
