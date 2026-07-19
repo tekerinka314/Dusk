@@ -280,12 +280,27 @@ const IC = {
     quill: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.8 3.2C13.8 4.4 9 8.4 6.4 14.9L5 19L9.1 17.6C15.6 15 19 10 19.8 3.2Z"/><path d="M17.6 5.6C13.4 8.2 10.2 11.8 8 16" stroke-width="1" opacity="0.55"/><path d="M15.4 6.2L13.9 5.4M13.5 8.1L12 7.3M11.8 10L10.4 9.2M10.3 12L9 11.3" stroke-width="0.95" opacity="0.45"/><path d="M6.1 16.1L5 19L7.9 17.9" stroke-width="1.2"/><line x1="5.6" y1="18.4" x2="4.2" y2="19.8" stroke-width="1.1"/><circle cx="3.4" cy="21.2" r="0.8" fill="currentColor" stroke="none" opacity="0.85"/></svg>`,
     // Lancet window (deadline)
     window: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/><line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/><path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/><line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/><line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/><path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/><line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/></svg>`,
-    // Three gothic spires (priority)
-    spires: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="4.5" y1="20" x2="4.5" y2="16"/><path d="M3 16L4.5 11.5L6 16"/>
-        <line x1="12" y1="20" x2="12" y2="12"/><path d="M10.5 12L12 7L13.5 12"/>
-        <line x1="19.5" y1="20" x2="19.5" y2="14"/><path d="M18 14L19.5 9.5L21 14"/>
-        <line x1="2" y1="20" x2="22" y2="20"/>
+    // Task priority (M3) — same three descending gothic towers as sortPriority, so the
+    // per-task priority button and the sort-by-priority entry read as one glyph.
+    spires: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.6 20V8.2H6.4V20"/>
+        <path d="M3.6 8.2L5 4.2L6.4 8.2"/>
+        <path d="M4.15 6.7L3.45 6.3M5.85 6.7L6.55 6.3" stroke-width="0.8" opacity="0.6"/>
+        <line x1="5" y1="4.2" x2="5" y2="2.1" stroke-width="1.1"/>
+        <line x1="4.2" y1="2.8" x2="5.8" y2="2.8" stroke-width="1.1"/>
+        <path d="M4.45 12.8V11C4.45 10.3 5.55 10.3 5.55 11V12.8" stroke-width="0.75" opacity="0.55"/>
+        <line x1="3.6" y1="15" x2="6.4" y2="15" stroke-width="0.75" opacity="0.45"/>
+        <path d="M10.6 20V11.6H13.4V20"/>
+        <path d="M10.6 11.6L12 7.9L13.4 11.6"/>
+        <path d="M11.15 10.2L10.45 9.8M12.85 10.2L13.55 9.8" stroke-width="0.8" opacity="0.6"/>
+        <circle cx="12" cy="7.2" r="0.55" fill="currentColor" stroke="none"/>
+        <path d="M11.45 15.6V14C11.45 13.3 12.55 13.3 12.55 14V15.6" stroke-width="0.75" opacity="0.55"/>
+        <path d="M17.6 20V14.8H20.4V20"/>
+        <path d="M17.6 14.8L19 11.6L20.4 14.8"/>
+        <path d="M19 10.2L19.6 11L19 11.8L18.4 11Z" fill="currentColor" stroke="none" opacity="0.85"/>
+        <circle cx="19" cy="17.2" r="0.55" stroke-width="0.75" opacity="0.5"/>
+        <line x1="2.6" y1="20" x2="21.4" y2="20" stroke-width="1.3"/>
+        <line x1="3.7" y1="21.7" x2="20.3" y2="21.7" stroke-width="0.95" opacity="0.5"/>
     </svg>`,
     // Sort by priority (M3) — three gothic towers descending (tallest = highest priority):
     // shafts in double outline, crabbed spire roofs, lancet windows, tiered belt, stepped base.
