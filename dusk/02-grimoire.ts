@@ -29,7 +29,7 @@ Object.assign(globalThis, {
     grimToggleColorFilter, _grimColorFilterOutside, grimCloseColorFilter, _grimBuildColorFilterPop, grimSetColorFilter, _grimFindSupported, _grimFindRun, _grimFindPaint,
     _grimFindClearPaint, _grimFindGoto, grimFindNext, grimFindPrev, grimFindClose, _grimFindBar, _grimFindShowBar, _grimFindHideBar,
     _grimFindUpdateBar, _armDanger, _grimExitSelect, grimToggleSelectMode, grimToggleSelectNote, _updateGrimSelectBar, grimBulkArchive, grimBulkRestore,
-    grimBulkDelete, grimBulkColor, _grimPlain, _grimCollapse, _grimFlattenSnippet, _grimSnipGlyph, _grimSnippetHTML, _grimPlainToHtml,
+    grimRestoreAll, grimBulkDelete, grimBulkColor, _grimPlain, _grimCollapse, _grimFlattenSnippet, _grimSnipGlyph, _grimSnippetHTML, _grimPlainToHtml,
     migrateNotes, _grimSanitize, _grimAfterEdit, grimFmt, _grimCurrentBlock, _grimEmphasis, _grimToggleBlock, _grimQuote,
     grimHeading, grimChecklist, _grimLineType, _grimSelectedLines, _grimPlaceMarker, _grimRestoreMarker, _grimSameListKind, _grimMergeAdjacentLists,
     _grimConvertLine, _grimSetListType, _grimInsertHr, grimInlineCode, _grimClosestPre, grimCodeBlock, _grimCodeFenceEnter, _grimPreEnter,
@@ -593,6 +593,13 @@ function renderNotes() {
         const show = grimMode === 'archive' && !grimSelectMode && (state.notesArchive || []).length;
         emptyBtn.style.display = show ? '' : 'none';
         if (!show) _disarmEmptyCrypt(emptyBtn);   // never leave it armed when it hides
+    }
+    // «Вернуть всё» — only in the crypt, when it holds records, outside select mode
+    // (positive counterpart to «Опустошить»; mirrors the task archive's #btn-restore-all).
+    const restoreAllBtn = document.getElementById('grim-restore-all') as any;
+    if (restoreAllBtn) {
+        const show = grimMode === 'archive' && !grimSelectMode && (state.notesArchive || []).length;
+        restoreAllBtn.style.display = show ? '' : 'none';
     }
     // п11/1b: select toggle (only when the current segment has records) + the bulk bar.
     const hasList = !!_grimList().length;
@@ -1813,6 +1820,28 @@ function grimBulkRestore() {
     currentNoteId = null;
     _grimExitSelect();
     grimMode = 'active';                             // mirror single restore
+    notesSearchQuery = '';
+    const sb = document.getElementById('notes-search-box') as any;
+    if (sb) sb.value = '';
+    saveState();
+    renderNotes();
+    showToast(`Возвращено: ${count}`, { undo: true });
+}
+
+// «Вернуть всё» from the crypt — restore EVERY archived note at once (outside select
+// mode). Mirrors the task archive's restoreAll(); non-destructive + undoable, no confirm.
+function grimRestoreAll() {
+    if (grimMode !== 'archive' || !(state.notesArchive || []).length) return;
+    pushUndo();
+    const moved = (state.notesArchive || []).slice();
+    moved.forEach(n => { delete n.archivedAt; n.updatedAt = nowTs(); });   // sync (Phase 1): stamp the restore (location) change
+    if (!Array.isArray(state.notes)) state.notes = [];
+    state.notes.unshift(...moved);
+    moved.forEach(n => _newNoteIds.add(n.id));   // animate the restored leaves
+    state.notesArchive = [];
+    const count = moved.length;
+    currentNoteId = null;
+    grimMode = 'active';                             // mirror single/bulk restore: land in Записи
     notesSearchQuery = '';
     const sb = document.getElementById('notes-search-box') as any;
     if (sb) sb.value = '';

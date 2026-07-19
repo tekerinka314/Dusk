@@ -1819,6 +1819,7 @@ Object.assign(ACT, {
     grimToggleColorFilter:(el, e) => grimToggleColorFilter(e),
     grimBulkArchive:      () => grimBulkArchive(),
     grimBulkRestore:      () => grimBulkRestore(),
+    grimRestoreAll:       () => grimRestoreAll(),
     openGrimBulkColorModal: () => openGrimBulkColorModal(),
     grimToggleIoSelMenu:  (el, e) => grimToggleIoSelMenu(e),
     grimBulkDelete:       () => grimBulkDelete(),
