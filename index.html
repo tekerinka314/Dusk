@@ -355,11 +355,15 @@
             <!-- Toolbar -->
             <div class="toolbar" id="toolbar" style="display:none">
                 <div class="search-wrap">
-                    <!-- Gothic eye/rune search icon -->
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                        <ellipse cx="11" cy="11" rx="5" ry="7.5" transform="rotate(-30 11 11)"/>
-                        <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
-                        <line x1="14.5" y1="16" x2="21" y2="21"/>
+                    <!-- S2 · Скраинг-шар: гадальный шар на когтистой чаше-треноге, звезда видения. -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="9.6" r="6"/>
+                        <path d="M8.4 6.2C9.4 5.2 10.8 4.7 12.2 4.9" stroke-width="1" opacity="0.55"/>
+                        <path d="M12.6 8L13 9.1L14.1 9.5L13 9.9L12.6 11L12.2 9.9L11.1 9.5L12.2 9.1Z" fill="currentColor" stroke="none" opacity="0.8"/>
+                        <path d="M7 14.4C6 15 5.4 15.9 5.4 16.9C5.4 18.3 8.2 19.4 12 19.4C15.8 19.4 18.6 18.3 18.6 16.9C18.6 15.9 18 15 17 14.4" stroke-width="1.4"/>
+                        <line x1="8.4" y1="19.4" x2="7.8" y2="21" stroke-width="1.2" opacity="0.7"/>
+                        <line x1="12" y1="19.5" x2="12" y2="21.2" stroke-width="1.2" opacity="0.7"/>
+                        <line x1="15.6" y1="19.4" x2="16.2" y2="21" stroke-width="1.2" opacity="0.7"/>
                     </svg>
                     <input type="text" id="search-box" placeholder="Поиск..." autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search">
                     <!-- #3 (порт NA-13): очистка поиска — скрещённые кинжалы, выезжает изнутри пилюли, видна только при вводе. -->
@@ -407,23 +411,43 @@
                     </button>
                     <!-- P7: Split groups — gothic bifurcation rune (two lancet arches side by side) -->
                     <button class="btn-tool" id="btn-split-groups" data-act="toggleGroupSplitMode" title="Разделить группы: активные / выполненные">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 22V12C4 8.7 5.8 6 8 6C10.2 6 12 8.7 12 12V22"/>
-                            <path d="M12 22V12C12 8.7 13.8 6 16 6C18.2 6 20 8.7 20 12V22"/>
-                            <line x1="2" y1="22" x2="22" y2="22" stroke-width="1.4"/>
-                            <line x1="2" y1="11" x2="22" y2="11" stroke-width="1" opacity="0.45" stroke-dasharray="3 2"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 21V12C4 8.6 5.8 6 8 6C10.2 6 12 8.6 12 12V21" stroke-width="1.5"/>
+                            <path d="M12 21V12C12 8.6 13.8 6 16 6C18.2 6 20 8.6 20 12V21" stroke-width="1.5"/>
+                            <line x1="2.4" y1="21" x2="21.6" y2="21" stroke-width="1.4"/>
+                            <line x1="3.4" y1="22.6" x2="20.6" y2="22.6" stroke-width="1" opacity="0.5"/>
+                            <line x1="10.9" y1="14.6" x2="13.1" y2="14.6" stroke-width="1" opacity="0.6"/>
+                            <path d="M8 3.4L8.55 4.2L8 5L7.45 4.2Z" fill="currentColor" stroke="none" opacity="0.65"/>
+                            <path d="M16 3.4L16.55 4.2L16 5L15.45 4.2Z" fill="currentColor" stroke="none" opacity="0.65"/>
+                            <path d="M7.2 18.8V14H8.8V18.8" stroke-width="1.2"/>
+                            <line x1="6.4" y1="18.8" x2="9.6" y2="18.8" stroke-width="1.1"/>
+                            <line x1="8" y1="14" x2="8" y2="13.3" stroke-width="0.9"/>
+                            <path d="M8 10.7C7.35 11.7 7.55 12.75 8 12.95C8.45 12.75 8.65 11.7 8 10.7Z" fill="currentColor" stroke="currentColor" stroke-width="0.7"/>
+                            <path d="M15.2 18.8V15.2H16.8V18.8" stroke-width="1.2"/>
+                            <line x1="14.4" y1="18.8" x2="17.6" y2="18.8" stroke-width="1.1"/>
+                            <line x1="16" y1="15.2" x2="16" y2="14.4" stroke-width="0.9"/>
+                            <path d="M16 14.2C15.2 13.5 16.8 12.7 16 11.9C15.3 11.2 16.7 10.4 16 9.7" stroke-width="1" opacity="0.7"/>
+                            <circle cx="15.6" cy="8.8" r="0.45" stroke-width="0.8" opacity="0.45"/>
                         </svg>
                     </button>
                     <!-- Collapse / expand all groups -->
                     <button class="btn-tool" id="btn-collapse-all" data-act="toggleCollapseAllGroups" title="Свернуть / развернуть все группы">
-                        <!-- Two gothic spires with opposing vertical arrows:
-                             left spire points down (collapse ↓), right points up (expand ↑).
-                             Together they read as "fold/unfold all groups". -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="6"  y1="20" x2="6"  y2="8"/><path d="M4 11L6 8L8 11"/>
-                            <path d="M4.5 8L6 5L7.5 8"/>
-                            <line x1="18" y1="4"  x2="18" y2="16"/><path d="M16 13L18 16L20 13"/>
-                            <path d="M16.5 16L18 19L19.5 16"/>
+                        <!-- Q1 · Складень: алтарный триптих, створки складываются к центральной
+                             арке, стрелки внутрь, навершие-ромб. Читается как «свернуть/развернуть». -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8.6 5.2H15.4V18.8H8.6Z"/>
+                            <path d="M10.2 10.2C10.2 8 13.8 8 13.8 10.2V14.6H10.2Z" stroke-width="1" opacity="0.55"/>
+                            <path d="M8.6 5.2L4 7.2V16.8L8.6 18.8"/>
+                            <path d="M15.4 5.2L20 7.2V16.8L15.4 18.8"/>
+                            <line x1="5.4" y1="11" x2="7.2" y2="11" stroke-width="1.2" opacity="0.75"/>
+                            <path d="M6.4 9.9L7.4 11L6.4 12.1" stroke-width="1.2" opacity="0.75"/>
+                            <line x1="18.6" y1="11" x2="16.8" y2="11" stroke-width="1.2" opacity="0.75"/>
+                            <path d="M17.6 9.9L16.6 11L17.6 12.1" stroke-width="1.2" opacity="0.75"/>
+                            <circle cx="8.6" cy="7.4" r="0.45" fill="currentColor" stroke="none" opacity="0.6"/>
+                            <circle cx="8.6" cy="16.6" r="0.45" fill="currentColor" stroke="none" opacity="0.6"/>
+                            <circle cx="15.4" cy="7.4" r="0.45" fill="currentColor" stroke="none" opacity="0.6"/>
+                            <circle cx="15.4" cy="16.6" r="0.45" fill="currentColor" stroke="none" opacity="0.6"/>
+                            <path d="M12 2.6L12.6 3.4L12 4.2L11.4 3.4Z" fill="currentColor" stroke="none" opacity="0.7"/>
                         </svg>
                     </button>
                     <!-- Global "parent checks by subtasks" mode (по всем / по любому) -->
@@ -630,10 +654,14 @@
                 </h3>
                 <!-- Archive search — full width row below title, no focus border -->
                 <div class="archive-search-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-                        <ellipse cx="11" cy="11" rx="5" ry="7.5" transform="rotate(-30 11 11)"/>
-                        <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
-                        <line x1="14.5" y1="16" x2="21" y2="21"/>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="9.6" r="6"/>
+                        <path d="M8.4 6.2C9.4 5.2 10.8 4.7 12.2 4.9" stroke-width="1" opacity="0.55"/>
+                        <path d="M12.6 8L13 9.1L14.1 9.5L13 9.9L12.6 11L12.2 9.9L11.1 9.5L12.2 9.1Z" fill="currentColor" stroke="none" opacity="0.8"/>
+                        <path d="M7 14.4C6 15 5.4 15.9 5.4 16.9C5.4 18.3 8.2 19.4 12 19.4C15.8 19.4 18.6 18.3 18.6 16.9C18.6 15.9 18 15 17 14.4" stroke-width="1.4"/>
+                        <line x1="8.4" y1="19.4" x2="7.8" y2="21" stroke-width="1.2" opacity="0.7"/>
+                        <line x1="12" y1="19.5" x2="12" y2="21.2" stroke-width="1.2" opacity="0.7"/>
+                        <line x1="15.6" y1="19.4" x2="16.2" y2="21" stroke-width="1.2" opacity="0.7"/>
                     </svg>
                     <input type="text" id="archive-search-box"
                            placeholder="Поиск в архиве..." autocomplete="off" spellcheck="false"
@@ -748,10 +776,14 @@
             </div>
             <div class="grim-search-row">
               <div class="grim-search-wrap">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-                    <ellipse cx="11" cy="11" rx="5" ry="7.5" transform="rotate(-30 11 11)"/>
-                    <ellipse cx="11" cy="11" rx="2" ry="2" fill="currentColor" stroke="none" opacity="0.85"/>
-                    <line x1="14.5" y1="16" x2="21" y2="21"/>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="9.6" r="6"/>
+                    <path d="M8.4 6.2C9.4 5.2 10.8 4.7 12.2 4.9" stroke-width="1" opacity="0.55"/>
+                    <path d="M12.6 8L13 9.1L14.1 9.5L13 9.9L12.6 11L12.2 9.9L11.1 9.5L12.2 9.1Z" fill="currentColor" stroke="none" opacity="0.8"/>
+                    <path d="M7 14.4C6 15 5.4 15.9 5.4 16.9C5.4 18.3 8.2 19.4 12 19.4C15.8 19.4 18.6 18.3 18.6 16.9C18.6 15.9 18 15 17 14.4" stroke-width="1.4"/>
+                    <line x1="8.4" y1="19.4" x2="7.8" y2="21" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="12" y1="19.5" x2="12" y2="21.2" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="15.6" y1="19.4" x2="16.2" y2="21" stroke-width="1.2" opacity="0.7"/>
                 </svg>
                 <input type="text" id="notes-search-box" placeholder="Искать в гримуаре…"
                        autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off"
