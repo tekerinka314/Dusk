@@ -609,6 +609,25 @@
             </div><!-- /rail-inner -->
             </div><!-- /side-rail -->
 
+            <!-- W4: триггер drawer'а — кованая пластина с дверным кольцом на левой
+                 кромке (видима только ≤820px; видимая альтернатива edge-свайпу).
+                 Скрим закрывает панель тапом. Логика в dusk/08. -->
+            <button type="button" class="drawer-tab" id="drawer-tab" data-act="drawerToggle"
+                    aria-controls="side-rail" aria-expanded="false"
+                    title="Группы, фильтры и инструменты" aria-label="Открыть панель групп и инструментов">
+                <svg viewBox="0 0 24 60" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="7" r="1.05" fill="currentColor" stroke="none" opacity="0.75"/>
+                    <path d="M12 14 L15.4 17.8 L12 21.6 L8.6 17.8 Z"/>
+                    <path d="M12 15.9 L13.7 17.8 L12 19.7 L10.3 17.8 Z" stroke-width="1" opacity="0.5"/>
+                    <path d="M12 21.6 L12 23.2" stroke-width="1.2" opacity="0.8"/>
+                    <circle cx="12" cy="31.5" r="8.2"/>
+                    <circle cx="12" cy="31.5" r="5.9" stroke-width="0.9" opacity="0.4"/>
+                    <circle cx="12" cy="40.4" r="1" fill="currentColor" stroke="none" opacity="0.55"/>
+                    <circle cx="12" cy="53" r="1.05" fill="currentColor" stroke="none" opacity="0.75"/>
+                </svg>
+            </button>
+            <div id="drawer-scrim" data-act="drawerClose" aria-hidden="true"></div>
+
             <!-- Main list bulk-select bar (mirrors archive-select-bar pattern) -->
             <div class="archive-select-bar main-select-bar" id="main-select-bar" style="display:none">
                 <span class="select-bar-count" id="main-select-bar-count">0 отмечено</span>

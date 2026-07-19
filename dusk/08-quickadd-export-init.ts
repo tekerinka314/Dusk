@@ -1689,3 +1689,76 @@ init().catch(e => { try { console.error('DUSK boot failed', e); } catch (_) {} }
 Object.assign(globalThis, {
     _EXPORT_TASKS_IC, _EXPORT_MD_IC, _NOTES_HINT_HTML, _CRYPT_HINT_HTML, _TASK_ARCHIVE_HINT_HTML, segInputs, SegmentedInput,
 });
+
+// ============================================================
+//  W4: мобильный drawer «Створка» — ≤820px тот же .side-rail
+//  (тулбар + группы + дайджест) становится левой выдвижной панелью.
+//  Открытие: кромка-таб (data-act) или свайп от левой кромки; закрытие:
+//  скрим, Esc, свайп влево по панели, выбор скоупа (фокус группы /
+//  прыжок дайджеста / нав-таб). `inert` держит закрытую панель вне
+//  фокус-порядка только на drawer-тире.
+// ============================================================
+declare var ACT: any;
+declare var _dwSwipe: any;
+const _drawerMq = typeof matchMedia === 'function'
+    ? matchMedia('(max-width: 820px)')
+    : ({ matches: false, addEventListener() {} } as any);
+const _drawerIsOpen = () => document.documentElement.classList.contains('drawer-open');
+function _drawerSyncInert() {
+    const rail = document.getElementById('side-rail');
+    if (rail) (rail as any).inert = _drawerMq.matches && !_drawerIsOpen();
+}
+function drawerOpen() {
+    if (!_drawerMq.matches) return;
+    document.documentElement.classList.add('drawer-open');
+    document.getElementById('drawer-tab')?.setAttribute('aria-expanded', 'true');
+    _drawerSyncInert();
+}
+function drawerClose() {
+    if (!_drawerIsOpen()) return;
+    document.documentElement.classList.remove('drawer-open');
+    document.getElementById('drawer-tab')?.setAttribute('aria-expanded', 'false');
+    _drawerSyncInert();
+}
+function drawerToggle() { _drawerIsOpen() ? drawerClose() : drawerOpen(); }
+Object.assign(ACT, { drawerToggle: () => drawerToggle(), drawerClose: () => drawerClose() });
+Object.assign(globalThis, { drawerOpen, drawerClose, drawerToggle });
+
+// Смена тира (поворот/ресайз): вне тира состояние и inert снимаются.
+_drawerMq.addEventListener('change', () => { if (!_drawerMq.matches) drawerClose(); _drawerSyncInert(); });
+_drawerSyncInert();
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && _drawerIsOpen()) drawerClose();
+});
+
+// Выбор скоупа = навигация → панель уходит, результат сразу виден.
+// Тумблеры-инструменты внутри панели её НЕ закрывают (можно щёлкать серию).
+document.addEventListener('click', e => {
+    const t = e.target as Element;
+    if (!_drawerIsOpen() || !t || typeof t.closest !== 'function') return;
+    if (t.closest('[data-act="focusGroupById"], [data-act="railDigestGo"], .nav-tab')) drawerClose();
+});
+
+// Жест: открыть свайпом из левой 24px-полосы, закрыть свайпом панели влево.
+// Видимая альтернатива жесту — кромка-таб (#drawer-tab).
+globalThis._dwSwipe = null;   // { x, y, mode: 'open'|'close' }
+document.addEventListener('touchstart', (e: TouchEvent) => {
+    if (!_drawerMq.matches) { _dwSwipe = null; return; }
+    const t = e.touches[0];
+    const el = e.target as Element;
+    if (!_drawerIsOpen() && t.clientX <= 24 && document.body.dataset.page === 'main')
+        _dwSwipe = { x: t.clientX, y: t.clientY, mode: 'open' };
+    else if (_drawerIsOpen() && el && typeof el.closest === 'function' && el.closest('#side-rail'))
+        _dwSwipe = { x: t.clientX, y: t.clientY, mode: 'close' };
+    else _dwSwipe = null;
+}, { passive: true });
+document.addEventListener('touchmove', (e: TouchEvent) => {
+    if (!_dwSwipe) return;
+    const t = e.touches[0];
+    const dx = t.clientX - _dwSwipe.x, dy = t.clientY - _dwSwipe.y;
+    if (Math.abs(dy) > 46 && Math.abs(dy) > Math.abs(dx)) { _dwSwipe = null; return; }   // вертикаль = скролл
+    if (_dwSwipe.mode === 'open'  && dx >  34) { _dwSwipe = null; drawerOpen(); }
+    else if (_dwSwipe.mode === 'close' && dx < -44) { _dwSwipe = null; drawerClose(); }
+}, { passive: true });
+document.addEventListener('touchend', () => { _dwSwipe = null; }, { passive: true });

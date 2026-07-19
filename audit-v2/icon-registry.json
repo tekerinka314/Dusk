@@ -56,7 +56,7 @@
   "preview": "<svg class=\"prio-none-ic\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-wid",
   "locations": [
    "index.html:159",
-   "index.html:1316"
+   "index.html:1335"
   ]
  },
  "a16c7c15aea34046": {
@@ -65,7 +65,7 @@
   "preview": "<svg class=\"prio-none-ic none-moon-r\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor",
   "locations": [
    "index.html:159",
-   "index.html:1316"
+   "index.html:1335"
   ]
  },
  "bba4e0aad3e0bac8": {
@@ -91,9 +91,9 @@
   "locations": [
    "index.html:208",
    "index.html:262",
-   "index.html:1032",
-   "index.html:1092",
-   "index.html:1445",
+   "index.html:1051",
+   "index.html:1111",
+   "index.html:1464",
    "dusk/02-grimoire.ts:842"
   ]
  },
@@ -103,7 +103,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
    "index.html:226",
-   "index.html:1409"
+   "index.html:1428"
   ]
  },
  "d47a06014cf566e3": {
@@ -177,8 +177,8 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "index.html:397",
-   "index.html:731",
-   "index.html:859"
+   "index.html:750",
+   "index.html:878"
   ]
  },
  "4ba258e362d32ca9": {
@@ -288,7 +288,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "index.html:579",
-   "index.html:671"
+   "index.html:690"
   ]
  },
  "136eeaf9df06fbe3": {
@@ -297,9 +297,9 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "index.html:582",
-   "index.html:675",
-   "index.html:753",
-   "index.html:902",
+   "index.html:694",
+   "index.html:772",
+   "index.html:921",
    "dusk/01-core.ts:276"
   ]
  },
@@ -311,12 +311,20 @@
    "index.html:597"
   ]
  },
+ "07e7400104e0d2b4": {
+  "role": "drawer-tab (W4, Fable 2026-07-19: дверное кольцо на пластине)",
+  "note": "",
+  "preview": "<svg viewBox=\"0 0 24 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
+  "locations": [
+   "index.html:618"
+  ]
+ },
  "c4ca1d362d1fa699": {
   "role": "UNASSIGNED",
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:629"
+   "index.html:648"
   ]
  },
  "0864c21ae284974e": {
@@ -324,8 +332,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:643",
-   "index.html:893",
+   "index.html:662",
+   "index.html:912",
    "dusk/02-grimoire.ts:1182"
   ]
  },
@@ -334,7 +342,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:655",
+   "index.html:674",
    "dusk/01-core.ts:283"
   ]
  },
@@ -343,7 +351,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linec",
   "locations": [
-   "index.html:694"
+   "index.html:713"
   ]
  },
  "bcee187c25f7aa26": {
@@ -351,8 +359,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:716",
-   "index.html:843"
+   "index.html:735",
+   "index.html:862"
   ]
  },
  "d897e9500c3bfbda": {
@@ -360,9 +368,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:736",
-   "index.html:814",
-   "index.html:889",
+   "index.html:755",
+   "index.html:833",
+   "index.html:908",
    "dusk/01-core.ts:385",
    "dusk/02-grimoire.ts:185"
   ]
@@ -372,7 +380,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:741",
+   "index.html:760",
    "dusk/01-core.ts:380",
    "dusk/01-core.ts:553"
   ]
@@ -382,7 +390,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:766"
+   "index.html:785"
   ]
  },
  "10f7fd556c0e848b": {
@@ -390,7 +398,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:797",
+   "index.html:816",
    "dusk/02-grimoire.ts:180"
   ]
  },
@@ -399,8 +407,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:801",
-   "index.html:886",
+   "index.html:820",
+   "index.html:905",
    "dusk/02-grimoire.ts:181"
   ]
  },
@@ -409,7 +417,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 2 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:808"
+   "index.html:827"
   ]
  },
  "edddde455f14d21e": {
@@ -417,8 +425,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "index.html:819",
-   "index.html:897"
+   "index.html:838",
+   "index.html:916"
   ]
  },
  "36c68f0bbac381ef": {
@@ -426,7 +434,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "index.html:825"
+   "index.html:844"
   ]
  },
  "dc590dde6fa3c124": {
@@ -434,7 +442,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:830",
+   "index.html:849",
    "dusk/02-grimoire.ts:182"
   ]
  },
@@ -443,7 +451,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:834",
+   "index.html:853",
    "dusk/02-grimoire.ts:194"
   ]
  },
@@ -452,7 +460,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:835",
+   "index.html:854",
    "dusk/02-grimoire.ts:193"
   ]
  },
@@ -461,7 +469,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:868"
+   "index.html:887"
   ]
  },
  "0003331baca4b653": {
@@ -469,9 +477,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap",
   "locations": [
-   "index.html:1065",
-   "index.html:1126",
-   "index.html:1475"
+   "index.html:1084",
+   "index.html:1145",
+   "index.html:1494"
   ]
  },
  "63be9400ab31188c": {
@@ -479,9 +487,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap",
   "locations": [
-   "index.html:1074",
-   "index.html:1135",
-   "index.html:1484"
+   "index.html:1093",
+   "index.html:1154",
+   "index.html:1503"
   ]
  },
  "c96c40af915c22b3": {
@@ -489,7 +497,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1149"
+   "index.html:1168"
   ]
  },
  "8b46f5318e4db326": {
@@ -497,7 +505,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-l",
   "locations": [
-   "index.html:1168"
+   "index.html:1187"
   ]
  },
  "c7b9ff291f755203": {
@@ -505,7 +513,7 @@
   "note": "",
   "preview": "<svg class=\"dl-dur-corner tl\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
   "locations": [
-   "index.html:1202"
+   "index.html:1221"
   ]
  },
  "b0eae9af5de61fbd": {
@@ -513,7 +521,7 @@
   "note": "",
   "preview": "<svg class=\"dl-dur-corner tr\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
   "locations": [
-   "index.html:1203"
+   "index.html:1222"
   ]
  },
  "26dc1dc79f05b1a6": {
@@ -521,7 +529,7 @@
   "note": "",
   "preview": "<svg class=\"dl-dur-corner bl\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
   "locations": [
-   "index.html:1204"
+   "index.html:1223"
   ]
  },
  "d2c290de01d8c1f1": {
@@ -529,7 +537,7 @@
   "note": "",
   "preview": "<svg class=\"dl-dur-corner br\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
   "locations": [
-   "index.html:1205"
+   "index.html:1224"
   ]
  },
  "b1142558b9deea17": {
@@ -537,7 +545,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 60 116\" aria-hidden=\"true\"><defs><radialGradient id=\"dlc-halo\" cx=\"50%\" ",
   "locations": [
-   "index.html:1212"
+   "index.html:1231"
   ]
  },
  "885c15af7662e74d": {
@@ -545,10 +553,10 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:1247",
-   "index.html:1251",
-   "index.html:1265",
-   "index.html:1269"
+   "index.html:1266",
+   "index.html:1270",
+   "index.html:1284",
+   "index.html:1288"
   ]
  },
  "2d1e3f999d840c1f": {
@@ -556,7 +564,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 13 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1256"
+   "index.html:1275"
   ]
  },
  "16e13f426d825a36": {
@@ -564,7 +572,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 60 116\" aria-hidden=\"true\"><ellipse class=\"dl-halo\" cx=\"30\" cy=\"34\" rx=\"",
   "locations": [
-   "index.html:1276"
+   "index.html:1295"
   ]
  },
  "11ea7201060f4c18": {
@@ -572,7 +580,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1361"
+   "index.html:1380"
   ]
  },
  "93bbc52fd197f6a1": {
@@ -580,7 +588,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1384"
+   "index.html:1403"
   ]
  },
  "6e405ae0c993830f": {
@@ -588,7 +596,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1392"
+   "index.html:1411"
   ]
  },
  "f8438a49fb7b1802": {
@@ -596,7 +604,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
   "locations": [
-   "index.html:1401"
+   "index.html:1420"
   ]
  },
  "a90a43bbea7837ac": {
@@ -604,7 +612,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1421"
+   "index.html:1440"
   ]
  },
  "38e7efb4948da50c": {
@@ -612,7 +620,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1537"
+   "index.html:1556"
   ]
  },
  "d31cf5cd08d21022": {
@@ -620,7 +628,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1574"
+   "index.html:1593"
   ]
  },
  "f89310433c4fd8bf": {
@@ -628,7 +636,7 @@
   "note": "",
   "preview": "<svg width=\"0\" height=\"0\" style=\"position:absolute;overflow:hidden\"><defs><linearGradient ",
   "locations": [
-   "index.html:1596"
+   "index.html:1615"
   ]
  },
  "1ea4cc51eae3da83": {
@@ -636,7 +644,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:1663"
+   "index.html:1682"
   ]
  },
  "34a05efc0c7d809f": {
