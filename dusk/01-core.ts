@@ -281,9 +281,9 @@ const IC = {
     quill: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.8 3.2C13.8 4.4 9 8.4 6.4 14.9L5 19L9.1 17.6C15.6 15 19 10 19.8 3.2Z"/><path d="M17.6 5.6C13.4 8.2 10.2 11.8 8 16" stroke-width="1" opacity="0.55"/><path d="M15.4 6.2L13.9 5.4M13.5 8.1L12 7.3M11.8 10L10.4 9.2M10.3 12L9 11.3" stroke-width="0.95" opacity="0.45"/><path d="M6.1 16.1L5 19L7.9 17.9" stroke-width="1.2"/><line x1="5.6" y1="18.4" x2="4.2" y2="19.8" stroke-width="1.1"/><circle cx="3.4" cy="21.2" r="0.8" fill="currentColor" stroke="none" opacity="0.85"/></svg>`,
     // Lancet window (deadline)
     window: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/><line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/><path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/><line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/><line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/><path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/><line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/></svg>`,
-    // AW1 · Task-priority towers (M3 language, distinct glyph) — three shafts with
-    // bodies, tent-roofs and varied finials. Deliberately its OWN drawing, decoupled
-    // from sortPriority (which keeps the M3 glyph) per user's split decision.
+    // AW1 · Gothic priority towers — three shafts with bodies, tent-roofs and varied
+    // finials. Shared with sortPriority (user reversed: both priority-button AND
+    // sort-by-priority use AW1; the old M3 chain-tower drawing is retired).
     spires: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3.4 20V13.2M6.6 20V13.2"/>
         <path d="M3.1 13.2L5 9.6L6.9 13.2Z"/>
@@ -306,25 +306,27 @@ const IC = {
     </svg>`,
     // Sort by priority (M3) — three gothic towers descending (tallest = highest priority):
     // shafts in double outline, crabbed spire roofs, lancet windows, tiered belt, stepped base.
-    sortPriority: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3.6 20V8.2H6.4V20"/>
-        <path d="M3.6 8.2L5 4.2L6.4 8.2"/>
-        <path d="M4.15 6.7L3.45 6.3M5.85 6.7L6.55 6.3" stroke-width="0.8" opacity="0.6"/>
-        <line x1="5" y1="4.2" x2="5" y2="2.1" stroke-width="1.1"/>
-        <line x1="4.2" y1="2.8" x2="5.8" y2="2.8" stroke-width="1.1"/>
-        <path d="M4.45 12.8V11C4.45 10.3 5.55 10.3 5.55 11V12.8" stroke-width="0.75" opacity="0.55"/>
-        <line x1="3.6" y1="15" x2="6.4" y2="15" stroke-width="0.75" opacity="0.45"/>
-        <path d="M10.6 20V11.6H13.4V20"/>
-        <path d="M10.6 11.6L12 7.9L13.4 11.6"/>
-        <path d="M11.15 10.2L10.45 9.8M12.85 10.2L13.55 9.8" stroke-width="0.8" opacity="0.6"/>
-        <circle cx="12" cy="7.2" r="0.55" fill="currentColor" stroke="none"/>
-        <path d="M11.45 15.6V14C11.45 13.3 12.55 13.3 12.55 14V15.6" stroke-width="0.75" opacity="0.55"/>
-        <path d="M17.6 20V14.8H20.4V20"/>
-        <path d="M17.6 14.8L19 11.6L20.4 14.8"/>
-        <path d="M19 10.2L19.6 11L19 11.8L18.4 11Z" fill="currentColor" stroke="none" opacity="0.85"/>
-        <circle cx="19" cy="17.2" r="0.55" stroke-width="0.75" opacity="0.5"/>
-        <line x1="2.6" y1="20" x2="21.4" y2="20" stroke-width="1.3"/>
-        <line x1="3.7" y1="21.7" x2="20.3" y2="21.7" stroke-width="0.95" opacity="0.5"/>
+    // AW1 towers — shared with IC.spires so priority-button and sort-by-priority read
+    // as one glyph (user reversed the earlier M3 split; M3 chain-tower retired).
+    sortPriority: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.4 20V13.2M6.6 20V13.2"/>
+        <path d="M3.1 13.2L5 9.6L6.9 13.2Z"/>
+        <line x1="5" y1="9.6" x2="5" y2="8.5" stroke-width="1"/>
+        <circle cx="5" cy="8" r="0.42" fill="currentColor" stroke="none"/>
+        <line x1="5" y1="15" x2="5" y2="17.2" stroke-width="0.8" opacity="0.5"/>
+        <path d="M10.4 20V9.8M13.6 20V9.8"/>
+        <path d="M10.1 9.8L12 5.6L13.9 9.8Z"/>
+        <line x1="12" y1="5.6" x2="12" y2="4.1" stroke-width="1"/>
+        <line x1="11.35" y1="4.7" x2="12.65" y2="4.7" stroke-width="0.85"/>
+        <path d="M12 12.4C11.55 12.9 11.55 14 12 14.5C12.45 14 12.45 12.9 12 12.4Z" stroke-width="0.75" opacity="0.6"/>
+        <line x1="12" y1="16.4" x2="12" y2="18" stroke-width="0.8" opacity="0.5"/>
+        <path d="M17.4 20V14.6M20.6 20V14.6"/>
+        <path d="M17.1 14.6L19 11.2L20.9 14.6Z"/>
+        <line x1="19" y1="11.2" x2="19" y2="10.1" stroke-width="1"/>
+        <path d="M19 9.3L19.45 9.85L19 10.4L18.55 9.85Z" fill="currentColor" stroke="none"/>
+        <line x1="19" y1="16.3" x2="19" y2="18.4" stroke-width="0.8" opacity="0.5"/>
+        <line x1="1.8" y1="20" x2="22.2" y2="20" stroke-width="1.4"/>
+        <line x1="2.8" y1="21.3" x2="21.2" y2="21.3" stroke-width="0.75" opacity="0.4"/>
     </svg>`,
     // Sort by order (M3) — a forged chain with a pulled-out framed plate (= hand-placed order).
     sortOrder: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -446,8 +448,10 @@ const IC = {
 
     // "Ничего/отсутствие" — a pair of gothic crescent moons that flank the label on both
     // sides (horns toward the text). noneMoonL opens right; noneMoonR is its mirror.
-    noneMoonL: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>`,
-    noneMoonR: `<svg class="none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>`,
+    // C1-derive: engraved crescent (same geometry as IC.moon) — user reversed the flat
+    // flanker; noneMoonR is CSS-mirrored (.none-moon-r).
+    noneMoonL: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 13.4A8.6 8.6 0 1 1 10.9 3.4A7 7 0 0 0 20.2 13.4Z"/><path d="M17.2 13.9A6.2 6.2 0 0 1 10.6 6.3" stroke-width="1.1" opacity="0.5"/><circle cx="8.3" cy="9.4" r="1.05" stroke-width="1.1" opacity="0.65"/><circle cx="7.4" cy="13.6" r="0.7" stroke-width="1" opacity="0.5"/><circle cx="10.4" cy="16.4" r="0.85" stroke-width="1" opacity="0.55"/><path d="M18.6 4.2L19.15 5.65L20.6 6.2L19.15 6.75L18.6 8.2L18.05 6.75L16.6 6.2L18.05 5.65Z" fill="currentColor" stroke="none"/></svg>`,
+    noneMoonR: `<svg class="none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 13.4A8.6 8.6 0 1 1 10.9 3.4A7 7 0 0 0 20.2 13.4Z"/><path d="M17.2 13.9A6.2 6.2 0 0 1 10.6 6.3" stroke-width="1.1" opacity="0.5"/><circle cx="8.3" cy="9.4" r="1.05" stroke-width="1.1" opacity="0.65"/><circle cx="7.4" cy="13.6" r="0.7" stroke-width="1" opacity="0.5"/><circle cx="10.4" cy="16.4" r="0.85" stroke-width="1" opacity="0.55"/><path d="M18.6 4.2L19.15 5.65L20.6 6.2L19.15 6.75L18.6 8.2L18.05 6.75L16.6 6.2L18.05 5.65Z" fill="currentColor" stroke="none"/></svg>`,
 
     // Gothic Latin cross — the same "add" glyph as the toolbar's «Группа» button.
     crossAdd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4.8" x2="12" y2="19.2"/><line x1="4.8" y1="12" x2="19.2" y2="12"/><line x1="10.2" y1="6.4" x2="13.8" y2="6.4" stroke-width="1.4"/><line x1="10.2" y1="17.6" x2="13.8" y2="17.6" stroke-width="1.4"/><line x1="6.4" y1="10.2" x2="6.4" y2="13.8" stroke-width="1.4"/><line x1="17.6" y1="10.2" x2="17.6" y2="13.8" stroke-width="1.4"/><circle cx="12" cy="4" r="1" stroke-width="1.3"/><circle cx="12" cy="20" r="1" stroke-width="1.3"/><circle cx="4" cy="12" r="1" stroke-width="1.3"/><circle cx="20" cy="12" r="1" stroke-width="1.3"/><circle cx="12" cy="12" r="1.5" stroke-width="1.4"/></svg>`,
