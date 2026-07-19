@@ -507,16 +507,11 @@ const IC = {
     twinCoffin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3H11.5L15 6.5V17.5Q10 20 5 17.5V6.5Z" opacity="0.45"/><line x1="9.4" y1="7.2" x2="9.4" y2="11.4" stroke-width="1.1" opacity="0.35"/><line x1="7.6" y1="8.9" x2="11.2" y2="8.9" stroke-width="1.1" opacity="0.35"/><path d="M9 6H15.5L19 9.5V20.5Q14 23 9 20.5V9.5Z"/><line x1="14" y1="11" x2="14" y2="17.4" stroke-width="1.3"/><line x1="11.6" y1="13.2" x2="16.4" y2="13.2" stroke-width="1.3"/><circle cx="14" cy="10.1" r="0.5" fill="currentColor" stroke="none" opacity="0.8"/><circle cx="10.2" cy="10.6" r="0.45" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="17.8" cy="10.6" r="0.45" fill="currentColor" stroke="none" opacity="0.55"/></svg>`,
     // Gothic crescent moon — "Без дедлайна" (no deadline / open-ended)
     moon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 13.4A8.6 8.6 0 1 1 10.9 3.4A7 7 0 0 0 20.2 13.4Z"/><path d="M17.2 13.9A6.2 6.2 0 0 1 10.6 6.3" stroke-width="1.1" opacity="0.5"/><circle cx="8.3" cy="9.4" r="1.05" stroke-width="1.1" opacity="0.65"/><circle cx="7.4" cy="13.6" r="0.7" stroke-width="1" opacity="0.5"/><circle cx="10.4" cy="16.4" r="0.85" stroke-width="1" opacity="0.55"/><path d="M18.6 4.2L19.15 5.65L20.6 6.2L19.15 6.75L18.6 8.2L18.05 6.75L16.6 6.2L18.05 5.65Z" fill="currentColor" stroke="none"/></svg>`,
-    // Gothic lancet-arch with a slash — "снять дедлайн" / cancel deadline.
-    // The arch is the same as IC.window (deadline icon); the diagonal strike means removal.
-    // Visually: "this deadline is cancelled / erased".
-    deadlineClear: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <path d="M6 21V11.5C6 7.4 8.69 4 12 4C15.31 4 18 7.4 18 11.5V21" opacity="0.55"/>
-        <line x1="3" y1="21" x2="21" y2="21" opacity="0.55"/>
-        <path d="M9 21V15C9 12.8 10.34 11 12 11C13.66 11 15 12.8 15 15V21" opacity="0.55"/>
-        <line x1="4" y1="4" x2="20" y2="20" stroke-width="2"/>
-        <line x1="20" y1="4" x2="4" y2="20" stroke-width="2"/>
-    </svg>`,
+    // "снять дедлайн" / cancel deadline — DERIVE B1 (IC.window, candle-window) dimmed
+    // to 0.5 + a bold diagonal strike = "this deadline is cancelled / erased". The
+    // window geometry is byte-for-byte IC.window so the clear-icon speaks the same
+    // gothic language as the deadline-set icon.
+    deadlineClear: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><g opacity="0.5"><path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/><line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/><path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/><line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/><line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/><path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/><line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/></g><line x1="4.6" y1="4.6" x2="19.4" y2="19.4" stroke-width="2.1"/></svg>`,
 
     // Gothic dagger / pin — for pinning tasks to the top of their group.
     pin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13V5.2C3 3.9 3.9 3 5.2 3H13" stroke-width="1.2" opacity="0.42"/><path d="M7 3.9L10.1 7L7 10.1L3.9 7Z"/><line x1="7" y1="3.9" x2="7" y2="10.1" stroke-width="0.9" opacity="0.4"/><line x1="9.3" y1="9.3" x2="19.6" y2="19.6" stroke-width="2"/><path d="M18.4 20.5L21 21L20.5 18.4Z" fill="currentColor" stroke="currentColor" stroke-width="1"/><circle cx="6" cy="5.1" r="0.6" fill="currentColor" stroke="none" opacity="0.8"/></svg>`,
@@ -1005,13 +1000,11 @@ async function init() {
     registerGothicPicker(document.getElementById('grim-new-split'), _grimCloseTplMenu);
     registerGothicPicker(document.getElementById('grim-io-split'),  _grimCloseIoSplit);
     registerGothicPicker(document.getElementById('grim-io-sel'),    _grimCloseIoSel);
-    // P1: archive-all icon — clone the LIVE SVG node from nav-archive tab directly.
-    const navArchiveSvg = document.querySelector('#nav-archive svg');
-    const btnArchiveAll = document.getElementById('btn-archive-all');
-    if (navArchiveSvg && btnArchiveAll) {
-        btnArchiveAll.innerHTML = '';
-        btnArchiveAll.appendChild(navArchiveSvg.cloneNode(true));
-    }
+    // O-FINAL Batch-9: archive-all keeps its inline <use href="#icon-archive"/> (U2
+    // crypt) directly — DECOUPLED from the nav-archive tab. The tab is now the AA1
+    // sarcophagus (a navigation identity); the archive ACTION is the U2 crypt
+    // («хоронить, не складировать»), consistent with per-task/⋯ «В архив». The old
+    // clone-from-tab hack would have dragged the sarcophagus onto the action button.
     // Inject gothic deadline-clear icon into the inline form X button
     const btnDlClear = document.getElementById('deadline-clear-btn');
     if (btnDlClear) btnDlClear.innerHTML = IC.deadlineClear;
