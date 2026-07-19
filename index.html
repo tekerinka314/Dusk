@@ -610,18 +610,29 @@
                             </svg>
                         </button>
                         <button class="sb-btn" data-act="openBulkColorModal" title="Цветовая метка">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
-                                <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
-                                <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
-                                <circle cx="12" cy="10.5" r="1.3" fill="currentColor" stroke="none" opacity="0.55"/>
+                            <!-- H2 · Алхимический фиал (контур = цвет не задан) -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/>
+                                <line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/>
+                                <line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/>
+                                <path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/>
+                                <path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7" stroke-width="1" opacity="0.45"/>
+                                <circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/>
+                                <path d="M15 7.4L15.35 8.35L16.3 8.7L15.35 9.05L15 10L14.65 9.05L13.7 8.7L14.65 8.35Z" fill="currentColor" stroke="none" opacity="0.75"/>
                             </svg>
                         </button>
                         <button class="sb-btn" data-act="openBulkDeadlineModal" title="Дедлайн">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                                <path d="M6 21V11.5C6 7.4 8.69 4 12 4C15.31 4 18 7.4 18 11.5V21"/>
-                                <line x1="3" y1="21" x2="21" y2="21"/>
-                                <path d="M9 21V15C9 12.8 10.34 11 12 11C13.66 11 15 12.8 15 15V21"/>
+                            <!-- B1 · Свеча в окне (дедлайн) -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/>
+                                <line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/>
+                                <path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/>
+                                <line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/>
+                                <line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/>
+                                <path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/>
+                                <line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/>
+                                <line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/>
+                                <line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/>
                             </svg>
                         </button>
                     </div>
@@ -631,13 +642,8 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive"/></svg>
                         </button>
                         <button class="sb-btn sb-delete" id="btn-bulk-delete" data-act="bulkDelete" disabled title="Удалить навсегда">
-                            <svg viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
-                                <path d="M4 13.5V10C4 6.7 6.69 4 10 4C13.31 4 16 6.7 16 10V13.5"/>
-                                <rect x="4" y="13.5" width="12" height="4.5" rx="1.3"/>
-                                <ellipse cx="7.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-                                <ellipse cx="12.5" cy="10.5" rx="1.4" ry="1.6" fill="currentColor" stroke="none"/>
-                                <line x1="7.5" y1="13.5" x2="7.5" y2="18"/><line x1="10" y1="13.5" x2="10" y2="18"/><line x1="12.5" y1="13.5" x2="12.5" y2="18"/>
-                            </svg>
+                            <!-- AT1 · Череп (удалить навсегда) -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>
                         </button>
                     </div>
                     <button class="btn-select-bar-cancel" data-act="toggleMainSelectMode">Отмена</button>
@@ -736,12 +742,20 @@
                 <div class="select-bar-actions">
                     <button class="btn-select-bar-cancel" data-act="toggleSelectMode">Отмена</button>
                     <button class="btn-select-bar-restore" id="btn-restore-selected" data-act="restoreSelected" disabled>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- AB1 · Восставший гроб (восстановить из склепа) -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
                             <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
-                            <line x1="10" y1="11" x2="14" y2="11" stroke-width="1.2" opacity="0.7"/>
-                            <line x1="12" y1="2" x2="12" y2="7"/>
-                            <path d="M9.5 4.5L12 2L14.5 4.5"/>
+                            <path d="M7.4 10.2C6.4 10 5.8 10.6 6 11.4" stroke-width="1" opacity="0.6"/>
+                            <path d="M16.6 10.2C17.6 10 18.2 10.6 18 11.4" stroke-width="1" opacity="0.6"/>
+                            <path d="M9.6 11L10.3 10.3L11 11L10.3 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
+                            <path d="M11.3 11L12 10.3L12.7 11L12 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
+                            <path d="M13 11L13.7 10.3L14.4 11L13.7 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
+                            <line x1="10.2" y1="15.4" x2="13.8" y2="15.4" stroke-width="1" opacity="0.45"/>
+                            <line x1="12" y1="1.8" x2="12" y2="6.8" stroke-width="1.6"/>
+                            <path d="M9.7 4.1L12 1.8L14.3 4.1"/>
+                            <path d="M8.9 6.4C9.5 5.2 10.4 4.5 11 4.3" stroke-width="0.95" opacity="0.5"/>
+                            <path d="M15.1 6.4C14.5 5.2 13.6 4.5 13 4.3" stroke-width="0.95" opacity="0.5"/>
                         </svg>
                         Восстановить отмеченное
                     </button>

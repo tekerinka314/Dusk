@@ -8686,25 +8686,19 @@ kbd {
         align-items: stretch;
         gap: 13px;
     }
+    /* One uniform rhythm for every cluster (any size): label on top-left, buttons
+       wrap left-aligned below it. Removes the old right-hug / column-switch split
+       that made small groups pin right and big ones pin left (visual asymmetry). */
     .side-rail .toolbar-group {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
         padding: 0 2px;
     }
     .side-rail .toolbar-group:first-child { padding-left: 2px; }
     .side-rail .toolbar-group:last-child  { padding-right: 2px; }
     .side-rail .toolbar-group-label { order: -1; font-size: 10px; }
-    .side-rail .toolbar-group-btns { flex-wrap: wrap; justify-content: flex-end; }
-    /* Big clusters (6+ buttons) don't fit beside their label — stack the label
-       above and let the buttons wrap left, instead of orphaning one button. */
-    .side-rail .toolbar-group:has(.btn-tool:nth-child(6)) {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-    }
-    .side-rail .toolbar-group:has(.btn-tool:nth-child(6)) .toolbar-group-btns { justify-content: flex-start; }
+    .side-rail .toolbar-group-btns { flex-wrap: wrap; justify-content: flex-start; }
     .side-rail .toolbar-group + .toolbar-group::before {
         left: 8%;
         right: 8%;
