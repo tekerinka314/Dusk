@@ -2256,14 +2256,20 @@ function promoteSubtask(taskId, subId) {
 // Overflow «…» on a task row — declutters the action row by holding the rarely
 // used actions (template / duplicate / demote) behind one gothic trigger.
 globalThis._taskMoreAnchor = null;
-// Colour-mark crystal glyph — shared by the inline action button (desktop) and
-// the task-⋯ sheet quick bar (coarse). Filled with the task's ink when set.
+// Colour-mark alchemical phial glyph (H2) — shared by the inline action button
+// (desktop) and the task-⋯ sheet quick bar (coarse). Empty = flask with a meniscus
+// line; when set = potion poured in the task's ink, with a brighter bubble.
 function taskColorGlyph(ink) {
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z" ${ink ? `fill="${ink}" opacity="0.9"` : 'fill="none"'}/>
-        <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.35"/>
-        <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.35"/>
-        ${ink ? '' : '<circle cx="12" cy="10.5" r="1.3" fill="currentColor" stroke="none" opacity="0.55"/>'}
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/>
+        <line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/>
+        <line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/>
+        <path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/>
+        ${ink
+            ? `<path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7C16.7 16.6 14.7 18.9 12 18.9C9.3 18.9 7.3 16.6 7.5 12.7Z" fill="${ink}" stroke="none" opacity="0.9"/>`
+            : `<path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7" stroke-width="1" opacity="0.45"/>`}
+        <circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="${ink ? '0.7' : '0.5'}"/>
+        <path d="M15 7.4L15.35 8.35L16.3 8.7L15.35 9.05L15 10L14.65 9.05L13.7 8.7L14.65 8.35Z" fill="currentColor" stroke="none" opacity="0.75"/>
     </svg>`;
 }
 

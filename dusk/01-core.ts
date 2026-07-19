@@ -238,25 +238,39 @@ const IC = {
     // touch (±2.65) + a small CSS size bump (.btn-task-more) so the thin column
     // reads as substantial as its neighbours without overpowering them.
     more: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.6C13.7 2.7 14.4 3.7 14.4 4.4C14.4 5.1 13.7 6.1 12 7.2C10.3 6.1 9.6 5.1 9.6 4.4C9.6 3.7 10.3 2.7 12 1.6Z"/><path d="M12 3C12.8 3.6 13.1 4.1 13.1 4.4C13.1 4.7 12.8 5.2 12 5.8C11.2 5.2 10.9 4.7 10.9 4.4C10.9 4.1 11.2 3.6 12 3Z" stroke-width="0.7" opacity="0.45"/><path d="M12 3.9L12.45 4.4L12 4.9L11.55 4.4Z" fill="currentColor" stroke="none" opacity="0.55"/><path d="M10.6 3.1C10.85 2.7 11.2 2.35 11.5 2.1" stroke-width="0.65" opacity="0.8"/><path d="M13.4 5.7C13.15 6.1 12.8 6.45 12.5 6.7" stroke-width="0.65" opacity="0.3"/><ellipse cx="12" cy="8.2" rx="1.05" ry="1.6" stroke-width="1.15"/><ellipse cx="12" cy="8.2" rx="0.45" ry="0.95" stroke-width="0.6" opacity="0.4"/><path d="M12 9.4C13.7 10.5 14.4 11.5 14.4 12.2C14.4 12.9 13.7 13.9 12 15C10.3 13.9 9.6 12.9 9.6 12.2C9.6 11.5 10.3 10.5 12 9.4Z"/><path d="M12 10.8C12.8 11.4 13.1 11.9 13.1 12.2C13.1 12.5 12.8 13 12 13.6C11.2 13 10.9 12.5 10.9 12.2C10.9 11.9 11.2 11.4 12 10.8Z" stroke-width="0.7" opacity="0.45"/><path d="M12 11.7L12.45 12.2L12 12.7L11.55 12.2Z" fill="currentColor" stroke="none" opacity="0.55"/><path d="M10.6 10.9C10.85 10.5 11.2 10.15 11.5 9.9" stroke-width="0.65" opacity="0.8"/><path d="M13.4 13.5C13.15 13.9 12.8 14.25 12.5 14.5" stroke-width="0.65" opacity="0.3"/><ellipse cx="12" cy="16" rx="1.05" ry="1.6" stroke-width="1.15"/><ellipse cx="12" cy="16" rx="0.45" ry="0.95" stroke-width="0.6" opacity="0.4"/><path d="M12 17.2C13.7 18.3 14.4 19.3 14.4 20C14.4 20.7 13.7 21.7 12 22.8C10.3 21.7 9.6 20.7 9.6 20C9.6 19.3 10.3 18.3 12 17.2Z"/><path d="M12 18.6C12.8 19.2 13.1 19.7 13.1 20C13.1 20.3 12.8 20.8 12 21.4C11.2 20.8 10.9 20.3 10.9 20C10.9 19.7 11.2 19.2 12 18.6Z" stroke-width="0.7" opacity="0.45"/><path d="M12 19.5L12.45 20L12 20.5L11.55 20Z" fill="currentColor" stroke="none" opacity="0.55"/><path d="M10.6 18.7C10.85 18.3 11.2 17.95 11.5 17.7" stroke-width="0.65" opacity="0.8"/><path d="M13.4 21.3C13.15 21.7 12.8 22.05 12.5 22.3" stroke-width="0.65" opacity="0.3"/></svg>`,
-    // Gothic rosette (quatrefoil) — "parent checks by subtasks" motif. Three fill
-    // variants light progressively: g4 = inherit (outline), g4any = one petal +
-    // core lit ("any one → the whole"), g4all = every petal lit ("all → whole").
-    g4: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="7" r="2.2"/><circle cx="17" cy="12" r="2.2"/>
-        <circle cx="12" cy="17" r="2.2"/><circle cx="7" cy="12" r="2.2"/>
-        <circle cx="12" cy="12" r="2.1"/>
+    // Gothic rose window (AO1) — "parent checks by subtasks" motif. A cathedral rose:
+    // four petals in a traced rim, spokes to a cored centre, struts in the diagonals.
+    // Three fill variants light progressively (derived from AO1's base outline, keeping the
+    // established semantic): g4 = inherit (outline), g4any = one petal + core lit
+    // ("any one → the whole"), g4all = every petal lit ("all → whole").
+    g4: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" stroke-width="1.1" opacity="0.45"/>
+        <circle cx="12" cy="6.8" r="2.1"/><circle cx="17.2" cy="12" r="2.1"/>
+        <circle cx="12" cy="17.2" r="2.1"/><circle cx="6.8" cy="12" r="2.1"/>
+        <circle cx="12" cy="12" r="1.9"/>
+        <circle cx="12" cy="12" r="0.6" fill="currentColor" stroke="none"/>
+        <line x1="12" y1="8.9" x2="12" y2="10.1" stroke-width="1" opacity="0.55"/>
+        <line x1="15.1" y1="12" x2="13.9" y2="12" stroke-width="1" opacity="0.55"/>
+        <line x1="12" y1="15.1" x2="12" y2="13.9" stroke-width="1" opacity="0.55"/>
+        <line x1="8.9" y1="12" x2="10.1" y2="12" stroke-width="1" opacity="0.55"/>
+        <path d="M15.6 8.4L16.7 7.3M15.6 15.6L16.7 16.7M8.4 15.6L7.3 16.7M8.4 8.4L7.3 7.3" stroke-width="1" opacity="0.4"/>
     </svg>`,
-    g4any: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="7" r="2.2" fill="currentColor" stroke="none"/>
-        <circle cx="17" cy="12" r="2.2"/><circle cx="12" cy="17" r="2.2"/><circle cx="7" cy="12" r="2.2"/>
-        <circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none" opacity=".9"/>
+    g4any: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" stroke-width="1.1" opacity="0.45"/>
+        <circle cx="12" cy="6.8" r="2.1" fill="currentColor" stroke="none"/><circle cx="17.2" cy="12" r="2.1"/>
+        <circle cx="12" cy="17.2" r="2.1"/><circle cx="6.8" cy="12" r="2.1"/>
+        <circle cx="12" cy="12" r="1.9" fill="currentColor" stroke="none" opacity=".9"/>
+        <line x1="15.1" y1="12" x2="13.9" y2="12" stroke-width="1" opacity="0.55"/>
+        <line x1="12" y1="15.1" x2="12" y2="13.9" stroke-width="1" opacity="0.55"/>
+        <line x1="8.9" y1="12" x2="10.1" y2="12" stroke-width="1" opacity="0.55"/>
+        <path d="M15.6 8.4L16.7 7.3M15.6 15.6L16.7 16.7M8.4 15.6L7.3 16.7M8.4 8.4L7.3 7.3" stroke-width="1" opacity="0.4"/>
     </svg>`,
-    g4all: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="7" r="2.2" fill="currentColor" stroke="none"/>
-        <circle cx="17" cy="12" r="2.2" fill="currentColor" stroke="none"/>
-        <circle cx="12" cy="17" r="2.2" fill="currentColor" stroke="none"/>
-        <circle cx="7" cy="12" r="2.2" fill="currentColor" stroke="none"/>
-        <circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none" opacity=".9"/>
+    g4all: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" stroke-width="1.1" opacity="0.45"/>
+        <circle cx="12" cy="6.8" r="2.1" fill="currentColor" stroke="none"/><circle cx="17.2" cy="12" r="2.1" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="17.2" r="2.1" fill="currentColor" stroke="none"/><circle cx="6.8" cy="12" r="2.1" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="12" r="1.9" fill="currentColor" stroke="none" opacity=".9"/>
+        <path d="M15.6 8.4L16.7 7.3M15.6 15.6L16.7 16.7M8.4 15.6L7.3 16.7M8.4 8.4L7.3 7.3" stroke-width="1" opacity="0.4"/>
     </svg>`,
     // Skull (delete forever)
     skull: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>`,
@@ -273,25 +287,52 @@ const IC = {
         <line x1="19.5" y1="20" x2="19.5" y2="14"/><path d="M18 14L19.5 9.5L21 14"/>
         <line x1="2" y1="20" x2="22" y2="20"/>
     </svg>`,
-    // Sort by priority — three descending gothic spires (tallest=highest priority)
-    sortPriority: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" y1="20" x2="5" y2="4"/><path d="M3.5 6L5 3.5L6.5 6"/>
-        <line x1="12" y1="20" x2="12" y2="8"/><path d="M10.5 10L12 7.5L13.5 10"/>
-        <line x1="19" y1="20" x2="19" y2="13"/><path d="M17.5 15L19 12.5L20.5 15"/>
-        <line x1="3" y1="20" x2="21" y2="20" stroke-width="1.3"/>
+    // Sort by priority (M3) — three gothic towers descending (tallest = highest priority):
+    // shafts in double outline, crabbed spire roofs, lancet windows, tiered belt, stepped base.
+    sortPriority: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.6 20V8.2H6.4V20"/>
+        <path d="M3.6 8.2L5 4.2L6.4 8.2"/>
+        <path d="M4.15 6.7L3.45 6.3M5.85 6.7L6.55 6.3" stroke-width="0.8" opacity="0.6"/>
+        <line x1="5" y1="4.2" x2="5" y2="2.1" stroke-width="1.1"/>
+        <line x1="4.2" y1="2.8" x2="5.8" y2="2.8" stroke-width="1.1"/>
+        <path d="M4.45 12.8V11C4.45 10.3 5.55 10.3 5.55 11V12.8" stroke-width="0.75" opacity="0.55"/>
+        <line x1="3.6" y1="15" x2="6.4" y2="15" stroke-width="0.75" opacity="0.45"/>
+        <path d="M10.6 20V11.6H13.4V20"/>
+        <path d="M10.6 11.6L12 7.9L13.4 11.6"/>
+        <path d="M11.15 10.2L10.45 9.8M12.85 10.2L13.55 9.8" stroke-width="0.8" opacity="0.6"/>
+        <circle cx="12" cy="7.2" r="0.55" fill="currentColor" stroke="none"/>
+        <path d="M11.45 15.6V14C11.45 13.3 12.55 13.3 12.55 14V15.6" stroke-width="0.75" opacity="0.55"/>
+        <path d="M17.6 20V14.8H20.4V20"/>
+        <path d="M17.6 14.8L19 11.6L20.4 14.8"/>
+        <path d="M19 10.2L19.6 11L19 11.8L18.4 11Z" fill="currentColor" stroke="none" opacity="0.85"/>
+        <circle cx="19" cy="17.2" r="0.55" stroke-width="0.75" opacity="0.5"/>
+        <line x1="2.6" y1="20" x2="21.4" y2="20" stroke-width="1.3"/>
+        <line x1="3.7" y1="21.7" x2="20.3" y2="21.7" stroke-width="0.95" opacity="0.5"/>
     </svg>`,
-    // Sort by order — three equal horizontal lines with a dot-cursor (= hand-placed order)
-    sortOrder: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="4" y1="6"  x2="20" y2="6"/>
-        <line x1="4" y1="12" x2="20" y2="12"/>
-        <line x1="4" y1="18" x2="20" y2="18"/>
-        <circle cx="8" cy="12" r="2.2" fill="currentColor" stroke="none" opacity="0.8"/>
+    // Sort by order (M3) — a forged chain with a pulled-out framed plate (= hand-placed order).
+    sortOrder: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 5.6L6.4 7L5 8.4L3.6 7Z" stroke-width="1.2"/>
+        <path d="M5 10.6L6.4 12L5 13.4L3.6 12Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+        <path d="M5 15.6L6.4 17L5 18.4L3.6 17Z" stroke-width="1.2"/>
+        <line x1="5" y1="8.4" x2="5" y2="10.6" stroke-width="0.9" opacity="0.4"/>
+        <line x1="5" y1="13.4" x2="5" y2="15.6" stroke-width="0.9" opacity="0.4"/>
+        <line x1="8.7" y1="7" x2="20.4" y2="7" stroke-width="1.5" opacity="0.65"/>
+        <rect x="8.7" y="10.3" width="11.7" height="3.4" rx="0.8" stroke-width="1.4"/>
+        <line x1="8.7" y1="17" x2="20.4" y2="17" stroke-width="1.5" opacity="0.65"/>
     </svg>`,
-    // Sort alphabetically — a gothic "A" over "Z" with a descending arrow (A→Z order).
-    sortAlpha: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3.5 10.5 L6 4 L8.5 10.5"/><line x1="4.5" y1="8.4" x2="7.5" y2="8.4"/>
-        <path d="M3.6 14 H8.4 L3.6 20 H8.4"/>
-        <line x1="15.5" y1="4.5" x2="15.5" y2="19"/><path d="M13 16.3 L15.5 19 L18 16.3"/>
+    // Sort alphabetically (M3) — an illuminated book with an initial "A" + a descending arrow (A→Z).
+    sortAlpha: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3.2" y="4.8" width="12.4" height="14.4" rx="1" stroke-width="1.2" opacity="0.55"/>
+        <path d="M3.2 7.2L5 4.8M15.6 7.2L13.8 4.8M3.2 16.8L5 19.2M15.6 16.8L13.8 19.2" stroke-width="0.9" opacity="0.4"/>
+        <path d="M6 16.4C7.1 13.3 8.2 9.9 9.2 7" stroke-width="1.3"/>
+        <path d="M9.2 7C10.4 10.1 11.5 13.3 12.7 16.4" stroke-width="1.8"/>
+        <line x1="4.9" y1="16.4" x2="7.1" y2="16.4" stroke-width="1.2"/>
+        <line x1="11.6" y1="16.4" x2="13.8" y2="16.4" stroke-width="1.2"/>
+        <line x1="7.3" y1="12.6" x2="11.4" y2="12.6" stroke-width="1.2"/>
+        <path d="M9.35 11.9L10.05 12.6L9.35 13.3L8.65 12.6Z" fill="currentColor" stroke="none"/>
+        <line x1="19.4" y1="6.4" x2="19.4" y2="17.6" stroke-width="1.6"/>
+        <path d="M17.5 15.2L19.4 17.9L21.3 15.2"/>
+        <path d="M19.4 4.6L20.2 5.5L19.4 6.4L18.6 5.5Z" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
     // Focus mode — gothic single lancet arch with rays (spotlight on one group)
     focusMode: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 0.8L12.6 1.6L12 2.4L11.4 1.6Z" fill="currentColor" stroke="none" opacity="0.85"/><line x1="12" y1="2.4" x2="12" y2="3.2" stroke-width="1"/><path d="M7.8 7L12 3.2L16.2 7"/><line x1="9.9" y1="5.1" x2="10.4" y2="5.7" stroke-width="0.8" opacity="0.5"/><line x1="14.1" y1="5.1" x2="13.6" y2="5.7" stroke-width="0.8" opacity="0.5"/><line x1="7" y1="7" x2="17" y2="7" stroke-width="1.4"/><path d="M8.4 7H15.6V16.6H8.4Z"/><line x1="10.9" y1="7" x2="10.9" y2="16.6" stroke-width="0.85" opacity="0.4"/><line x1="13.1" y1="7" x2="13.1" y2="16.6" stroke-width="0.85" opacity="0.4"/><path d="M10.9 9.6C11.2 8.6 12.8 8.6 13.1 9.6" stroke-width="0.8" opacity="0.5"/><path d="M12 9.8C10.9 11.4 11.2 13.3 12 13.55C12.8 13.3 13.1 11.4 12 9.8Z" fill="currentColor" stroke="currentColor" stroke-width="0.8"/><line x1="10.7" y1="15" x2="13.3" y2="15" stroke-width="0.85" opacity="0.5"/><line x1="7.6" y1="16.6" x2="16.4" y2="16.6" stroke-width="1.4"/><path d="M9.2 16.6V18.3H14.8V16.6" stroke-width="1.2"/><line x1="7.9" y1="18.3" x2="16.1" y2="18.3" stroke-width="1.3"/><line x1="6.6" y1="20" x2="17.4" y2="20" stroke-width="1" opacity="0.5"/><line x1="4.6" y1="9.4" x2="6.4" y2="10.2" stroke-width="1.1" opacity="0.5"/><line x1="19.4" y1="9.4" x2="17.6" y2="10.2" stroke-width="1.1" opacity="0.5"/><line x1="4.2" y1="13.6" x2="6.1" y2="13.6" stroke-width="1.1" opacity="0.5"/><line x1="19.8" y1="13.6" x2="17.9" y2="13.6" stroke-width="1.1" opacity="0.5"/></svg>`,
@@ -351,33 +392,49 @@ const IC = {
         <circle cx="8" cy="10" r="1.7"/>
         <g><circle cx="8" cy="13.8" r="1.45"/><circle cx="9.6" cy="15.4" r="1.45"/><circle cx="8" cy="17" r="1.45"/><circle cx="6.4" cy="15.4" r="1.45"/></g>
     </svg>`,
-    // Sound on — gothic church bell (lancet-arch silhouette, clapper, crown ring).
-    // Bells are the original sound/notification symbol; universally recognised,
-    // and the pointed lancet arch naturally fits the gothic aesthetic.
-    soundOn:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3C9.5 3 7 6 6.5 10C6 13 5 15.5 4 18H20C19 15.5 18 13 17.5 10C17 6 14.5 3 12 3Z"/>
-        <line x1="4" y1="18" x2="20" y2="18"/>
-        <line x1="12" y1="18" x2="12" y2="21"/>
-        <circle cx="12" cy="21.8" r="1.1" fill="currentColor" stroke="none"/>
-        <line x1="9.5" y1="2.2" x2="14.5" y2="2.2" stroke-width="1.2" opacity="0.5"/>
+    // Sound on (O2) — engraved gothic bell: crown-bracket yoke, diamond-engraved skirt band,
+    // teardrop clapper, sound sparks. Bells are the original notification symbol.
+    soundOn:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.6 3.6C10.6 2.3 13.4 2.3 13.4 3.6" stroke-width="1.3"/>
+        <path d="M7 14.5C7 8.5 9 4.6 12 4.6C15 4.6 17 8.5 17 14.5"/>
+        <path d="M7 14.5C6.2 15.4 5.6 16.4 5.4 17.4H18.6C18.4 16.4 17.8 15.4 17 14.5"/>
+        <line x1="7.6" y1="12.2" x2="16.4" y2="12.2" stroke-width="1" opacity="0.55"/>
+        <path d="M9.4 13.9L10.1 13.2L10.8 13.9L10.1 14.6Z" fill="currentColor" stroke="none" opacity="0.55"/>
+        <path d="M11.3 13.9L12 13.2L12.7 13.9L12 14.6Z" fill="currentColor" stroke="none" opacity="0.55"/>
+        <path d="M13.2 13.9L13.9 13.2L14.6 13.9L13.9 14.6Z" fill="currentColor" stroke="none" opacity="0.55"/>
+        <line x1="12" y1="17.4" x2="12" y2="19.2" stroke-width="1.3"/>
+        <circle cx="12" cy="20" r="0.85" fill="currentColor" stroke="none"/>
+        <line x1="3.6" y1="12.6" x2="4.8" y2="13.4" stroke-width="1.1" opacity="0.5"/>
+        <line x1="20.4" y1="12.6" x2="19.2" y2="13.4" stroke-width="1.1" opacity="0.5"/>
     </svg>`,
-    // Sound off — same bell, dimmed and crossed out with a gothic X-strike.
-    soundOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3C9.5 3 7 6 6.5 10C6 13 5 15.5 4 18H20C19 15.5 18 13 17.5 10C17 6 14.5 3 12 3Z" opacity="0.35"/>
-        <line x1="4" y1="18" x2="20" y2="18" opacity="0.35"/>
-        <line x1="12" y1="18" x2="12" y2="21" opacity="0.35"/>
-        <circle cx="12" cy="21.8" r="1.1" fill="currentColor" stroke="none" opacity="0.35"/>
-        <line x1="9.5" y1="2.2" x2="14.5" y2="2.2" stroke-width="1.2" opacity="0.2"/>
-        <line x1="5" y1="5" x2="19" y2="19" stroke-width="2"/>
-        <line x1="19" y1="5" x2="5" y2="19" stroke-width="2"/>
+    // Sound off (O2) — same engraved bell, dimmed, with a forged cross-strike (facet-flared
+    // ends, diamond overlay at the crossing).
+    soundOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <g opacity="0.35">
+            <path d="M10.6 3.6C10.6 2.3 13.4 2.3 13.4 3.6" stroke-width="1.3"/>
+            <path d="M7 14.5C7 8.5 9 4.6 12 4.6C15 4.6 17 8.5 17 14.5"/>
+            <path d="M7 14.5C6.2 15.4 5.6 16.4 5.4 17.4H18.6C18.4 16.4 17.8 15.4 17 14.5"/>
+            <line x1="7.6" y1="12.2" x2="16.4" y2="12.2" stroke-width="1" opacity="0.55"/>
+            <path d="M9.4 13.9L10.1 13.2L10.8 13.9L10.1 14.6Z" fill="currentColor" stroke="none" opacity="0.55"/>
+            <path d="M11.3 13.9L12 13.2L12.7 13.9L12 14.6Z" fill="currentColor" stroke="none" opacity="0.55"/>
+            <path d="M13.2 13.9L13.9 13.2L14.6 13.9L13.9 14.6Z" fill="currentColor" stroke="none" opacity="0.55"/>
+            <line x1="12" y1="17.4" x2="12" y2="19.2" stroke-width="1.3"/>
+            <circle cx="12" cy="20" r="0.85" fill="currentColor" stroke="none"/>
+        </g>
+        <line x1="4.6" y1="4.4" x2="19.4" y2="19.6" stroke-width="1.8"/>
+        <line x1="19.4" y1="4.4" x2="4.6" y2="19.6" stroke-width="1.8"/>
+        <path d="M3.7 5.3L5.5 3.5M18.5 3.5L20.3 5.3M3.7 18.7L5.5 20.5M18.5 20.5L20.3 18.7" stroke-width="1" opacity="0.8"/>
+        <path d="M12 10.3L13.7 12L12 13.7L10.3 12Z" stroke-width="1.2"/>
     </svg>`,
     // п.17 «Звук пера» toggle — scroll (traced from a reference, recoloured) + a quill.
     // ON = quill writes on the sheet; OFF = quill lifts off the page (CSS .off on .pen-q).
     penSound: `<svg viewBox="-74 -113 660 660" fill="none" stroke="none"><path d="M 45.251 1.537 C 4.564 12.556, -13.747 72.927, 12.038 111.036 C 18.611 120.750, 27.427 127.348, 37.932 130.415 C 42.361 131.708, 48.956 132, 73.682 132 L 104 132 104 212.777 C 104 284.868, 104.170 293.798, 105.584 295.817 C 106.455 297.061, 111.877 301.129, 117.632 304.857 L 128.096 311.635 117.148 321.368 C 111.127 326.722, 105.674 332.372, 105.031 333.924 C 104.172 336, 103.960 351.273, 104.234 391.624 L 104.605 446.500 107.283 456.500 C 115.178 485.978, 133.412 505.494, 157.764 510.530 C 164.068 511.834, 184.405 511.997, 311.764 511.766 L 458.500 511.500 466.715 508.718 C 504.275 495.996, 522.468 453.546, 505.518 418.177 C 496.829 400.047, 482.772 388.060, 463.698 382.514 L 458 380.858 458 270.652 C 458 175.577, 457.799 160.158, 456.538 158.358 C 455.734 157.209, 449.673 152.365, 443.070 147.592 C 436.467 142.819, 430.824 138.524, 430.530 138.048 C 430.236 137.573, 434.501 134.398, 440.009 130.994 C 451.099 124.141, 453 122.123, 453 117.212 C 453 112.154, 451.788 110.670, 440.974 102.480 C 432.285 95.900, 431 94.545, 431 91.963 L 431 89 440.550 89 C 457.455 89, 458.437 87.533, 457.773 63.264 C 457.371 48.526, 457.015 45.700, 454.829 39.880 C 448.100 21.965, 436.342 10.177, 418.120 3.079 L 411.500 0.500 231 0.308 C 77.669 0.144, 49.710 0.329, 45.251 1.537 M 48.404 21.827 C 36.137 26.067, 25.889 39.285, 21.909 56 C 20.253 62.952, 20.257 79.101, 21.916 85 C 29.347 111.424, 54.786 120.936, 64.992 101.107 C 66.999 97.207, 66.470 86.841, 64.017 82.033 C 61.646 77.387, 55.937 74.060, 50.266 74.022 C 41.400 73.962, 37.329 62.669, 44.019 56.692 C 47.088 53.950, 47.728 53.785, 53.495 54.248 C 70.897 55.644, 83.411 68.194, 86.211 87.055 C 87.329 94.587, 86.140 103.895, 83.377 109.237 L 81.949 112 93.122 112 L 104.295 112 103.702 88.750 C 102.887 56.831, 99.497 44.004, 88.816 32.416 C 79.660 22.483, 60.801 17.541, 48.404 21.827 M 106 20.386 C 106 20.598, 107.761 23.411, 109.913 26.636 C 114.545 33.577, 119.162 44.796, 121.621 55.086 C 123.250 61.903, 123.420 71.451, 123.733 173.670 L 124.074 284.839 138.025 293.946 C 160.541 308.643, 160.551 309.784, 138.327 329.534 L 123.806 342.438 124.247 392.969 C 124.665 440.800, 124.804 443.927, 126.843 451.500 C 132.979 474.276, 145.463 487.759, 163.500 491.090 C 186.599 495.357, 205.201 475.871, 207.674 444.816 C 210.327 411.509, 180.778 386.479, 164.592 408.323 C 161.560 412.415, 161.541 426.569, 164.562 430.615 C 167.860 435.032, 171.169 436.989, 176.863 437.889 C 183.949 439.009, 187.455 442.390, 187.455 448.102 C 187.455 451.501, 186.875 452.723, 184.072 455.227 C 180.877 458.081, 180.335 458.220, 174.291 457.735 C 140.031 454.985, 129.128 406.039, 158.441 386.583 C 168.963 379.600, 159.985 380, 306.186 380 L 438.009 380 437.755 274.298 L 437.500 168.596 422.002 157.277 C 402.499 143.033, 401.545 142.091, 401.545 137.056 C 401.545 131.948, 403.633 129.763, 415.581 122.372 C 420.761 119.167, 424.990 116.309, 424.978 116.022 C 424.967 115.735, 422.445 113.700, 419.375 111.500 C 411.253 105.680, 410.746 104.248, 411.155 88.283 L 411.500 74.834 414.766 71.917 C 417.912 69.107, 418.398 69, 428.016 69 L 438 69 438 63.136 C 438 41.132, 425.553 24.708, 406.079 21.015 C 401.047 20.061, 106 19.442, 106 20.386 M 182.879 80.816 C 174.180 88.590, 183.618 101.869, 194.020 96.490 C 197.543 94.668, 199 92.184, 199 88 C 199 79.267, 189.401 74.989, 182.879 80.816 M 227.110 79.385 C 220.302 83.188, 220.669 93.963, 227.705 96.878 C 229.764 97.731, 250.435 97.966, 305.839 97.769 L 381.174 97.500 383.587 94.694 C 386.860 90.889, 386.860 85.111, 383.587 81.306 L 381.174 78.500 305.337 78.275 C 243.634 78.092, 229.055 78.299, 227.110 79.385 M 182.896 136.802 C 180.254 139.163, 179.727 140.358, 179.727 144 C 179.727 147.642, 180.254 148.837, 182.896 151.198 L 186.064 154.029 283.619 153.765 L 381.174 153.500 383.587 150.694 C 386.860 146.889, 386.860 141.111, 383.587 137.306 L 381.174 134.500 283.619 134.235 L 186.064 133.971 182.896 136.802 M 182.896 192.802 C 180.254 195.163, 179.727 196.358, 179.727 200 C 179.727 203.642, 180.254 204.837, 182.896 207.198 L 186.064 210.029 283.619 209.765 L 381.174 209.500 383.587 206.694 C 386.860 202.889, 386.860 197.111, 383.587 193.306 L 381.174 190.500 283.619 190.235 L 186.064 189.971 182.896 192.802 M 182.896 248.802 C 180.254 251.163, 179.727 252.358, 179.727 256 C 179.727 259.642, 180.254 260.837, 182.896 263.198 L 186.064 266.029 283.619 265.765 L 381.174 265.500 383.587 262.694 C 386.860 258.889, 386.860 253.111, 383.587 249.306 L 381.174 246.500 283.619 246.235 L 186.064 245.971 182.896 248.802 M 182.896 304.802 C 180.254 307.163, 179.727 308.358, 179.727 312 C 179.727 315.642, 180.254 316.837, 182.896 319.198 L 186.064 322.029 283.619 321.765 L 381.174 321.500 383.587 318.694 C 386.860 314.889, 386.860 309.111, 383.587 305.306 L 381.174 302.500 283.619 302.235 L 186.064 301.971 182.896 304.802 M 220.089 407.551 C 222.238 411.703, 224.501 417.103, 225.117 419.551 L 226.237 424 306.072 424 C 391.699 424, 389.858 423.891, 392.575 429.145 C 395.252 434.322, 393.396 440.587, 388.528 442.805 C 386.566 443.699, 366.065 444, 307.082 444 L 228.258 444 227.571 450.250 C 226.129 463.359, 221.617 476.252, 214.973 486.250 L 211.152 492 329.326 491.994 C 400.407 491.991, 449.846 491.604, 453.387 491.024 C 472.427 487.906, 488.120 471.926, 491.130 452.590 C 494.852 428.688, 477.471 404.920, 453.387 400.976 C 449.851 400.397, 401.307 400.009, 331.841 400.006 L 216.182 400 220.089 407.551 M 418.500 425.161 C 411.145 429.205, 411.248 439.080, 418.684 442.883 C 424.925 446.075, 432.455 441.217, 432.455 434 C 432.455 426.749, 424.627 421.791, 418.500 425.161" fill="currentColor" fill-rule="evenodd"/><g class="pen-q"><path d="M512 26C414 74 326 156 250 292" fill="none" stroke="currentColor" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/><path d="M512 26C474 132 398 222 268 300" fill="none" stroke="currentColor" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/><path d="M506 33C436 93 374 182 300 292" fill="none" stroke="currentColor" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/><path d="M250 292 230 340 283 322Z" fill="currentColor" stroke="none"/><path d="M474 70C455 96 427 112 399 117M450 112C431 142 402 158 373 163M424 156C405 186 376 200 347 205M398 200C379 228 350 242 322 247" fill="none" stroke="currentColor" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/></g></svg>`,
-    // Gothic scroll with plus (add note)
-    addNote:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2H17V18L12 21.5L7 18V2Z"/><path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/></svg>`,
-    // Gothic scroll with horizontal lines (edit note — visually distinct from addNote which has a cross)
-    editNote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2H17V18L12 21.5L7 18V2Z"/><path d="M7 2C7 2 8.5 0.5 12 0.5C15.5 0.5 17 2 17 2"/><line x1="9.5" y1="7.5" x2="14.5" y2="7.5"/><line x1="9.5" y1="11" x2="14.5" y2="11"/><line x1="9.5" y1="14.5" x2="13" y2="14.5"/></svg>`,
+    // Gothic manuscript on a forged rail (add note) — G1: scroll hung by ties on a
+    // bar with ball finials, cross with serif-flared arms + diamond heart, initialled lines.
+    addNote:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="5.6" y1="3.4" x2="18.4" y2="3.4" stroke-width="1.4"/><circle cx="4.6" cy="3.4" r="0.8" stroke-width="1.2"/><circle cx="19.4" cy="3.4" r="0.8" stroke-width="1.2"/><path d="M7 4.8H17V17.4L12 21L7 17.4V4.8Z"/><line x1="8.6" y1="3.4" x2="8.6" y2="4.8" stroke-width="1" opacity="0.6"/><line x1="15.4" y1="3.4" x2="15.4" y2="4.8" stroke-width="1" opacity="0.6"/><line x1="8.9" y1="6.6" x2="8.9" y2="15.9" stroke-width="0.9" opacity="0.35"/><line x1="15.1" y1="6.6" x2="15.1" y2="15.9" stroke-width="0.9" opacity="0.35"/><path d="M8.3 17L12 19.6L15.7 17" stroke-width="0.9" opacity="0.35"/><line x1="12" y1="7.5" x2="12" y2="14.5" stroke-width="1.6"/><line x1="9.8" y1="10.2" x2="14.2" y2="10.2" stroke-width="1.6"/><path d="M11.2 7.5H12.8M11.2 14.5H12.8M9.8 9.4V11M14.2 9.4V11" stroke-width="1" opacity="0.8"/><path d="M12 9.6L12.6 10.2L12 10.8L11.4 10.2Z" fill="currentColor" stroke="none"/></svg>`,
+    // Gothic manuscript on a forged rail (edit note) — G1: same scroll+rail, but the
+    // face carries inked ruled lines with initial dots + a flourish instead of the cross.
+    editNote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="5.6" y1="3.4" x2="18.4" y2="3.4" stroke-width="1.4"/><circle cx="4.6" cy="3.4" r="0.8" stroke-width="1.2"/><circle cx="19.4" cy="3.4" r="0.8" stroke-width="1.2"/><path d="M7 4.8H17V17.4L12 21L7 17.4V4.8Z"/><line x1="8.6" y1="3.4" x2="8.6" y2="4.8" stroke-width="1" opacity="0.6"/><line x1="15.4" y1="3.4" x2="15.4" y2="4.8" stroke-width="1" opacity="0.6"/><line x1="8.9" y1="6.6" x2="8.9" y2="15.9" stroke-width="0.9" opacity="0.35"/><line x1="15.1" y1="6.6" x2="15.1" y2="15.9" stroke-width="0.9" opacity="0.35"/><path d="M8.3 17L12 19.6L15.7 17" stroke-width="0.9" opacity="0.35"/><circle cx="9.9" cy="7.9" r="0.45" fill="currentColor" stroke="none"/><line x1="10.9" y1="7.9" x2="14.1" y2="7.9" stroke-width="1.4"/><circle cx="9.9" cy="10.7" r="0.45" fill="currentColor" stroke="none"/><line x1="10.9" y1="10.7" x2="14.1" y2="10.7" stroke-width="1.4"/><path d="M9.9 13.5H12.3C13.4 13.5 13.7 12.6 13.1 12.2" stroke-width="1.4"/><path d="M13.3 14.8C14.3 14.4 14.7 13.5 14.4 12.7" stroke-width="0.9" opacity="0.5"/></svg>`,
     // Small gothic cross (add-subtask confirm button — same as IC.add but separate for clarity)
     crossSm:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4.8" x2="12" y2="19.2"/><line x1="4.8" y1="12" x2="19.2" y2="12"/><line x1="10.2" y1="6.4" x2="13.8" y2="6.4" stroke-width="1.4"/><line x1="10.2" y1="17.6" x2="13.8" y2="17.6" stroke-width="1.4"/><line x1="6.4" y1="10.2" x2="6.4" y2="13.8" stroke-width="1.4"/><line x1="17.6" y1="10.2" x2="17.6" y2="13.8" stroke-width="1.4"/><circle cx="12" cy="4" r="1" stroke-width="1.3"/><circle cx="12" cy="20" r="1" stroke-width="1.3"/><circle cx="4" cy="12" r="1" stroke-width="1.3"/><circle cx="20" cy="12" r="1" stroke-width="1.3"/><circle cx="12" cy="12" r="1.5" stroke-width="1.4"/></svg>`,
     // Gothic tombstone (group delete — intuitive "gone" symbol in gothic style)
@@ -477,19 +534,30 @@ const IC = {
         <circle cx="3" cy="3" r="0.85" fill="#ffffff" opacity="0.75"/>
     </svg>`,
 
-    // Gothic select checkbox — unchecked: lancet arch empty vessel
-    selectEmpty: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 19V11C5 7.5 7.24 5 10 5C12.76 5 15 7.5 15 11V19"/>
-        <line x1="3" y1="19" x2="17" y2="19"/>
+    // Gothic select checkbox — unchecked (K1): rune circle with a rune-shadow + cardinal
+    // ticks (same rune language as the F2 "select multiple" button).
+    selectEmpty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5.8"/>
+        <line x1="12" y1="9.3" x2="12" y2="14.7" stroke-width="1.1" opacity="0.45"/>
+        <line x1="12" y1="4.2" x2="12" y2="5.5" stroke-width="1" opacity="0.5"/>
+        <line x1="12" y1="18.5" x2="12" y2="19.8" stroke-width="1" opacity="0.5"/>
+        <line x1="4.2" y1="12" x2="5.5" y2="12" stroke-width="1" opacity="0.5"/>
+        <line x1="18.5" y1="12" x2="19.8" y2="12" stroke-width="1" opacity="0.5"/>
     </svg>`,
 
-    // Gothic select checkbox — checked: sealed coffin with a rune cross inside
-    selectChecked: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 19V11C5 7.5 7.24 5 10 5C12.76 5 15 7.5 15 11V19" fill="rgba(130,50,255,0.18)"/>
-        <line x1="3" y1="19" x2="17" y2="19"/>
-        <line x1="10" y1="10" x2="10" y2="16.5" stroke="rgba(200,130,255,0.95)" stroke-width="1.8"/>
-        <line x1="7" y1="12.5" x2="13" y2="12.5" stroke="rgba(200,130,255,0.95)" stroke-width="1.8"/>
-        <circle cx="10" cy="8.5" r="1.2" fill="rgba(200,130,255,0.9)" stroke="none"/>
+    // Gothic select checkbox — checked (K1): eight-rayed rune with a lit core (the filled
+    // rune matching the F2 "select multiple" button's active state).
+    selectChecked: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5.8" fill="rgba(130,50,255,0.20)" stroke="rgba(200,130,255,0.95)"/>
+        <line x1="12" y1="8.9" x2="12" y2="15.1" stroke="rgba(200,130,255,0.95)" stroke-width="1.6"/>
+        <line x1="8.9" y1="12" x2="15.1" y2="12" stroke="rgba(200,130,255,0.95)" stroke-width="1.6"/>
+        <line x1="9.9" y1="9.9" x2="14.1" y2="14.1" stroke="rgba(200,130,255,0.65)" stroke-width="1.1"/>
+        <line x1="14.1" y1="9.9" x2="9.9" y2="14.1" stroke="rgba(200,130,255,0.65)" stroke-width="1.1"/>
+        <circle cx="12" cy="12" r="0.85" fill="rgba(220,170,255,0.95)" stroke="none"/>
+        <line x1="12" y1="4.2" x2="12" y2="5.5" stroke="rgba(200,130,255,0.8)" stroke-width="1"/>
+        <line x1="12" y1="18.5" x2="12" y2="19.8" stroke="rgba(200,130,255,0.8)" stroke-width="1"/>
+        <line x1="4.2" y1="12" x2="5.5" y2="12" stroke="rgba(200,130,255,0.8)" stroke-width="1"/>
+        <line x1="18.5" y1="12" x2="19.8" y2="12" stroke="rgba(200,130,255,0.8)" stroke-width="1"/>
     </svg>`,
 
     // Snooze (postpone deadline) — gothic tower-clock face + a forward "skip" arc.
@@ -498,17 +566,29 @@ const IC = {
     // Template (save task as a reusable grimoire) — gothic tome with a ribbon bookmark.
     template: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 3.4H16.4C17.3 3.4 17.9 4 17.9 4.9V19.1C17.9 20 17.3 20.6 16.4 20.6H6.2Z"/><line x1="8.4" y1="3.4" x2="8.4" y2="20.6" stroke-width="1" opacity="0.5"/><line x1="6.2" y1="6.4" x2="8.4" y2="6.4" stroke-width="1.1" opacity="0.6"/><line x1="6.2" y1="17.6" x2="8.4" y2="17.6" stroke-width="1.1" opacity="0.6"/><path d="M17.9 9.6H19.9C20.3 9.6 20.5 9.9 20.5 10.3V13.7C20.5 14.1 20.3 14.4 19.9 14.4H17.9" stroke-width="1.3"/><path d="M18.6 12L19.3 11.3L20 12L19.3 12.7Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M13.1 8.2L13.55 9.35L14.7 9.8L13.55 10.25L13.1 11.4L12.65 10.25L11.5 9.8L12.65 9.35Z" fill="currentColor" stroke="none" opacity="0.85"/><circle cx="13.1" cy="9.8" r="2.5" stroke-width="0.9" opacity="0.45"/><path d="M11 20.6V23L12.2 21.9L13.4 23V20.6" stroke-width="1.2" opacity="0.75"/><line x1="10.4" y1="15.4" x2="15.8" y2="15.4" stroke-width="0.9" opacity="0.4"/><line x1="10.4" y1="17.2" x2="14.6" y2="17.2" stroke-width="0.9" opacity="0.4"/></svg>`,
 
-    // Promote subtask → task: arrow rising to a top rule ("raise to top level").
-    promote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" y1="4" x2="19" y2="4" opacity="0.6"/>
-        <line x1="12" y1="20" x2="12" y2="8"/>
-        <path d="M7 13L12 8L17 13"/>
+    // Promote subtask → task (AP1): forged arrow rising to a crenellated parapet
+    // ("top level" = castle wall with merlons); lancet arrowhead, crossbar, diamond fletch.
+    promote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4.4" y1="5.6" x2="19.6" y2="5.6" stroke-width="1.4"/>
+        <path d="M6 5.6V3.4H8.6V5.6" stroke-width="1.2" opacity="0.8"/>
+        <path d="M10.7 5.6V3.4H13.3V5.6" stroke-width="1.2" opacity="0.8"/>
+        <path d="M15.4 5.6V3.4H18V5.6" stroke-width="1.2" opacity="0.8"/>
+        <line x1="12" y1="20.6" x2="12" y2="9.8"/>
+        <path d="M8.4 12.9L12 9L15.6 12.9"/>
+        <line x1="10.1" y1="15.6" x2="13.9" y2="15.6" stroke-width="1.1" opacity="0.65"/>
+        <path d="M12 19.4L12.9 20.6L12 21.8L11.1 20.6Z" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
-    // Demote task → subtask: arrow descending under a top rule ("nest into a parent").
-    demote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" y1="4" x2="19" y2="4" opacity="0.6"/>
-        <line x1="12" y1="8" x2="12" y2="20"/>
-        <path d="M7 15L12 20L17 15"/>
+    // Demote task → subtask (AP1): mirror of promote — forged arrow descending from the
+    // crenellated parapet ("nest below the top level").
+    demote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4.4" y1="5.6" x2="19.6" y2="5.6" stroke-width="1.4"/>
+        <path d="M6 5.6V3.4H8.6V5.6" stroke-width="1.2" opacity="0.8"/>
+        <path d="M10.7 5.6V3.4H13.3V5.6" stroke-width="1.2" opacity="0.8"/>
+        <path d="M15.4 5.6V3.4H18V5.6" stroke-width="1.2" opacity="0.8"/>
+        <line x1="12" y1="8.8" x2="12" y2="19.6"/>
+        <path d="M8.4 16.5L12 20.4L15.6 16.5"/>
+        <line x1="10.1" y1="13.8" x2="13.9" y2="13.8" stroke-width="1.1" opacity="0.65"/>
+        <path d="M12 7.6L12.9 8.8L12 10L11.1 8.8Z" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
 };
 
