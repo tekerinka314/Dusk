@@ -1913,7 +1913,6 @@ function renderGroupBar() {
         const rgb = hexToRgb(g.color);
         const bg  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.13)` : 'rgba(110,40,200,0.13)';
         const bd  = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.32)` : 'rgba(110,40,200,0.32)';
-        const bgHov = rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.22)` : 'rgba(110,40,200,0.22)';
         // B4-01 rail: the pill doubles as focus-navigation (button, not span) and
         // carries a done/total count that only the ≥1440px rail reveals.
         const inGroup = state.tasks.filter(t => t.groupId === g.id);
@@ -1925,7 +1924,7 @@ function renderGroupBar() {
             <button type="button" class="meta-tag group-pill${focused ? ' pill-focused' : ''}" style="background:${bg};color:${g.color};border-color:${bd}"
                 data-act="focusGroupById" data-gid="${g.id}" aria-pressed="${focused}"
                 title="${focused ? 'Снять фокус' : 'Фокус на этой группе'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
-            <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
+            <button class="btn-pill-delete" style="color:${g.color}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
         groupsList.appendChild(wrap);
     });
 }
