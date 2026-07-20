@@ -2704,15 +2704,13 @@ html::after {
     align-items: center;
     transition: padding-right var(--transition), border-radius var(--transition);
 }
-/* Кнопка удаления = ОТРЕЗАННЫЙ СЕГМЕНТ той же капсулы: правый край скруглён
-   как у пилюли, слева — вертикальная черта (это правая граница самой пилюли,
-   у кнопки border-left нет, поэтому линия ровно одна). Фон кнопки СЛАБЕЕ, чем
-   у тела; при наведении он догоняет тело (--pill-bg) и иконка проявляется.
-   При наведении на ряд пилюля уплощает правый край (граница-черта остаётся) и
-   сегмент выезжает — форма капсулы продолжается, а не режется. */
+/* When hovered: right side flattens to make room for delete button. padding-right
+   is tightened so the tombstone ✕ sits centred between the name and the pill's
+   right border (the text-side gap was ~5px larger than the border-side gap). */
 .group-pill-wrap:hover .meta-tag.group-pill {
     border-radius: 99px 0 0 99px;
-    padding-right: 4px;
+    padding-right: 3px;
+    border-right: none;
 }
 .btn-pill-delete {
     display: inline-flex;
@@ -2724,12 +2722,11 @@ html::after {
     padding: 0;
     overflow: hidden;
     border-radius: 0 99px 99px 0;
-    border: 1px solid transparent;   /* цвет приходит инлайном из рендера */
-    border-left: none;               /* черту рисует правая граница пилюли */
+    border: 1px solid transparent;
+    border-left: none;
     cursor: pointer;
     opacity: 0;
-    transition: width var(--transition), padding var(--transition), opacity var(--transition),
-                background-color var(--transition), border-color var(--transition);
+    transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
     line-height: 1;
 }
 .group-pill-wrap:hover .btn-pill-delete {
@@ -2738,10 +2735,6 @@ html::after {
     padding: 4px 7px 4px 5px;
     opacity: 1;
 }
-/* наведение на сам сегмент: фон до уровня тела + иконка в полную силу */
-.btn-pill-delete:hover { background: var(--pill-bg); }
-.btn-pill-delete svg { opacity: 0.55; transition: opacity var(--transition); }
-.btn-pill-delete:hover svg { opacity: 1; }
 .btn-pill-delete svg { width: 11px; height: 11px; pointer-events: none; flex-shrink: 0; }
 
 /* ===== SUBTASKS ===== */
@@ -8819,10 +8812,6 @@ kbd {
         justify-content: space-between;
         gap: 8px;
         cursor: pointer;
-        /* Сегмент-кнопка виден всегда → пилюля постоянно держит плоский правый
-           край; её правая ГРАНИЦА остаётся и служит вертикальной чертой стыка. */
-        border-radius: 99px 0 0 99px;
-        padding-right: 4px;
     }
     /* the name span is a block so ellipsis fires (never on a flex container) */
     .side-rail .group-pill .gp-name {
@@ -8833,20 +8822,15 @@ kbd {
         white-space: nowrap;
     }
     .side-rail .group-pill .gp-count { display: inline; }
-    /* Тумбстоун виден всегда (слайд-аут дёргал полноширинные ряды): приглушён
-       в покое, оживает на hover. Поле под него зарезервировано в самой пилюле,
-       так что расширять на hover нечего — капсула остаётся неизменной. */
-    /* Сегмент виден ПОСТОЯННО (слайд дёргал полноширинные ряды): фон слабее
-       тела, при наведении на сам сегмент догоняет его и иконка проявляется. */
+    /* Delete tombstone: statically present in the rail (the 0→26px slide-out
+       jitters on full-width rows) — dim at rest, wakes on row hover. */
     .side-rail .btn-pill-delete {
         width: 26px;
         min-width: 26px;
         padding: 4px 7px 4px 5px;
-        opacity: 1;
+        opacity: 0.38;
     }
-    .side-rail .btn-pill-delete svg { opacity: 0.42; }
-    .side-rail .btn-pill-delete:hover svg { opacity: 1; }
-    .side-rail .group-pill-wrap:hover .meta-tag.group-pill { padding-right: 4px; }
+    .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
 
     /* Rail deadline digest «Грядущее»: visual styles are shared (below, near the
        base display gate) — the rail tier only lifts the display:none. */
@@ -9016,10 +9000,6 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         justify-content: space-between;
         gap: 8px;
         cursor: pointer;
-        /* Сегмент-кнопка виден всегда → пилюля постоянно держит плоский правый
-           край; её правая ГРАНИЦА остаётся и служит вертикальной чертой стыка. */
-        border-radius: 99px 0 0 99px;
-        padding-right: 4px;
     }
     .side-rail .group-pill .gp-name {
         display: block;
@@ -9029,18 +9009,14 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         white-space: nowrap;
     }
     .group-pill .gp-count { display: inline; }
-    /* На таче hover нет — гроб приглушённо виден всегда и кликабелен. */
-    /* Сегмент виден ПОСТОЯННО (слайд дёргал полноширинные ряды): фон слабее
-       тела, при наведении на сам сегмент догоняет его и иконка проявляется. */
+    /* Тумбстоун статичен (как на рельсе), но на таче hover нет — чуть ярче. */
     .side-rail .btn-pill-delete {
         width: 26px;
         min-width: 26px;
         padding: 4px 7px 4px 5px;
-        opacity: 1;
+        opacity: 0.5;
     }
-    .side-rail .btn-pill-delete svg { opacity: 0.42; }
-    .side-rail .btn-pill-delete:hover svg { opacity: 1; }
-    .side-rail .group-pill-wrap:hover .meta-tag.group-pill { padding-right: 4px; }
+    .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
     /* Дайджест «Грядущее» входит в drawer (снимаем display-гейт, как рельса). */
     body[data-page="main"] .rail-digest { display: block; }
 

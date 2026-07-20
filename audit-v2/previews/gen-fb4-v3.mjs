@@ -30,33 +30,6 @@ const P = (d, r) => {
 };
 const pt = ([x, y]) => `${x} ${y}`;
 
-// Де Кастельжо: режем ОДНУ гладкую кривую на под-кривые, чтобы рисовать их
-// разной толщиной. Так хвост сужается ПЛАВНО — раньше он стартовал сразу
-// тоньше тела, и скачок ширины на стыке читался как излом (репорт юзера).
-const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-function subCubic(P0, P1, P2, P3, t0, t1) {
-  const at = (t) => {                       // точка и контрольные на параметре t
-    const a = lerp(P0, P1, t), b = lerp(P1, P2, t), c = lerp(P2, P3, t);
-    const d = lerp(a, b, t), e = lerp(b, c, t);
-    return { p: lerp(d, e, t), l: [a, d], r: [e, c] };
-  };
-  const A = at(t0), B = at(t1);
-  // производная в точках → контрольные точки под-кривой
-  const d0 = [(A.r[0][0] - A.l[1][0]) * 3, (A.r[0][1] - A.l[1][1]) * 3];
-  const d1 = [(B.r[0][0] - B.l[1][0]) * 3, (B.r[0][1] - B.l[1][1]) * 3];
-  const dt = (t1 - t0) / 3;
-  const c1 = [A.p[0] + d0[0] * dt, A.p[1] + d0[1] * dt];
-  const c2 = [B.p[0] - d1[0] * dt, B.p[1] - d1[1] * dt];
-  const f = (v) => v.map(n => +n.toFixed(2));
-  return `M${pt(f(A.p))} C${pt(f(c1))} ${pt(f(c2))} ${pt(f(B.p))}`;
-}
-// ХВОСТ НИКУДА НЕ СВОРАЧИВАЕТ — он просто идёт по кольцу и сужается. Любой
-// заворот в пасть даёт перегиб (это и был «ломаный хвост»). Челюсти сами
-// обхватывают его: верхняя проходит СНАРУЖИ кольца, нижняя — ИЗНУТРИ.
-const tailSeg = (d0, d1, w) =>
-  `<path d="M${pt(P(d0, R))} A${R} ${R} 0 0 1 ${pt(P(d1, R))}" stroke-width="${w}"/>`;
-const TAIL_PATH = tailSeg(238, 252, 1.15) + tailSeg(252, 262, 0.9) + tailSeg(262, 271, 0.72);
-
 // ── общая для обеих трактовок анатомия головы/хвоста/языка ──
 // Голова = ЗАМКНУТЫЙ клин: от шеи расширяется к черепу, сходит на морду,
 // назад идёт линия пасти. Нижняя челюсть отдельной дугой → пасть разомкнута
@@ -80,45 +53,41 @@ const TAIL_PATH = tailSeg(238, 252, 1.15) + tailSeg(252, 262, 0.9) + tailSeg(262
 // fill-rule=evenodd, (в) чистый клин пасти между двумя залитыми челюстями.
 // Верхний контур продолжает наружную кромку тела по касательной (без горба),
 // нижний — линия пасти; сходятся ОСТРИЁМ на морде.
-// ЧЕРЕП — заливка, лежит НА кольце сверху: сзади вырастает из шеи, вперёд
-// сходит остриём морды; его нижняя кромка (линия пасти) проходит НАД хвостом.
 const HEAD_FILL =
   `<path fill="currentColor" stroke="none" fill-rule="evenodd" d="` +
-    `M16.37 5.63 L15.95 4.35 C15.0 2.85 13.0 2.45 11.2 3.25` +        // свод черепа
-    ` L10.25 4.45` +                                     // ОСТРИЁ морды
-    ` C11.6 4.6 13.7 5.3 15.63 6.79 Z` +             // линия пасти НАД хвостом
-    ` M14.72 4.72 a0.44 0.44 0 1 0 -0.88 0 a0.44 0.44 0 1 0 0.88 0 Z` +  // ГЛАЗ-дыра
+    `M16.37 5.63 C14.6 3.95 11.9 3.35 9.55 4.65` +    // свод черепа → остриё морды
+    ` C11.6 5.5 14.0 6.35 15.63 6.79 Z` +             // линия пасти назад к шее
+    ` M14.72 5.35 a0.43 0.43 0 1 0 -0.86 0 a0.43 0.43 0 1 0 0.86 0 Z` +  // ГЛАЗ-дыра
   `"/>`;
-// НИЖНЯЯ ЧЕЛЮСТЬ проходит ПОД хвостом (изнутри кольца) — вместе с верхней она
-// обхватывает хвост: змея его заглатывает, а хвост при этом не деформируется.
+// НИЖНЯЯ ЧЕЛЮСТЬ — тоже заливка: узкий клин от сустава вниз-вперёд.
 const JAW_FILL =
   `<path fill="currentColor" stroke="none" d="` +
-    `M15.3 7.0 C13.4 8.25 11.6 7.85 10.5 6.9` +
-    ` C11.8 7.95 13.6 8.95 15.7 7.75 Z` +
+    `M15.3 7.0 C13.5 8.3 11.6 8.9 10.3 8.85` +
+    ` C12.0 9.5 13.9 9.05 15.7 7.7 Z` +
   `"/>`;
-// ЗУБЫ смыкаются НА ХВОСТЕ: сверху вниз с черепа, снизу вверх с челюсти.
+// ЗУБЫ — залитые треугольники на кромках обеих челюстей, в раскрыв пасти.
 const TEETH =
-  `<path fill="currentColor" stroke="none" d="M11.05 4.52 L11.45 4.58 L11.05 5.35 Z"/>` +
-  `<path fill="currentColor" stroke="none" d="M12.2 4.8 L12.6 4.9 L12.25 5.62 Z"/>` +
-  `<path fill="currentColor" stroke="none" d="M13.35 5.2 L13.75 5.32 L13.45 6.0 Z"/>` +
-  `<path fill="currentColor" stroke="none" d="M11.5 7.55 L11.87 7.68 L11.65 6.9 Z"/>` +
-  `<path fill="currentColor" stroke="none" d="M12.7 8.15 L13.07 8.22 L12.85 7.45 Z"/>`;
+  `<path fill="currentColor" stroke="none" d="M13.9 6.28 L14.3 6.38 L13.75 7.3 Z"/>` +
+  `<path fill="currentColor" stroke="none" d="M12.2 5.72 L12.6 5.85 L12.05 6.78 Z"/>` +
+  `<path fill="currentColor" stroke="none" d="M10.65 5.05 L11.0 5.22 L10.6 6.05 Z"/>` +
+  `<path fill="currentColor" stroke="none" d="M13.5 8.42 L13.85 8.3 L13.55 7.5 Z"/>` +
+  `<path fill="currentColor" stroke="none" d="M11.9 8.82 L12.25 8.75 L12.05 8.0 Z"/>`;
 const HEAD_DETAIL = HEAD_FILL + JAW_FILL + TEETH;
-// ЯЗЫК идёт ИЗ ПАСТИ — от переднего зева над нижней челюстью — и падает вниз.
-// (Раньше он начинался там же, где проходил хвост, и читался как продолжение
-// хвоста, а не как язык.)
+// язык вылетает из распахнутой пасти и падает внутрь круга
 const TONGUE =
-  `<path d="M10.35 5.5 C9.55 6.9 9.45 8.35 9.9 9.5" stroke-width="0.55" opacity="0.9"/>` +
-  `<path d="M9.9 9.5 L9.0 10.5 M9.9 9.5 L10.75 10.4" stroke-width="0.5" opacity="0.9"/>`;
+  `<path d="M10.5 7.6 C9.85 8.95 9.75 10.3 10.15 11.4" stroke-width="0.55" opacity="0.9"/>` +
+  `<path d="M10.15 11.4 L9.2 12.4 M10.15 11.4 L10.95 12.3" stroke-width="0.5" opacity="0.9"/>`;
 
 // ── (a) сплошное тело: один штрих, максимум читаемости на 12-16px ──
 // Хвост продолжает дугу ПО КАСАТЕЛЬНОЙ (первая контрольная точка лежит на ней)
 // → кольцо не ломается, кривизна плавная.
 const END = P(TAIL + 360, R), T = TANG(TAIL + 360);
 const c1 = [+(END[0] + T[0] * 0.8).toFixed(2), +(END[1] + T[1] * 0.8).toFixed(2)];
-const bodyA = `M${pt(P(NECK, R))} A${R} ${R} 0 1 1 ${pt(P(238, R))}`;
+const bodyA = `M${pt(P(NECK, R))} A${R} ${R} 0 1 1 ${pt(END)}`;
 // хвост уходит с кольца ПО КАСАТЕЛЬНОЙ (без излома) и входит между челюстей
-const tailA = TAIL_PATH;
+const tailA =
+  `<path d="M${pt(END)} C8.6 5.9 9.6 6.6 10.9 7.35" stroke-width="1.0"/>` +
+  `<path d="M10.9 7.35 C11.25 7.4 11.6 7.43 11.95 7.45" stroke-width="0.72"/>`;
 const AZ3a =
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4">` +
   `<path d="${bodyA}" stroke-width="1.4" stroke-linejoin="round"/>` + tailA +
@@ -131,16 +100,19 @@ const RO2 = RO_, RI2 = RI_;
 // Кромки сходятся В ТОЧКУ на торце кольца (естественное сужение хвоста), и
 // дальше в пасть идёт один тонкий штрих — кольцо остаётся ровным.
 const bodyB =
-  `<path d="M${pt(P(NECK, RO2))} A${RO2} ${RO2} 0 1 1 ${pt(P(238, RO2))}" stroke-width="0.85"/>` +
-  `<path d="M${pt(P(NECK, RI2))} A${RI2} ${RI2} 0 1 1 ${pt(P(238, RI2))}" stroke-width="0.75"/>`;
+  `<path d="M${pt(P(NECK, RO2))} A${RO2} ${RO2} 0 1 1 ${pt(P(TAIL + 360, RO2))}" stroke-width="0.85"/>` +
+  `<path d="M${pt(P(NECK, RI2))} A${RI2} ${RI2} 0 1 1 ${pt(P(TAIL + 360, RI2))}" stroke-width="0.75"/>`;
 let scalesB = '';
-for (let d = NECK + 10; d <= 232; d += 11) {
+for (let d = NECK + 10; d <= TAIL + 360 - 8; d += 11) {
   const a = P(d - 1.4, RO2 - 0.42), b = P(d + 1.4, RI2 + 0.42);
   scalesB += `<path d="M${pt(a)} L${pt(b)}" stroke-width="0.42" opacity="0.6"/>`;
 }
 // кромки хвоста сходятся в точку — естественное сужение, кольцо не рвётся
 const EO = P(TAIL + 360, RO2), EI = P(TAIL + 360, RI2), TIP = [10.75, 7.3];
-const tailB = TAIL_PATH;
+const tailB =
+  `<path d="M${pt(EO)} C${+(EO[0] + T[0] * 1.1).toFixed(2)} ${+(EO[1] + T[1] * 1.1).toFixed(2)} 8.75 5.95 ${pt(TIP)}" stroke-width="0.75"/>` +
+  `<path d="M${pt(EI)} C${+(EI[0] + T[0] * 1.1).toFixed(2)} ${+(EI[1] + T[1] * 1.1).toFixed(2)} 9.35 7.55 ${pt(TIP)}" stroke-width="0.68"/>` +
+  `<path d="M${pt(TIP)} C11.2 7.38 11.6 7.42 11.95 7.45" stroke-width="0.7"/>`;
 const AZ3b =
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4">` +
   bodyB + scalesB + tailB +
