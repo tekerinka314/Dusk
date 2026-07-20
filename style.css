@@ -8942,6 +8942,12 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
     /* display:block перебивает coarse-медиа «label: none» (F2 прятала лейблы,
        потому что данные жили в шите; в створке рельса-структура возвращает их). */
     .side-rail .toolbar-group-label { order: -1; font-size: 10px; display: block; }
+    /* Полный десктопный состав кластеров: ДАННЫЕ возвращается в створку — F2
+       прятала его в ⋯-шит из-за тесноты ГОРИЗОНТАЛЬНОГО тулбара, в вертикальной
+       панели места достаточно (вердикт юзера «места там много, повторить
+       десктоп полностью»). ⋯-заместитель тогда лишний — дубль тех же действий. */
+    .side-rail .toolbar-group-data { display: flex; }
+    .side-rail .btn-tool.btn-tool-more { display: none; }
     .side-rail .toolbar-group-btns { flex-wrap: wrap; justify-content: flex-start; }
     .side-rail .toolbar-group + .toolbar-group::before {
         display: block;   /* coarse-медиа глушила «обрубок» у ФИЛЬТРА (:has) — в колонке шов легитимен */

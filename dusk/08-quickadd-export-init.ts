@@ -1737,7 +1737,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('click', e => {
     const t = e.target as Element;
     if (!_drawerIsOpen() || !t || typeof t.closest !== 'function') return;
-    if (t.closest('[data-act="focusGroupById"], [data-act="railDigestGo"], .nav-tab')) drawerClose();
+    if (t.closest('[data-act="focusGroupById"], [data-act="railDigestGo"], .nav-tab, [data-act="toggleMainSelectMode"]')) drawerClose();
 });
 
 // Жест: открыть свайпом из левой 24px-полосы, закрыть свайпом панели влево.
