@@ -2748,7 +2748,7 @@ html::after {
     position: absolute;
     /* -1px сверху/снизу: абсолют считается от padding-box кнопки, т.е. БЕЗ её
        границ — без выноса обводка заполнителя вставала на пиксель ниже кнопочной */
-    right: 100%; top: -1px; bottom: -1px; width: 13px;
+    right: 100%; top: 0; bottom: -1px; width: 13px;
     box-sizing: border-box;
     pointer-events: none;
     background: var(--pill-bg, transparent);   /* тот же фон, что у кнопки */
