@@ -1925,7 +1925,7 @@ function renderGroupBar() {
             <button type="button" class="meta-tag group-pill${focused ? ' pill-focused' : ''}" style="background:${bg};color:${g.color};border-color:${bd}"
                 data-act="focusGroupById" data-gid="${g.id}" aria-pressed="${focused}"
                 title="${focused ? 'Снять фокус' : 'Фокус на этой группе'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
-            <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
+            <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd};--pill-bg:${bg}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
         groupsList.appendChild(wrap);
     });
 }

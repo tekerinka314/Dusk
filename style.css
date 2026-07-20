@@ -2713,6 +2713,7 @@ html::after {
     border-right: none;
 }
 .btn-pill-delete {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2736,6 +2737,24 @@ html::after {
     opacity: 1;
 }
 .btn-pill-delete svg { width: 11px; height: 11px; pointer-events: none; flex-shrink: 0; }
+/* Заполнение зазора: пока пилюля держит круглый правый торец (тумбстоун статичен —
+   рельса/створка), между дугой торца и левым краем кнопки остаются два серпа пустоты.
+   Тело кнопки продолжается влево ровно на них: полоса 13px с вырезанным диском
+   радиуса пилюльного торца. Никакого наложения на саму пилюлю — только серпы. */
+.btn-pill-delete::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 0;
+    bottom: 0;
+    width: 13px;
+    pointer-events: none;
+    background: radial-gradient(circle 13px at left center,
+                transparent 0 12.7px, var(--pill-bg, transparent) 13.1px);
+    transition: opacity var(--transition);
+}
+/* На hover пилюля сама сплющивает торец — серпов больше нет, заполнитель уходит. */
+.group-pill-wrap:hover .btn-pill-delete::before { opacity: 0; }
 
 /* ===== SUBTASKS ===== */
 /* ── Smooth animation via inner wrapper ── */
@@ -8829,6 +8848,7 @@ kbd {
         min-width: 26px;
         padding: 4px 7px 4px 5px;
         opacity: 0.38;
+        overflow: visible;   /* иначе заполнитель серпов (::before) обрезается */
     }
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
 
@@ -9015,6 +9035,7 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         min-width: 26px;
         padding: 4px 7px 4px 5px;
         opacity: 0.5;
+        overflow: visible;   /* иначе заполнитель серпов (::before) обрезается */
     }
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
     /* Дайджест «Грядущее» входит в drawer (снимаем display-гейт, как рельса). */
