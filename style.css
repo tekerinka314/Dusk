@@ -2743,24 +2743,11 @@ html::after {
    вырезанным диском радиуса пилюльного торца. Живёт на .group-pill-wrap, а не на
    кнопке — иначе opacity кнопки (0.38/0.5) гасит заливку почти в ноль и серпы
    остаются визуально пустыми. Включается только там, где тумбстоун статичен. */
-.btn-pill-delete::before {
-    content: '';
-    position: absolute;
-    /* -1px сверху/снизу: абсолют считается от padding-box кнопки, т.е. БЕЗ её
-       границ — без выноса обводка заполнителя вставала на пиксель ниже кнопочной */
-    right: 100%; top: -1px; bottom: -1px; width: 13px;
-    box-sizing: border-box;
-    pointer-events: none;
-    background: var(--pill-bg, transparent);   /* тот же фон, что у кнопки */
-    border-top: 1px solid; border-bottom: 1px solid;
-    border-color: inherit;                     /* та же обводка, что у кнопки */
-    /* вырез диска радиуса пилюльного торца — заливка ложится ровно в серпы */
-    -webkit-mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
-    mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
-    transition: opacity var(--transition);
-}
-/* На hover пилюля сама сплющивает торец — серпов нет, заполнитель уходит. */
-.group-pill-wrap:hover .btn-pill-delete::before { opacity: 0; }
+/* Серпы между круглым торцом пилюли и кнопкой-гробом заполняет САМА кнопка:
+   в тирах со статичным тумбстоуном (рельса/створка) она вытянута влево на 13px,
+   поэтому её собственные верхняя и нижняя границы идут по серпам — это буквально
+   та же линия, что и на кнопке, никакого отдельного бокса и субпиксельных
+   расхождений. Торец пилюли вырезается маской. См. .side-rail ниже. */
 
 /* ===== SUBTASKS ===== */
 /* ── Smooth animation via inner wrapper ── */
@@ -8855,7 +8842,23 @@ kbd {
         padding: 4px 7px 4px 5px;
         opacity: 0.38;
     }
-    .side-rail .btn-pill-delete { overflow: visible; }   /* иначе заполнитель серпов обрежется */
+    /* Кнопка сама заполняет серпы: вытянута влево на 13px (радиус торца пилюли),
+       её обводка проходит по ним, диск торца вырезан маской. Тумбстоун при этом
+       стоит там же — сдвиг компенсирован левым паддингом. */
+    .side-rail .btn-pill-delete {
+        width: 39px; min-width: 39px;
+        margin-left: -13px;
+        padding: 4px 7px 4px 18px;
+        -webkit-mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
+        mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
+    }
+    /* Тумбстоун статичен → сплющивать торец на hover незачем (иначе кнопка налезет). */
+    .side-rail .group-pill-wrap:hover .meta-tag.group-pill {
+        border-radius: 99px;
+        padding-right: 11px;
+        border-right-width: 1px;
+        border-right-style: solid;
+    }
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
 
     /* Rail deadline digest «Грядущее»: visual styles are shared (below, near the
@@ -9042,7 +9045,23 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         padding: 4px 7px 4px 5px;
         opacity: 0.5;
     }
-    .side-rail .btn-pill-delete { overflow: visible; }   /* иначе заполнитель серпов обрежется */
+    /* Кнопка сама заполняет серпы: вытянута влево на 13px (радиус торца пилюли),
+       её обводка проходит по ним, диск торца вырезан маской. Тумбстоун при этом
+       стоит там же — сдвиг компенсирован левым паддингом. */
+    .side-rail .btn-pill-delete {
+        width: 39px; min-width: 39px;
+        margin-left: -13px;
+        padding: 4px 7px 4px 18px;
+        -webkit-mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
+        mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
+    }
+    /* Тумбстоун статичен → сплющивать торец на hover незачем (иначе кнопка налезет). */
+    .side-rail .group-pill-wrap:hover .meta-tag.group-pill {
+        border-radius: 99px;
+        padding-right: 11px;
+        border-right-width: 1px;
+        border-right-style: solid;
+    }
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
     /* Дайджест «Грядущее» входит в drawer (снимаем display-гейт, как рельса). */
     body[data-page="main"] .rail-digest { display: block; }
