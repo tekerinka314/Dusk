@@ -66,13 +66,21 @@ function ring(r, sw) {
 const TONGUE = `<path d="M12.9 6.1 C11.8 6.5 10.6 6.75 9.75 6.85 C9.5 6.88 9.3 6.9 9.15 6.95 C8.5 7.5 8.05 8.4 8.05 9.25" stroke-width="0.55"/>` +
   `<path d="M8.05 9.25 L7.45 9.95 M8.05 9.25 L8.75 9.85" stroke-width="0.48"/>`;
 
+// впуклый горбик: сращивает затылок с телом — заливка, ограниченная вогнутой
+// кривой (прогиб к центру) сверху и внешней кромкой кольца снизу
+const P1 = map(16.37, 5.63);                         // затылок головы
+const P2 = pt(-46, R_OUT), P3 = pt(-76, R_OUT);      // точки на внешней кромке
+const GUSSET = `<path fill="currentColor" stroke="none" d="M${P1[0].toFixed(2)} ${P1[1].toFixed(2)} ` +
+  `C${(P1[0]+0.5).toFixed(2)} ${(P1[1]+1.1).toFixed(2)} ${(P2[0]-1.1).toFixed(2)} ${(P2[1]-0.6).toFixed(2)} ${P2[0]} ${P2[1]} ` +
+  `A${R_OUT} ${R_OUT} 0 0 0 ${P3[0]} ${P3[1]} Z"/>`;
+
 const build = (withScales = true) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.0" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="4">` +
   ring(R_OUT, 0.85) + ring(R_IN, 0.75) +
   `<path d="${taperEdge(R_OUT)}" stroke-width="0.85"/>` +
   `<path d="${taperEdge(R_IN)}" stroke-width="0.75"/>` +
   (withScales ? scales(-136, -42) : '') +
-  HEAD_G + TONGUE + `</svg>`;
+  GUSSET + HEAD_G + TONGUE + `</svg>`;
 
 const AZ = build(true), AZ_BARE = build(false);
 writeFileSync('az6-glyphs.txt', `AZ6:\n${AZ}\n\nAZ6 bare:\n${AZ_BARE}\n`);
