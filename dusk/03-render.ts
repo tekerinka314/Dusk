@@ -1921,8 +1921,6 @@ function renderGroupBar() {
         const focused = focusGroupId === g.id;
         const wrap = document.createElement('div');
         wrap.className = 'group-pill-wrap';
-        // заливка серпов между круглым торцом пилюли и кнопкой-гробом (см. style.css)
-        wrap.style.setProperty('--pill-fill', rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.09)` : 'rgba(110,40,200,0.09)');
         wrap.innerHTML = `
             <button type="button" class="meta-tag group-pill${focused ? ' pill-focused' : ''}" style="background:${bg};color:${g.color};border-color:${bd}"
                 data-act="focusGroupById" data-gid="${g.id}" aria-pressed="${focused}"

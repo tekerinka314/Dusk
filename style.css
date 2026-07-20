@@ -2743,8 +2743,22 @@ html::after {
    вырезанным диском радиуса пилюльного торца. Живёт на .group-pill-wrap, а не на
    кнопке — иначе opacity кнопки (0.38/0.5) гасит заливку почти в ноль и серпы
    остаются визуально пустыми. Включается только там, где тумбстоун статичен. */
-.group-pill-wrap::after { content: none; }
-.group-pill-wrap:hover::after { opacity: 0; }
+.btn-pill-delete::before {
+    content: '';
+    position: absolute;
+    right: 100%; top: 0; bottom: 0; width: 13px;
+    box-sizing: border-box;
+    pointer-events: none;
+    background: var(--pill-bg, transparent);   /* тот же фон, что у кнопки */
+    border-top: 1px solid; border-bottom: 1px solid;
+    border-color: inherit;                     /* та же обводка, что у кнопки */
+    /* вырез диска радиуса пилюльного торца — заливка ложится ровно в серпы */
+    -webkit-mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
+    mask: radial-gradient(circle 13px at left center, transparent 0 12.9px, #000 13.1px);
+    transition: opacity var(--transition);
+}
+/* На hover пилюля сама сплющивает торец — серпов нет, заполнитель уходит. */
+.group-pill-wrap:hover .btn-pill-delete::before { opacity: 0; }
 
 /* ===== SUBTASKS ===== */
 /* ── Smooth animation via inner wrapper ── */
@@ -8839,15 +8853,7 @@ kbd {
         padding: 4px 7px 4px 5px;
         opacity: 0.38;
     }
-    .side-rail .group-pill-wrap::after {
-        content: '';
-        position: absolute;
-        right: 26px; top: 0; bottom: 0; width: 13px;
-        pointer-events: none;
-        background: radial-gradient(circle 13px at left center,
-                    transparent 0 12.4px, var(--pill-fill, transparent) 12.9px);
-        transition: opacity var(--transition);
-    }
+    .side-rail .btn-pill-delete { overflow: visible; }   /* иначе заполнитель серпов обрежется */
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
 
     /* Rail deadline digest «Грядущее»: visual styles are shared (below, near the
@@ -9034,15 +9040,7 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         padding: 4px 7px 4px 5px;
         opacity: 0.5;
     }
-    .side-rail .group-pill-wrap::after {
-        content: '';
-        position: absolute;
-        right: 26px; top: 0; bottom: 0; width: 13px;
-        pointer-events: none;
-        background: radial-gradient(circle 13px at left center,
-                    transparent 0 12.4px, var(--pill-fill, transparent) 12.9px);
-        transition: opacity var(--transition);
-    }
+    .side-rail .btn-pill-delete { overflow: visible; }   /* иначе заполнитель серпов обрежется */
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
     /* Дайджест «Грядущее» входит в drawer (снимаем display-гейт, как рельса). */
     body[data-page="main"] .rail-digest { display: block; }
