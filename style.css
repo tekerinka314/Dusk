@@ -2710,26 +2710,33 @@ html::after {
    этого поля (он абсолютный внутри обёртки, без собственных фона и границы).
    Так граница «расширяется под кнопку», а не разрезается. */
 .group-pill-wrap:hover .meta-tag.group-pill {
-    padding-right: 30px;
+    padding-right: 27px;
 }
+/* Кнопка остаётся САМОСТОЯТЕЛЬНОЙ сущностью — со своим телом (кромка в цвете
+   группы) и ПРОЗРАЧНЫМ фоном, — но живёт ВНУТРИ капсулы и не выпирает за её
+   границу. */
 .btn-pill-delete {
     position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 26px;
+    right: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    background: none;
-    border: none;
+    background: transparent;
+    border: 1px solid;
+    border-color: inherit;
+    border-radius: 99px;
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
-    transition: color var(--transition), opacity var(--transition), transform var(--transition);
+    transition: color var(--transition), opacity var(--transition), background-color var(--transition);
     line-height: 1;
 }
+.btn-pill-delete:hover { background: rgba(255, 255, 255, 0.07); }
 .group-pill-wrap:hover .btn-pill-delete {
     opacity: 1;
     pointer-events: auto;
@@ -8814,7 +8821,7 @@ kbd {
         /* Тумбстоун здесь ВИДЕН всегда (слайд-аут дёргал полноширинные ряды),
            поэтому поле под него зарезервировано постоянно — гроб лежит ВНУТРИ
            замкнутой капсулы, а не отдельной коробкой сбоку. */
-        padding-right: 30px;
+        padding-right: 27px;
     }
     /* the name span is a block so ellipsis fires (never on a flex container) */
     .side-rail .group-pill .gp-name {
@@ -8830,7 +8837,7 @@ kbd {
        так что расширять на hover нечего — капсула остаётся неизменной. */
     .side-rail .btn-pill-delete { opacity: 0.38; pointer-events: auto; }
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
-    .side-rail .group-pill-wrap:hover .meta-tag.group-pill { padding-right: 30px; }
+    .side-rail .group-pill-wrap:hover .meta-tag.group-pill { padding-right: 27px; }
 
     /* Rail deadline digest «Грядущее»: visual styles are shared (below, near the
        base display gate) — the rail tier only lifts the display:none. */
@@ -9003,7 +9010,7 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         /* Тумбстоун здесь ВИДЕН всегда (слайд-аут дёргал полноширинные ряды),
            поэтому поле под него зарезервировано постоянно — гроб лежит ВНУТРИ
            замкнутой капсулы, а не отдельной коробкой сбоку. */
-        padding-right: 30px;
+        padding-right: 27px;
     }
     .side-rail .group-pill .gp-name {
         display: block;
@@ -9017,7 +9024,7 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
     .side-rail .btn-pill-delete { opacity: 0.5; pointer-events: auto; }
     .side-rail .group-pill-wrap:hover .btn-pill-delete { opacity: 1; }
     /* поле уже зарезервировано в самой пилюле — hover ничего не расширяет */
-    .side-rail .group-pill-wrap:hover .meta-tag.group-pill { padding-right: 30px; }
+    .side-rail .group-pill-wrap:hover .meta-tag.group-pill { padding-right: 27px; }
     /* Дайджест «Грядущее» входит в drawer (снимаем display-гейт, как рельса). */
     body[data-page="main"] .rail-digest { display: block; }
 
