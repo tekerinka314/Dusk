@@ -8812,7 +8812,20 @@ kbd {
         justify-content: space-between;
         gap: 8px;
         cursor: pointer;
+        /* Тумбстоун здесь СТАТИЧЕН (не слайд-аут по hover), поэтому слияние
+           «кнопка выезжает изнутри пилюли» надо держать постоянно: правый край
+           плоский, правая граница снята, у кнопки нет левой → одна непрерывная
+           капсула с общим фоном, а не две коробки со швом. */
+        border-radius: 99px 0 0 99px;
+        border-right: none;
     }
+    /* Фокус-свечение переносится на обёртку, иначе кольцо обрезается по стыку
+       и режет слитую капсулу пополам. */
+    .side-rail .group-pill-wrap { border-radius: 99px; }
+    .side-rail .group-pill-wrap:has(.pill-focused) {
+        box-shadow: 0 0 0 1px var(--border-bright), 0 0 12px var(--accent-glow);
+    }
+    .side-rail .group-pill.pill-focused { box-shadow: none; }
     /* the name span is a block so ellipsis fires (never on a flex container) */
     .side-rail .group-pill .gp-name {
         display: block;
@@ -9000,7 +9013,20 @@ html.drawer-open #drawer-scrim { opacity: 1; pointer-events: auto; }
         justify-content: space-between;
         gap: 8px;
         cursor: pointer;
+        /* Тумбстоун здесь СТАТИЧЕН (не слайд-аут по hover), поэтому слияние
+           «кнопка выезжает изнутри пилюли» надо держать постоянно: правый край
+           плоский, правая граница снята, у кнопки нет левой → одна непрерывная
+           капсула с общим фоном, а не две коробки со швом. */
+        border-radius: 99px 0 0 99px;
+        border-right: none;
     }
+    /* Фокус-свечение переносится на обёртку, иначе кольцо обрезается по стыку
+       и режет слитую капсулу пополам. */
+    .side-rail .group-pill-wrap { border-radius: 99px; }
+    .side-rail .group-pill-wrap:has(.pill-focused) {
+        box-shadow: 0 0 0 1px var(--border-bright), 0 0 12px var(--accent-glow);
+    }
+    .side-rail .group-pill.pill-focused { box-shadow: none; }
     .side-rail .group-pill .gp-name {
         display: block;
         min-width: 0;
