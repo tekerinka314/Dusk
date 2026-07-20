@@ -1747,10 +1747,20 @@ document.addEventListener('touchstart', (e: TouchEvent) => {
     if (!_drawerMq.matches) { _dwSwipe = null; return; }
     const t = e.touches[0];
     const el = e.target as Element;
-    if (!_drawerIsOpen() && t.clientX <= 24 && document.body.dataset.page === 'main')
-        _dwSwipe = { x: t.clientX, y: t.clientY, mode: 'open' };
+    // Открытие: кромка ≤40px (на Android системный back-жест съедает первые ~20px,
+    // прежние 24px были практически недостижимы) ИЛИ свайп вправо откуда угодно по
+    // «спокойной» области — не по списку/подпунктам (там DnD) и не по полям ввода.
+    // У некромочного старта порог выше, чтобы не мешать горизонтальным скроллам.
+    if (!_drawerIsOpen() && document.body.dataset.page === 'main') {
+        const edge = t.clientX <= 40;
+        const busy = el && typeof el.closest === 'function' && el.closest(
+            '.todo-item, .subtask-item, input, textarea, select, [contenteditable], .modal-overlay, .sheet, #side-rail');
+        _dwSwipe = (edge || !busy)
+            ? { x: t.clientX, y: t.clientY, mode: 'open', need: edge ? 30 : 70 }
+            : null;
+    }
     else if (_drawerIsOpen() && el && typeof el.closest === 'function' && el.closest('#side-rail'))
-        _dwSwipe = { x: t.clientX, y: t.clientY, mode: 'close' };
+        _dwSwipe = { x: t.clientX, y: t.clientY, mode: 'close', need: 44 };
     else _dwSwipe = null;
 }, { passive: true });
 document.addEventListener('touchmove', (e: TouchEvent) => {
@@ -1758,7 +1768,8 @@ document.addEventListener('touchmove', (e: TouchEvent) => {
     const t = e.touches[0];
     const dx = t.clientX - _dwSwipe.x, dy = t.clientY - _dwSwipe.y;
     if (Math.abs(dy) > 46 && Math.abs(dy) > Math.abs(dx)) { _dwSwipe = null; return; }   // вертикаль = скролл
-    if (_dwSwipe.mode === 'open'  && dx >  34) { _dwSwipe = null; drawerOpen(); }
-    else if (_dwSwipe.mode === 'close' && dx < -44) { _dwSwipe = null; drawerClose(); }
+    const need = _dwSwipe.need || 34;
+    if (_dwSwipe.mode === 'open'  && dx >  need && Math.abs(dx) > Math.abs(dy)) { _dwSwipe = null; drawerOpen(); }
+    else if (_dwSwipe.mode === 'close' && dx < -need) { _dwSwipe = null; drawerClose(); }
 }, { passive: true });
 document.addEventListener('touchend', () => { _dwSwipe = null; }, { passive: true });
