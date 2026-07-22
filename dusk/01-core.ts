@@ -390,13 +390,24 @@ const IC = {
     repeatMonthly: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13.6A8.8 8.8 0 1 1 10.4 3.2A7 7 0 0 0 20 13.6Z"/><path d="M11.9 7.3C11.1 7.7 10.9 8.5 11.4 9.1" stroke-width="1" opacity="0.65"/><circle cx="10.1" cy="8.5" r="0.6" fill="currentColor" stroke="none" opacity="0.75"/><path d="M11 11.2C11.7 11.5 12 12.2 11.5 12.9C11.2 13.3 10.6 13.4 10.2 13.2" stroke-width="1" opacity="0.65"/><path d="M10 15.2C10.7 15.6 11.5 15.5 12 15" stroke-width="1" opacity="0.6"/><path d="M18.3 4.4L18.75 5.55L19.9 6L18.75 6.45L18.3 7.6L17.85 6.45L16.7 6L17.85 5.55Z" fill="currentColor" stroke="none" opacity="0.85"/></svg>`,
     // Middle diamond at full opacity creates a natural gradient peak.
     // Thin stroke sharpens edges; fills provide the solid presence.
-    // Drag handle — a gothic quatrefoil chain: two four-lobed (quatrefoil) links
-    // joined by a round link, evoking cathedral-tracery jewellery. Stroke-only so
-    // it stays legible and elegant at handle sizes.
-    drag: `<svg viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="0.95" stroke-linejoin="round">
-        <g><circle cx="8" cy="3" r="1.45"/><circle cx="9.6" cy="4.6" r="1.45"/><circle cx="8" cy="6.2" r="1.45"/><circle cx="6.4" cy="4.6" r="1.45"/></g>
-        <circle cx="8" cy="10" r="1.7"/>
-        <g><circle cx="8" cy="13.8" r="1.45"/><circle cx="9.6" cy="15.4" r="1.45"/><circle cx="8" cy="17" r="1.45"/><circle cx="6.4" cy="15.4" r="1.45"/></g>
+    // Drag handle (AX1) — a forged vertical chain: three rhombus links joined by
+    // ribbed rings, echoing the AQ2 chain language. Link walls, a rivet in the
+    // middle ring, highlights on top / shadows below.
+    drag: `<svg viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 1.2C9.3 2.05 9.85 2.85 9.85 3.4C9.85 3.95 9.3 4.75 8 5.6C6.7 4.75 6.15 3.95 6.15 3.4C6.15 2.85 6.7 2.05 8 1.2Z"/>
+        <path d="M8 2.3C8.6 2.75 8.85 3.15 8.85 3.4C8.85 3.65 8.6 4.05 8 4.5C7.4 4.05 7.15 3.65 7.15 3.4C7.15 3.15 7.4 2.75 8 2.3Z" stroke-width="0.55" opacity="0.4"/>
+        <path d="M6.9 2.3C7.1 2 7.4 1.7 7.65 1.5" stroke-width="0.5" opacity="0.75"/>
+        <ellipse cx="8" cy="6.5" rx="0.85" ry="1.25" stroke-width="0.9"/>
+        <ellipse cx="8" cy="6.5" rx="0.35" ry="0.7" stroke-width="0.45" opacity="0.4"/>
+        <path d="M8 7.5C9.3 8.35 9.85 9.15 9.85 9.7C9.85 10.25 9.3 11.05 8 11.9C6.7 11.05 6.15 10.25 6.15 9.7C6.15 9.15 6.7 8.35 8 7.5Z"/>
+        <path d="M8 9.05L8.4 9.7L8 10.35L7.6 9.7Z" fill="currentColor" stroke="none" opacity="0.55"/>
+        <path d="M6.9 8.6C7.1 8.3 7.4 8 7.65 7.8" stroke-width="0.5" opacity="0.75"/>
+        <path d="M9.1 10.8C8.9 11.1 8.6 11.4 8.35 11.6" stroke-width="0.5" opacity="0.3"/>
+        <ellipse cx="8" cy="12.8" rx="0.85" ry="1.25" stroke-width="0.9"/>
+        <ellipse cx="8" cy="12.8" rx="0.35" ry="0.7" stroke-width="0.45" opacity="0.4"/>
+        <path d="M8 13.8C9.3 14.65 9.85 15.45 9.85 16C9.85 16.55 9.3 17.35 8 18.2C6.7 17.35 6.15 16.55 6.15 16C6.15 15.45 6.7 14.65 8 13.8Z"/>
+        <path d="M8 15.05C8.6 15.5 8.85 15.85 8.85 16C8.85 16.15 8.6 16.5 8 16.95C7.4 16.5 7.15 16.15 7.15 16C7.15 15.85 7.4 15.5 8 15.05Z" stroke-width="0.55" opacity="0.4"/>
+        <path d="M9.1 17.1C8.9 17.4 8.6 17.7 8.35 17.9" stroke-width="0.5" opacity="0.3"/>
     </svg>`,
     // Sound on (O2) — engraved gothic bell: crown-bracket yoke, diamond-engraved skirt band,
     // teardrop clapper, sound sparks. Bells are the original notification symbol.

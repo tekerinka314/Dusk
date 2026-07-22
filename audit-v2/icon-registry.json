@@ -46,8 +46,8 @@
   "locations": [
    "index.html:144",
    "index.html:592",
-   "dusk/01-core.ts:445",
-   "dusk/01-core.ts:457"
+   "dusk/01-core.ts:456",
+   "dusk/01-core.ts:468"
   ]
  },
  "4aac93069ae0221c": {
@@ -227,7 +227,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
    "index.html:485",
-   "dusk/01-core.ts:496"
+   "dusk/01-core.ts:507"
   ]
  },
  "df6069d9dd527b15": {
@@ -382,7 +382,7 @@
   "locations": [
    "index.html:760",
    "dusk/01-core.ts:380",
-   "dusk/01-core.ts:545"
+   "dusk/01-core.ts:556"
   ]
  },
  "882d1a43bd8643a7": {
@@ -605,7 +605,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
    "index.html:1420",
-   "dusk/01-core.ts:510"
+   "dusk/01-core.ts:521"
   ]
  },
  "a90a43bbea7837ac": {
@@ -889,7 +889,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:382",
-   "dusk/01-core.ts:556"
+   "dusk/01-core.ts:567"
   ]
  },
  "2c0604ffd4158978": {
@@ -900,10 +900,10 @@
    "dusk/01-core.ts:390"
   ]
  },
- "1e249c72c44b0c2b": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 16 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"0.95\" stroke-line",
+ "418748bbd0216d9b": {
+  "role": "AX1",
+  "note": "IC.drag — forged vertical chain (AX1 redesign)",
+  "preview": "<svg viewBox=\"0 0 16 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.1\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:396"
   ]
@@ -913,7 +913,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:403"
+   "dusk/01-core.ts:414"
   ]
  },
  "82d7cab58955070f": {
@@ -921,7 +921,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:418"
+   "dusk/01-core.ts:429"
   ]
  },
  "ca5c9669e171bd66": {
@@ -929,7 +929,7 @@
   "note": "",
   "preview": "<svg viewBox=\"-74 -113 660 660\" fill=\"none\" stroke=\"none\"><path d=\"M 45.251 1.537 C 4.564 ",
   "locations": [
-   "dusk/01-core.ts:437"
+   "dusk/01-core.ts:448"
   ]
  },
  "ecadf9d5d6aac4ee": {
@@ -937,7 +937,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:440"
+   "dusk/01-core.ts:451"
   ]
  },
  "6e039fef6fb36d09": {
@@ -945,7 +945,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:443"
+   "dusk/01-core.ts:454"
   ]
  },
  "ad504cfad8e6b78d": {
@@ -953,7 +953,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:447"
+   "dusk/01-core.ts:458"
   ]
  },
  "5534b6a18c7381b4": {
@@ -961,8 +961,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:453",
-   "dusk/01-core.ts:518"
+   "dusk/01-core.ts:464",
+   "dusk/01-core.ts:529"
   ]
  },
  "ad032aa5df2af110": {
@@ -970,7 +970,7 @@
   "note": "",
   "preview": "<svg class=\"none-moon-r\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-widt",
   "locations": [
-   "dusk/01-core.ts:454"
+   "dusk/01-core.ts:465"
   ]
  },
  "9425f8588bafcf5e": {
@@ -978,7 +978,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:472"
+   "dusk/01-core.ts:483"
   ]
  },
  "7cfe38dd17667ae1": {
@@ -986,7 +986,7 @@
   "note": "тот же AZ6 без чешуи для 9px cycle-until бейджа",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:513"
+   "dusk/01-core.ts:524"
   ]
  },
  "612f0726febf2f79": {
@@ -994,7 +994,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:516"
+   "dusk/01-core.ts:527"
   ]
  },
  "4bf45cc49e2aee1b": {
@@ -1002,7 +1002,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:523"
+   "dusk/01-core.ts:534"
   ]
  },
  "b444c884ade6e6e8": {
@@ -1010,7 +1010,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:526"
+   "dusk/01-core.ts:537"
   ]
  },
  "ff8bdb44097ed3c4": {
@@ -1018,7 +1018,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" stroke=\"none\" stroke-linejoin=\"round\"><path d=\"M2.8 5.6 L5.6 2.8 ",
   "locations": [
-   "dusk/01-core.ts:533"
+   "dusk/01-core.ts:544"
   ]
  },
  "731fc055ba91251e": {
@@ -1026,7 +1026,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:570"
+   "dusk/01-core.ts:581"
   ]
  },
  "11e098411fcaf4e1": {
@@ -1034,7 +1034,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:573"
+   "dusk/01-core.ts:584"
   ]
  },
  "dba9dfcd43c9ed8c": {
@@ -1042,7 +1042,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:577"
+   "dusk/01-core.ts:588"
   ]
  },
  "a28cfc6097964a06": {
@@ -1050,7 +1050,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:589"
+   "dusk/01-core.ts:600"
   ]
  },
  "76220120591804b8": {
