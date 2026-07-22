@@ -1552,22 +1552,22 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <g class="brow">
             <path d="M3.3 9.0 C6.4 3.9 17.6 3.9 20.7 9.0" stroke-width="1.7"/>
-            <path d="M6.8 6.4 l.7 1.2" stroke-width="1.15" opacity=".55"/>
-            <path d="M9.7 5.5 l.42 1.2" stroke-width="1.15" opacity=".55"/>
-            <path d="M12 5.1 l0 1.35" stroke-width="1.2" opacity=".6"/>
-            <path d="M14.3 5.5 l-.42 1.2" stroke-width="1.15" opacity=".55"/>
-            <path d="M17.2 6.4 l-.7 1.2" stroke-width="1.15" opacity=".55"/>
+            <path d="M5.4 7.2 q1.1 -1.15 2.4 -0.5" stroke-width="0.9" opacity=".55"/>
+            <path d="M8.6 5.9 q1.2 -0.95 2.5 -0.35" stroke-width="0.9" opacity=".55"/>
+            <path d="M12.9 5.4 q1.25 -0.55 2.4 0.25" stroke-width="0.9" opacity=".55"/>
+            <path d="M16.2 6.5 q1.2 -0.35 2.1 0.6" stroke-width="0.9" opacity=".55"/>
         </g>
         <g class="lids">
             <path class="lid-up" d="M3 12 C6.2 6.6 17.8 6.6 21 12"/>
             <path class="lid-lo" d="M3 12 C6.2 17.4 17.8 17.4 21 12"/>
-            <path d="M3 12 l-1.3 -1.05 M3 12 l-1.3 1.05" stroke-width="1.15" opacity=".5"/>
-            <path d="M21 12 l1.3 -1.05 M21 12 l1.3 1.05" stroke-width="1.15" opacity=".5"/>
-            <path class="tear" d="M5.6 12.7 C8.4 15.5 15.6 15.5 18.4 12.7" stroke-width="1.1" opacity=".42"/>
-            <path d="M3.2 12 q1.0 .78 2.1 .55" stroke-width="1.0" opacity=".42"/>
+            <path d="M3 12 q-1.5 -0.6 -1.9 -1.6 M3 12 q-1.5 0.6 -1.9 1.6" stroke-width="1.05" opacity=".5"/>
+            <path d="M21 12 q1.5 -0.6 1.9 -1.6 M21 12 q1.5 0.6 1.9 1.6" stroke-width="1.05" opacity=".5"/>
+            <path class="tear" d="M5.6 12.7 C8.4 15.5 15.6 15.5 18.4 12.7" stroke-width="1.05" opacity=".4"/>
+            <path d="M7.6 15.05 l-0.45 1.15 M10.2 15.6 l-0.25 1.2 M13.8 15.6 l0.25 1.2 M16.4 15.05 l0.45 1.15" stroke-width="0.95" opacity=".5"/>
         </g>
         <g class="ball">
             <circle class="iris" cx="12" cy="12" r="3.4" opacity=".46"/>
+            <circle cx="12" cy="12" r="2.55" stroke-width="0.7" opacity=".3"/>
             <g class="iris-stria" stroke-width="1.1" opacity=".46">
                 <path d="M12 8.7 v1.15"/><path d="M12 14.15 v1.15"/>
                 <path d="M8.7 12 h1.15"/><path d="M14.15 12 h1.15"/>
@@ -1584,14 +1584,22 @@
 <button class="btn-shortcuts-toggle" id="btn-shortcuts-toggle"
         data-act="toggleShortcutsHint" title="Горячие клавиши"
         aria-label="Горячие клавиши" aria-pressed="false">
-    <!-- Gothic key: lancet-arch bow (pointed top), long shank, two wards.
-         "Key" = access to hidden commands — direct metaphor for keyboard shortcuts. -->
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
-        <path d="M12 2C12 2 10.5 2.8 10.5 5C10.5 7.2 12 8 12 8C12 8 13.5 7.2 13.5 5C13.5 2.8 12 2 12 2Z"/>
-        <path d="M12 2.2C12 2.2 11.4 1.1 12 0.4C12.6 1.1 12 2.2 12 2.2"/>
-        <line x1="12" y1="8"  x2="12" y2="21"/>
-        <line x1="12" y1="14" x2="14.5" y2="14"/>
-        <line x1="12" y1="18" x2="14.5" y2="18"/>
+    <!-- Gothic key (BB1) — sacristy key: quatrefoil bow with a rivet (echoes the
+         rosette + chain), two collar-rings on the shank, a two-tooth slotted bit,
+         chamfered tip. "Key" = access to hidden commands = keyboard shortcuts. -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+        <circle cx="12" cy="2.9" r="1.35"/>
+        <circle cx="13.9" cy="4.8" r="1.35"/>
+        <circle cx="12" cy="6.7" r="1.35"/>
+        <circle cx="10.1" cy="4.8" r="1.35"/>
+        <circle cx="12" cy="4.8" r="0.45" fill="currentColor" stroke="none" opacity="0.7"/>
+        <line x1="12" y1="8.05" x2="12" y2="19.6" stroke-width="1.6"/>
+        <ellipse cx="12" cy="10.4" rx="1.15" ry="0.5" stroke-width="0.9" opacity="0.65"/>
+        <ellipse cx="12" cy="13" rx="1.15" ry="0.5" stroke-width="0.9" opacity="0.65"/>
+        <path d="M12 15.9H15.1V17.1H13.7V18.4H15.1V19.6H12" stroke-width="1.35"/>
+        <line x1="13.7" y1="16.5" x2="13.7" y2="17.1" stroke-width="0.7" opacity="0.5"/>
+        <line x1="12" y1="19.6" x2="12" y2="21.6" stroke-width="1.6"/>
+        <path d="M11.3 21.1L12 21.9L12.7 21.1" stroke-width="0.9" opacity="0.6"/>
     </svg>
 </button>
 

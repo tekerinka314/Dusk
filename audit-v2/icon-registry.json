@@ -616,20 +616,20 @@
    "index.html:1436"
   ]
  },
- "38e7efb4948da50c": {
-  "role": "UNASSIGNED",
-  "note": "",
+ "005057c23abfe8cc": {
+  "role": "BC1",
+  "note": "sync reptilian-eye FAB — scale brows + spine-lashes (BC1); state classes intact",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "index.html:1552"
   ]
  },
- "d31cf5cd08d21022": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
+ "379dda1781ff688f": {
+  "role": "BB1",
+  "note": "shortcuts-hint key — sacristy key, quatrefoil bow (BB1)",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.45\" stroke-line",
   "locations": [
-   "index.html:1589"
+   "index.html:1590"
   ]
  },
  "f89310433c4fd8bf": {
@@ -637,7 +637,7 @@
   "note": "",
   "preview": "<svg width=\"0\" height=\"0\" style=\"position:absolute;overflow:hidden\"><defs><linearGradient ",
   "locations": [
-   "index.html:1611"
+   "index.html:1619"
   ]
  },
  "1ea4cc51eae3da83": {
@@ -645,7 +645,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:1678"
+   "index.html:1686"
   ]
  },
  "34a05efc0c7d809f": {
