@@ -94,7 +94,7 @@
    "index.html:1051",
    "index.html:1111",
    "index.html:1460",
-   "dusk/02-grimoire.ts:842"
+   "dusk/02-grimoire.ts:844"
   ]
  },
  "359c63d0f54f9337": {
@@ -334,7 +334,7 @@
   "locations": [
    "index.html:662",
    "index.html:912",
-   "dusk/02-grimoire.ts:1182"
+   "dusk/02-grimoire.ts:1184"
   ]
  },
  "7970d81ddbdfeb0f": {
@@ -1117,28 +1117,28 @@
    "dusk/02-grimoire.ts:217"
   ]
  },
- "ed058ef350f1cd46": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
-  "locations": [
-   "dusk/02-grimoire.ts:221"
-  ]
- },
- "f2809521f5b7ae68": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
-  "locations": [
-   "dusk/02-grimoire.ts:222"
-  ]
- },
- "0a38114858327ef9": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
+ "8ccd8da887ce9fc8": {
+  "role": "FL2",
+  "note": "GIC.focusLvl[0] — codex spread, full (FL2 redesign)",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
    "dusk/02-grimoire.ts:223"
+  ]
+ },
+ "df7a806dd7fcd196": {
+  "role": "FL2",
+  "note": "GIC.focusLvl[1] — left page furled to edge (FL2 redesign)",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
+  "locations": [
+   "dusk/02-grimoire.ts:224"
+  ]
+ },
+ "9dd8892ee0cc38ac": {
+  "role": "FL2",
+  "note": "GIC.focusLvl[2] — single page full, quire-curl (FL2 redesign)",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
+  "locations": [
+   "dusk/02-grimoire.ts:225"
   ]
  },
  "588c6e56553ee7d0": {
@@ -1146,7 +1146,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:229"
+   "dusk/02-grimoire.ts:231"
   ]
  },
  "e4148872fe351148": {
@@ -1154,7 +1154,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:230"
+   "dusk/02-grimoire.ts:232"
   ]
  },
  "000b8a29a286ee39": {
@@ -1162,7 +1162,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:231"
+   "dusk/02-grimoire.ts:233"
   ]
  },
  "ea7427497cc26645": {
@@ -1170,7 +1170,7 @@
   "note": "",
   "preview": "<svg class=\"grim-crypt-month-chevron\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor",
   "locations": [
-   "dusk/02-grimoire.ts:1098"
+   "dusk/02-grimoire.ts:1100"
   ]
  },
  "2099df8caa078c47": {
@@ -1178,7 +1178,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"rgba(255,255,255,0.95)\" stroke-width=\"2.8\" st",
   "locations": [
-   "dusk/02-grimoire.ts:1601",
+   "dusk/02-grimoire.ts:1603",
    "dusk/03-render.ts:1440"
   ]
  },
@@ -1187,7 +1187,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:2746"
+   "dusk/02-grimoire.ts:2748"
   ]
  },
  "d49aa99a7dd5927c": {
@@ -1195,7 +1195,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:2748"
+   "dusk/02-grimoire.ts:2750"
   ]
  },
  "c450df9c9970a13c": {
@@ -1203,7 +1203,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:2750"
+   "dusk/02-grimoire.ts:2752"
   ]
  },
  "70b05d44af2b6a78": {
@@ -1211,7 +1211,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3191"
+   "dusk/02-grimoire.ts:3193"
   ]
  },
  "7863ad121e300d5d": {
@@ -1219,7 +1219,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3192"
+   "dusk/02-grimoire.ts:3194"
   ]
  },
  "268ad0ff38c901ba": {
@@ -1227,7 +1227,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3193"
+   "dusk/02-grimoire.ts:3195"
   ]
  },
  "05ce304ae271cb9d": {
@@ -1235,7 +1235,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3194"
+   "dusk/02-grimoire.ts:3196"
   ]
  },
  "a93d6f52591597a1": {
@@ -1243,7 +1243,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3195"
+   "dusk/02-grimoire.ts:3197"
   ]
  },
  "0b95035aad7ffa0a": {
@@ -1251,7 +1251,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3196"
+   "dusk/02-grimoire.ts:3198"
   ]
  },
  "565ff82cba8d5371": {
@@ -1259,7 +1259,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3197"
+   "dusk/02-grimoire.ts:3199"
   ]
  },
  "3b5d52eb7ff92da8": {
@@ -1267,7 +1267,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3198"
+   "dusk/02-grimoire.ts:3200"
   ]
  },
  "c01900ef0b41a55b": {
@@ -1275,7 +1275,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3199"
+   "dusk/02-grimoire.ts:3201"
   ]
  },
  "482f67d140b6b706": {
@@ -1283,7 +1283,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3201"
+   "dusk/02-grimoire.ts:3203"
   ]
  },
  "a3acaaffab59a051": {
@@ -1291,7 +1291,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3202"
+   "dusk/02-grimoire.ts:3204"
   ]
  },
  "fe54d344ce64a7bb": {
@@ -1299,7 +1299,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3203"
+   "dusk/02-grimoire.ts:3205"
   ]
  },
  "75b76fb5fc15edc2": {
@@ -1307,7 +1307,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3204"
+   "dusk/02-grimoire.ts:3206"
   ]
  },
  "d68d5a238df27d95": {
@@ -1315,7 +1315,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3207"
+   "dusk/02-grimoire.ts:3209"
   ]
  },
  "243774aa4190e42e": {
@@ -1323,7 +1323,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3208"
+   "dusk/02-grimoire.ts:3210"
   ]
  },
  "afb0b09245349e62": {
@@ -1331,7 +1331,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3212"
+   "dusk/02-grimoire.ts:3214"
   ]
  },
  "a7e3b2ead111cea4": {
@@ -1339,7 +1339,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3213"
+   "dusk/02-grimoire.ts:3215"
   ]
  },
  "0f54eac1f5e693e4": {
@@ -1347,7 +1347,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3214"
+   "dusk/02-grimoire.ts:3216"
   ]
  },
  "110cec175075a523": {
@@ -1355,7 +1355,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3215"
+   "dusk/02-grimoire.ts:3217"
   ]
  },
  "654c64d86d6dac30": {
@@ -1363,7 +1363,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3217"
+   "dusk/02-grimoire.ts:3219"
   ]
  },
  "01fd94eb23d811d1": {
@@ -1371,7 +1371,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3218"
+   "dusk/02-grimoire.ts:3220"
   ]
  },
  "aed11c515768dee7": {
@@ -1379,7 +1379,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3219"
+   "dusk/02-grimoire.ts:3221"
   ]
  },
  "f58a81ff80f74720": {
@@ -1387,7 +1387,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3362"
+   "dusk/02-grimoire.ts:3364"
   ]
  },
  "82d2830eed322763": {
@@ -1395,7 +1395,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3363"
+   "dusk/02-grimoire.ts:3365"
   ]
  },
  "bbc18662f3fe5bb9": {
@@ -1403,7 +1403,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-line",
   "locations": [
-   "dusk/02-grimoire.ts:3364"
+   "dusk/02-grimoire.ts:3366"
   ]
  },
  "a9ab18b76aa4948b": {
@@ -1411,7 +1411,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3367"
+   "dusk/02-grimoire.ts:3369"
   ]
  },
  "0c13d9579206c97d": {
@@ -1419,7 +1419,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3913"
+   "dusk/02-grimoire.ts:3915"
   ]
  },
  "ef28d967e5f97cfa": {
@@ -1427,7 +1427,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3914"
+   "dusk/02-grimoire.ts:3916"
   ]
  },
  "f59b74765364a793": {
@@ -1435,7 +1435,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3915"
+   "dusk/02-grimoire.ts:3917"
   ]
  },
  "b047c1b717816cde": {
@@ -1443,7 +1443,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "dusk/02-grimoire.ts:3916"
+   "dusk/02-grimoire.ts:3918"
   ]
  },
  "bec891d2da115e11": {
@@ -1451,7 +1451,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3917"
+   "dusk/02-grimoire.ts:3919"
   ]
  },
  "e589e83052b938e3": {
@@ -1459,7 +1459,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3920"
+   "dusk/02-grimoire.ts:3922"
   ]
  },
  "23c430b2bc5cd13d": {
