@@ -186,10 +186,20 @@
                                 <button class="form-color-swatch" data-color="#F06CAE" style="background:#F06CAE" title="Розовый"></button>
                                 <button class="form-color-swatch" data-color="#B06CF5" style="background:#B06CF5" title="Фиолетовый"></button>
                                 <button type="button" class="form-color-custom" data-act="openFormColorModal" title="Свой цвет — спектр">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-                                        <path d="M12 3L18 8L18 17L12 21L6 17L6 8Z"/>
-                                        <line x1="12" y1="3" x2="12" y2="21" stroke-width="1" opacity="0.4"/>
-                                        <line x1="6" y1="8" x2="18" y2="8" stroke-width="1" opacity="0.4"/>
+                                    <!-- BH1 — refracting prism-crystal: faceted gem with inner cleavage
+                                         lines and three spark-tipped rays = "pick any hue from the spectrum". -->
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                                        <path d="M12 6.2L16.6 11.6L12 21.8L7.4 11.6Z"/>
+                                        <line x1="12" y1="6.2" x2="12" y2="21.8" stroke-width="0.8" opacity="0.4"/>
+                                        <line x1="7.4" y1="11.6" x2="16.6" y2="11.6" stroke-width="0.8" opacity="0.4"/>
+                                        <path d="M9.7 8.9L12 11.6L14.3 8.9" stroke-width="0.7" opacity="0.3"/>
+                                        <path d="M9.05 16.7L12 11.6L14.95 16.7" stroke-width="0.7" opacity="0.3"/>
+                                        <path d="M8.3 4.6L7 2.9" stroke-width="1.1" opacity="0.65"/>
+                                        <circle cx="6.5" cy="2.2" r="0.55" fill="currentColor" stroke="none" opacity="0.75"/>
+                                        <path d="M12 4.4V2.6" stroke-width="1.1" opacity="0.65"/>
+                                        <circle cx="12" cy="1.8" r="0.55" fill="currentColor" stroke="none" opacity="0.75"/>
+                                        <path d="M15.7 4.6L17 2.9" stroke-width="1.1" opacity="0.65"/>
+                                        <circle cx="17.5" cy="2.2" r="0.55" fill="currentColor" stroke="none" opacity="0.75"/>
                                     </svg>
                                 </button>
                             </div>
@@ -360,16 +370,27 @@
                 <button class="btn-expand" id="btn-expand" data-act="toggleExpand">
                     <span class="be-stud tl" aria-hidden="true"></span><span class="be-stud tr" aria-hidden="true"></span><span class="be-stud bl" aria-hidden="true"></span><span class="be-stud br" aria-hidden="true"></span>
                     <span class="be-keystone" aria-hidden="true"></span>
-                    <svg class="be-fil" viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
+                    <!-- BF1 — vine tendril with a leaf, curl and terminal bud (be-label flourish). -->
+                    <svg class="be-fil" viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 6 C15 6 15 2 10 2 C7 2 7 6 4 6"/>
                         <path d="M4 6 C7 6 7 10 10 10 C12.5 10 13.5 8 13.5 7"/>
-                        <circle cx="2.5" cy="6" r="1.1" fill="currentColor" stroke="none"/>
+                        <path d="M10 2 C9.3 0.9 10.7 0.9 10 2 Z" fill="currentColor" stroke="none" opacity="0.6"/>
+                        <path d="M13.5 7 L14.1 6.1 L13.2 6.3" stroke-width="0.85" opacity="0.7"/>
+                        <path d="M16.5 5 C16.1 4 16.9 3.4 17.6 3.9" stroke-width="0.8" opacity="0.5"/>
+                        <path d="M7 8.3 C6.6 9.2 7.3 9.9 8 9.5" stroke-width="0.8" opacity="0.5"/>
+                        <path d="M2.5 6 L3.4 6.7 L3.4 5.3 Z" fill="currentColor" stroke="none"/>
+                        <circle cx="1.6" cy="6" r="0.55" fill="currentColor" stroke="none" opacity="0.6"/>
                     </svg>
                     <span class="be-label">Параметры</span>
-                    <svg class="be-fil be-fil-r" viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
+                    <svg class="be-fil be-fil-r" viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 6 C15 6 15 2 10 2 C7 2 7 6 4 6"/>
                         <path d="M4 6 C7 6 7 10 10 10 C12.5 10 13.5 8 13.5 7"/>
-                        <circle cx="2.5" cy="6" r="1.1" fill="currentColor" stroke="none"/>
+                        <path d="M10 2 C9.3 0.9 10.7 0.9 10 2 Z" fill="currentColor" stroke="none" opacity="0.6"/>
+                        <path d="M13.5 7 L14.1 6.1 L13.2 6.3" stroke-width="0.85" opacity="0.7"/>
+                        <path d="M16.5 5 C16.1 4 16.9 3.4 17.6 3.9" stroke-width="0.8" opacity="0.5"/>
+                        <path d="M7 8.3 C6.6 9.2 7.3 9.9 8 9.5" stroke-width="0.8" opacity="0.5"/>
+                        <path d="M2.5 6 L3.4 6.7 L3.4 5.3 Z" fill="currentColor" stroke="none"/>
+                        <circle cx="1.6" cy="6" r="0.55" fill="currentColor" stroke="none" opacity="0.6"/>
                     </svg>
                 </button>
             </div>
@@ -817,7 +838,7 @@
                         <span>Записи</span>
                     </button>
                     <button class="grim-seg" id="grim-seg-archive" role="tab" data-act="grimSetMode" data-mode="archive" title="Архив заметок">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/><path d="M12 8.4 V14.6 M9.8 10.9 H14.2" stroke-width="1.3"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M9.7 3.8 H14.3 L16.6 8.2 L15.1 20.2 H8.9 L7.4 8.2 Z" stroke-width="0.7" opacity="0.32"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.45"/><path d="M12 8.6 V15 M9.7 11.2 H14.3" stroke-width="1.25"/><path d="M12 8.2 L12.6 9.1 L11.4 9.1 Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M12 15.4 L12.6 14.5 L11.4 14.5 Z" fill="currentColor" stroke="none" opacity="0.8"/><circle cx="7.1" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="16.9" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="12" cy="19.4" r="0.35" fill="currentColor" stroke="none" opacity="0.4"/></svg>
                         <span>Склеп</span>
                         <span class="grim-seg-count" id="grim-seg-count" style="display:none"></span>
                     </button>
@@ -835,13 +856,15 @@
                     </button>
                     <div class="grim-io-split" id="grim-io-split">
                         <button class="grim-ghost-btn grim-io-btn" id="grim-io" data-act="grimToggleIoMenu" title="Импорт и экспорт записей" aria-haspopup="true" aria-expanded="false">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9.3 7.4q0-1.5 1.4-1.5h2.6q1.4 0 1.4 1.5v9.2q0 1.5-1.4 1.5h-2.6q-1.4 0-1.4-1.5Z"/><path d="M9.3 8.5h5.4M9.3 15.5h5.4" opacity=".5"/><path d="M10.7 10.4h3.2M10.7 12.2h3.2" opacity=".5"/><path d="M9.1 10.2q-3.3-1.2-6 .6 2.1.1 2.9 1-2.7.2-4.2 1.8 2.3-.4 3.3.4-1.7.7-2.2 2.1 2.7-1.5 5.2-1.2" opacity=".92"/><path d="M14.9 10.2q3.3-1.2 6 .6-2.1.1-2.9 1 2.7.2 4.2 1.8-2.3-.4-3.3.4 1.7.7 2.2 2.1-2.7-1.5-5.2-1.2" opacity=".92"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 6.2H14.4" stroke-width="1.2"/><path d="M9.6 6.2C8.8 6.2 8.5 5.5 9 5C9.5 4.5 10.2 4.8 10.2 5.4" stroke-width="0.85" opacity="0.75"/><path d="M14.4 6.2C15.2 6.2 15.5 5.5 15 5C14.5 4.5 13.8 4.8 13.8 5.4" stroke-width="0.85" opacity="0.75"/><path d="M9.3 6.2V17.8"/><path d="M14.7 6.2V17.8"/><path d="M9.3 17.8C10.1 17.8 10.4 18.5 9.9 19" stroke-width="0.85" opacity="0.75"/><path d="M14.7 17.8C13.9 17.8 13.6 18.5 14.1 19" stroke-width="0.85" opacity="0.75"/><path d="M9.3 17.8H14.7" stroke-width="1.2"/><circle cx="10.6" cy="8.8" r="0.28" fill="currentColor" stroke="none" opacity="0.5"/><path d="M11.3 8.8h2.2" stroke-width="0.85" opacity="0.4"/><path d="M10.6 11h2.9M10.6 13.2h2.2M10.6 15.4h1.6" stroke-width="0.85" opacity="0.4"/><path d="M8.9 9.7C6.6 8.9 4.6 9.4 3.3 10.9C4.9 10.6 6.1 10.9 7.1 11.7"/><path d="M8.8 12C6.7 11.6 5 12.2 3.9 13.4C5.3 13.1 6.4 13.4 7.4 14" opacity="0.8"/><path d="M8.9 14.2C7.2 13.9 5.9 14.5 5.1 15.5C6.3 15.3 7.1 15.5 7.8 16.1" opacity="0.55"/><path d="M15.1 9.7C17.4 8.9 19.4 9.4 20.7 10.9C19.1 10.6 17.9 10.9 16.9 11.7"/><path d="M15.2 12C17.3 11.6 19 12.2 20.1 13.4C18.7 13.1 17.6 13.4 16.6 14" opacity="0.8"/><path d="M15.1 14.2C16.8 13.9 18.1 14.5 18.9 15.5C17.7 15.3 16.9 15.5 16.2 16.1" opacity="0.55"/></svg>
                             <span>Перенос</span>
                         </button>
                         <div class="grim-tpl-pop grim-io-pop" id="grim-io-pop" role="menu"></div>
                     </div>
                     <button class="grim-ghost-btn grim-danger-btn" id="grim-empty-crypt" data-act="grimEmptyCrypt" title="Опустошить склеп — уничтожить все записи в нём" style="display:none">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.3 C8.1 3.3 5.7 6 5.7 9.4 C5.7 11.2 6.4 12.1 7 13 V15.2 C7 16 7.6 16.6 8.4 16.6 V18.7 H15.6 V16.6 C16.4 16.6 17 16 17 15.2 V13 C17.6 12.1 18.3 11.2 18.3 9.4 C18.3 6 15.9 3.3 12 3.3 Z"/><path d="M9.9 8.2 C8.8 8.2 8.4 9.3 8.9 10.4 C9.2 11.1 9.8 11.1 10.1 10.4 C10.6 9.3 11 8.2 9.9 8.2 Z"/><path d="M14.1 8.2 C15.2 8.2 15.6 9.3 15.1 10.4 C14.8 11.1 14.2 11.1 13.9 10.4 C13.4 9.3 13 8.2 14.1 8.2 Z"/><path d="M12 11.2 L11 13.1 H13 Z"/><path d="M10 18.7 V16.6 M12 18.7 V16.6 M14 18.7 V16.6" stroke-width="1"/></svg>
+                        <!-- BR1 — toppled engraved urn: lid flies off, ashes spill in a
+                             dwindling dotted arc, two sparks depart = "empty the crypt". -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 8.2L6.4 5.6L9.2 4.4L14 5.2L15.4 7.4L14.6 10.6L12.2 12.2L7.4 11.4Z" transform="rotate(24 10 8)"/><path d="M6.8 7.2L8.2 5.9" stroke-width="0.7" opacity="0.35" transform="rotate(24 10 8)"/><line x1="6.2" y1="9.2" x2="10.4" y2="9.9" stroke-width="1" opacity="0.6" transform="rotate(24 10 8)"/><path d="M13.2 13.6H18.6L19.8 15.4H12.4Z" transform="rotate(24 15 14)" opacity="0.85"/><circle cx="13.6" cy="16.2" r="0.6" fill="currentColor" stroke="none" opacity="0.75"/><circle cx="15.8" cy="18" r="0.5" fill="currentColor" stroke="none" opacity="0.6"/><circle cx="12.2" cy="19" r="0.45" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="14.4" cy="20.7" r="0.4" fill="currentColor" stroke="none" opacity="0.45"/><circle cx="10.9" cy="21.4" r="0.35" fill="currentColor" stroke="none" opacity="0.35"/><path d="M9.2 17.8C10.4 18.9 12.4 20.4 15 21.4" stroke-width="0.7" opacity="0.3"/><path d="M17.4 20.9L18.3 22.3M19.1 19.4L20.5 20.2" stroke-width="0.8" opacity="0.4"/></svg>
                         <span>Опустошить</span>
                     </button>
                     <div class="grim-new-split" id="grim-new-split">
@@ -902,7 +925,7 @@
                 <span class="select-bar-actions">
                     <span class="select-bar-group">
                         <button class="sb-btn sb-archive" id="grim-bulk-archive" data-act="grimBulkArchive" title="Отправить в склеп" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/><path d="M12 8.4 V14.6 M9.8 10.9 H14.2" stroke-width="1.3"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M9.7 3.8 H14.3 L16.6 8.2 L15.1 20.2 H8.9 L7.4 8.2 Z" stroke-width="0.7" opacity="0.32"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.45"/><path d="M12 8.6 V15 M9.7 11.2 H14.3" stroke-width="1.25"/><path d="M12 8.2 L12.6 9.1 L11.4 9.1 Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M12 15.4 L12.6 14.5 L11.4 14.5 Z" fill="currentColor" stroke="none" opacity="0.8"/><circle cx="7.1" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="16.9" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="12" cy="19.4" r="0.35" fill="currentColor" stroke="none" opacity="0.4"/></svg>
                         </button>
                         <button class="sb-btn sb-archive" id="grim-bulk-restore" data-act="grimBulkRestore" title="Вернуть в гримуар" disabled style="display:none">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 21V14.7L6.9 11.4L8.2 8.9H15.8L17.1 11.4L15.8 14.7V21"/><path d="M9.4 20V14.9L8.4 11.4L9.4 10.1" stroke-width="0.7" opacity="0.32"/><path d="M14.6 20V14.9L15.6 11.4L14.6 10.1" stroke-width="0.7" opacity="0.32"/><line x1="10.1" y1="12.6" x2="13.9" y2="12.6" stroke-width="1" opacity="0.6"/><circle cx="12" cy="15.6" r="0.45" fill="currentColor" stroke="none" opacity="0.5"/><path d="M7.1 21H16.9L18.3 22.9H5.7Z"/><path d="M15.4 8.9L19.9 6.4L20.7 7.8L16.4 10.2" stroke-width="1.2"/><line x1="17.7" y1="7.3" x2="18.3" y2="8.5" stroke-width="0.7" opacity="0.5"/><line x1="12" y1="1.4" x2="12" y2="6.8" stroke-width="1.6"/><path d="M10.5 3L12 1.4L13.5 3" stroke-width="1.6"/><path d="M11 5.7L12 6.8L13 5.7" stroke-width="0.9" opacity="0.6"/><path d="M9.2 4.6C8.7 3.7 8.8 2.7 9.4 1.9" stroke-width="0.8" opacity="0.4"/><path d="M14.8 4.6C15.3 3.7 15.2 2.7 14.6 1.9" stroke-width="0.8" opacity="0.4"/></svg>
@@ -913,7 +936,7 @@
                         </button>
                         <span class="grim-io-sel" id="grim-io-sel">
                             <button class="sb-btn" id="grim-bulk-export" data-act="grimToggleIoSelMenu" title="Экспорт выбранных" aria-haspopup="true" aria-expanded="false" disabled>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9.3 7.4q0-1.5 1.4-1.5h2.6q1.4 0 1.4 1.5v9.2q0 1.5-1.4 1.5h-2.6q-1.4 0-1.4-1.5Z"/><path d="M9.3 8.5h5.4M9.3 15.5h5.4" opacity=".5"/><path d="M10.7 10.4h3.2M10.7 12.2h3.2" opacity=".5"/><path d="M9.1 10.2q-3.3-1.2-6 .6 2.1.1 2.9 1-2.7.2-4.2 1.8 2.3-.4 3.3.4-1.7.7-2.2 2.1 2.7-1.5 5.2-1.2" opacity=".92"/><path d="M14.9 10.2q3.3-1.2 6 .6-2.1.1-2.9 1 2.7.2 4.2 1.8-2.3-.4-3.3.4 1.7.7 2.2 2.1-2.7-1.5-5.2-1.2" opacity=".92"/></svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 6.2H14.4" stroke-width="1.2"/><path d="M9.6 6.2C8.8 6.2 8.5 5.5 9 5C9.5 4.5 10.2 4.8 10.2 5.4" stroke-width="0.85" opacity="0.75"/><path d="M14.4 6.2C15.2 6.2 15.5 5.5 15 5C14.5 4.5 13.8 4.8 13.8 5.4" stroke-width="0.85" opacity="0.75"/><path d="M9.3 6.2V17.8"/><path d="M14.7 6.2V17.8"/><path d="M9.3 17.8C10.1 17.8 10.4 18.5 9.9 19" stroke-width="0.85" opacity="0.75"/><path d="M14.7 17.8C13.9 17.8 13.6 18.5 14.1 19" stroke-width="0.85" opacity="0.75"/><path d="M9.3 17.8H14.7" stroke-width="1.2"/><circle cx="10.6" cy="8.8" r="0.28" fill="currentColor" stroke="none" opacity="0.5"/><path d="M11.3 8.8h2.2" stroke-width="0.85" opacity="0.4"/><path d="M10.6 11h2.9M10.6 13.2h2.2M10.6 15.4h1.6" stroke-width="0.85" opacity="0.4"/><path d="M8.9 9.7C6.6 8.9 4.6 9.4 3.3 10.9C4.9 10.6 6.1 10.9 7.1 11.7"/><path d="M8.8 12C6.7 11.6 5 12.2 3.9 13.4C5.3 13.1 6.4 13.4 7.4 14" opacity="0.8"/><path d="M8.9 14.2C7.2 13.9 5.9 14.5 5.1 15.5C6.3 15.3 7.1 15.5 7.8 16.1" opacity="0.55"/><path d="M15.1 9.7C17.4 8.9 19.4 9.4 20.7 10.9C19.1 10.6 17.9 10.9 16.9 11.7"/><path d="M15.2 12C17.3 11.6 19 12.2 20.1 13.4C18.7 13.1 17.6 13.4 16.6 14" opacity="0.8"/><path d="M15.1 14.2C16.8 13.9 18.1 14.5 18.9 15.5C17.7 15.3 16.9 15.5 16.2 16.1" opacity="0.55"/></svg>
                             </button>
                             <div class="grim-tpl-pop grim-io-pop grim-io-sel-pop" id="grim-io-sel-pop" role="menu"></div>
                         </span>
@@ -1644,15 +1667,28 @@
       <line x1="12" y1="8" x2="12" y2="12.6" stroke-width="1.5"/>
       <path d="M9.9 10.7L12 13.2L14.1 10.7"/>
     </symbol>
+    <!-- BE1 — ceremonial coffin emblem: double rivet-studded border, pattée cross
+         with trefoil-ringed arms + medallion, lancet arch around the cross, star-rosette
+         in a ring above, scrolled garland with bead below. Shared gradient refs kept. -->
     <symbol id="coffin-emblem" viewBox="0 0 80 96">
-      <path d="M26 4 L54 4 L74 22 L74 88 Q40 96 6 88 L6 22 Z"
-            fill="url(#emblemFillShared)" stroke="url(#emblemStrokeShared)"
-            stroke-width="1.6" stroke-linejoin="round"/>
-      <line x1="40" y1="30" x2="40" y2="72" stroke="rgba(220,170,255,0.70)" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="27" y1="47" x2="53" y2="47" stroke="rgba(220,170,255,0.70)" stroke-width="2.2" stroke-linecap="round"/>
-      <circle cx="40" cy="18" r="4" fill="rgba(180,100,255,0.55)" stroke="rgba(220,150,255,0.7)" stroke-width="1"/>
-      <line x1="40" y1="14" x2="40" y2="10" stroke="rgba(190,120,255,0.5)" stroke-width="1.2" stroke-linecap="round"/>
-      <path d="M28 80 Q40 85 52 80" stroke="rgba(180,100,255,0.45)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+      <path d="M26 4 L54 4 L74 22 L74 88 Q40 96 6 88 L6 22 Z" fill="url(#emblemFillShared)" stroke="url(#emblemStrokeShared)" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M28.5 9 L51.5 9 L68.5 24.5 L68.5 84 Q40 90.5 11.5 84 L11.5 24.5 Z" fill="none" stroke="rgba(190,120,255,0.42)" stroke-width="1.1" stroke-linejoin="round"/>
+      <circle cx="14.8" cy="21" r="1.4" fill="rgba(200,140,255,0.5)"/><circle cx="65.2" cy="21" r="1.4" fill="rgba(200,140,255,0.5)"/>
+      <circle cx="11.5" cy="52" r="1.4" fill="rgba(200,140,255,0.4)"/><circle cx="68.5" cy="52" r="1.4" fill="rgba(200,140,255,0.4)"/>
+      <circle cx="17" cy="83" r="1.4" fill="rgba(200,140,255,0.35)"/><circle cx="63" cy="83" r="1.4" fill="rgba(200,140,255,0.35)"/>
+      <path d="M29 74 L29 44 Q29 30 40 26 Q51 30 51 44 L51 74" fill="none" stroke="rgba(170,100,250,0.35)" stroke-width="1.2"/>
+      <line x1="40" y1="32" x2="40" y2="70" stroke="rgba(220,170,255,0.72)" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="29" y1="46" x2="51" y2="46" stroke="rgba(220,170,255,0.72)" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="40" cy="30.4" r="1.9" fill="none" stroke="rgba(220,170,255,0.6)" stroke-width="1.1"/>
+      <circle cx="40" cy="71.6" r="1.9" fill="none" stroke="rgba(220,170,255,0.6)" stroke-width="1.1"/>
+      <circle cx="27.4" cy="46" r="1.9" fill="none" stroke="rgba(220,170,255,0.6)" stroke-width="1.1"/>
+      <circle cx="52.6" cy="46" r="1.9" fill="none" stroke="rgba(220,170,255,0.6)" stroke-width="1.1"/>
+      <circle cx="40" cy="46" r="2.6" fill="rgba(200,140,255,0.5)" stroke="rgba(230,190,255,0.7)" stroke-width="0.9"/>
+      <circle cx="40" cy="17.5" r="4.6" fill="none" stroke="rgba(210,150,255,0.62)" stroke-width="1.1"/>
+      <path d="M40 13.6 L41.1 16.4 L44 17.5 L41.1 18.6 L40 21.4 L38.9 18.6 L36 17.5 L38.9 16.4 Z" fill="rgba(200,140,255,0.6)"/>
+      <path d="M24 80 Q40 87 56 80" stroke="rgba(180,100,255,0.45)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+      <circle cx="40" cy="83.6" r="1.1" fill="rgba(190,120,255,0.5)"/>
+      <path d="M30 80.8 Q28.4 82.6 26.6 82.2 M50 80.8 Q51.6 82.6 53.4 82.2" stroke="rgba(180,100,255,0.35)" stroke-width="1" fill="none"/>
     </symbol>
   </defs>
 </svg>
