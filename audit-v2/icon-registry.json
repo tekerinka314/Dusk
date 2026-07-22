@@ -93,7 +93,7 @@
    "index.html:262",
    "index.html:1051",
    "index.html:1111",
-   "index.html:1464",
+   "index.html:1460",
    "dusk/02-grimoire.ts:842"
   ]
  },
@@ -103,7 +103,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
    "index.html:226",
-   "index.html:1428"
+   "index.html:1424"
   ]
  },
  "d47a06014cf566e3": {
@@ -382,7 +382,7 @@
   "locations": [
    "index.html:760",
    "dusk/01-core.ts:380",
-   "dusk/01-core.ts:553"
+   "dusk/01-core.ts:545"
   ]
  },
  "882d1a43bd8643a7": {
@@ -479,7 +479,7 @@
   "locations": [
    "index.html:1084",
    "index.html:1145",
-   "index.html:1494"
+   "index.html:1490"
   ]
  },
  "63be9400ab31188c": {
@@ -489,7 +489,7 @@
   "locations": [
    "index.html:1093",
    "index.html:1154",
-   "index.html:1503"
+   "index.html:1499"
   ]
  },
  "c96c40af915c22b3": {
@@ -599,12 +599,13 @@
    "index.html:1411"
   ]
  },
- "f8438a49fb7b1802": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
+ "618850e41adf2101": {
+  "role": "AZ · ouroboros (повтор/обновление)",
+  "note": "AZ6 со чешуёй — заменил старую лемнискату во всех точках IC.ouroboros + инлайн кнопка Еженедельно; генератор gen-az5.mjs",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
-   "index.html:1420"
+   "index.html:1420",
+   "dusk/01-core.ts:510"
   ]
  },
  "a90a43bbea7837ac": {
@@ -612,7 +613,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1440"
+   "index.html:1436"
   ]
  },
  "38e7efb4948da50c": {
@@ -620,7 +621,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1556"
+   "index.html:1552"
   ]
  },
  "d31cf5cd08d21022": {
@@ -628,7 +629,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1593"
+   "index.html:1589"
   ]
  },
  "f89310433c4fd8bf": {
@@ -636,7 +637,7 @@
   "note": "",
   "preview": "<svg width=\"0\" height=\"0\" style=\"position:absolute;overflow:hidden\"><defs><linearGradient ",
   "locations": [
-   "index.html:1615"
+   "index.html:1611"
   ]
  },
  "1ea4cc51eae3da83": {
@@ -644,7 +645,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:1682"
+   "index.html:1678"
   ]
  },
  "34a05efc0c7d809f": {
@@ -684,7 +685,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'><path d",
   "locations": [
-   "style.css:3138"
+   "style.css:3165"
   ]
  },
  "7c54d94a021aff1a": {
@@ -692,7 +693,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='n",
   "locations": [
-   "style.css:3882"
+   "style.css:3909"
   ]
  },
  "3983c4bd59004170": {
@@ -700,7 +701,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 20' fill='none' stroke='#c898ff' s",
   "locations": [
-   "style.css:6132"
+   "style.css:6159"
   ]
  },
  "3822b6c11ca30eb9": {
@@ -708,7 +709,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 20' fill='none' stroke='#c898ff' s",
   "locations": [
-   "style.css:6149"
+   "style.css:6176"
   ]
  },
  "f9829e5bd895d11d": {
@@ -716,7 +717,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 32 32' fill='n",
   "locations": [
-   "style.css:7831"
+   "style.css:7858"
   ]
  },
  "b4709620283f3c96": {
@@ -724,7 +725,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12'><line x1='0' y1='6' x2='80' y",
   "locations": [
-   "style.css:8136"
+   "style.css:8163"
   ]
  },
  "ca5ca565d868a8dd": {
@@ -732,7 +733,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8175"
+   "style.css:8202"
   ]
  },
  "dd88000e9d33935f": {
@@ -740,7 +741,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8179"
+   "style.css:8206"
   ]
  },
  "ac8a1a1aa765da28": {
@@ -748,7 +749,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8183"
+   "style.css:8210"
   ]
  },
  "7c3f121cf1b4883a": {
@@ -756,8 +757,8 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 5.2 6 6.5 4 7.8 2 ",
   "locations": [
-   "style.css:8520",
-   "style.css:8521"
+   "style.css:8547",
+   "style.css:8548"
   ]
  },
  "701f2c8eb4cfa60f": {
@@ -888,7 +889,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:382",
-   "dusk/01-core.ts:564"
+   "dusk/01-core.ts:556"
   ]
  },
  "2c0604ffd4158978": {
@@ -961,7 +962,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:453",
-   "dusk/01-core.ts:526"
+   "dusk/01-core.ts:518"
   ]
  },
  "ad032aa5df2af110": {
@@ -980,20 +981,12 @@
    "dusk/01-core.ts:472"
   ]
  },
- "bca617fa488c5c1b": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
+ "7cfe38dd17667ae1": {
+  "role": "AZ · cycleReturn (bare)",
+  "note": "тот же AZ6 без чешуи для 9px cycle-until бейджа",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:510"
-  ]
- },
- "d35bf2e213e89ac7": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 10 10\" width=\"9\" height=\"9\" fill=\"none\" stroke=\"currentColor\" stroke-wid",
-  "locations": [
-   "dusk/01-core.ts:521"
+   "dusk/01-core.ts:513"
   ]
  },
  "612f0726febf2f79": {
@@ -1001,7 +994,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:524"
+   "dusk/01-core.ts:516"
   ]
  },
  "4bf45cc49e2aee1b": {
@@ -1009,7 +1002,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:531"
+   "dusk/01-core.ts:523"
   ]
  },
  "b444c884ade6e6e8": {
@@ -1017,7 +1010,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:534"
+   "dusk/01-core.ts:526"
   ]
  },
  "ff8bdb44097ed3c4": {
@@ -1025,7 +1018,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" stroke=\"none\" stroke-linejoin=\"round\"><path d=\"M2.8 5.6 L5.6 2.8 ",
   "locations": [
-   "dusk/01-core.ts:541"
+   "dusk/01-core.ts:533"
   ]
  },
  "731fc055ba91251e": {
@@ -1033,7 +1026,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:578"
+   "dusk/01-core.ts:570"
   ]
  },
  "11e098411fcaf4e1": {
@@ -1041,7 +1034,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:581"
+   "dusk/01-core.ts:573"
   ]
  },
  "dba9dfcd43c9ed8c": {
@@ -1049,7 +1042,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:585"
+   "dusk/01-core.ts:577"
   ]
  },
  "a28cfc6097964a06": {
@@ -1057,7 +1050,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:597"
+   "dusk/01-core.ts:589"
   ]
  },
  "76220120591804b8": {
