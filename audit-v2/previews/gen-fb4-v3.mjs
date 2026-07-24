@@ -223,20 +223,39 @@ const BL1 = {
 
 /* ─────────── BL2 · «Кованая шторка над рядом инструментов» ───────────
    Интуитивность: ВИДЕН сам ряд инструментов (три сигила в кованой планке)
-   и заслонка над ним. auto = заслонка на половине, пунктиром, сигилы
-   приглушены · open = поднята и заперта засовом-штырём, сигилы яркие ·
-   closed = опущена до планки, сигилы скрыты за решёткой, снизу кольцо. */
+   и заслонка над ним. auto = заслонка на половине, сплошная, сигилы
+   приглушены · open = поднята, сигилы яркие · closed = опущена до низа
+   планки, сигилы скрыты за решёткой.
+   Рерабока 2026-07-24 (4 правки юзера): пунктир auto → сплошная линия;
+   убран засов-штырь у open; убрано кольцо-ручка у closed, пики решётки
+   доведены до нижней кромки планки; содержимое планки переработано. */
 const toolPlate = (o = 1) =>
   `<path d="M3.6 14.4C3.6 13.5 4.3 12.8 5.2 12.8H18.8C19.7 12.8 20.4 13.5 20.4 14.4V18.2C20.4 19.1 19.7 19.8 18.8 19.8H5.2C4.3 19.8 3.6 19.1 3.6 18.2Z" stroke-width="1.35" opacity="${o}"/>` +
   `<circle cx="5.3" cy="14.5" r="0.32" fill="currentColor" stroke="none" opacity="${0.55 * o}"/>` +
   `<circle cx="18.7" cy="14.5" r="0.32" fill="currentColor" stroke="none" opacity="${0.55 * o}"/>` +
   `<circle cx="5.3" cy="18.1" r="0.32" fill="currentColor" stroke="none" opacity="${0.55 * o}"/>` +
   `<circle cx="18.7" cy="18.1" r="0.32" fill="currentColor" stroke="none" opacity="${0.55 * o}"/>`;
+// Рерабока: три сигила — не абстрактные фигуры, а СОБСТВЕННЫЕ мотивы DUSK,
+// уже принятые юзером в других глифах, гравированные на планке инструментов:
+//   1) стрельчатая арка с окулюсом и цоколем — архитектурный мотив приложения;
+//   2) крест pattée «планки + клинья» — идиома BD1 (крышка гроба), не плоский крест;
+//   3) флёр-де-лис — идиома BM1 (разделитель): лепесток, две волюты, поясок, шип.
 const toolSigils = (o = 1) =>
-  // ромб (залитый) · крест · полумесяц — язык глифов DUSK, крупно и просто
-  `<path d="M7.4 14.5 L9.0 16.4 L7.4 18.3 L5.8 16.4 Z" fill="currentColor" stroke="none" opacity="${o}"/>` +
-  `<path d="M12 14.4V18.4M10.1 16.4H13.9" stroke-width="1.25" opacity="${o}"/>` +
-  `<path d="M17.3 14.5A2.1 2.1 0 1 0 17.3 18.3A2.6 2.6 0 0 1 17.3 14.5Z" stroke-width="1.15" opacity="${o}"/>`;
+  // 1 · стрельчатая арка (x≈6.9)
+  `<path d="M5.25 18.55V16.35Q5.25 14.75 6.9 13.95Q8.55 14.75 8.55 16.35V18.55" stroke-width="1.1" opacity="${o}"/>` +
+  `<path d="M4.75 18.55H9.05" stroke-width="0.85" opacity="${0.8 * o}"/>` +
+  `<circle cx="6.9" cy="16.5" r="0.52" stroke-width="0.65" opacity="${0.75 * o}"/>` +
+  // 2 · крест pattée (x=12) — планки + четыре клина на концах
+  `<path d="M12 14.25V18.35M10.2 16.3H13.8" stroke-width="1.1" opacity="${o}"/>` +
+  `<path d="M12 13.8 L12.62 14.62 L11.38 14.62 Z M12 18.8 L12.62 17.98 L11.38 17.98 Z` +
+  ` M9.9 16.3 L10.7 16.9 L10.7 15.7 Z M14.1 16.3 L13.3 16.9 L13.3 15.7 Z"` +
+  ` fill="currentColor" stroke="none" opacity="${0.9 * o}"/>` +
+  // 3 · флёр-де-лис (x≈17.1)
+  `<path d="M17.1 13.9 C16.64 14.67 16.64 15.55 17.1 16.23 C17.56 15.55 17.56 14.67 17.1 13.9 Z" stroke-width="0.85" opacity="${o}"/>` +
+  `<path d="M16.22 15.06 C15.67 14.87 15.38 15.31 15.59 15.86 C15.84 16.42 16.39 16.47 16.76 16.23" stroke-width="0.8" opacity="${o}"/>` +
+  `<path d="M17.98 15.06 C18.53 14.87 18.82 15.31 18.61 15.86 C18.36 16.42 17.81 16.47 17.44 16.23" stroke-width="0.8" opacity="${o}"/>` +
+  `<path d="M16.13 16.76H18.07" stroke-width="0.95" opacity="${o}"/>` +
+  `<path d="M17.1 16.76 C16.81 17.39 16.81 18.07 17.1 18.7 C17.39 18.07 17.39 17.39 17.1 16.76 Z" stroke-width="0.8" opacity="${o}"/>`;
 const shutter = (yBottom, dashed, brace = true) => {
   const d = dashed ? ' stroke-dasharray="1.9 1.5"' : '';
   const top = 3.5, xs = [7.6, 12, 16.4];
@@ -249,13 +268,9 @@ const shutter = (yBottom, dashed, brace = true) => {
       `<path d="M${x} ${yBottom} L${x - 0.62} ${yBottom - 1.2} M${x} ${yBottom} L${x + 0.62} ${yBottom - 1.2}" stroke-width="0.85" opacity="0.95"/>`).join('');
 };
 const BL2 = {
-  auto: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${shutter(9.4, true)}${toolPlate(0.55)}${toolSigils(0.5)}</svg>`,
-  open: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${shutter(5.5, false, false)}${toolPlate(1)}${toolSigils(1)}` +
-    // засов-штырь: заслонка заперта наверху
-    `<path d="M20.9 4.6V7.8" stroke-width="1.15"/><circle cx="20.9" cy="4.05" r="0.72" stroke-width="1"/></svg>`,
-  closed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${toolPlate(0.22)}${shutter(17.6, false)}` +
-    // кольцо-ручка снизу
-    `<circle cx="12" cy="19.9" r="1.15" stroke-width="1.05"/><path d="M12 18.75V17.6" stroke-width="0.9" opacity="0.8"/></svg>`,
+  auto: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${shutter(9.4, false)}${toolPlate(0.55)}${toolSigils(0.5)}</svg>`,
+  open: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${shutter(5.5, false, false)}${toolPlate(1)}${toolSigils(1)}</svg>`,
+  closed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${toolPlate(0.22)}${shutter(18.9, false)}</svg>`,
 };
 /* текущая barLvl-лента (для сравнения) */
 const CUR_BAR = {
@@ -339,15 +354,19 @@ ${cell('FL1 [2]', 'принят ранее', sz('g24', FL1[2]) + sz('g16', FL1[2
 </div>
 
 <h2>barLvl · BL2 «Кованая шторка над инструментами» + BL1 (принят)</h2>
-<p class="note">Интуитивность BL1 хромала: голая решётка не говорит «тулбар».
-В BL2 ВИДЕН сам ряд инструментов (кованая планка с тремя сигилами — ромб, крест,
-полумесяц) и заслонка над ним: auto = на половине пунктиром, сигилы приглушены ·
-open = поднята и заперта засовом-штырём, сигилы яркие · closed = опущена до
-планки, сигилы скрыты, снизу кольцо-ручка.</p>
+<p class="note"><b>Рерабока по 4 правкам (2026-07-24).</b> Интуитивность BL1 хромала:
+голая решётка не говорит «тулбар». В BL2 ВИДЕН сам ряд инструментов — кованая
+планка, на ней три сигила уже принятыми мотивами DUSK: <b>стрельчатая арка</b>
+(окулюс + цоколь) · <b>крест pattée</b> идиомой BD1 (планки + клинья на концах) ·
+<b>флёр-де-лис</b> идиомой BM1 (лепесток, две волюты, поясок, шип). Заслонка над
+планкой: auto = на половине <b>сплошной линией</b> (пунктир убран), сигилы
+приглушены · open = поднята, сигилы яркие (<b>засов-штырь убран</b>) · closed =
+опущена, пики решётки <b>доведены до нижней кромки планки</b> (кольцо-ручка
+убрана), сигилы скрыты.</p>
 <div class="row">
 ${cell('BL2 auto', 'по наведению', mid(BL2.auto), 'rec')}
-${cell('BL2 open', 'закреплён (засов)', mid(BL2.open), 'rec')}
-${cell('BL2 closed', 'скрыт (кольцо-ручка)', mid(BL2.closed), 'rec')}
+${cell('BL2 open', 'закреплён', mid(BL2.open), 'rec')}
+${cell('BL2 closed', 'скрыт', mid(BL2.closed), 'rec')}
 </div>
 <div class="row" style="margin-top:14px">
 ${cell('BL1 auto', 'принят ранее', sz('g24', BL1.auto) + sz('g16', BL1.auto), 'old')}
