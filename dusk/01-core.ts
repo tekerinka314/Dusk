@@ -142,6 +142,8 @@ function coffinSVG(w, filled, cycle) {
     const sh = h * 0.26;   // shoulder y
     const pad = 1.2;
     const br  = h * 0.14;
+    const k   = w / 21;    // BD1 joinery is authored on the 21×27 canvas
+    const f   = v => (+v).toFixed(2);
     const path = `M${hw-sw},${pad} L${hw+sw},${pad} L${w-pad},${sh} L${w-pad},${h-br} Q${hw},${h-pad} ${pad},${h-br} L${pad},${sh} Z`;
     let fill, sc, sw2;
     if (cycle) {
@@ -151,15 +153,35 @@ function coffinSVG(w, filled, cycle) {
     } else {
         fill = 'fill="rgba(8,2,28,0.55)"'; sc = 'rgba(110,40,195,0.72)'; sw2 = 1.3;
     }
-    // Gothic cross on lid when checked
-    const cy1 = sh * 0.42, cy2 = h * 0.54;
-    const cmid = (cy1 + cy2) * 0.36, carm = w * 0.13;
-    const cross = (filled || cycle)
-        ? `<line x1="${hw}" y1="${cy1}" x2="${hw}" y2="${cy2}" stroke="rgba(255,255,255,0.72)" stroke-width="1.1" stroke-linecap="round"/>
-           <line x1="${hw-carm}" y1="${cmid}" x2="${hw+carm}" y2="${cmid}" stroke="rgba(255,255,255,0.72)" stroke-width="1.1" stroke-linecap="round"/>`
+    // BD1 joinery — bevel + nail heads read light on the sealed lid, violet on the empty one
+    const lit = filled || cycle;
+    const rimC = lit ? 'rgba(255,255,255,0.28)' : 'rgba(110,40,195,0.42)';
+    const nC   = lit ? 'rgba(255,255,255,0.5)'  : 'rgba(140,70,220,0.55)';
+    const nfC  = lit ? 'rgba(255,255,255,0.38)' : 'rgba(140,70,220,0.4)';
+    // Lid bevel — inner rim running parallel to the body
+    const ip = pad + 1.7*k, isw = sw - 1.1*k, ish = sh + 0.58*k, ibr = br + 1.12*k, ibp = pad + 1.6*k;
+    const rim = `<path d="M${f(hw-isw)},${f(ip)} L${f(hw+isw)},${f(ip)} L${f(w-ip)},${f(ish)} L${f(w-ip)},${f(h-ibr)} Q${f(hw)},${f(h-ibp)} ${f(ip)},${f(h-ibr)} L${f(ip)},${f(ish)} Z" fill="none" stroke="${rimC}" stroke-width="0.7" stroke-linejoin="round"/>`;
+    // Nail heads — both shoulders and the foot
+    const nx = pad + 2.2*k, ny = sh - 0.72*k, nfy = h - 4.1*k, nr = 0.5*k;
+    const nails = `<circle cx="${f(nx)}" cy="${f(ny)}" r="${f(nr)}" fill="${nC}"/>
+      <circle cx="${f(w-nx)}" cy="${f(ny)}" r="${f(nr)}" fill="${nC}"/>
+      <circle cx="${f(hw)}" cy="${f(nfy)}" r="${f(nr)}" fill="${nfC}"/>`;
+    // Cross pattée on lid when checked — bars plus wedge tips
+    const cy1 = h * 0.1333, cy2 = h * 0.54;
+    const cmid = h * 0.237, carm = w * 0.138, wd = 0.6 * k;
+    const tips = `M${f(hw)},${f(cy1-0.4*k)} L${f(hw+wd)},${f(cy1+0.5*k)} L${f(hw-wd)},${f(cy1+0.5*k)} Z `
+               + `M${f(hw)},${f(cy2+0.42*k)} L${f(hw+wd)},${f(cy2-0.48*k)} L${f(hw-wd)},${f(cy2-0.48*k)} Z `
+               + `M${f(hw-carm-0.4*k)},${f(cmid)} L${f(hw-carm+0.5*k)},${f(cmid-wd)} L${f(hw-carm+0.5*k)},${f(cmid+wd)} Z `
+               + `M${f(hw+carm+0.4*k)},${f(cmid)} L${f(hw+carm-0.5*k)},${f(cmid-wd)} L${f(hw+carm-0.5*k)},${f(cmid+wd)} Z`;
+    const cross = lit
+        ? `<line x1="${f(hw)}" y1="${f(cy1)}" x2="${f(hw)}" y2="${f(cy2)}" stroke="rgba(255,255,255,0.78)" stroke-width="1.15" stroke-linecap="round"/>
+           <line x1="${f(hw-carm)}" y1="${f(cmid)}" x2="${f(hw+carm)}" y2="${f(cmid)}" stroke="rgba(255,255,255,0.78)" stroke-width="1.15" stroke-linecap="round"/>
+           <path d="${tips}" fill="rgba(255,255,255,0.65)"/>`
         : '';
     return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="display:block;flex-shrink:0">
       <path class="coffin-body" d="${path}" ${fill} stroke="${sc}" stroke-width="${sw2}" stroke-linejoin="round"/>
+      ${rim}
+      ${nails}
       ${cross}
     </svg>`;
 }
@@ -179,13 +201,14 @@ function cycleCoffinSVG(w) {
     const sh  = h * 0.26;
     const pad = 1.2;
     const br  = h * 0.14;
+    const k    = w / 21;      // BD1 joinery canvas, as in coffinSVG
     const body = `M${hw-sw},${pad} L${hw+sw},${pad} L${w-pad},${sh} L${w-pad},${h-br} Q${hw},${h-pad} ${pad},${h-br} L${pad},${sh} Z`;
 
     // Mark zone — SAME coordinates as coffinSVG's cross
-    const cy1  = sh * 0.42;   // top of vertical bar  (≈2.95 at w=21)
+    const cy1  = h  * 0.1333; // top of vertical bar  (≈3.60 at w=21)
     const cy2  = h  * 0.54;   // bottom zone limit     (≈14.58)
-    const cmid = (cy1 + cy2) * 0.36;  // horizontal bar y (≈6.31)
-    const carm = w  * 0.13;   // half-width of horizontal bar (≈2.73)
+    const cmid = h  * 0.237;  // horizontal bar y      (≈6.40)
+    const carm = w  * 0.138;  // half-width of horizontal bar (≈2.90)
 
     // Return hook: vertical bar stops early, U-curves leftward
     const hookY  = cy2 - 2.0;               // bar bottom before hook  (≈12.58)
@@ -205,15 +228,31 @@ function cycleCoffinSVG(w) {
     // Arrowhead wings pointing upward at hook end
     const arr   = `M${fmt(hookX)},${fmt(hookY)} L${fmt(hookX-aw)},${fmt(hookY+ah)} M${fmt(hookX)},${fmt(hookY)} L${fmt(hookX+aw)},${fmt(hookY+ah)}`;
 
+    // BD1 joinery — same bevel + nail heads as the sealed coffinSVG
+    const ip = pad + 1.7*k, isw = sw - 1.1*k, ish = sh + 0.58*k, ibr = br + 1.12*k, ibp = pad + 1.6*k;
+    const rim = `<path d="M${fmt(hw-isw)},${fmt(ip)} L${fmt(hw+isw)},${fmt(ip)} L${fmt(w-ip)},${fmt(ish)} L${fmt(w-ip)},${fmt(h-ibr)} Q${fmt(hw)},${fmt(h-ibp)} ${fmt(ip)},${fmt(h-ibr)} L${fmt(ip)},${fmt(ish)} Z" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.7" stroke-linejoin="round"/>`;
+    const nx = pad + 2.2*k, ny = sh - 0.72*k, nfy = h - 4.1*k, nr = 0.5*k;
+    const nails = `<circle cx="${fmt(nx)}" cy="${fmt(ny)}" r="${fmt(nr)}" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="${fmt(w-nx)}" cy="${fmt(ny)}" r="${fmt(nr)}" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="${fmt(hw)}" cy="${fmt(nfy)}" r="${fmt(nr)}" fill="rgba(255,255,255,0.38)"/>`;
+    // Pattée wedges on the FREE bar ends only — the vertical bar's bottom owns the hook
+    const wd   = 0.6 * k;
+    const tips = `M${fmt(hw)},${fmt(cy1-0.4*k)} L${fmt(hw+wd)},${fmt(cy1+0.5*k)} L${fmt(hw-wd)},${fmt(cy1+0.5*k)} Z `
+               + `M${fmt(hw-carm-0.4*k)},${fmt(cmid)} L${fmt(hw-carm+0.5*k)},${fmt(cmid-wd)} L${fmt(hw-carm+0.5*k)},${fmt(cmid+wd)} Z `
+               + `M${fmt(hw+carm+0.4*k)},${fmt(cmid)} L${fmt(hw+carm-0.5*k)},${fmt(cmid-wd)} L${fmt(hw+carm-0.5*k)},${fmt(cmid+wd)} Z`;
+
     return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="display:block;flex-shrink:0">
       <path class="coffin-body" d="${body}"
             fill="url(#coffinGrad)" stroke="rgba(200,130,255,0.92)" stroke-width="1.5" stroke-linejoin="round"/>
+      ${rim}
+      ${nails}
       <line x1="${fmt(hw)}" y1="${fmt(cy1)}" x2="${fmt(hw)}" y2="${fmt(hookY)}"
-            stroke="rgba(255,255,255,0.72)" stroke-width="1.1" stroke-linecap="round"/>
+            stroke="rgba(255,255,255,0.78)" stroke-width="1.15" stroke-linecap="round"/>
       <line x1="${fmt(hw-carm)}" y1="${fmt(cmid)}" x2="${fmt(hw+carm)}" y2="${fmt(cmid)}"
-            stroke="rgba(255,255,255,0.72)" stroke-width="1.1" stroke-linecap="round"/>
-      <path d="${hook}" fill="none" stroke="rgba(255,255,255,0.72)" stroke-width="1.1" stroke-linecap="round"/>
-      <path d="${arr}"  fill="none" stroke="rgba(255,255,255,0.72)" stroke-width="1.1" stroke-linecap="round"/>
+            stroke="rgba(255,255,255,0.78)" stroke-width="1.15" stroke-linecap="round"/>
+      <path d="${hook}" fill="none" stroke="rgba(255,255,255,0.78)" stroke-width="1.15" stroke-linecap="round"/>
+      <path d="${arr}"  fill="none" stroke="rgba(255,255,255,0.78)" stroke-width="1.15" stroke-linecap="round"/>
+      <path d="${tips}" fill="rgba(255,255,255,0.65)"/>
     </svg>`;
 }
 function subCoffinSVG(f) { return coffinSVG(14, f, false); }
