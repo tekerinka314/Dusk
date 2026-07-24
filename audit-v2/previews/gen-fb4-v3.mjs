@@ -283,6 +283,217 @@ const CUR_BAR = {
   closed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.3h11M6.5 14.7h11"/><path d="M6.5 9.3a2.7 2.7 0 1 0 0 5.4M17.5 9.3a2.7 2.7 0 1 1 0 5.4"/><path d="M9 12h6" stroke-opacity="0.5"/></svg>`,
 };
 
+/* ────────────── N · сигилы типахеда квик-эдда (набор N3, вердикт юзера) ──────────────
+   Арт взят БАЙТ-В-БАЙТ из fb2-icons-preview.html (кандидат N3, «переработка №2»):
+   приоритет = кованый обелиск-«!» · тег = щит с каймой и звездой · дата = башенка-часы.
+   Здесь решается ТОЛЬКО подача в реальной строке дропдауна (15px) и развилка по
+   строке «Без приоритета» (у неё нет цвета приоритета — нужен свой знак).          */
+const N3_PRIO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="9.9" y1="3.4" x2="14.1" y2="3.4" stroke-width="1.3"/>
+    <circle cx="9.2" cy="3.4" r="0.5" stroke-width="0.9"/>
+    <circle cx="14.8" cy="3.4" r="0.5" stroke-width="0.9"/>
+    <path d="M10.8 3.4L11.6 13.2H12.4L13.2 3.4"/>
+    <line x1="12" y1="5.2" x2="12" y2="11.4" stroke-width="0.7" opacity="0.4"/>
+    <path d="M12 15.2L13.4 16.9L12 18.6L10.6 16.9Z" stroke-width="1.3"/>
+    <circle cx="12" cy="16.9" r="0.42" fill="currentColor" stroke="none"/>
+</svg>`;
+const N3_TAG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.6 4.5H17.4V11.6C17.4 15.6 15 18.5 12 19.8C9 18.5 6.6 15.6 6.6 11.6Z"/>
+    <path d="M8.2 6.1H15.8V11.5C15.8 14.5 14.1 16.8 12 17.9C9.9 16.8 8.2 14.5 8.2 11.5Z" stroke-width="0.9" opacity="0.4"/>
+    <line x1="12" y1="8.4" x2="12" y2="13.6" stroke-width="1.3"/>
+    <line x1="9.8" y1="9.7" x2="14.2" y2="12.3" stroke-width="1.3"/>
+    <line x1="14.2" y1="9.7" x2="9.8" y2="12.3" stroke-width="1.3"/>
+</svg>`;
+const N3_DATE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.4 20.4V11C7.4 7 9.4 4.4 12 4.4C14.6 4.4 16.6 7 16.6 11V20.4"/>
+    <path d="M12 4.4V2.9M11.1 3.6H12.9" stroke-width="1" opacity="0.7"/>
+    <line x1="5.6" y1="20.4" x2="18.4" y2="20.4" stroke-width="1.4"/>
+    <line x1="6.6" y1="22" x2="17.4" y2="22" stroke-width="0.9" opacity="0.5"/>
+    <circle cx="12" cy="11.9" r="3.5"/>
+    <circle cx="12" cy="11.9" r="2.6" stroke-width="0.7" opacity="0.4"/>
+    <path d="M12 8.8V9.4M15.1 11.9H14.5M12 15V14.4M8.9 11.9H9.5" stroke-width="0.8" opacity="0.6"/>
+    <line x1="12" y1="11.9" x2="12" y2="9.9" stroke-width="1.6"/>
+    <line x1="12" y1="11.9" x2="13.5" y2="12.9" stroke-width="1.1"/>
+    <circle cx="12" cy="11.9" r="0.55" fill="currentColor" stroke="none"/>
+    <line x1="12" y1="15.4" x2="12" y2="18.2" stroke-width="0.95" opacity="0.6"/>
+    <circle cx="12" cy="19" r="0.8" stroke-width="1.1" opacity="0.7"/>
+</svg>`;
+// Развилка «Без приоритета» — строка без цвета. Три трактовки:
+//  A — тот же обелиск, только приглушённый (минимум вмешательства в принятый арт);
+//  B — обелиск БЕЗ ромба-точки: «!» без точки = не восклицание = приоритета нет
+//      (вычитание из принятого арта, ничего не выдумано);
+//  C — обелиск, перерубленный кованой перекладиной (идиома «—» из панели выбора,
+//      index.html:671 sb-prio-none), фаски на концах как у O2-перечёрка.
+const N3_PRIO_B = N3_PRIO
+  .replace('<path d="M12 15.2L13.4 16.9L12 18.6L10.6 16.9Z" stroke-width="1.3"/>\n    ', '')
+  .replace('<circle cx="12" cy="16.9" r="0.42" fill="currentColor" stroke="none"/>\n', '');
+const N3_PRIO_C = N3_PRIO.replace('</svg>',
+  `<line x1="7.4" y1="8.3" x2="16.6" y2="8.3" stroke-width="1.5"/>
+    <path d="M6.6 7.5L8 8.3L6.6 9.1M17.4 7.5L16 8.3L17.4 9.1" stroke-width="0.9" opacity="0.8"/>
+</svg>`);
+
+/* мок реальной строки дропдауна (.qa-item): сигил 15px + подпись + хинт */
+const qaRow = (sig, colour, label, hint, active = false) =>
+  `<div class="qa-item${active ? ' active' : ''}">` +
+    `<span class="qa-sig"${colour ? ` style="color:${colour}"` : ''}>${sig}</span>` +
+    `<span class="qa-label">${label}</span>` +
+    (hint ? `<span class="qa-hint">${hint}</span>` : '') +
+  `</div>`;
+const qaDot = (colour, label, hint, active = false) =>
+  `<div class="qa-item${active ? ' active' : ''}">` +
+    `<span class="qa-dot" style="${colour ? `background:${colour}` : 'background:transparent;box-shadow:inset 0 0 0 1px rgba(130,50,220,0.48)'}"></span>` +
+    `<span class="qa-label">${label}</span>` +
+    (hint ? `<span class="qa-hint">${hint}</span>` : '') +
+  `</div>`;
+const qaMenu = rows => `<div class="qa-menu">${rows.join('')}</div>`;
+const PRIO_ROWS = noneSig => [
+  qaRow(N3_PRIO, '#e03060', 'Высокий', '!high', true),
+  qaRow(N3_PRIO, '#d09020', 'Средний', '!medium'),
+  qaRow(N3_PRIO, '#3cc870', 'Низкий', '!low'),
+  qaRow(noneSig, 'rgba(144,104,192,0.75)', 'Без приоритета', '!none'),
+];
+
+/* ────────────── X1 · арки времени (дедлайн-модалка) ──────────────
+   Арт X1 из fb2 (вердикт юзера). Живых целей в приложении ровно две:
+   · «Время (необязательно)» — generic круг-часы, index.html:1202, рендерится 13×13;
+   · степперы `.stepper-btn` — готическая ланса, 8 точек (dl-monthday/dl-year/
+     repeat-anchor-monthday/form-anchor ×2), рендерятся 17×17 (style.css:6192).
+   Календарь-арка из X1 цели НЕ имеет: поле даты нативное (<input type="date">),
+   а триггер дедлайна давно переведён на IC.window. Вариант применения — ниже.  */
+const X1_STEP_DOWN = `<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="11" y1="3.6" x2="11" y2="11.6"/><line x1="7.8" y1="9.2" x2="14.2" y2="9.2" stroke-width="1.6"/><circle cx="7" cy="9.2" r="0.55" fill="currentColor" stroke="none"/><circle cx="15" cy="9.2" r="0.55" fill="currentColor" stroke="none"/><path d="M11 19L6.4 13.2H15.6Z" fill="currentColor" stroke="currentColor" stroke-width="1"/><path d="M11 3.6L11.6 2.7L11 1.8L10.4 2.7Z" fill="currentColor" stroke="none" opacity="0.7"/></svg>`;
+// «вверх» выводится зеркалом по y=11 (y' = 22 - y) — иначе пара разъедется.
+const X1_STEP_UP = `<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3L6.4 8.8H15.6Z" fill="currentColor" stroke="currentColor" stroke-width="1"/><line x1="11" y1="10.4" x2="11" y2="18.4"/><line x1="7.8" y1="12.8" x2="14.2" y2="12.8" stroke-width="1.6"/><circle cx="7" cy="12.8" r="0.55" fill="currentColor" stroke="none"/><circle cx="15" cy="12.8" r="0.55" fill="currentColor" stroke="none"/><path d="M11 18.4L11.6 19.3L11 20.2L10.4 19.3Z" fill="currentColor" stroke="none" opacity="0.7"/></svg>`;
+// Подача 17px: шары r=0.55 на канве 22 дают 0.85px в диаметре — на грани пропажи.
+// Вариант «17px-подача»: шары и ромб укрупнены, перекладина чуть толще.
+const bulk = s => s.replace(/r="0.55"/g, 'r="0.8"')
+  .replace('stroke-width="1.6"/><circle', 'stroke-width="1.9"/><circle')
+  .replace('M11 3.6L11.6 2.7L11 1.8L10.4 2.7Z', 'M11 3.9L11.85 2.75L11 1.4L10.15 2.75Z')
+  .replace('M11 18.4L11.6 19.3L11 20.2L10.4 19.3Z', 'M11 18.1L11.85 19.25L11 20.6L10.15 19.25Z')
+  .replace('opacity="0.7"', 'opacity="0.85"');
+const X1_STEP_DOWN_B = bulk(X1_STEP_DOWN), X1_STEP_UP_B = bulk(X1_STEP_UP);
+const CUR_STEP_DOWN = `<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="11" y1="3.5" x2="11" y2="11"/><line x1="7.5" y1="9" x2="14.5" y2="9"/><path d="M11 18.5L5.5 12H16.5Z" fill="currentColor" stroke="none"/></svg>`;
+const CUR_STEP_UP = `<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5L5.5 10H16.5Z" fill="currentColor" stroke="none"/><line x1="11" y1="10" x2="11" y2="18.5"/><line x1="7.5" y1="13" x2="14.5" y2="13"/></svg>`;
+const CUR_CLOCK = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="5.5" x2="10" y2="10"/><line x1="10" y1="10" x2="13.5" y2="12"/></svg>`;
+// Башенка-часы на 13px: полный N3-арт имеет штрихи 0.7-0.95 при opacity 0.4-0.6 —
+// на канве 24 это 0.4px на экране, то есть каша. «Lean» — та же башня, но снят
+// весь шум (риски циферблата, второй обод, вторая база), штрихи подняты до ≥1.1.
+const X1_TIME_LEAN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.4 20.4V11C7.4 7 9.4 4.4 12 4.4C14.6 4.4 16.6 7 16.6 11V20.4"/>
+    <path d="M12 4.4V2.6M11 3.4H13" stroke-width="1.3"/>
+    <line x1="5.6" y1="20.4" x2="18.4" y2="20.4" stroke-width="1.8"/>
+    <circle cx="12" cy="11.9" r="3.6" stroke-width="1.5"/>
+    <line x1="12" y1="11.9" x2="12" y2="9.6" stroke-width="1.7"/>
+    <line x1="12" y1="11.9" x2="13.8" y2="13" stroke-width="1.4"/>
+    <line x1="12" y1="15.8" x2="12" y2="18.4" stroke-width="1.2" opacity="0.7"/>
+    <circle cx="12" cy="19.2" r="0.95" stroke-width="1.3" opacity="0.8"/>
+</svg>`;
+const X1_CAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 21V9.5C5 6.1 8 3.7 12 3.7C16 3.7 19 6.1 19 9.5V21"/>
+    <line x1="3.4" y1="21" x2="20.6" y2="21" stroke-width="1.5"/>
+    <path d="M12 3.7V2.4M10.9 2.4H13.1" stroke-width="1.1" opacity="0.6"/>
+    <line x1="5" y1="8.6" x2="19" y2="8.6" stroke-width="1.1" opacity="0.7"/>
+    <line x1="5" y1="12.6" x2="19" y2="12.6" stroke-width="0.9" opacity="0.4"/>
+    <line x1="5" y1="16.6" x2="19" y2="16.6" stroke-width="0.9" opacity="0.4"/>
+    <line x1="9.7" y1="8.6" x2="9.7" y2="21" stroke-width="0.9" opacity="0.4"/>
+    <line x1="14.3" y1="8.6" x2="14.3" y2="21" stroke-width="0.9" opacity="0.4"/>
+    <path d="M12 13.6L13 14.6L12 15.6L11 14.6Z" fill="currentColor" stroke="none" opacity="0.9"/>
+</svg>`;
+/* мок кнопки-степпера в натуральную величину (44×40, svg 17px) */
+const stepBtn = svg => `<span class="step-btn">${svg}</span>`;
+const stepPair = (up, down) =>
+  `<span class="step-wrap">${stepBtn(down)}<span class="step-num">14</span>${stepBtn(up)}</span>`;
+/* мок метки «Время (необязательно)» в натуральную величину (глиф 13px) */
+const timeLabel = svg => `<span class="dl-lab"><span class="dl-lab-ico">${svg}</span>Время (необязательно)</span>`;
+
+/* ────────── ПАРТИЯ 2 · приоритет-сигил заново (обелиск признан неинтуитивным) ──────────
+   Требование: максимум по всем трём осям — готика × детализация × ИНТУИТИВНОСТЬ.
+   Ограничение, которое решает всё: сигил живёт на 15px в строке дропдауна. Любая
+   композиция из трёх фигур там умирает, поэтому уровень должен читаться ОДНОЙ
+   характеристикой силуэта. Отсюда два хода.                                        */
+const GROUND = `<line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/>` +
+  `<line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/>`;
+const PLINTH = `<path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/>`;
+// PA · БАШНЯ-РАНГ. Язык кладки взят у M3 (`IC.sortPriority`) — той самой иконки,
+// которой приложение УЖЕ обозначает приоритет: двойные стены, шпиль, навершие,
+// цоколь. Уровень = высота башни. На 15px разница высот видна мгновенно, а
+// «выше = важнее» не нужно объяснять. «Без приоритета» = руина: цоколь и два
+// обломка стен, шпиля нет.
+const tower = (wallTop, apex, finial, win) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">` +
+    `<line x1="8.4" y1="18.6" x2="8.4" y2="${wallTop}"/>` +
+    `<line x1="15.6" y1="18.6" x2="15.6" y2="${wallTop}"/>` +
+    `<path d="M8.4 ${wallTop}L12 ${apex}L15.6 ${wallTop}"/>` +
+    `<path d="M9.6 ${wallTop}H14.4" stroke-width="0.85" opacity="0.45"/>` +
+    finial + win + PLINTH + GROUND +
+  `</svg>`;
+const PA = {
+  high: tower(8.4, 3.2,
+    `<line x1="12" y1="3.2" x2="12" y2="1.9" stroke-width="1"/>` +
+    `<path d="M12 0.9L12.75 1.8L12 2.7L11.25 1.8Z" fill="currentColor" stroke="none"/>` +
+    `<path d="M9.5 5.9l-1.1-0.7M14.5 5.9l1.1-0.7" stroke-width="0.75" opacity="0.5"/>`,
+    `<path d="M10.4 18.6V13.6C10.4 12 11.1 11.2 12 11.2C12.9 11.2 13.6 12 13.6 13.6V18.6" stroke-width="0.9" opacity="0.5"/>` +
+    `<line x1="12" y1="12.4" x2="12" y2="18.6" stroke-width="0.7" opacity="0.32"/>`),
+  medium: tower(12, 7.2,
+    `<line x1="12" y1="7.2" x2="12" y2="6.1" stroke-width="0.95"/>` +
+    `<path d="M12 5.3L12.62 6.05L12 6.8L11.38 6.05Z" fill="currentColor" stroke="none"/>`,
+    `<path d="M10.4 18.6V15.2C10.4 13.9 11.1 13.2 12 13.2C12.9 13.2 13.6 13.9 13.6 15.2V18.6" stroke-width="0.9" opacity="0.5"/>` +
+    `<line x1="12" y1="14.2" x2="12" y2="18.6" stroke-width="0.7" opacity="0.32"/>`),
+  low: tower(15.4, 11.6,
+    `<line x1="12" y1="11.6" x2="12" y2="10.8" stroke-width="0.9"/>` +
+    `<circle cx="12" cy="10.2" r="0.62" stroke-width="0.9"/>`,
+    `<line x1="12" y1="16.6" x2="12" y2="18.6" stroke-width="0.85" opacity="0.45"/>`),
+  none: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">` +
+    `<path d="M8.4 18.6V15.9L9.3 14.9L8.9 13.6" stroke-width="1.35" opacity="0.75"/>` +
+    `<path d="M15.6 18.6V16.6L14.8 15.6L15.2 14.4" stroke-width="1.35" opacity="0.75"/>` +
+    `<path d="M10.6 18.6V17.2H13.1" stroke-width="0.9" opacity="0.4"/>` +
+    `<path d="M12.9 15.4L14.1 15.9L13.6 17L12.4 16.5Z" stroke-width="0.8" opacity="0.5"/>` +
+    PLINTH + GROUND + `</svg>`,
+};
+// PB · ШЕВРОНЫ РАНГА. Считаемость вместо высоты: три нашивки — высокий, две —
+// средний, одна — низкий, кованая планка без шевронов — без приоритета. Ковка:
+// фаски на концах, ромб-заклёпка в вершине, шары-терминалы.
+const chev = (y, o = 1) =>
+  `<path d="M6.8 ${y}L12 ${y - 3.1}L17.2 ${y}" stroke-width="1.55" opacity="${o}"/>` +
+  `<path d="M12 ${y - 3.9}L12.7 ${y - 3.1}L12 ${y - 2.3}L11.3 ${y - 3.1}Z" fill="currentColor" stroke="none" opacity="${0.9 * o}"/>` +
+  `<circle cx="6.2" cy="${y + 0.25}" r="0.55" fill="currentColor" stroke="none" opacity="${0.75 * o}"/>` +
+  `<circle cx="17.8" cy="${y + 0.25}" r="0.55" fill="currentColor" stroke="none" opacity="${0.75 * o}"/>`;
+// вычисляемые y дают хвосты 17.099999999999998 — режем тем же tidy(), что и BL2
+const chevSvg = inner => tidy(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`);
+const PB = {
+  high:   chevSvg(chev(20.2) + chev(15.2) + chev(10.2)),
+  medium: chevSvg(chev(20.2) + chev(15.2) + chev(10.2, 0.16)),
+  low:    chevSvg(chev(20.2) + chev(15.2, 0.16) + chev(10.2, 0.16)),
+  none:   chevSvg(
+    `<line x1="6.6" y1="15.2" x2="17.4" y2="15.2" stroke-width="1.7"/>` +
+    `<path d="M5.6 14.2L7.2 15.2L5.6 16.2M18.4 14.2L16.8 15.2L18.4 16.2" stroke-width="0.95" opacity="0.8"/>` +
+    `<path d="M12 13.9L12.75 15.2L12 16.5L11.25 15.2Z" fill="currentColor" stroke="none" opacity="0.85"/>`),
+};
+
+/* ────────── ПАРТИЯ 2 · часы: свип и унификация ──────────
+   Примитивных часов в приложении ровно ДВЕ штуки, и обе — устаревшие дубли уже
+   принятого богатого AV1 (`IC.sundial`, Batch-10):
+     · index.html:1202 — круг с двумя стрелками, метка «Время (необязательно)», 13px;
+     · index.html:443  — «gothic tower clock» у кнопки сортировки по дедлайну (24px):
+       голая арка + голый круг + две стрелки. AV1 живёт рядом в сепараторах
+       «С дедлайном» (03-render:412/456/640, 07:351) — то есть на одном экране
+       соседствуют бедная и богатая версия одних и тех же часов.
+   Вывод: чинится это НЕ четвёртыми часами, а унификацией на AV1 + его lean-версией
+   под 13px (полный AV1 держит риски штрихом 0.8 при opacity 0.6 — на 13px каша). */
+const AV1 = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 22V10.8C6.6 6.6 8.9 3.9 12 3.9C15.1 3.9 17.4 6.6 17.4 10.8V22"/><path d="M8 22V11C8 7.6 9.8 5.4 12 5.4C14.2 5.4 16 7.6 16 11V22" stroke-width="0.75" opacity="0.32"/><line x1="4.6" y1="22" x2="19.4" y2="22" stroke-width="1.6"/><line x1="5.6" y1="23.3" x2="18.4" y2="23.3" stroke-width="0.8" opacity="0.4"/><line x1="12" y1="3.9" x2="12" y2="1.7" stroke-width="1.2"/><line x1="11.2" y1="2.5" x2="12.8" y2="2.5" stroke-width="1"/><path d="M9.1 5.7l-1 -0.6M14.9 5.7l1 -0.6" stroke-width="0.8" opacity="0.5"/><circle cx="12" cy="12.4" r="3.7"/><circle cx="12" cy="12.4" r="2.95" stroke-width="0.7" opacity="0.4"/><line x1="12" y1="9.2" x2="12" y2="9.9" stroke-width="0.8" opacity="0.6"/><line x1="12" y1="14.9" x2="12" y2="15.6" stroke-width="0.8" opacity="0.6"/><line x1="8.8" y1="12.4" x2="9.5" y2="12.4" stroke-width="0.8" opacity="0.6"/><line x1="14.5" y1="12.4" x2="15.2" y2="12.4" stroke-width="0.8" opacity="0.6"/><line x1="12" y1="12.4" x2="10.5" y2="10.7" stroke-width="1.8"/><line x1="12" y1="12.4" x2="13.5" y2="11.1" stroke-width="1.15"/><circle cx="12" cy="12.4" r="0.8" fill="currentColor" stroke="none"/><line x1="12" y1="16.1" x2="12" y2="19.3" stroke-width="0.95" opacity="0.6"/><path d="M12 18.7L12.85 19.8L12 20.9L11.15 19.8Z" fill="currentColor" stroke="none" opacity="0.8"/></svg>`;
+const AV1_LEAN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.6 21V10.8C6.6 6.6 8.9 3.9 12 3.9C15.1 3.9 17.4 6.6 17.4 10.8V21"/>
+    <line x1="12" y1="3.9" x2="12" y2="1.9" stroke-width="1.35"/>
+    <line x1="10.95" y1="2.7" x2="13.05" y2="2.7" stroke-width="1.15"/>
+    <line x1="4.6" y1="21" x2="19.4" y2="21" stroke-width="1.9"/>
+    <circle cx="12" cy="12.2" r="3.7" stroke-width="1.5"/>
+    <line x1="12" y1="12.2" x2="12" y2="9.5" stroke-width="1.75"/>
+    <line x1="12" y1="12.2" x2="14" y2="13.4" stroke-width="1.4"/>
+    <line x1="12" y1="15.9" x2="12" y2="17.4" stroke-width="1.2" opacity="0.7"/>
+    <path d="M12 17L12.95 18.3L12 19.6L11.05 18.3Z" fill="currentColor" stroke="none" opacity="0.85"/>
+</svg>`;
+const CUR_TOWER_POOR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22V11.5C7 7 9.2 4 12 4C14.8 4 17 7 17 11.5V22"/><line x1="5" y1="22" x2="19" y2="22" stroke-width="1.6"/><circle cx="12" cy="13.5" r="3.8"/><line x1="12" y1="13.5" x2="10.2" y2="11.5" stroke-width="2"/></svg>`;
+const CUR_SEG_CAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22V10C5 6.5 8 3 12 3C16 3 19 6.5 19 10V22Z"/><line x1="3" y1="22" x2="21" y2="22"/><line x1="5" y1="13.5" x2="19" y2="13.5"/><line x1="5" y1="18.5" x2="19" y2="18.5"/><circle cx="12" cy="16" r="2.4"/><circle cx="12" cy="16" r="0.75" fill="currentColor" stroke="none"/></svg>`;
+
 /* ─────────────────────────── сборка страницы ─────────────────────────── */
 const sz = (cls, svg) => `<span class="${cls}">${svg}</span>`;
 const cell = (lbl, tag, sizes, cls = '') => `  <div class="cell ${cls}">
@@ -316,6 +527,36 @@ const html = `<!DOCTYPE html>
   .g9 svg { width:9px; height:9px; }
   .sizes { display:flex; gap:14px; align-items:center; }
   .tagline { font-size:11px; color:#7a50a8; text-align:center; max-width:24ch; }
+  .g15 svg { width:15px; height:15px; }
+  /* ── мок дропдауна квик-эдда: геометрия и цвета скопированы со style.css:1343+ ── */
+  .qa-menu { display:flex; flex-direction:column; gap:2px; padding:5px; width:250px;
+             background:#06021a; border:1px solid rgba(140,60,255,0.32); border-radius:6px;
+             box-shadow:0 8px 26px rgba(0,0,0,0.55), 0 0 20px rgba(80,20,180,0.18); }
+  .qa-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:4px;
+             color:#b880e8; font:14px/1.4 'Cormorant',Georgia,serif; }
+  .qa-item.active { background:rgba(100,25,200,0.22); color:#f0e8ff; }
+  .qa-label { flex:1; min-width:0; }
+  .qa-hint { font-family:'Cormorant SC',serif; font-size:9px; letter-spacing:0.5px;
+             text-transform:uppercase; color:#9068c0; opacity:0.75; flex-shrink:0; }
+  .qa-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .qa-sig { width:15px; height:15px; flex-shrink:0; display:flex; }
+  .qa-sig svg { width:15px; height:15px; }
+  .menus { display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; }
+  .menucol { display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .menucap { font-size:10.5px; letter-spacing:1px; color:#9068c0; text-transform:uppercase; }
+  .menucol.rec .menucap { color:#e0c0ff; }
+  /* ── мок степпера и метки времени в натуральную величину (style.css:5173/6192) ── */
+  .step-wrap { display:inline-flex; align-items:stretch; border:1px solid rgba(130,50,220,0.48);
+               border-radius:6px; overflow:hidden; background:#0d0524; }
+  .step-btn { width:44px; min-height:40px; display:flex; align-items:center; justify-content:center;
+              background:rgba(100,30,200,0.12); color:#b880e8; }
+  .step-btn svg { width:17px; height:17px; display:block; }
+  .step-num { min-width:56px; display:flex; align-items:center; justify-content:center;
+              color:#f0e8ff; font:16px/1 'Cormorant',Georgia,serif; }
+  .dl-lab { display:inline-flex; align-items:center; gap:6px; color:#9068c0;
+            font:12.5px/1 'Cormorant',Georgia,serif; }
+  .dl-lab-ico { display:flex; } .dl-lab-ico svg { width:13px; height:13px; }
+  .g13 svg { width:13px; height:13px; }
 </style>
 </head>
 <body>
@@ -377,6 +618,195 @@ ${cell('BL1 auto', 'принят ранее', sz('g24', BL1.auto) + sz('g16', BL
 ${cell('BL1 open', 'принят ранее', sz('g24', BL1.open) + sz('g16', BL1.open), 'old')}
 ${cell('BL1 closed', 'принят ранее', sz('g24', BL1.closed) + sz('g16', BL1.closed), 'old')}
 ${cell('сейчас в проекте', 'лента-свиток', sz('g24', CUR_BAR.auto) + sz('g24', CUR_BAR.open) + sz('g24', CUR_BAR.closed), 'old')}
+</div>
+
+<h2>N · Сигилы типахеда квик-эдда (набор N3 — ваш вердикт)</h2>
+<p class="note">Арт <b>не переделан</b> — взят байт-в-байт из fb2 (кандидат N3):
+обелиск-«!» · щит со звездой · башенка-часы. Здесь решается только <b>подача</b>:
+сигил встаёт на место цветной точки в строке дропдауна, 15px. Цвет приоритета
+никуда не девается — он переезжает с точки на сам сигил, так что сигнал остался,
+а строка получила язык. Сравнение «сейчас» справа.</p>
+<div class="row">
+${cell('N3 приоритет', 'кованый обелиск-«!»: жезл с перекладиной, кольца-финиалы, ромб-точка', mid(N3_PRIO) + sz('g15', N3_PRIO), 'rec')}
+${cell('N3 тег', 'щит с каймой и звездой-сигилом', mid(N3_TAG) + sz('g15', N3_TAG), 'rec')}
+${cell('N3 дата', 'башенка-часы языка дедлайна: крест-финиал, циферблат, маятник', mid(N3_DATE) + sz('g15', N3_DATE), 'rec')}
+</div>
+
+<h2 style="margin-top:22px">N · в реальной строке дропдауна</h2>
+<div class="menus">
+  <div class="menucol rec"><span class="menucap">! приоритет</span>
+    ${qaMenu(PRIO_ROWS(N3_PRIO))}</div>
+  <div class="menucol rec"><span class="menucap">* тег</span>
+    ${qaMenu([
+      qaRow(N3_TAG, '', '*письма', 'новый тег', true),
+      qaRow(N3_TAG, '', '*травник', ''),
+      qaRow(N3_TAG, '', '*ритуал', ''),
+    ])}</div>
+  <div class="menucol rec"><span class="menucap">% дата</span>
+    ${qaMenu([
+      qaRow(N3_DATE, '', '25 июля, 19:00', 'распознано', true),
+      qaRow(N3_DATE, '', 'Сегодня', ''),
+      qaRow(N3_DATE, '', 'Завтра', ''),
+      qaRow(N3_DATE, '', 'Через неделю', ''),
+    ])}</div>
+  <div class="menucol"><span class="menucap">сейчас (точки)</span>
+    ${qaMenu([
+      qaDot('#e03060', 'Высокий', '!high', true),
+      qaDot('#d09020', 'Средний', '!medium'),
+      qaDot('', '*письма', 'новый тег'),
+      qaDot('', 'Завтра', ''),
+    ])}</div>
+</div>
+
+<h2 style="margin-top:22px">Развилка · строка «Без приоритета»</h2>
+<p class="note">Единственная строка без цвета: приглушённый сигил читается просто
+как «блёклый высокий». Три трактовки — <b>A</b> тот же обелиск приглушённым ·
+<b>B</b> обелиск <b>без ромба-точки</b> («!» без точки = не восклицание; чистое
+вычитание из принятого арта) · <b>C</b> обелиск, <b>перерубленный кованой
+перекладиной</b> с фасками — идиома «—», которой в панели выбора уже помечен
+«Без приоритета». Нужен ваш выбор.</p>
+<div class="menus">
+  <div class="menucol"><span class="menucap">A · приглушённый</span>
+    ${qaMenu(PRIO_ROWS(N3_PRIO))}
+    <div class="sizes">${sz('g24', N3_PRIO)}${sz('g16', N3_PRIO)}</div></div>
+  <div class="menucol"><span class="menucap">B · без ромба-точки</span>
+    ${qaMenu(PRIO_ROWS(N3_PRIO_B))}
+    <div class="sizes">${sz('g24', N3_PRIO_B)}${sz('g16', N3_PRIO_B)}</div></div>
+  <div class="menucol"><span class="menucap">C · перерублен</span>
+    ${qaMenu(PRIO_ROWS(N3_PRIO_C))}
+    <div class="sizes">${sz('g24', N3_PRIO_C)}${sz('g16', N3_PRIO_C)}</div></div>
+</div>
+
+<h2 style="margin-top:26px">X1 · Арки времени (дедлайн-модалка)</h2>
+<p class="note">Живых целей в приложении оказалось <b>две</b>, а не три: степперы
+<code>.stepper-btn</code> (8 точек, рендер 17px) и глиф метки «Время
+(необязательно)» (13px, сейчас — generic круг с двумя стрелками). <b>Календарь-арка
+цели не имеет</b>: поле даты нативное <code>&lt;input type="date"&gt;</code>, свой
+триггер туда не поставить, а глиф дедлайна давно переведён на IC.window. Что с ней
+делать — вопрос ниже.</p>
+
+<h2 style="font-size:12px;margin-top:16px">Степперы — в натуральную величину (17px)</h2>
+<div class="menus">
+  <div class="menucol"><span class="menucap">сейчас · ланса</span>
+    ${stepPair(CUR_STEP_UP, CUR_STEP_DOWN)}
+    <div class="sizes">${sz('g24', CUR_STEP_DOWN)}${sz('g16', CUR_STEP_DOWN)}</div></div>
+  <div class="menucol rec"><span class="menucap">X1 · как в вердикте</span>
+    ${stepPair(X1_STEP_UP, X1_STEP_DOWN)}
+    <div class="sizes">${sz('g24', X1_STEP_DOWN)}${sz('g16', X1_STEP_DOWN)}</div></div>
+  <div class="menucol rec"><span class="menucap">X1 · подача под 17px</span>
+    ${stepPair(X1_STEP_UP_B, X1_STEP_DOWN_B)}
+    <div class="sizes">${sz('g24', X1_STEP_DOWN_B)}${sz('g16', X1_STEP_DOWN_B)}</div></div>
+</div>
+<p class="note">Различие только в подаче: у X1-как-в-вердикте шары на перекладине
+имеют r=0.55 на канве 22 — на экране это 0.85px в диаметре, они почти пропадают,
+а ромб-навершие сливается со стержнем. Правый вариант — тот же рисунок с
+укрупнёнными шарами и ромбом (сам силуэт не тронут). «Вверх» выведен строгим
+зеркалом по y=11, иначе пара разъезжается.</p>
+
+<h2 style="font-size:12px;margin-top:20px">Метка «Время» — в натуральную величину (13px)</h2>
+<div class="menus">
+  <div class="menucol"><span class="menucap">сейчас · круг-часы</span>
+    ${timeLabel(CUR_CLOCK)}<div class="sizes">${sz('g24', CUR_CLOCK)}${sz('g16', CUR_CLOCK)}</div></div>
+  <div class="menucol"><span class="menucap">башенка N3 как есть</span>
+    ${timeLabel(N3_DATE)}<div class="sizes">${sz('g24', N3_DATE)}${sz('g16', N3_DATE)}${sz('g13', N3_DATE)}</div></div>
+  <div class="menucol rec"><span class="menucap">башенка · подача под 13px</span>
+    ${timeLabel(X1_TIME_LEAN)}<div class="sizes">${sz('g24', X1_TIME_LEAN)}${sz('g16', X1_TIME_LEAN)}${sz('g13', X1_TIME_LEAN)}</div></div>
+</div>
+<p class="note">Ваша пометка в X1: «время = башенка из N3-языка, если N3 победит».
+N3 победил → берём башенку. Но полный N3-арт держит риски циферблата и второй
+обод штрихами 0.7-0.95 при opacity 0.4 — на 13px это 0.4px на экране, то есть
+серая каша. Правый вариант — та же башня, снят шум, штрихи подняты до ≥1.1.</p>
+
+<h2 style="font-size:12px;margin-top:20px">Календарь-арка · куда её</h2>
+<div class="row">
+${cell('X1 календарь-арка', 'ланцетная скрижаль: сетка дней, ромб = выбранный день, крест-навершие', mid(X1_CAL), 'rec')}
+</div>
+<p class="note"><b>Развилка.</b> (1) <b>Не вживлять</b> — цели нет, арт остаётся в
+резерве (под будущий календарь, CALENDAR-SPEC). (2) <b>Дать строке «Дата»
+собственную метку</b> с этим глифом — сейчас у времени метка с глифом есть, а у
+даты нет вообще; арка их уравняет и заодно закроет асимметрию модалки.
+(3) Куда-то ещё по вашему указанию.</p>
+
+<hr style="margin:34px 0;border:none;border-top:1px solid rgba(170,90,255,0.25)">
+<h1>ПАРТИЯ 2 · по вашим правкам 2026-07-24</h1>
+<p class="note">Решено и в работе: «Без приоритета» = <b>C</b> · степперы = подача
+под 17px · метка времени = lean · календарь-арка → в нативный пикер даты.
+Ниже — два открытых вопроса из ваших правок.</p>
+
+<h2>Приоритет-сигил заново (обелиск признан неинтуитивным)</h2>
+<p class="note">Ограничение, которое решает всё: сигил живёт на <b>15px</b> в строке
+дропдовна. Композиция из трёх фигур там умирает — значит уровень обязан читаться
+<b>одной характеристикой силуэта</b>. Отсюда два хода. Оба дают <b>свой глиф на
+каждый уровень</b> (обелиск давал один на все четыре, цвет нёс всё) — интуитивность
+перестаёт зависеть от цвета.</p>
+<div class="menus">
+  <div class="menucol rec"><span class="menucap">PA · башня-ранг</span>
+    ${qaMenu([
+      qaRow(PA.high, '#e03060', 'Высокий', '!high', true),
+      qaRow(PA.medium, '#d09020', 'Средний', '!medium'),
+      qaRow(PA.low, '#3cc870', 'Низкий', '!low'),
+      qaRow(PA.none, 'rgba(144,104,192,0.75)', 'Без приоритета', '!none'),
+    ])}
+    <div class="sizes">${sz('g24', PA.high)}${sz('g24', PA.medium)}${sz('g24', PA.low)}${sz('g24', PA.none)}</div>
+    <div class="sizes">${sz('g16', PA.high)}${sz('g16', PA.medium)}${sz('g16', PA.low)}${sz('g16', PA.none)}</div></div>
+  <div class="menucol rec"><span class="menucap">PB · шевроны ранга</span>
+    ${qaMenu([
+      qaRow(PB.high, '#e03060', 'Высокий', '!high', true),
+      qaRow(PB.medium, '#d09020', 'Средний', '!medium'),
+      qaRow(PB.low, '#3cc870', 'Низкий', '!low'),
+      qaRow(PB.none, 'rgba(144,104,192,0.75)', 'Без приоритета', '!none'),
+    ])}
+    <div class="sizes">${sz('g24', PB.high)}${sz('g24', PB.medium)}${sz('g24', PB.low)}${sz('g24', PB.none)}</div>
+    <div class="sizes">${sz('g16', PB.high)}${sz('g16', PB.medium)}${sz('g16', PB.low)}${sz('g16', PB.none)}</div></div>
+  <div class="menucol"><span class="menucap">обелиск + C (отклонён)</span>
+    ${qaMenu(PRIO_ROWS(N3_PRIO_C))}
+    <div class="sizes">${sz('g24', N3_PRIO)}${sz('g16', N3_PRIO)}</div></div>
+</div>
+<p class="note"><b>PA · башня-ранг.</b> Язык кладки взят у <b>M3</b>
+(<code>IC.sortPriority</code>) — той самой иконки, которой приложение УЖЕ обозначает
+приоритет: двойные стены, шпиль, навершие, цоколь. Уровень = <b>высота башни</b>;
+«выше = важнее» объяснять не нужно. Навершия тоже ранжированы: крест-ромб →
+малый ромб → шар. «Без приоритета» = <b>руина</b>: цоколь, два обломка стены,
+упавший блок — шпиля нет вовсе.<br>
+<b>PB · шевроны ранга.</b> Считаемость вместо высоты: три кованые нашивки —
+высокий, две — средний, одна — низкий; погашенные позиции остаются видны призраком,
+поэтому ранг читается даже в одиночной строке. «Без приоритета» = кованая планка
+с фасками и ромбом — та самая идиома «—», которой уровень «нет» помечен в панели
+выбора. Ковка: фаски на концах, ромб-заклёпка в вершине, шары-терминалы.</p>
+
+<h2 style="margin-top:22px">Часы: свип по приложению</h2>
+<p class="note">Примитивных часов оказалось <b>ровно две</b> штуки, и обе —
+устаревшие дубли уже принятого богатого <b>AV1</b> (<code>IC.sundial</code>, Batch-10):
+<code>index.html:1202</code> (метка «Время», 13px) и <code>index.html:443</code>
+(кнопка сортировки по дедлайну, 24px). AV1 при этом живёт рядом, в сепараторах
+«С дедлайном» — то есть на одном экране соседствуют бедная и богатая версия одних
+и тех же часов. Чинится это <b>не четвёртыми часами, а унификацией</b>: рисовать
+конкурента принятому AV1 — значит расщепить язык времени, которого в приложении
+ровно один.</p>
+<div class="menus">
+  <div class="menucol"><span class="menucap">сейчас · метка 13px</span>
+    ${timeLabel(CUR_CLOCK)}<div class="sizes">${sz('g24', CUR_CLOCK)}${sz('g16', CUR_CLOCK)}</div></div>
+  <div class="menucol rec"><span class="menucap">AV1-lean · метка 13px</span>
+    ${timeLabel(AV1_LEAN)}<div class="sizes">${sz('g24', AV1_LEAN)}${sz('g16', AV1_LEAN)}${sz('g13', AV1_LEAN)}</div></div>
+  <div class="menucol"><span class="menucap">сейчас · сортировка 24px</span>
+    <div class="sizes">${sz('g36', CUR_TOWER_POOR)}${sz('g24', CUR_TOWER_POOR)}</div></div>
+  <div class="menucol rec"><span class="menucap">AV1 · сортировка 24px</span>
+    <div class="sizes">${sz('g36', AV1)}${sz('g24', AV1)}</div></div>
+</div>
+<p class="note">Если такой ответ («не новый глиф, а вымести дубли на AV1») вас не
+устраивает и вы хотите, чтобы сами часы были переработаны заново — скажите, и
+следующей партией я нарисую AV1-преемника: тогда он заменит и AV1 во всех
+сепараторах, чтобы язык остался единым.</p>
+
+<h2 style="margin-top:22px">Календарь-арка → нативный пикер даты (ваш вердикт #4)</h2>
+<p class="note">Цель найдена: <code>seg-picker-btn</code> в
+<code>08-quickadd-export-init.ts:1064</code> — кнопка, открывающая нативный пикер у
+сегментированного поля даты (в т.ч. в дедлайн-модалке). Там уже стоит арка-календарь,
+но ранняя и грубая: три полки, голый круг. X1 — та же арка, но с настоящей сеткой
+дней, ромбом выбранного дня и крестом-навершием.</p>
+<div class="row">
+${cell('сейчас · seg-picker', 'три полки + голый круг', mid(CUR_SEG_CAL), 'old')}
+${cell('X1 · календарь-арка', 'сетка дней, ромб = выбранный день, крест-навершие', mid(X1_CAL), 'rec')}
 </div>
 </body>
 </html>
