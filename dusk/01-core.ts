@@ -679,13 +679,15 @@ const IC = {
 };
 
 /**
- * P3 two-state eye. `on` = the narrowing mode is engaged (filter «только
- * невыполненные», or «показать все заметки подпунктов») → the half-lidded glyph;
- * off → the wide-open one. Every consumer must go through here so the toolbar
- * button and the per-task button never drift apart.
+ * P3 two-state eye. The argument is what the eye SEES, not whether the button is
+ * pressed — `narrowed` = part of the picture is withheld → half-lidded glyph;
+ * false = everything is on show → wide-open glyph. The two consumers read
+ * opposite flags: the filter hides finished tasks when `isFiltered` is true,
+ * while `subNotesAlwaysOpen` true means every subtask note is revealed.
+ * Every consumer goes through here so the two buttons never drift apart.
  */
-function eyeGlyph(on) {
-    return on ? IC.gothEyeHalf : IC.gothEyeOpen;
+function eyeGlyph(narrowed) {
+    return narrowed ? IC.gothEyeHalf : IC.gothEyeOpen;
 }
 
 // ============================================================
