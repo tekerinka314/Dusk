@@ -507,34 +507,34 @@
    "index.html:1210"
   ]
  },
- "c7b9ff291f755203": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg class=\"dl-dur-corner tl\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
+ "6afa30949ac7ebf6": {
+  "role": "BI",
+  "note": "BI1 угол-филигрань dl-dur (tl)",
+  "preview": "<svg class=\"dl-dur-corner tl\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
    "index.html:1244"
   ]
  },
- "b0eae9af5de61fbd": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg class=\"dl-dur-corner tr\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
+ "05d29576193d420a": {
+  "role": "BI",
+  "note": "BI1 угол-филигрань dl-dur (tr)",
+  "preview": "<svg class=\"dl-dur-corner tr\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
    "index.html:1245"
   ]
  },
- "26dc1dc79f05b1a6": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg class=\"dl-dur-corner bl\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
+ "9e9b192b891b4ec5": {
+  "role": "BI",
+  "note": "BI1 угол-филигрань dl-dur (bl)",
+  "preview": "<svg class=\"dl-dur-corner bl\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
    "index.html:1246"
   ]
  },
- "d2c290de01d8c1f1": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg class=\"dl-dur-corner br\" viewBox=\"0 0 34 34\" fill=\"none\" aria-hidden=\"true\"><path d=\"",
+ "1d8c4d915ae4cfdc": {
+  "role": "BI",
+  "note": "BI1 угол-филигрань dl-dur (br)",
+  "preview": "<svg class=\"dl-dur-corner br\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
    "index.html:1247"
   ]
@@ -547,10 +547,10 @@
    "index.html:1254"
   ]
  },
- "885c15af7662e74d": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
+ "2164c5df9402ff01": {
+  "role": "BI",
+  "note": "BI1 кованая волна — степперы dl-dur x4",
+  "preview": "<svg viewBox=\"0 0 24 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "index.html:1289",
    "index.html:1293",
@@ -1108,9 +1108,9 @@
    "dusk/02-grimoire.ts:213"
   ]
  },
- "58c93527c4b151e1": {
-  "role": "UNASSIGNED",
-  "note": "",
+ "b3faf39e5266a822": {
+  "role": "BM",
+  "note": "BM1 флёр-де-лис — разделитель GIC.dividerFleur",
   "preview": "<svg viewBox=\"0 0 40 12\" width=\"40\" height=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-w",
   "locations": [
    "dusk/02-grimoire.ts:215"
