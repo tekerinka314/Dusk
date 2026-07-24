@@ -445,18 +445,18 @@
    "dusk/02-grimoire.ts:182"
   ]
  },
- "c0b895648544896e": {
-  "role": "UNASSIGNED",
-  "note": "",
+ "7b27cef259a74199": {
+  "role": "BK1",
+  "note": "GIC.foldClosed + inline gt-closed — clasped tome, bindery finish (BK1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "index.html:876",
    "dusk/02-grimoire.ts:194"
   ]
  },
- "3f5c39ff9ef9419e": {
-  "role": "UNASSIGNED",
-  "note": "",
+ "c417de76f0b8eb18": {
+  "role": "BK1",
+  "note": "GIC.foldOpen + inline gt-open — open tome, bindery finish (BK1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "index.html:877",
@@ -1469,19 +1469,19 @@
    "dusk/02-grimoire.ts:3922"
   ]
  },
- "23c430b2bc5cd13d": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 14 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
+ "7fca0ce9607359d1": {
+  "role": "BG1",
+  "note": "split header ACTIVE — living-wax candle (BG1); 03 const + 07 inline",
+  "preview": "<svg viewBox=\"0 0 14 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-line",
   "locations": [
    "dusk/03-render.ts:269",
    "dusk/07-dnd-filter-progress.ts:397"
   ]
  },
- "658e4064bb7be6e4": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
+ "de8699187ccaf65a": {
+  "role": "BG1",
+  "note": "split header DONE — joinery coffin (BG1); 03 const + 07 inline",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "dusk/03-render.ts:270",
    "dusk/07-dnd-filter-progress.ts:428"
