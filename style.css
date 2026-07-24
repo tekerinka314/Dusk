@@ -8257,6 +8257,26 @@ kbd {
 /* Pure collapse wrapper: no padding/border/bg so the bar folds to a true 0 height
    when hidden (the chrome lives on .fmt-cluster, which the overflow clips away). */
 .fmt-inner { min-height: 0; overflow: hidden; }
+
+/* ── Corner-column gutter (lives here because it must override the base right
+   insets of .grim-title-in / .grim-divider / .grim-body / .fmt-bar, all of
+   which are declared above) ─────────────────────────────────────────────────
+   The corner sigils (focus / toolbar / TOC, see .grim-focus-toggle & co.)
+   stack down the right edge of .grim-page-main: right 12…42px, reaching
+   y≈109px on a full stack. The page's LEFT side already keeps a 52px gutter
+   for the corner rune (ornament 12…42px + 10px of air); the right side never
+   got its mirror — the title was updated to 42px when the buttons became a
+   column, the divider (22px) and the format bar (18px) were not, so the TOC
+   sigil landed ON the toolbar and the toolbar toggle grazed its top edge.
+   One symmetric 52px gutter fixes it and squares the page: equal air both
+   sides. Desktop-only — below 641px the column is just back+toolbar (ends at
+   y=72, clear of the toolbar) and the narrow width outweighs the symmetry. */
+@media (min-width: 641px) {
+    .grim-title-in, .grim-title-ro { padding-right: 52px; }
+    .grim-divider { margin-right: 52px; }
+    .grim-body { padding-right: 52px; }
+    .fmt-bar { margin-right: 52px; }
+}
 .fmt-cluster {
     display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 9px;
     background: rgba(6, 2, 20, 0.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
