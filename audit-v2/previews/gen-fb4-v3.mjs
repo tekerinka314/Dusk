@@ -267,11 +267,15 @@ const shutter = (yBottom, dashed, brace = true) => {
     xs.map(x =>
       `<path d="M${x} ${yBottom} L${x - 0.62} ${yBottom - 1.2} M${x} ${yBottom} L${x + 0.62} ${yBottom - 1.2}" stroke-width="0.85" opacity="0.95"/>`).join('');
 };
-const BL2 = {
+// Вычисленные координаты/альфы дают хвосты вида 6.9799999999999995 — режем до
+// 2 знаков, чтобы вживляемый в приложение svg был чистым и совпадал с превью.
+const tidy = s => s.replace(/\d+\.\d{3,}/g, m => String(+(+m).toFixed(2)));
+const BL2raw = {
   auto: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${shutter(9.4, false)}${toolPlate(0.55)}${toolSigils(0.5)}</svg>`,
   open: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${shutter(5.5, false, false)}${toolPlate(1)}${toolSigils(1)}</svg>`,
   closed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${toolPlate(0.22)}${shutter(18.9, false)}</svg>`,
 };
+const BL2 = Object.fromEntries(Object.entries(BL2raw).map(([k, v]) => [k, tidy(v)]));
 /* текущая barLvl-лента (для сравнения) */
 const CUR_BAR = {
   auto: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5h14a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 5 8.5Z" stroke-dasharray="2.4 2.2"/><path d="M8 10.6v2.8M12 10.6v2.8M16 10.6v2.8" stroke-opacity="0.55"/></svg>`,
