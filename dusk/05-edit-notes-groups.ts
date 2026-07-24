@@ -269,7 +269,7 @@ function updateSubNotesAlwaysBtn(taskId) {
         btn.className = 'btn-sub-notes-always' + (task.subNotesAlwaysOpen ? ' active' : '');
         btn.dataset.tid = String(taskId);
         btn.title = task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов';
-        btn.innerHTML = IC.gothEye;
+        btn.innerHTML = eyeGlyph(task.subNotesAlwaysOpen);
         btn.addEventListener('click', () => toggleSubNotesAlwaysOpen(taskId));
         const subToggle = meta.querySelector(`.btn-subtask-toggle[data-tid="${taskId}"]`);
         if (subToggle) subToggle.insertAdjacentElement('afterend', btn);

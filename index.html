@@ -502,14 +502,24 @@
                     </div><span class="toolbar-group-label">вид</span></div>
                     <div class="toolbar-group"><div class="toolbar-group-btns">
                     <button class="btn-tool" id="btn-filter" data-act="toggleFilter" title="Фильтр: только невыполненные">
-                        <!-- Gothic eye of truth: vesica piscis eye = filter / reveal only what matters -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <!-- P3 gothic eye of truth, OFF state (wide open = all tasks shown).
+                             Filter ON swaps the whole glyph for the half-lidded one —
+                             see IC.gothEyeOpen / IC.gothEyeHalf + eyeGlyph() in 01-core. -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
                             <path d="M2 12C5 5.5 9 3.5 12 3.5C15 3.5 19 5.5 22 12C19 18.5 15 20.5 12 20.5C9 20.5 5 18.5 2 12Z"/>
-                            <circle cx="12" cy="12" r="3.8"/>
-                            <ellipse cx="12" cy="12" rx="1.5" ry="3" fill="currentColor" stroke="none" opacity="0.92"/>
+                            <circle cx="12" cy="12" r="3.9"/>
+                            <line x1="9.3" y1="10.2" x2="10.6" y2="11" stroke-width="0.85" opacity="0.5"/>
+                            <line x1="14.7" y1="10.2" x2="13.4" y2="11" stroke-width="0.85" opacity="0.5"/>
+                            <line x1="9.3" y1="13.8" x2="10.6" y2="13" stroke-width="0.85" opacity="0.5"/>
+                            <line x1="14.7" y1="13.8" x2="13.4" y2="13" stroke-width="0.85" opacity="0.5"/>
+                            <ellipse cx="12" cy="12" rx="1.4" ry="2.9" fill="currentColor" stroke="none" opacity="0.92"/>
                             <line x1="12" y1="3.5" x2="12" y2="2" stroke-width="1.3" opacity="0.55"/>
                             <line x1="8.5" y1="4.8" x2="7.8" y2="3.2" stroke-width="1.1" opacity="0.42"/>
                             <line x1="15.5" y1="4.8" x2="16.2" y2="3.2" stroke-width="1.1" opacity="0.42"/>
+                            <path d="M2 12C2.8 12.5 3.6 12.8 4.4 12.9" stroke-width="1" opacity="0.45"/>
+                            <path d="M22 12C21.2 12.5 20.4 12.8 19.6 12.9" stroke-width="1" opacity="0.45"/>
+                            <line x1="8.5" y1="19.2" x2="7.8" y2="20.8" stroke-width="1.1" opacity="0.35"/>
+                            <line x1="15.5" y1="19.2" x2="16.2" y2="20.8" stroke-width="1.1" opacity="0.35"/>
                         </svg>
                     </button>
                     <!-- Color label filter — gothic prism/crystal icon -->

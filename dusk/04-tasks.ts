@@ -106,7 +106,7 @@ function createTaskEl(task, showDlSide) {
     // Always-show-notes button: only rendered when there are subtasks that have notes
     const hasSubNotes = subs.some(s => s.note && s.note.trim());
     const subNotesAlwaysBtn = (subs.length > 0 && hasSubNotes)
-        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов'}">${IC.gothEye}</button>`
+        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов'}">${eyeGlyph(task.subNotesAlwaysOpen)}</button>`
         : '';
 
     const displayText = highlightHashtags(
@@ -1986,6 +1986,7 @@ function toggleSubNotesAlwaysOpen(taskId) {
     const btn = document.querySelector(`.btn-sub-notes-always[data-tid="${taskId}"]`) as any;
     if (btn) {
         btn.classList.toggle('active', task.subNotesAlwaysOpen);
+        btn.innerHTML = eyeGlyph(task.subNotesAlwaysOpen);   // P3: the glyph itself carries the state
         btn.title = task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов';
     }
     saveState();

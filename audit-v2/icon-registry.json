@@ -45,7 +45,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
   "locations": [
    "index.html:144",
-   "index.html:613",
+   "index.html:623",
    "dusk/01-core.ts:495",
    "dusk/01-core.ts:507"
   ]
@@ -56,7 +56,7 @@
   "preview": "<svg class=\"prio-none-ic\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-wid",
   "locations": [
    "index.html:159",
-   "index.html:1358"
+   "index.html:1368"
   ]
  },
  "a16c7c15aea34046": {
@@ -65,7 +65,7 @@
   "preview": "<svg class=\"prio-none-ic none-moon-r\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor",
   "locations": [
    "index.html:159",
-   "index.html:1358"
+   "index.html:1368"
   ]
  },
  "bba4e0aad3e0bac8": {
@@ -91,9 +91,9 @@
   "locations": [
    "index.html:218",
    "index.html:272",
-   "index.html:1074",
-   "index.html:1134",
-   "index.html:1483",
+   "index.html:1084",
+   "index.html:1144",
+   "index.html:1493",
    "dusk/02-grimoire.ts:844"
   ]
  },
@@ -103,7 +103,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
    "index.html:236",
-   "index.html:1447"
+   "index.html:1457"
   ]
  },
  "d47a06014cf566e3": {
@@ -177,8 +177,8 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "index.html:418",
-   "index.html:771",
-   "index.html:901"
+   "index.html:781",
+   "index.html:911"
   ]
  },
  "4ba258e362d32ca9": {
@@ -221,13 +221,13 @@
    "index.html:484"
   ]
  },
- "388e07fdfe247440": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
+ "f6bb606445df1276": {
+  "role": "P3",
+  "note": "P3 око-ВЫКЛ (открытое) — IC.gothEyeOpen + инлайн #btn-filter",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:506",
-   "dusk/01-core.ts:546"
+   "index.html:508",
+   "dusk/01-core.ts:568"
   ]
  },
  "df6069d9dd527b15": {
@@ -235,7 +235,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:518"
+   "index.html:528"
   ]
  },
  "df13a09a731b5667": {
@@ -243,7 +243,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:533"
+   "index.html:543"
   ]
  },
  "0ce3548c71ad0bfe": {
@@ -251,7 +251,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linec",
   "locations": [
-   "index.html:538"
+   "index.html:548"
   ]
  },
  "4f61cfc0c72e6fbd": {
@@ -259,7 +259,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:549",
+   "index.html:559",
    "dusk/08-quickadd-export-init.ts:260",
    "dusk/08-quickadd-export-init.ts:281"
   ]
@@ -269,7 +269,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:567",
+   "index.html:577",
    "dusk/08-quickadd-export-init.ts:280"
   ]
  },
@@ -278,7 +278,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:586",
+   "index.html:596",
    "dusk/08-quickadd-export-init.ts:282"
   ]
  },
@@ -287,8 +287,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:600",
-   "index.html:711"
+   "index.html:610",
+   "index.html:721"
   ]
  },
  "136eeaf9df06fbe3": {
@@ -296,10 +296,10 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:603",
-   "index.html:715",
-   "index.html:793",
-   "index.html:944",
+   "index.html:613",
+   "index.html:725",
+   "index.html:803",
+   "index.html:954",
    "dusk/01-core.ts:315"
   ]
  },
@@ -308,7 +308,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
   "locations": [
-   "index.html:618"
+   "index.html:628"
   ]
  },
  "07e7400104e0d2b4": {
@@ -316,7 +316,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:639"
+   "index.html:649"
   ]
  },
  "c4ca1d362d1fa699": {
@@ -324,7 +324,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:669"
+   "index.html:679"
   ]
  },
  "0864c21ae284974e": {
@@ -332,8 +332,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:683",
-   "index.html:935",
+   "index.html:693",
+   "index.html:945",
    "dusk/02-grimoire.ts:1184"
   ]
  },
@@ -342,7 +342,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:695",
+   "index.html:705",
    "dusk/01-core.ts:322"
   ]
  },
@@ -351,7 +351,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linec",
   "locations": [
-   "index.html:734"
+   "index.html:744"
   ]
  },
  "bcee187c25f7aa26": {
@@ -359,8 +359,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:756",
-   "index.html:885"
+   "index.html:766",
+   "index.html:895"
   ]
  },
  "d897e9500c3bfbda": {
@@ -368,9 +368,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:776",
-   "index.html:854",
-   "index.html:931",
+   "index.html:786",
+   "index.html:864",
+   "index.html:941",
    "dusk/01-core.ts:424",
    "dusk/02-grimoire.ts:185"
   ]
@@ -380,9 +380,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:781",
+   "index.html:791",
    "dusk/01-core.ts:419",
-   "dusk/01-core.ts:595"
+   "dusk/01-core.ts:625"
   ]
  },
  "882d1a43bd8643a7": {
@@ -390,7 +390,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:806"
+   "index.html:816"
   ]
  },
  "10f7fd556c0e848b": {
@@ -398,7 +398,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:837",
+   "index.html:847",
    "dusk/02-grimoire.ts:180"
   ]
  },
@@ -407,8 +407,8 @@
   "note": "grim-seg archive coffin — joinery finish (BQ1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:841",
-   "index.html:928"
+   "index.html:851",
+   "index.html:938"
   ]
  },
  "850c9fbe24a196e2": {
@@ -416,7 +416,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 2 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:848"
+   "index.html:858"
   ]
  },
  "c394a5465d933eca": {
@@ -424,8 +424,8 @@
   "note": "grim-io transfer — tiered feathers (BJ1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "index.html:859",
-   "index.html:939"
+   "index.html:869",
+   "index.html:949"
   ]
  },
  "435d487d22480941": {
@@ -433,7 +433,7 @@
   "note": "grim empty-crypt — toppled urn (BR1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:867"
+   "index.html:877"
   ]
  },
  "dc590dde6fa3c124": {
@@ -441,7 +441,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:872",
+   "index.html:882",
    "dusk/02-grimoire.ts:182"
   ]
  },
@@ -450,7 +450,7 @@
   "note": "GIC.foldClosed + inline gt-closed — clasped tome, bindery finish (BK1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:876",
+   "index.html:886",
    "dusk/02-grimoire.ts:194"
   ]
  },
@@ -459,7 +459,7 @@
   "note": "GIC.foldOpen + inline gt-open — open tome, bindery finish (BK1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:877",
+   "index.html:887",
    "dusk/02-grimoire.ts:193"
   ]
  },
@@ -468,7 +468,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:910"
+   "index.html:920"
   ]
  },
  "0003331baca4b653": {
@@ -476,9 +476,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap",
   "locations": [
-   "index.html:1107",
-   "index.html:1168",
-   "index.html:1513"
+   "index.html:1117",
+   "index.html:1178",
+   "index.html:1523"
   ]
  },
  "63be9400ab31188c": {
@@ -486,9 +486,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap",
   "locations": [
-   "index.html:1116",
-   "index.html:1177",
-   "index.html:1522"
+   "index.html:1126",
+   "index.html:1187",
+   "index.html:1532"
   ]
  },
  "c96c40af915c22b3": {
@@ -496,7 +496,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1191"
+   "index.html:1201"
   ]
  },
  "8b46f5318e4db326": {
@@ -504,7 +504,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-l",
   "locations": [
-   "index.html:1210"
+   "index.html:1220"
   ]
  },
  "6afa30949ac7ebf6": {
@@ -512,7 +512,7 @@
   "note": "BI1 угол-филигрань dl-dur (tl)",
   "preview": "<svg class=\"dl-dur-corner tl\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1244"
+   "index.html:1254"
   ]
  },
  "05d29576193d420a": {
@@ -520,7 +520,7 @@
   "note": "BI1 угол-филигрань dl-dur (tr)",
   "preview": "<svg class=\"dl-dur-corner tr\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1245"
+   "index.html:1255"
   ]
  },
  "9e9b192b891b4ec5": {
@@ -528,7 +528,7 @@
   "note": "BI1 угол-филигрань dl-dur (bl)",
   "preview": "<svg class=\"dl-dur-corner bl\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1246"
+   "index.html:1256"
   ]
  },
  "1d8c4d915ae4cfdc": {
@@ -536,7 +536,7 @@
   "note": "BI1 угол-филигрань dl-dur (br)",
   "preview": "<svg class=\"dl-dur-corner br\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1247"
+   "index.html:1257"
   ]
  },
  "b1142558b9deea17": {
@@ -544,7 +544,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 60 116\" aria-hidden=\"true\"><defs><radialGradient id=\"dlc-halo\" cx=\"50%\" ",
   "locations": [
-   "index.html:1254"
+   "index.html:1264"
   ]
  },
  "2164c5df9402ff01": {
@@ -552,10 +552,10 @@
   "note": "BI1 кованая волна — степперы dl-dur x4",
   "preview": "<svg viewBox=\"0 0 24 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1289",
-   "index.html:1293",
-   "index.html:1307",
-   "index.html:1311"
+   "index.html:1299",
+   "index.html:1303",
+   "index.html:1317",
+   "index.html:1321"
   ]
  },
  "2d1e3f999d840c1f": {
@@ -563,7 +563,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 13 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1298"
+   "index.html:1308"
   ]
  },
  "16e13f426d825a36": {
@@ -571,7 +571,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 60 116\" aria-hidden=\"true\"><ellipse class=\"dl-halo\" cx=\"30\" cy=\"34\" rx=\"",
   "locations": [
-   "index.html:1318"
+   "index.html:1328"
   ]
  },
  "11ea7201060f4c18": {
@@ -579,7 +579,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1403"
+   "index.html:1413"
   ]
  },
  "93bbc52fd197f6a1": {
@@ -587,7 +587,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1426"
+   "index.html:1436"
   ]
  },
  "6e405ae0c993830f": {
@@ -595,7 +595,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1434"
+   "index.html:1444"
   ]
  },
  "618850e41adf2101": {
@@ -603,8 +603,8 @@
   "note": "AZ6 со чешуёй — заменил старую лемнискату во всех точках IC.ouroboros + инлайн кнопка Еженедельно; генератор gen-az5.mjs",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
-   "index.html:1443",
-   "dusk/01-core.ts:560"
+   "index.html:1453",
+   "dusk/01-core.ts:590"
   ]
  },
  "a90a43bbea7837ac": {
@@ -612,7 +612,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1459"
+   "index.html:1469"
   ]
  },
  "005057c23abfe8cc": {
@@ -620,7 +620,7 @@
   "note": "sync reptilian-eye FAB — scale brows + spine-lashes (BC1); state classes intact",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1575"
+   "index.html:1585"
   ]
  },
  "379dda1781ff688f": {
@@ -628,7 +628,7 @@
   "note": "shortcuts-hint key — sacristy key, quatrefoil bow (BB1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.45\" stroke-line",
   "locations": [
-   "index.html:1613"
+   "index.html:1623"
   ]
  },
  "f12e267ae0132474": {
@@ -636,7 +636,7 @@
   "note": "coffin-emblem symbol — ceremonial emblem (BE1)",
   "preview": "<svg width=\"0\" height=\"0\" style=\"position:absolute;overflow:hidden\"><defs><linearGradient ",
   "locations": [
-   "index.html:1642"
+   "index.html:1652"
   ]
  },
  "1ea4cc51eae3da83": {
@@ -644,7 +644,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:1722"
+   "index.html:1732"
   ]
  },
  "34a05efc0c7d809f": {
@@ -888,7 +888,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:421",
-   "dusk/01-core.ts:606"
+   "dusk/01-core.ts:636"
   ]
  },
  "2c0604ffd4158978": {
@@ -961,7 +961,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:503",
-   "dusk/01-core.ts:568"
+   "dusk/01-core.ts:598"
   ]
  },
  "ad032aa5df2af110": {
@@ -980,12 +980,20 @@
    "dusk/01-core.ts:522"
   ]
  },
+ "cc6258eba451c15a": {
+  "role": "P3",
+  "note": "P3 око-ВКЛ (полуприкрытое) — IC.gothEyeHalf, свап через eyeGlyph()",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
+  "locations": [
+   "dusk/01-core.ts:551"
+  ]
+ },
  "7cfe38dd17667ae1": {
   "role": "AZ · cycleReturn (bare)",
   "note": "тот же AZ6 без чешуи для 9px cycle-until бейджа",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:563"
+   "dusk/01-core.ts:593"
   ]
  },
  "612f0726febf2f79": {
@@ -993,7 +1001,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:566"
+   "dusk/01-core.ts:596"
   ]
  },
  "4bf45cc49e2aee1b": {
@@ -1001,7 +1009,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:573"
+   "dusk/01-core.ts:603"
   ]
  },
  "b444c884ade6e6e8": {
@@ -1009,7 +1017,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:576"
+   "dusk/01-core.ts:606"
   ]
  },
  "ff8bdb44097ed3c4": {
@@ -1017,7 +1025,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" stroke=\"none\" stroke-linejoin=\"round\"><path d=\"M2.8 5.6 L5.6 2.8 ",
   "locations": [
-   "dusk/01-core.ts:583"
+   "dusk/01-core.ts:613"
   ]
  },
  "731fc055ba91251e": {
@@ -1025,7 +1033,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:620"
+   "dusk/01-core.ts:650"
   ]
  },
  "11e098411fcaf4e1": {
@@ -1033,7 +1041,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:623"
+   "dusk/01-core.ts:653"
   ]
  },
  "dba9dfcd43c9ed8c": {
@@ -1041,7 +1049,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:627"
+   "dusk/01-core.ts:657"
   ]
  },
  "a28cfc6097964a06": {
@@ -1049,7 +1057,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:639"
+   "dusk/01-core.ts:669"
   ]
  },
  "bb2feda03e1b1c97": {
@@ -1475,7 +1483,7 @@
   "preview": "<svg viewBox=\"0 0 14 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-line",
   "locations": [
    "dusk/03-render.ts:269",
-   "dusk/07-dnd-filter-progress.ts:397"
+   "dusk/07-dnd-filter-progress.ts:398"
   ]
  },
  "de8699187ccaf65a": {
@@ -1484,7 +1492,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "dusk/03-render.ts:270",
-   "dusk/07-dnd-filter-progress.ts:428"
+   "dusk/07-dnd-filter-progress.ts:429"
   ]
  },
  "03e5155ef21bf706": {
@@ -1493,8 +1501,8 @@
   "preview": "<svg class=\"split-chevron\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-wi",
   "locations": [
    "dusk/03-render.ts:709",
-   "dusk/07-dnd-filter-progress.ts:397",
-   "dusk/07-dnd-filter-progress.ts:428"
+   "dusk/07-dnd-filter-progress.ts:398",
+   "dusk/07-dnd-filter-progress.ts:429"
   ]
  },
  "3be829eed5f1259e": {
@@ -1519,7 +1527,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/04-tasks.ts:2263"
+   "dusk/04-tasks.ts:2264"
   ]
  },
  "a2bfe11be71e5aa9": {

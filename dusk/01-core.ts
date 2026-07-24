@@ -79,7 +79,7 @@ declare var _recSig: any;
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
 Object.assign(globalThis, {
-    coffinSVG, cycleCoffinSVG, subCoffinSVG, hexToRgb, prefersReducedMotion, _pickerOpenUp, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
+    coffinSVG, cycleCoffinSVG, subCoffinSVG, eyeGlyph, hexToRgb, prefersReducedMotion, _pickerOpenUp, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
     _resetDragHandle, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
     loadState, _migrateV3toV4, migrateTasks, uid, nowTs, _contentSig, _trackedRecords, primeRecSig,
     bumpUpdatedAt, addTombstone, _delegate, normalizeState, migrateFromOld, loadUiState, saveUiState, pushUndo,
@@ -540,16 +540,46 @@ const IC = {
         <path d="M12 18.7L12.85 19.8L12 20.9L11.15 19.8Z" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
 
-    // Gothic eye of truth — for "filter / show only unchecked"
-    // Vesica piscis eye (medieval illuminated manuscript symbol of divine sight) =
-    // "show me only what I seek" → filter. Slit pupil = discernment.
-    gothEye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+    // P3 gothic eye of truth — a PAIR of glyphs, one per state. The vesica piscis eye
+    // (medieval symbol of divine sight) is the "filter / reveal" motif; here the eyelid
+    // itself carries the state, so the drawing changes, not just its colour:
+    //   gothEyeHalf = ON  — lid half-lowered with a crease and a row of lashes along it,
+    //                       iris spoked from under the lid: "I see only the unfinished".
+    //   gothEyeOpen = OFF — eye wide open, full spoked iris, upper AND lower lashes,
+    //                       tear-ducts in the corners: "all is shown".
+    // Swap them through `eyeGlyph(on)` — never by an .active class alone.
+    gothEyeHalf: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
         <path d="M2 12C5 5.5 9 3.5 12 3.5C15 3.5 19 5.5 22 12C19 18.5 15 20.5 12 20.5C9 20.5 5 18.5 2 12Z"/>
-        <circle cx="12" cy="12" r="3.8"/>
-        <ellipse cx="12" cy="12" rx="1.5" ry="3" fill="currentColor" stroke="none" opacity="0.92"/>
+        <path d="M2 12C5.2 8.8 8.8 7.6 12 7.6C15.2 7.6 18.8 8.8 22 12" stroke-width="1.5"/>
+        <path d="M4.4 9.4C7 7 9.6 6 12 6C14.4 6 17 7 19.4 9.4" stroke-width="0.9" opacity="0.45"/>
+        <line x1="7.6" y1="8.3" x2="7.2" y2="9.6" stroke-width="0.8" opacity="0.5"/>
+        <line x1="12" y1="7.6" x2="12" y2="9" stroke-width="0.8" opacity="0.5"/>
+        <line x1="16.4" y1="8.3" x2="16.8" y2="9.6" stroke-width="0.8" opacity="0.5"/>
+        <path d="M8.9 9.9A3.7 3.7 0 1 0 15.1 9.9" stroke-width="1.4"/>
+        <line x1="9.6" y1="13.7" x2="10.8" y2="12.9" stroke-width="0.85" opacity="0.5"/>
+        <line x1="14.4" y1="13.7" x2="13.2" y2="12.9" stroke-width="0.85" opacity="0.5"/>
+        <ellipse cx="12" cy="11.8" rx="1.35" ry="2" fill="currentColor" stroke="none" opacity="0.92"/>
+        <path d="M2 12C2.8 12.5 3.6 12.8 4.4 12.9" stroke-width="1" opacity="0.45"/>
+        <path d="M22 12C21.2 12.5 20.4 12.8 19.6 12.9" stroke-width="1" opacity="0.45"/>
+        <line x1="8.5" y1="19.2" x2="7.8" y2="20.8" stroke-width="1.1" opacity="0.35"/>
+        <line x1="12" y1="20.5" x2="12" y2="22.1" stroke-width="1.1" opacity="0.4"/>
+        <line x1="15.5" y1="19.2" x2="16.2" y2="20.8" stroke-width="1.1" opacity="0.35"/>
+    </svg>`,
+    gothEyeOpen: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M2 12C5 5.5 9 3.5 12 3.5C15 3.5 19 5.5 22 12C19 18.5 15 20.5 12 20.5C9 20.5 5 18.5 2 12Z"/>
+        <circle cx="12" cy="12" r="3.9"/>
+        <line x1="9.3" y1="10.2" x2="10.6" y2="11" stroke-width="0.85" opacity="0.5"/>
+        <line x1="14.7" y1="10.2" x2="13.4" y2="11" stroke-width="0.85" opacity="0.5"/>
+        <line x1="9.3" y1="13.8" x2="10.6" y2="13" stroke-width="0.85" opacity="0.5"/>
+        <line x1="14.7" y1="13.8" x2="13.4" y2="13" stroke-width="0.85" opacity="0.5"/>
+        <ellipse cx="12" cy="12" rx="1.4" ry="2.9" fill="currentColor" stroke="none" opacity="0.92"/>
         <line x1="12" y1="3.5" x2="12" y2="2" stroke-width="1.3" opacity="0.55"/>
         <line x1="8.5" y1="4.8" x2="7.8" y2="3.2" stroke-width="1.1" opacity="0.42"/>
         <line x1="15.5" y1="4.8" x2="16.2" y2="3.2" stroke-width="1.1" opacity="0.42"/>
+        <path d="M2 12C2.8 12.5 3.6 12.8 4.4 12.9" stroke-width="1" opacity="0.45"/>
+        <path d="M22 12C21.2 12.5 20.4 12.8 19.6 12.9" stroke-width="1" opacity="0.45"/>
+        <line x1="8.5" y1="19.2" x2="7.8" y2="20.8" stroke-width="1.1" opacity="0.35"/>
+        <line x1="15.5" y1="19.2" x2="16.2" y2="20.8" stroke-width="1.1" opacity="0.35"/>
     </svg>`,
 
     // AZ6 ouroboros (engraving) — "repeat / recurring / renew". A closed ring whose
@@ -647,6 +677,16 @@ const IC = {
         <path d="M12 7.6L12.9 8.8L12 10L11.1 8.8Z" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
 };
+
+/**
+ * P3 two-state eye. `on` = the narrowing mode is engaged (filter «только
+ * невыполненные», or «показать все заметки подпунктов») → the half-lidded glyph;
+ * off → the wide-open one. Every consumer must go through here so the toolbar
+ * button and the per-task button never drift apart.
+ */
+function eyeGlyph(on) {
+    return on ? IC.gothEyeHalf : IC.gothEyeOpen;
+}
 
 // ============================================================
 //  MOTION HELPERS
@@ -2017,6 +2057,7 @@ function loadUiState() {
         extraFields.style.maxHeight = 'none';
     }
     btnFilter.classList.toggle('active', isFiltered);
+    btnFilter.innerHTML = eyeGlyph(isFiltered);   // P3: restored state draws its own glyph
     const schedBtn = document.getElementById('btn-schedule');
     if (schedBtn) schedBtn.classList.toggle('active', isScheduleMode);
     const todayBtn = document.getElementById('btn-today');

@@ -275,6 +275,7 @@ function toggleFilter() {
     isFiltered = !isFiltered;
     saveUiState();
     btnFilter.classList.toggle('active', isFiltered);
+    btnFilter.innerHTML = eyeGlyph(isFiltered);   // P3: half-lidded when narrowed, open when not
     render();
     showToast(isFiltered ? 'Фильтр: только невыполненные' : 'Показаны все задачи');
     // D-3: announce result count for screen readers
