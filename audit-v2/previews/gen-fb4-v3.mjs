@@ -494,6 +494,86 @@ const AV1_LEAN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const CUR_TOWER_POOR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22V11.5C7 7 9.2 4 12 4C14.8 4 17 7 17 11.5V22"/><line x1="5" y1="22" x2="19" y2="22" stroke-width="1.6"/><circle cx="12" cy="13.5" r="3.8"/><line x1="12" y1="13.5" x2="10.2" y2="11.5" stroke-width="2"/></svg>`;
 const CUR_SEG_CAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22V10C5 6.5 8 3 12 3C16 3 19 6.5 19 10V22Z"/><line x1="3" y1="22" x2="21" y2="22"/><line x1="5" y1="13.5" x2="19" y2="13.5"/><line x1="5" y1="18.5" x2="19" y2="18.5"/><circle cx="12" cy="16" r="2.4"/><circle cx="12" cy="16" r="0.75" fill="currentColor" stroke="none"/></svg>`;
 
+/* ────────── ПАРТИЯ 3 · часы ДРУГОЙ ПОРОДЫ (AV1 отклонён как «те же часы») ──────────
+   Вердикт юзера: башня-с-циферблатом в любой доработке — одна и та же вещь.
+   Значит менять надо не отделку, а САМ ПРИБОР. Два хода, оба — настоящие
+   средневековые способы показывать время, а не «часы с деталями».                */
+const R2D = a => (a * Math.PI) / 180;
+const PO = (a, r, cx = 12, cy = 12) =>
+  `${+(cx + r * Math.cos(R2D(a))).toFixed(2)} ${+(cy + r * Math.sin(R2D(a))).toFixed(2)}`;
+// T1 · ОРЛОЙ — астрономический циферблат (Пражский тип): наружный обод с 24
+// делениями, кольцо-зодиак, солнечная стрела с диском-солнцем и лунный указатель
+// с серпом. Время читается не стрелками по кругу, а положением светил — это
+// принципиально другой прибор, а не башня с циферблатом.
+const orlojTicks = (step, r1, r2, w, o) => {
+  let s = '';
+  for (let a = 0; a < 360; a += step)
+    s += `<path d="M${PO(a, r1)}L${PO(a, r2)}" stroke-width="${w}" opacity="${o}"/>`;
+  return s;
+};
+const T1 = tidy(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10.3"/>
+    <circle cx="12" cy="12" r="8.5" stroke-width="0.85" opacity="0.5"/>
+    ${orlojTicks(30, 8.5, 10.3, 0.9, 0.75)}
+    ${orlojTicks(90, 8.2, 10.3, 1.35, 0.95)}
+    <circle cx="12" cy="12" r="6.5" stroke-width="0.75" opacity="0.35"/>
+    ${orlojTicks(45, 6.5, 8.5, 0.65, 0.3)}
+    <path d="M12 12L${PO(-64, 6.2)}" stroke-width="1.5"/>
+    <circle cx="${PO(-64, 6.9).split(' ')[0]}" cy="${PO(-64, 6.9).split(' ')[1]}" r="1.5" stroke-width="1.1"/>
+    <path d="M${PO(-64, 8.9)}L${PO(-58, 8.2)}M${PO(-64, 8.9)}L${PO(-70, 8.2)}" stroke-width="0.7" opacity="0.7"/>
+    <path d="M12 12L${PO(146, 4.6)}" stroke-width="1.05" opacity="0.75"/>
+    <path d="M${PO(146, 6.6)}a1.55 1.55 0 1 1 -0.05 -1.7a1.25 1.25 0 1 0 0.05 1.7Z" fill="currentColor" stroke="none" opacity="0.85"/>
+    <circle cx="12" cy="12" r="1.15" stroke-width="1.1"/>
+    <circle cx="12" cy="12" r="0.42" fill="currentColor" stroke="none"/>
+    <path d="M12 1.7V0.5M11.35 1.05H12.65" stroke-width="1" opacity="0.8"/>
+</svg>`);
+// T2 · РОЗА-ЦИФЕРБЛАТ — готическое окно-роза, где трассировка И ЕСТЬ шкала:
+// восемь стрельчатых лепестков вместо рисок, окулюсы между ними, в центре втулка
+// со стрелками-копьями. Часы становятся архитектурой, а не прибором с рисками.
+const rosePetals = () => {
+  let s = '';
+  for (let a = -90; a < 270; a += 45) {
+    const base = 3.9, tip = 8.7, w = 20;
+    s += `<path d="M${PO(a - w, base)}L${PO(a - w * 0.62, tip - 1.5)}L${PO(a, tip)}` +
+         `L${PO(a + w * 0.62, tip - 1.5)}L${PO(a + w, base)}" stroke-width="0.95" opacity="0.8"/>`;
+  }
+  for (let a = -67.5; a < 292.5; a += 45)
+    s += `<circle cx="${PO(a, 6.9).split(' ')[0]}" cy="${PO(a, 6.9).split(' ')[1]}" r="0.85" stroke-width="0.8" opacity="0.55"/>`;
+  return s;
+};
+const T2 = tidy(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10.4"/>
+    <circle cx="12" cy="12" r="9.3" stroke-width="0.8" opacity="0.45"/>
+    ${orlojTicks(45, 9.3, 10.4, 0.8, 0.5)}
+    ${rosePetals()}
+    <circle cx="12" cy="12" r="3.5" stroke-width="1.1" opacity="0.9"/>
+    <path d="M12 12L12 7.4M11.35 8.3L12 7L12.65 8.3" stroke-width="1.7"/>
+    <path d="M12 12L${PO(28, 5.6)}M${PO(20, 5.1)}L${PO(28, 6.5)}L${PO(38, 5.6)}" stroke-width="1.2"/>
+    <circle cx="12" cy="12" r="0.95" fill="currentColor" stroke="none"/>
+</svg>`);
+// lean-версии под 13px: у T1 снимаются мелкие деления и зодиак, у T2 — окулюсы
+// и внутренний обод; штрихи подняты. Силуэт прибора сохранён.
+const T1_LEAN = tidy(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    ${orlojTicks(90, 7.9, 10, 1.7, 1)}
+    ${orlojTicks(45, 8.8, 10, 1.2, 0.6)}
+    <path d="M12 12L${PO(-64, 5.6)}" stroke-width="1.7"/>
+    <circle cx="${PO(-64, 6.6).split(' ')[0]}" cy="${PO(-64, 6.6).split(' ')[1]}" r="1.7" stroke-width="1.4"/>
+    <path d="M12 12L${PO(146, 4.4)}" stroke-width="1.3" opacity="0.8"/>
+    <path d="M${PO(146, 6.4)}a1.75 1.75 0 1 1 -0.05 -1.9a1.4 1.4 0 1 0 0.05 1.9Z" fill="currentColor" stroke="none" opacity="0.9"/>
+    <circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+</svg>`);
+const T2_LEAN = tidy(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10.2"/>
+    ${(() => { let s = ''; for (let a = -90; a < 270; a += 45) {
+      s += `<path d="M${PO(a - 21, 4.2)}L${PO(a, 8.9)}L${PO(a + 21, 4.2)}" stroke-width="1.2" opacity="0.9"/>`;
+    } return s; })()}
+    <circle cx="12" cy="12" r="3.4" stroke-width="1.4"/>
+    <path d="M12 12L12 7.6M11.3 8.5L12 7.1L12.7 8.5" stroke-width="1.8"/>
+    <path d="M12 12L${PO(28, 5.4)}" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/>
+</svg>`);
+
 /* ─────────────────────────── сборка страницы ─────────────────────────── */
 const sz = (cls, svg) => `<span class="${cls}">${svg}</span>`;
 const cell = (lbl, tag, sizes, cls = '') => `  <div class="cell ${cls}">
@@ -808,6 +888,47 @@ ${cell('X1 календарь-арка', 'ланцетная скрижаль: �
 ${cell('сейчас · seg-picker', 'три полки + голый круг', mid(CUR_SEG_CAL), 'old')}
 ${cell('X1 · календарь-арка', 'сетка дней, ромб = выбранный день, крест-навершие', mid(X1_CAL), 'rec')}
 </div>
+
+<hr style="margin:34px 0;border:none;border-top:1px solid rgba(170,90,255,0.25)">
+<h1>ПАРТИЯ 3 · часы другой ПОРОДЫ</h1>
+<p class="note">AV1 отклонён верно: башня-с-циферблатом в любой доработке остаётся
+той же вещью. Значит менять надо не отделку, а <b>сам прибор</b>. Оба кандидата —
+настоящие средневековые способы показывать время, а не «часы с деталями».
+Ни один не наследует силуэт башни.</p>
+<div class="row">
+${cell('T1 · Орлой', 'астрономический циферблат: обод с делениями, кольцо-зодиак, солнечная стрела, лунный указатель', big(T1), 'rec')}
+${cell('T2 · Роза-циферблат', 'окно-роза, где трассировка И ЕСТЬ шкала: восемь стрельчатых лепестков, окулюсы, стрелки-копья', big(T2), 'rec')}
+${cell('AV1 (отклонён)', 'башня + циферблат + маятник', mid(AV1), 'old')}
+${cell('сейчас · сортировка', 'голая арка, голый круг, две стрелки', mid(CUR_TOWER_POOR), 'old')}
+</div>
+<p class="note"><b>T1 · Орлой.</b> Пражский тип: время читается <b>положением
+светил</b>, а не стрелками по кругу. Наружный обод с 12 делениями и утолщёнными
+кардинальными, кольцо-зодиак с косыми рисками, солнечная стрела с диском-солнцем
+и лучами, лунный указатель с серпом, втулка в кольце, крест-навершие сверху.
+Другой прибор целиком — родства с башней нет.<br>
+<b>T2 · Роза-циферблат.</b> Часы становятся <b>архитектурой</b>: готическое
+окно-роза, где трассировка заменяет риски — восемь стрельчатых лепестков по кругу,
+окулюсы в промежутках, каменная двойная рама. В центре втулка со стрелками-копьями,
+поэтому «это часы» читается мгновенно, хотя ни одной обычной часовой детали нет.</p>
+
+<h2 style="margin-top:20px">Оба — в реальных размерах приложения (13px метка · 17px · 24px)</h2>
+<div class="menus">
+  <div class="menucol rec"><span class="menucap">T1 · полный / lean</span>
+    ${timeLabel(T1)}${timeLabel(T1_LEAN)}
+    <div class="sizes">${sz('g24', T1)}${sz('g16', T1)}${sz('g13', T1)}</div>
+    <div class="sizes">${sz('g24', T1_LEAN)}${sz('g16', T1_LEAN)}${sz('g13', T1_LEAN)}</div></div>
+  <div class="menucol rec"><span class="menucap">T2 · полный / lean</span>
+    ${timeLabel(T2)}${timeLabel(T2_LEAN)}
+    <div class="sizes">${sz('g24', T2)}${sz('g16', T2)}${sz('g13', T2)}</div>
+    <div class="sizes">${sz('g24', T2_LEAN)}${sz('g16', T2_LEAN)}${sz('g13', T2_LEAN)}</div></div>
+  <div class="menucol"><span class="menucap">сейчас · метка 13px</span>
+    ${timeLabel(CUR_CLOCK)}</div>
+</div>
+<p class="note">Верхняя метка в каждой колонке — полный арт на 13px, нижняя — lean
+(сняты мелкие деления/окулюсы, штрихи подняты; силуэт прибора сохранён). Выбранный
+кандидат заменит часы <b>везде</b>: метка «Время» (13px), кнопка сортировки по
+дедлайну (24px) и <b>сепараторы «С дедлайном»</b>, где сейчас стоит AV1 — иначе
+язык времени снова расщепится.</p>
 </body>
 </html>
 `;
