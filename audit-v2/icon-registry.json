@@ -663,12 +663,12 @@
    "style.css:237"
   ]
  },
- "ab3d904d840cd29a": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 14'><line x1='0' y1='7' x2='55' y",
+ "bbd0c2167432a852": {
+  "role": "BM",
+  "note": "BM1 флёр-де-лис в полосе под шапкой (.app-header::after) — синхронизирован с GIC.dividerFleur",
+  "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 14' fill='none' stroke-linecap='r",
   "locations": [
-   "style.css:371"
+   "style.css:373"
   ]
  },
  "9fa86281bcaba320": {
@@ -676,7 +676,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#7a50a8' s",
   "locations": [
-   "style.css:791"
+   "style.css:793"
   ]
  },
  "2378dbe0dd37ad17": {
@@ -684,7 +684,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'><path d",
   "locations": [
-   "style.css:3165"
+   "style.css:3167"
   ]
  },
  "7c54d94a021aff1a": {
@@ -692,7 +692,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='n",
   "locations": [
-   "style.css:3909"
+   "style.css:3911"
   ]
  },
  "3983c4bd59004170": {
@@ -700,7 +700,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 20' fill='none' stroke='#c898ff' s",
   "locations": [
-   "style.css:6159"
+   "style.css:6161"
   ]
  },
  "3822b6c11ca30eb9": {
@@ -708,7 +708,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 20' fill='none' stroke='#c898ff' s",
   "locations": [
-   "style.css:6176"
+   "style.css:6178"
   ]
  },
  "f9829e5bd895d11d": {
@@ -716,7 +716,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 32 32' fill='n",
   "locations": [
-   "style.css:7858"
+   "style.css:7860"
   ]
  },
  "b4709620283f3c96": {
@@ -724,7 +724,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12'><line x1='0' y1='6' x2='80' y",
   "locations": [
-   "style.css:8163"
+   "style.css:8165"
   ]
  },
  "ca5ca565d868a8dd": {
@@ -732,7 +732,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8202"
+   "style.css:8204"
   ]
  },
  "dd88000e9d33935f": {
@@ -740,7 +740,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8206"
+   "style.css:8208"
   ]
  },
  "ac8a1a1aa765da28": {
@@ -748,7 +748,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8210"
+   "style.css:8212"
   ]
  },
  "7c3f121cf1b4883a": {
@@ -756,8 +756,8 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 5.2 6 6.5 4 7.8 2 ",
   "locations": [
-   "style.css:8547",
-   "style.css:8548"
+   "style.css:8549",
+   "style.css:8550"
   ]
  },
  "b05b2f3b1b09ce82": {
