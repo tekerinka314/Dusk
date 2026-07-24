@@ -7890,8 +7890,10 @@ kbd {
        layouts need the transform to match. */
     text-transform: uppercase;
     text-shadow: 0 0 18px var(--accent-glow), 0 0 6px rgba(170, 90, 255, 0.5), 0 2px 3px rgba(0, 0, 0, 0.45);
-    /* right pad clears the corner button column (buttons now stack vertically → ~42px) */
-    padding: 16px 42px 10px 52px;
+    /* Symmetric page gutters: 52px both sides. Left clears the corner rune, right
+       clears the corner sigil column (12…42px + 10px of air). See the
+       corner-column gutter block further down for the rest of the stack. */
+    padding: 16px 52px 10px;
     word-break: break-word;
     overflow-wrap: anywhere;
     /* title is now a <textarea> so long titles wrap (an <input> can't) — kill the
@@ -8272,7 +8274,6 @@ kbd {
    sides. Desktop-only — below 641px the column is just back+toolbar (ends at
    y=72, clear of the toolbar) and the narrow width outweighs the symmetry. */
 @media (min-width: 641px) {
-    .grim-title-in, .grim-title-ro { padding-right: 52px; }
     .grim-divider { margin-right: 52px; }
     .grim-body { padding-right: 52px; }
     .fmt-bar { margin-right: 52px; }
@@ -8298,6 +8299,13 @@ kbd {
 }
 .fmt-btn.export { padding: 0 10px; gap: 6px; color: var(--text-secondary); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
 .fmt-btn.export:hover { color: var(--accent-hover); }
+/* Tablet band: the detail pane here sits ~8px from the format bar's wrap point,
+   so the 52px corner gutter above tips it onto a third row. Buy the width back
+   from the inter-group rhythm, not from the gutter — the sigils must stay clear.
+   (Placed after .fmt-cluster: an earlier @media loses to the later shorthand.) */
+@media (min-width: 641px) and (max-width: 849px) {
+    .fmt-cluster { gap: 4px 6px; padding: 6px 6px; }
+}
 
 /* top-bar right actions: ghost export + inscribe */
 .grim-bar-acts { display: inline-flex; align-items: center; gap: 8px; }
@@ -8459,7 +8467,6 @@ kbd {
     .grim-layout.show-detail .grim-list { display: none; }
     .grim-layout.show-detail .grim-detail { display: block; }
     .grim-back { display: flex; }
-    .grim-title-in, .grim-title-ro { padding-right: 42px; }
     /* footer: stack date over the action buttons (no cramped single row) */
     .grim-date { flex: 0 0 100%; }
     .grim-acts { width: 100%; justify-content: center; }
