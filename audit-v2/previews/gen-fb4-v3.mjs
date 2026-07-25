@@ -635,6 +635,129 @@ const AR_SEL_2 = arSvg(CRYPT + STEPS +
   `<line x1="12" y1="9.5" x2="12" y2="13" stroke-width="1.5"/>` +
   `<path d="M9.9 11.1L12 13.6L14.1 11.1"/>`);
 
+/* ══════════════════ ПАРТИЯ 7 · заказ 2026-07-25 (вечер) ══════════════════
+   ЧАСТЬ 1 · маркеры приоритета (цветные кружки) → башни-ранги.
+   Замер, который решает всё: контурная PA рисовалась под 15px и держится там
+   на честном слове — растровая проба (`D:/tmp/pw/_pxprobe.mjs`) даёт у неё
+   ПОЛНОГО покрытия 0-1 пикселя на 15px и сплошную кашу на 7-11px, где живут
+   нынешние кружки. Значит в маркеры контур не переносится ни при каком раскладе.
+   Ход: та же башня, но ЗАЛИТАЯ — цвет приоритета возвращается площадью, как у
+   кружка, а уровень читается высотой и навершием, как у контурной PA.
+   Канва НЕЧЁТНАЯ (15 или 13): центр приходится на центр пикселя, поэтому осевой
+   элемент не расщепляется на два полутона.                                    */
+const PS_BASE15 = `<rect x="3" y="12" width="9" height="1"/>`
+                + `<rect x="1" y="13" width="13" height="1" opacity="0.55"/>`;
+const psTower15 = (finialY, apexY, baseY) =>
+  `<svg viewBox="0 0 15 15" fill="currentColor">`
+  + `<rect x="7" y="${finialY}" width="1" height="${apexY - finialY}"/>`
+  + `<path d="M7.5 ${apexY}L10.5 ${baseY}H4.5Z"/>`
+  + `<rect x="5" y="${baseY}" width="5" height="1"/>`
+  + `<rect x="5" y="${baseY + 1}" width="2" height="${11 - baseY}"/>`
+  + `<rect x="8" y="${baseY + 1}" width="2" height="${11 - baseY}"/>`
+  + PS_BASE15 + `</svg>`;
+const PS15 = {
+  high: psTower15(0, 2, 5),
+  medium: psTower15(3, 5, 8),
+  low: psTower15(5, 7, 10),
+  none: `<svg viewBox="0 0 15 15" fill="currentColor">`
+    + `<rect x="5" y="9" width="2" height="3"/>`
+    + `<rect x="8" y="10" width="2" height="2"/>`
+    + `<rect x="11" y="11" width="1" height="1" opacity="0.6"/>`
+    + PS_BASE15 + `</svg>`,
+};
+// та же башня на канве 13 — если решим не поднимать маркеры до 15px
+const PS_BASE13 = `<rect x="3" y="10" width="7" height="1"/>`
+                + `<rect x="1" y="11" width="11" height="1" opacity="0.55"/>`;
+const psTower13 = (finialY, apexY, baseY) =>
+  `<svg viewBox="0 0 13 13" fill="currentColor">`
+  + `<rect x="6" y="${finialY}" width="1" height="1"/>`
+  + `<path d="M6.5 ${apexY}L9 ${baseY}H4Z"/>`
+  + `<rect x="4" y="${baseY}" width="2" height="${10 - baseY}"/>`
+  + `<rect x="7" y="${baseY}" width="2" height="${10 - baseY}"/>`
+  + PS_BASE13 + `</svg>`;
+const PS13 = {
+  high: psTower13(0, 1, 4),
+  medium: psTower13(2, 3, 6),
+  low: psTower13(4, 5, 8),
+  none: `<svg viewBox="0 0 13 13" fill="currentColor">`
+    + `<rect x="4" y="7" width="2" height="3"/>`
+    + `<rect x="7" y="8" width="2" height="2"/>`
+    + `<rect x="10" y="9" width="1" height="1" opacity="0.6"/>`
+    + PS_BASE13 + `</svg>`,
+};
+
+/* ЧАСТЬ 2 · нав-таб «Задачи». Претензия: «сильно не хватает детализации и
+   эстетичности». Растр нынешнего AA1 показывает и вторую болезнь: нижний скос
+   задан кривой Q — последний ряд идёт сплошным полутоном (`.=+*#*+=.`), то есть
+   ровно та же лестница, из-за которой переделывали «Архив».
+   (а) ОРТО В ТЕХ ЖЕ 13px — плечи ступенькой, ни одной пологой грани.
+   (б) НЕЧЁТНАЯ КАНВА 15px — центр 7.5 попадает в центр пикселя, поэтому осевой
+       штрих креста ложится точно; появляется бюджет на шов крышки, крест pattée
+       с концевыми заклёпками и гвозди. Грани только 45° (правило «≥45° читается
+       как намеренная фаска»). Переносить придётся ВСЕ ТРИ таба.               */
+const NAVW13 = s => `<svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">${s}</svg>`;
+const NAVW15 = s => `<svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">${s}</svg>`;
+
+const NAV_A = NAVW13(
+  `<path d="M4.5 0.5H8.5V2.5H10.5V9.5H8.5V11.5H4.5V9.5H2.5V2.5H4.5Z"/>`
+  + `<line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>`
+  + `<line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/>`
+  + `<rect x="3" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`
+  + `<rect x="9" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`
+  + `<rect x="3" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`
+  + `<rect x="9" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`);
+const NAV_A2 = NAVW13(
+  `<path d="M4.5 0.5H8.5V2.5H10.5V6.5H9.5V9.5H8.5V11.5H4.5V9.5H3.5V6.5H2.5V2.5H4.5Z"/>`
+  + `<line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>`
+  + `<line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/>`
+  + `<rect x="4" y="1" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>`
+  + `<rect x="8" y="1" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>`
+  + `<rect x="4" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>`
+  + `<rect x="8" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>`);
+
+const NAV_B_MAIN = NAVW15(
+  `<path d="M5.5 0.5H9.5L12.5 3.5V10.5L9.5 13.5H5.5L2.5 10.5V3.5Z"/>`
+  + `<line x1="3" y1="3.5" x2="12" y2="3.5" stroke-linecap="butt" opacity="0.5"/>`
+  + `<line x1="7.5" y1="5" x2="7.5" y2="11" stroke-linecap="butt"/>`
+  + `<line x1="5" y1="7.5" x2="10" y2="7.5" stroke-linecap="butt"/>`
+  + `<rect x="7" y="4" width="1" height="1" fill="currentColor" stroke="none"/>`
+  + `<rect x="7" y="11" width="1" height="1" fill="currentColor" stroke="none"/>`
+  + `<rect x="4" y="7" width="1" height="1" fill="currentColor" stroke="none"/>`
+  + `<rect x="10" y="7" width="1" height="1" fill="currentColor" stroke="none"/>`
+  + `<rect x="3" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`
+  + `<rect x="11" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`
+  + `<rect x="3" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`
+  + `<rect x="11" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`);
+const NAV_B_TOMB = NAVW15(
+  `<rect x="2.5" y="1.5" width="10" height="2"/>`
+  + `<rect x="3.5" y="3.5" width="8" height="6"/>`
+  + `<rect x="1.5" y="9.5" width="12" height="2" opacity="0.75"/>`
+  + `<line x1="7.5" y1="4.5" x2="7.5" y2="8.5" stroke-linecap="butt" opacity="0.85"/>`
+  + `<line x1="5.5" y1="6.5" x2="9.5" y2="6.5" stroke-linecap="butt" opacity="0.85"/>`
+  + `<rect x="4" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>`
+  + `<rect x="10" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>`
+  + `<rect x="3" y="12" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`
+  + `<rect x="11" y="12" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>`);
+const NAV_B_TOME = `<svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">`
+  + `<path d="M7.5 5C6 3.8 3.8 3.6 1.5 4.3V11.5C3.8 10.8 6 11 7.5 12.2C9 11 11.2 10.8 13.5 11.5V4.3C11.2 3.6 9 3.8 7.5 5Z"/>`
+  + `<path d="M7.5 5V12.2" opacity="0.5"/>`
+  + `<path d="M7.5 0.6L8.1 2L9.5 2.6L8.1 3.2L7.5 4.6L6.9 3.2L5.5 2.6L6.9 2Z" fill="currentColor" stroke="none"/>`
+  + `<path d="M3.5 6.5H6.5M2.5 8.5H6.5M3.5 10.5H6.5" opacity="0.45"/>`
+  + `<path d="M11.5 6.5H8.5M12.5 8.5H8.5M11.5 10.5H8.5" opacity="0.45"/>`
+  + `<rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>`
+  + `<rect x="12" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>`
+  + `<path d="M6 12.4V14L7.5 13.1L9 14V12.4" opacity="0.6"/>`
+  + `</svg>`;
+
+// нынешние глифы — для честного «до/после» (скопированы из index.html как есть)
+const CUR_NAV_MAIN = `<svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4.75 0.5H8.25L11.5 3.25V11.25Q6.5 13.25 1.5 11.25V3.25Z"/><line x1="6.5" y1="4" x2="6.5" y2="8"/><line x1="4.5" y1="5.5" x2="8.5" y2="5.5"/><rect x="6" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.8"/><rect x="2" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="2" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><path d="M4.75 0.5L4.25 2.3M8.25 0.5L8.75 2.3" opacity="0.45"/></svg>`;
+const CUR_NAV_TOMB = NAVW13(
+  `<rect x="2.5" y="1.5" width="8" height="2"/><rect x="3.5" y="3.5" width="6" height="6"/>`
+  + `<rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/>`
+  + `<line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>`
+  + `<line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/>`);
+const CUR_NAV_TOME = `<svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5C5 3.4 3.2 3.2 1.5 3.75V10.5C3.2 9.9 5 10.1 6.5 11C8 10.1 9.8 9.9 11.5 10.5V3.75C9.8 3.2 8 3.4 6.5 4.5Z"/><path d="M6.5 4.5V11" opacity="0.5"/><path d="M6.5 1L7 2L8 2.5L7 3L6.5 4L6 3L5 2.5L6 2Z" fill="currentColor" stroke="none"/><rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><rect x="10" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><path d="M4 5.5H5.5M3 7.5H5.5" opacity="0.45"/><path d="M9 5.5H7.5M10 7.5H7.5" opacity="0.45"/><path d="M5.5 11V12.5L6.5 11.75L7.5 12.5V11" opacity="0.6"/></svg>`;
+
 /* ─────────────────────────── сборка страницы ─────────────────────────── */
 const sz = (cls, svg) => `<span class="${cls}">${svg}</span>`;
 const cell = (lbl, tag, sizes, cls = '') => `  <div class="cell ${cls}">
@@ -706,6 +829,50 @@ const html = `<!DOCTYPE html>
       color:#b880e8; }
   .tb-btn { width:30px; height:30px; } .tb-btn svg { width:14px; height:14px; }
   .sb-btn-mock { width:32px; height:32px; } .sb-btn-mock svg { width:15px; height:15px; }
+  /* ── ПАРТИЯ 7 · моки приоритета и нав-панели в натуральную величину ── */
+  .dot { border-radius:50%; flex-shrink:0; display:block; }
+  .d6 { width:6px; height:6px; } .d7 { width:7px; height:7px; }
+  .d9 { width:9px; height:9px; box-shadow:0 0 5px currentColor; }
+  .d11 { width:11px; height:11px; }
+  .c-high { background:#e03060; color:#e03060; }
+  .c-medium { background:#d09020; color:#d09020; }
+  .c-low { background:#3cc870; color:#3cc870; }
+  .c-none { background:rgba(150,130,190,0.45); }
+  .mk { flex-shrink:0; display:flex; }
+  .mk.s15 svg { width:15px; height:15px; display:block; }
+  .mk.s13 svg { width:13px; height:13px; display:block; }
+  .mk.s11 svg { width:11px; height:11px; display:block; }
+  .mk.s9 svg { width:9px; height:9px; display:block; }
+  .mk.s7 svg { width:7px; height:7px; display:block; }
+  .p-high { color:#e03060; } .p-medium { color:#d09020; } .p-low { color:#3cc870; }
+  .p-none { color:rgba(150,130,190,0.55); }
+  /* .prio-btn (style.css:804) — пилюля модалки «Изменить приоритет» */
+  .pchip { display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:99px;
+           border:1px solid rgba(120,50,200,0.28); background:#0d0524;
+           font:500 11px/1 'Cormorant SC',Georgia,serif; letter-spacing:1px; color:#9d7ac4; }
+  .pchip.on-high { background:rgba(200,30,60,0.14); color:#e03060; border-color:rgba(220,50,80,0.4); }
+  /* .prio-grid-btn (style.css:875) — сетка приоритета в форме */
+  .pgrid { display:grid; grid-template-columns:1fr 1fr; gap:4px; width:230px; }
+  .pgbtn { display:flex; align-items:center; justify-content:center; gap:5px; padding:7px 10px;
+           border-radius:6px; border:1px solid rgba(120,50,200,0.28); background:#0d0524;
+           font:500 10.5px/1 'Cormorant SC',Georgia,serif; letter-spacing:1.5px; color:#9d7ac4;
+           white-space:nowrap; }
+  /* .fm-q (плавающее меню подпункта) */
+  .fmrow { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:4px;
+           color:#b880e8; font:14px/1.4 'Cormorant',Georgia,serif; width:190px; }
+  .fmrow.on { background:rgba(100,25,200,0.22); color:#f0e8ff; }
+  .fmbox { display:flex; flex-direction:column; gap:2px; padding:5px; width:200px;
+           background:#06021a; border:1px solid rgba(140,60,255,0.32); border-radius:6px; }
+  /* .page-nav / .nav-tab (style.css:424) */
+  .navmock { display:flex; gap:3px; background:#0d0524; border-radius:10px; padding:4px;
+             border:1px solid rgba(120,50,200,0.28); width:330px; }
+  .navtab { flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+            padding:9px 12px; border-radius:6px; color:#7a5aa0;
+            font:600 12px/1 'Cormorant SC',Georgia,serif; letter-spacing:1px; text-transform:uppercase; }
+  .navtab.on { background:linear-gradient(135deg,rgba(110,30,220,0.30),rgba(80,15,180,0.20));
+               color:#c89aff; box-shadow:inset 0 0 0 1px rgba(150,70,255,0.30); }
+  .navtab.n13 svg { width:13px; height:13px; display:block; }
+  .navtab.n15 svg { width:15px; height:15px; display:block; }
 </style>
 </head>
 <body>
@@ -1051,6 +1218,153 @@ ${cell('K1 · откуда взят круг', 'кнопка «Отметить�
     </div>
     <span class="tagline">одиночная · всё · отмеченные — различимы ли</span></div>
 </div>
+
+<hr style="margin:38px 0;border:none;border-top:1px solid rgba(170,90,255,0.25)">
+<h1>ПАРТИЯ 7 · заказ 2026-07-25 (вечер)</h1>
+
+<h2>Часть 1 · кружки приоритета → башни</h2>
+<p class="note"><b>Замер сначала, рисование потом.</b> Контурная PA рисовалась под
+15px. Растровая проба (рендер ровно в N пикселей + печать альфы) даёт у неё
+<b>0-1 пикселя полного покрытия на 15px</b> и сплошную кашу на 7-11px — там, где
+живут нынешние кружки (6 / 7 / 9 / 11px). Вывод жёсткий: контур в маркеры не
+переносится ни при каком раскладе, и это же объясняет вашу ремарку по билду -2
+(цвет уехал с 8px заливки на 15px тонкую линию — площадь цвета упала в разы).<br>
+Ход: <b>та же башня, но залитая</b>. Цвет возвращается площадью, как у кружка;
+уровень читается высотой и навершием, как у контурной PA. Канва нечётная, каждая
+грань на целом пикселе, диагональ одна — скат шпиля, ровно 45°.</p>
+<div class="menus">
+  <div class="menucol"><span class="menucap">сейчас · кружок</span>
+    <div class="pgrid">
+      <div class="pgbtn"><span class="dot d7 c-low"></span>Низкий</div>
+      <div class="pgbtn"><span class="dot d7 c-medium"></span>Средний</div>
+      <div class="pgbtn"><span class="dot d7 c-high"></span>Высокий</div>
+      <div class="pgbtn">Без приоритета</div>
+    </div>
+    <span class="tagline">сетка в форме задачи · точка 7px</span></div>
+  <div class="menucol rec"><span class="menucap">башня 15px</span>
+    <div class="pgrid">
+      <div class="pgbtn"><span class="mk s15 p-low">${PS15.low}</span>Низкий</div>
+      <div class="pgbtn"><span class="mk s15 p-medium">${PS15.medium}</span>Средний</div>
+      <div class="pgbtn"><span class="mk s15 p-high">${PS15.high}</span>Высокий</div>
+      <div class="pgbtn"><span class="mk s15 p-none">${PS15.none}</span>Без</div>
+    </div>
+    <span class="tagline">высота = ранг, цвет = заливка</span></div>
+  <div class="menucol"><span class="menucap">башня 13px</span>
+    <div class="pgrid">
+      <div class="pgbtn"><span class="mk s13 p-low">${PS13.low}</span>Низкий</div>
+      <div class="pgbtn"><span class="mk s13 p-medium">${PS13.medium}</span>Средний</div>
+      <div class="pgbtn"><span class="mk s13 p-high">${PS13.high}</span>Высокий</div>
+      <div class="pgbtn"><span class="mk s13 p-none">${PS13.none}</span>Без</div>
+    </div>
+    <span class="tagline">строки уже, деталей меньше</span></div>
+</div>
+
+<h2 style="margin-top:24px">Те же башни во всех четырёх точках маркера</h2>
+<div class="menus">
+  <div class="menucol"><span class="menucap">пилюля модалки · было 6px</span>
+    <div class="btnrow">
+      <span class="pchip"><span class="dot d6 c-low"></span>Низкий</span>
+      <span class="pchip on-high"><span class="dot d6 c-high"></span>Высокий</span>
+    </div>
+    <div class="btnrow" style="margin-top:8px">
+      <span class="pchip"><span class="mk s15 p-low">${PS15.low}</span>Низкий</span>
+      <span class="pchip on-high"><span class="mk s15 p-high">${PS15.high}</span>Высокий</span>
+    </div>
+    <span class="tagline">сверху нынешнее, снизу башни</span></div>
+  <div class="menucol"><span class="menucap">панель выбора · было 9px</span>
+    <div class="btnrow">
+      <span class="sb-btn-mock"><span class="dot d9 c-high"></span></span>
+      <span class="sb-btn-mock"><span class="dot d9 c-medium"></span></span>
+      <span class="sb-btn-mock"><span class="dot d9 c-low"></span></span>
+    </div>
+    <div class="btnrow" style="margin-top:8px">
+      <span class="sb-btn-mock"><span class="mk s15 p-high">${PS15.high}</span></span>
+      <span class="sb-btn-mock"><span class="mk s15 p-medium">${PS15.medium}</span></span>
+      <span class="sb-btn-mock"><span class="mk s15 p-low">${PS15.low}</span></span>
+    </div>
+    <span class="tagline">15px = ровно как у соседних кнопок панели</span></div>
+  <div class="menucol"><span class="menucap">плавающее меню · было 11px</span>
+    <div class="fmbox">
+      <div class="fmrow on"><span class="mk s15 p-high">${PS15.high}</span><span>Высокий</span></div>
+      <div class="fmrow"><span class="mk s15 p-medium">${PS15.medium}</span><span>Средний</span></div>
+      <div class="fmrow"><span class="mk s15 p-low">${PS15.low}</span><span>Низкий</span></div>
+      <div class="fmrow"><span class="mk s15 p-none">${PS15.none}</span><span>Без приоритета</span></div>
+    </div>
+    <span class="tagline">⋯-меню подпункта</span></div>
+  <div class="menucol"><span class="menucap">квик-эдд · сейчас контур 15px</span>
+    ${qaMenu([
+      qaRow(PA.high, '#e03060', 'Высокий', '!high', true),
+      qaRow(PA.medium, '#d09020', 'Средний', '!medium'),
+      qaRow(PA.low, '#3cc870', 'Низкий', '!low'),
+      qaRow(PA.none, 'rgba(144,104,192,0.75)', 'Без приоритета', '!none'),
+    ])}
+    <span class="tagline">↓ то же меню на залитых башнях</span>
+    ${qaMenu([
+      qaRow(PS15.high, '#e03060', 'Высокий', '!high', true),
+      qaRow(PS15.medium, '#d09020', 'Средний', '!medium'),
+      qaRow(PS15.low, '#3cc870', 'Низкий', '!low'),
+      qaRow(PS15.none, 'rgba(144,104,192,0.75)', 'Без приоритета', '!none'),
+    ])}
+    </div>
+</div>
+<p class="note"><b>Развилка, которую нужно решить вам.</b> Меню квик-эдда
+показывает ровно ОДИН канал за раз (приоритет ИЛИ теги ИЛИ дата) — залитая башня
+там никогда не встанет рядом с контурным щитом-тегом, так что «разнобой в одной
+строке» невозможен по устройству меню. Отсюда два расклада:<br>
+<b>(1) Одна порода везде</b> — залитая башня и в маркерах, и в квик-эдде.
+Приоритет говорит одним знаком во всём приложении, цвет всегда площадью, и
+попутно закрывается ваша ремарка по билду -2. Цена: квик-эдд, принятый два билда
+назад, меняется ещё раз.<br>
+<b>(2) Два регистра</b> — контур остаётся в квик-эдде (15px), заливка идёт в
+маркеры. Обычная практика иконных систем (outline на крупном, solid на мелком),
+но силуэт один и тот же, поэтому родство читается.</p>
+
+<h2 style="margin-top:24px">Часть 2 · нав-таб «Задачи»</h2>
+<p class="note">Растр нынешнего AA1 вскрыл вторую болезнь помимо «мало деталей»:
+нижний скос гроба задан кривой <code>Q</code>, и последний ряд пикселей идёт
+сплошным полутоном — ровно та лестница, из-за которой переделывали «Архив».
+Значит переделка нужна не только ради красоты.</p>
+<div class="menus">
+  <div class="menucol"><span class="menucap">сейчас · 13px</span>
+    <div class="navmock">
+      <div class="navtab n13 on">${CUR_NAV_MAIN}Задачи</div>
+      <div class="navtab n13">${CUR_NAV_TOMB}Архив</div>
+      <div class="navtab n13">${CUR_NAV_TOME}Гримуар</div>
+    </div>
+    <div class="sizes" style="margin-top:6px">${sz('g48', CUR_NAV_MAIN)}${sz('g24', CUR_NAV_MAIN)}</div></div>
+  <div class="menucol"><span class="menucap">(а) орто · те же 13px</span>
+    <div class="navmock">
+      <div class="navtab n13 on">${NAV_A}Задачи</div>
+      <div class="navtab n13">${CUR_NAV_TOMB}Архив</div>
+      <div class="navtab n13">${CUR_NAV_TOME}Гримуар</div>
+    </div>
+    <div class="sizes" style="margin-top:6px">${sz('g48', NAV_A)}${sz('g48', NAV_A2)}${sz('g24', NAV_A)}${sz('g24', NAV_A2)}</div>
+    <span class="tagline">одна ступень · две ступени</span></div>
+  <div class="menucol rec"><span class="menucap">(б) 15px · трио переобведено</span>
+    <div class="navmock">
+      <div class="navtab n15 on">${NAV_B_MAIN}Задачи</div>
+      <div class="navtab n15">${NAV_B_TOMB}Архив</div>
+      <div class="navtab n15">${NAV_B_TOME}Гримуар</div>
+    </div>
+    <div class="sizes" style="margin-top:6px">${sz('g48', NAV_B_MAIN)}${sz('g24', NAV_B_MAIN)}</div>
+    <span class="tagline">шов крышки · крест pattée с заклёпками · гвозди</span></div>
+</div>
+<p class="note"><b>(а) 13px, ортогональный.</b> Плечи ступенькой, ни одной пологой
+грани, ни одного полутона. Дёшево и ничего в вёрстке не двигается — но потолок
+детализации остаётся низким: на 13 пикселях помещается силуэт, крест и четыре
+гвоздя, больше туда физически не входит.<br>
+<b>(б) 15px, нечётная канва.</b> Центр 7.5 попадает в центр пикселя, поэтому
+осевой штрих креста ложится точно (на чётной канве он расщепился бы на два
+полутона — из-за этого канва 15, а не 16). Грани только 45°, то есть лестница
+читается как намеренная фаска. Появляется бюджет на шов крышки, крест pattée с
+концевыми заклёпками и гвозди по бортам.<br>
+<b>Чего стоит (б).</b> Арт саркофага и тома живёт в
+<code>&lt;symbol id="icon-tomb"&gt;</code> / <code>icon-tome</code> и раздаётся
+ЕЩЁ ТРЁМ потребителям, кроме нав-табов: створка-drawer на мобиле, сегменты
+Гримуара «Записи/Склеп», заголовок страницы «Архив». Все они рендерят 13px, и
+если арт переедет на сетку 15, а они останутся на 13 — там начнётся ровно та
+каша, от которой мы уходим. Значит поднимать надо всех четверых разом. Это
+делается, но это в три раза больше правок, чем (а).</p>
 </body>
 </html>
 `;

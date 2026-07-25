@@ -59,6 +59,50 @@
       color:#b880e8; }
   .tb-btn { width:30px; height:30px; } .tb-btn svg { width:14px; height:14px; }
   .sb-btn-mock { width:32px; height:32px; } .sb-btn-mock svg { width:15px; height:15px; }
+  /* ── ПАРТИЯ 7 · моки приоритета и нав-панели в натуральную величину ── */
+  .dot { border-radius:50%; flex-shrink:0; display:block; }
+  .d6 { width:6px; height:6px; } .d7 { width:7px; height:7px; }
+  .d9 { width:9px; height:9px; box-shadow:0 0 5px currentColor; }
+  .d11 { width:11px; height:11px; }
+  .c-high { background:#e03060; color:#e03060; }
+  .c-medium { background:#d09020; color:#d09020; }
+  .c-low { background:#3cc870; color:#3cc870; }
+  .c-none { background:rgba(150,130,190,0.45); }
+  .mk { flex-shrink:0; display:flex; }
+  .mk.s15 svg { width:15px; height:15px; display:block; }
+  .mk.s13 svg { width:13px; height:13px; display:block; }
+  .mk.s11 svg { width:11px; height:11px; display:block; }
+  .mk.s9 svg { width:9px; height:9px; display:block; }
+  .mk.s7 svg { width:7px; height:7px; display:block; }
+  .p-high { color:#e03060; } .p-medium { color:#d09020; } .p-low { color:#3cc870; }
+  .p-none { color:rgba(150,130,190,0.55); }
+  /* .prio-btn (style.css:804) — пилюля модалки «Изменить приоритет» */
+  .pchip { display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:99px;
+           border:1px solid rgba(120,50,200,0.28); background:#0d0524;
+           font:500 11px/1 'Cormorant SC',Georgia,serif; letter-spacing:1px; color:#9d7ac4; }
+  .pchip.on-high { background:rgba(200,30,60,0.14); color:#e03060; border-color:rgba(220,50,80,0.4); }
+  /* .prio-grid-btn (style.css:875) — сетка приоритета в форме */
+  .pgrid { display:grid; grid-template-columns:1fr 1fr; gap:4px; width:230px; }
+  .pgbtn { display:flex; align-items:center; justify-content:center; gap:5px; padding:7px 10px;
+           border-radius:6px; border:1px solid rgba(120,50,200,0.28); background:#0d0524;
+           font:500 10.5px/1 'Cormorant SC',Georgia,serif; letter-spacing:1.5px; color:#9d7ac4;
+           white-space:nowrap; }
+  /* .fm-q (плавающее меню подпункта) */
+  .fmrow { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:4px;
+           color:#b880e8; font:14px/1.4 'Cormorant',Georgia,serif; width:190px; }
+  .fmrow.on { background:rgba(100,25,200,0.22); color:#f0e8ff; }
+  .fmbox { display:flex; flex-direction:column; gap:2px; padding:5px; width:200px;
+           background:#06021a; border:1px solid rgba(140,60,255,0.32); border-radius:6px; }
+  /* .page-nav / .nav-tab (style.css:424) */
+  .navmock { display:flex; gap:3px; background:#0d0524; border-radius:10px; padding:4px;
+             border:1px solid rgba(120,50,200,0.28); width:330px; }
+  .navtab { flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+            padding:9px 12px; border-radius:6px; color:#7a5aa0;
+            font:600 12px/1 'Cormorant SC',Georgia,serif; letter-spacing:1px; text-transform:uppercase; }
+  .navtab.on { background:linear-gradient(135deg,rgba(110,30,220,0.30),rgba(80,15,180,0.20));
+               color:#c89aff; box-shadow:inset 0 0 0 1px rgba(150,70,255,0.30); }
+  .navtab.n13 svg { width:13px; height:13px; display:block; }
+  .navtab.n15 svg { width:15px; height:15px; display:block; }
 </style>
 </head>
 <body>
@@ -1368,5 +1412,142 @@ N3 победил → берём башенку. Но полный N3-арт д�
     </div>
     <span class="tagline">одиночная · всё · отмеченные — различимы ли</span></div>
 </div>
+
+<hr style="margin:38px 0;border:none;border-top:1px solid rgba(170,90,255,0.25)">
+<h1>ПАРТИЯ 7 · заказ 2026-07-25 (вечер)</h1>
+
+<h2>Часть 1 · кружки приоритета → башни</h2>
+<p class="note"><b>Замер сначала, рисование потом.</b> Контурная PA рисовалась под
+15px. Растровая проба (рендер ровно в N пикселей + печать альфы) даёт у неё
+<b>0-1 пикселя полного покрытия на 15px</b> и сплошную кашу на 7-11px — там, где
+живут нынешние кружки (6 / 7 / 9 / 11px). Вывод жёсткий: контур в маркеры не
+переносится ни при каком раскладе, и это же объясняет вашу ремарку по билду -2
+(цвет уехал с 8px заливки на 15px тонкую линию — площадь цвета упала в разы).<br>
+Ход: <b>та же башня, но залитая</b>. Цвет возвращается площадью, как у кружка;
+уровень читается высотой и навершием, как у контурной PA. Канва нечётная, каждая
+грань на целом пикселе, диагональ одна — скат шпиля, ровно 45°.</p>
+<div class="menus">
+  <div class="menucol"><span class="menucap">сейчас · кружок</span>
+    <div class="pgrid">
+      <div class="pgbtn"><span class="dot d7 c-low"></span>Низкий</div>
+      <div class="pgbtn"><span class="dot d7 c-medium"></span>Средний</div>
+      <div class="pgbtn"><span class="dot d7 c-high"></span>Высокий</div>
+      <div class="pgbtn">Без приоритета</div>
+    </div>
+    <span class="tagline">сетка в форме задачи · точка 7px</span></div>
+  <div class="menucol rec"><span class="menucap">башня 15px</span>
+    <div class="pgrid">
+      <div class="pgbtn"><span class="mk s15 p-low"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="5" width="1" height="2"/><path d="M7.5 7L10.5 10H4.5Z"/><rect x="5" y="10" width="5" height="1"/><rect x="5" y="11" width="2" height="1"/><rect x="8" y="11" width="2" height="1"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span>Низкий</div>
+      <div class="pgbtn"><span class="mk s15 p-medium"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="3" width="1" height="2"/><path d="M7.5 5L10.5 8H4.5Z"/><rect x="5" y="8" width="5" height="1"/><rect x="5" y="9" width="2" height="3"/><rect x="8" y="9" width="2" height="3"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span>Средний</div>
+      <div class="pgbtn"><span class="mk s15 p-high"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="0" width="1" height="2"/><path d="M7.5 2L10.5 5H4.5Z"/><rect x="5" y="5" width="5" height="1"/><rect x="5" y="6" width="2" height="6"/><rect x="8" y="6" width="2" height="6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span>Высокий</div>
+      <div class="pgbtn"><span class="mk s15 p-none"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="5" y="9" width="2" height="3"/><rect x="8" y="10" width="2" height="2"/><rect x="11" y="11" width="1" height="1" opacity="0.6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span>Без</div>
+    </div>
+    <span class="tagline">высота = ранг, цвет = заливка</span></div>
+  <div class="menucol"><span class="menucap">башня 13px</span>
+    <div class="pgrid">
+      <div class="pgbtn"><span class="mk s13 p-low"><svg viewBox="0 0 13 13" fill="currentColor"><rect x="6" y="4" width="1" height="1"/><path d="M6.5 5L9 8H4Z"/><rect x="4" y="8" width="2" height="2"/><rect x="7" y="8" width="2" height="2"/><rect x="3" y="10" width="7" height="1"/><rect x="1" y="11" width="11" height="1" opacity="0.55"/></svg></span>Низкий</div>
+      <div class="pgbtn"><span class="mk s13 p-medium"><svg viewBox="0 0 13 13" fill="currentColor"><rect x="6" y="2" width="1" height="1"/><path d="M6.5 3L9 6H4Z"/><rect x="4" y="6" width="2" height="4"/><rect x="7" y="6" width="2" height="4"/><rect x="3" y="10" width="7" height="1"/><rect x="1" y="11" width="11" height="1" opacity="0.55"/></svg></span>Средний</div>
+      <div class="pgbtn"><span class="mk s13 p-high"><svg viewBox="0 0 13 13" fill="currentColor"><rect x="6" y="0" width="1" height="1"/><path d="M6.5 1L9 4H4Z"/><rect x="4" y="4" width="2" height="6"/><rect x="7" y="4" width="2" height="6"/><rect x="3" y="10" width="7" height="1"/><rect x="1" y="11" width="11" height="1" opacity="0.55"/></svg></span>Высокий</div>
+      <div class="pgbtn"><span class="mk s13 p-none"><svg viewBox="0 0 13 13" fill="currentColor"><rect x="4" y="7" width="2" height="3"/><rect x="7" y="8" width="2" height="2"/><rect x="10" y="9" width="1" height="1" opacity="0.6"/><rect x="3" y="10" width="7" height="1"/><rect x="1" y="11" width="11" height="1" opacity="0.55"/></svg></span>Без</div>
+    </div>
+    <span class="tagline">строки уже, деталей меньше</span></div>
+</div>
+
+<h2 style="margin-top:24px">Те же башни во всех четырёх точках маркера</h2>
+<div class="menus">
+  <div class="menucol"><span class="menucap">пилюля модалки · было 6px</span>
+    <div class="btnrow">
+      <span class="pchip"><span class="dot d6 c-low"></span>Низкий</span>
+      <span class="pchip on-high"><span class="dot d6 c-high"></span>Высокий</span>
+    </div>
+    <div class="btnrow" style="margin-top:8px">
+      <span class="pchip"><span class="mk s15 p-low"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="5" width="1" height="2"/><path d="M7.5 7L10.5 10H4.5Z"/><rect x="5" y="10" width="5" height="1"/><rect x="5" y="11" width="2" height="1"/><rect x="8" y="11" width="2" height="1"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span>Низкий</span>
+      <span class="pchip on-high"><span class="mk s15 p-high"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="0" width="1" height="2"/><path d="M7.5 2L10.5 5H4.5Z"/><rect x="5" y="5" width="5" height="1"/><rect x="5" y="6" width="2" height="6"/><rect x="8" y="6" width="2" height="6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span>Высокий</span>
+    </div>
+    <span class="tagline">сверху нынешнее, снизу башни</span></div>
+  <div class="menucol"><span class="menucap">панель выбора · было 9px</span>
+    <div class="btnrow">
+      <span class="sb-btn-mock"><span class="dot d9 c-high"></span></span>
+      <span class="sb-btn-mock"><span class="dot d9 c-medium"></span></span>
+      <span class="sb-btn-mock"><span class="dot d9 c-low"></span></span>
+    </div>
+    <div class="btnrow" style="margin-top:8px">
+      <span class="sb-btn-mock"><span class="mk s15 p-high"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="0" width="1" height="2"/><path d="M7.5 2L10.5 5H4.5Z"/><rect x="5" y="5" width="5" height="1"/><rect x="5" y="6" width="2" height="6"/><rect x="8" y="6" width="2" height="6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span></span>
+      <span class="sb-btn-mock"><span class="mk s15 p-medium"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="3" width="1" height="2"/><path d="M7.5 5L10.5 8H4.5Z"/><rect x="5" y="8" width="5" height="1"/><rect x="5" y="9" width="2" height="3"/><rect x="8" y="9" width="2" height="3"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span></span>
+      <span class="sb-btn-mock"><span class="mk s15 p-low"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="5" width="1" height="2"/><path d="M7.5 7L10.5 10H4.5Z"/><rect x="5" y="10" width="5" height="1"/><rect x="5" y="11" width="2" height="1"/><rect x="8" y="11" width="2" height="1"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span></span>
+    </div>
+    <span class="tagline">15px = ровно как у соседних кнопок панели</span></div>
+  <div class="menucol"><span class="menucap">плавающее меню · было 11px</span>
+    <div class="fmbox">
+      <div class="fmrow on"><span class="mk s15 p-high"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="0" width="1" height="2"/><path d="M7.5 2L10.5 5H4.5Z"/><rect x="5" y="5" width="5" height="1"/><rect x="5" y="6" width="2" height="6"/><rect x="8" y="6" width="2" height="6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span>Высокий</span></div>
+      <div class="fmrow"><span class="mk s15 p-medium"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="3" width="1" height="2"/><path d="M7.5 5L10.5 8H4.5Z"/><rect x="5" y="8" width="5" height="1"/><rect x="5" y="9" width="2" height="3"/><rect x="8" y="9" width="2" height="3"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span>Средний</span></div>
+      <div class="fmrow"><span class="mk s15 p-low"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="5" width="1" height="2"/><path d="M7.5 7L10.5 10H4.5Z"/><rect x="5" y="10" width="5" height="1"/><rect x="5" y="11" width="2" height="1"/><rect x="8" y="11" width="2" height="1"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span>Низкий</span></div>
+      <div class="fmrow"><span class="mk s15 p-none"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="5" y="9" width="2" height="3"/><rect x="8" y="10" width="2" height="2"/><rect x="11" y="11" width="1" height="1" opacity="0.6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span>Без приоритета</span></div>
+    </div>
+    <span class="tagline">⋯-меню подпункта</span></div>
+  <div class="menucol"><span class="menucap">квик-эдд · сейчас контур 15px</span>
+    <div class="qa-menu"><div class="qa-item active"><span class="qa-sig" style="color:#e03060"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8.4" y1="18.6" x2="8.4" y2="8.4"/><line x1="15.6" y1="18.6" x2="15.6" y2="8.4"/><path d="M8.4 8.4L12 3.2L15.6 8.4"/><path d="M9.6 8.4H14.4" stroke-width="0.85" opacity="0.45"/><line x1="12" y1="3.2" x2="12" y2="1.9" stroke-width="1"/><path d="M12 0.9L12.75 1.8L12 2.7L11.25 1.8Z" fill="currentColor" stroke="none"/><path d="M9.5 5.9l-1.1-0.7M14.5 5.9l1.1-0.7" stroke-width="0.75" opacity="0.5"/><path d="M10.4 18.6V13.6C10.4 12 11.1 11.2 12 11.2C12.9 11.2 13.6 12 13.6 13.6V18.6" stroke-width="0.9" opacity="0.5"/><line x1="12" y1="12.4" x2="12" y2="18.6" stroke-width="0.7" opacity="0.32"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg></span><span class="qa-label">Высокий</span><span class="qa-hint">!high</span></div><div class="qa-item"><span class="qa-sig" style="color:#d09020"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8.4" y1="18.6" x2="8.4" y2="12"/><line x1="15.6" y1="18.6" x2="15.6" y2="12"/><path d="M8.4 12L12 7.2L15.6 12"/><path d="M9.6 12H14.4" stroke-width="0.85" opacity="0.45"/><line x1="12" y1="7.2" x2="12" y2="6.1" stroke-width="0.95"/><path d="M12 5.3L12.62 6.05L12 6.8L11.38 6.05Z" fill="currentColor" stroke="none"/><path d="M10.4 18.6V15.2C10.4 13.9 11.1 13.2 12 13.2C12.9 13.2 13.6 13.9 13.6 15.2V18.6" stroke-width="0.9" opacity="0.5"/><line x1="12" y1="14.2" x2="12" y2="18.6" stroke-width="0.7" opacity="0.32"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg></span><span class="qa-label">Средний</span><span class="qa-hint">!medium</span></div><div class="qa-item"><span class="qa-sig" style="color:#3cc870"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8.4" y1="18.6" x2="8.4" y2="15.4"/><line x1="15.6" y1="18.6" x2="15.6" y2="15.4"/><path d="M8.4 15.4L12 11.6L15.6 15.4"/><path d="M9.6 15.4H14.4" stroke-width="0.85" opacity="0.45"/><line x1="12" y1="11.6" x2="12" y2="10.8" stroke-width="0.9"/><circle cx="12" cy="10.2" r="0.62" stroke-width="0.9"/><line x1="12" y1="16.6" x2="12" y2="18.6" stroke-width="0.85" opacity="0.45"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg></span><span class="qa-label">Низкий</span><span class="qa-hint">!low</span></div><div class="qa-item"><span class="qa-sig" style="color:rgba(144,104,192,0.75)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 18.6V15.9L9.3 14.9L8.9 13.6" stroke-width="1.35" opacity="0.75"/><path d="M15.6 18.6V16.6L14.8 15.6L15.2 14.4" stroke-width="1.35" opacity="0.75"/><path d="M10.6 18.6V17.2H13.1" stroke-width="0.9" opacity="0.4"/><path d="M12.9 15.4L14.1 15.9L13.6 17L12.4 16.5Z" stroke-width="0.8" opacity="0.5"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg></span><span class="qa-label">Без приоритета</span><span class="qa-hint">!none</span></div></div>
+    <span class="tagline">↓ то же меню на залитых башнях</span>
+    <div class="qa-menu"><div class="qa-item active"><span class="qa-sig" style="color:#e03060"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="0" width="1" height="2"/><path d="M7.5 2L10.5 5H4.5Z"/><rect x="5" y="5" width="5" height="1"/><rect x="5" y="6" width="2" height="6"/><rect x="8" y="6" width="2" height="6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span class="qa-label">Высокий</span><span class="qa-hint">!high</span></div><div class="qa-item"><span class="qa-sig" style="color:#d09020"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="3" width="1" height="2"/><path d="M7.5 5L10.5 8H4.5Z"/><rect x="5" y="8" width="5" height="1"/><rect x="5" y="9" width="2" height="3"/><rect x="8" y="9" width="2" height="3"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span class="qa-label">Средний</span><span class="qa-hint">!medium</span></div><div class="qa-item"><span class="qa-sig" style="color:#3cc870"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="7" y="5" width="1" height="2"/><path d="M7.5 7L10.5 10H4.5Z"/><rect x="5" y="10" width="5" height="1"/><rect x="5" y="11" width="2" height="1"/><rect x="8" y="11" width="2" height="1"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span class="qa-label">Низкий</span><span class="qa-hint">!low</span></div><div class="qa-item"><span class="qa-sig" style="color:rgba(144,104,192,0.75)"><svg viewBox="0 0 15 15" fill="currentColor"><rect x="5" y="9" width="2" height="3"/><rect x="8" y="10" width="2" height="2"/><rect x="11" y="11" width="1" height="1" opacity="0.6"/><rect x="3" y="12" width="9" height="1"/><rect x="1" y="13" width="13" height="1" opacity="0.55"/></svg></span><span class="qa-label">Без приоритета</span><span class="qa-hint">!none</span></div></div>
+    </div>
+</div>
+<p class="note"><b>Развилка, которую нужно решить вам.</b> Меню квик-эдда
+показывает ровно ОДИН канал за раз (приоритет ИЛИ теги ИЛИ дата) — залитая башня
+там никогда не встанет рядом с контурным щитом-тегом, так что «разнобой в одной
+строке» невозможен по устройству меню. Отсюда два расклада:<br>
+<b>(1) Одна порода везде</b> — залитая башня и в маркерах, и в квик-эдде.
+Приоритет говорит одним знаком во всём приложении, цвет всегда площадью, и
+попутно закрывается ваша ремарка по билду -2. Цена: квик-эдд, принятый два билда
+назад, меняется ещё раз.<br>
+<b>(2) Два регистра</b> — контур остаётся в квик-эдде (15px), заливка идёт в
+маркеры. Обычная практика иконных систем (outline на крупном, solid на мелком),
+но силуэт один и тот же, поэтому родство читается.</p>
+
+<h2 style="margin-top:24px">Часть 2 · нав-таб «Задачи»</h2>
+<p class="note">Растр нынешнего AA1 вскрыл вторую болезнь помимо «мало деталей»:
+нижний скос гроба задан кривой <code>Q</code>, и последний ряд пикселей идёт
+сплошным полутоном — ровно та лестница, из-за которой переделывали «Архив».
+Значит переделка нужна не только ради красоты.</p>
+<div class="menus">
+  <div class="menucol"><span class="menucap">сейчас · 13px</span>
+    <div class="navmock">
+      <div class="navtab n13 on"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4.75 0.5H8.25L11.5 3.25V11.25Q6.5 13.25 1.5 11.25V3.25Z"/><line x1="6.5" y1="4" x2="6.5" y2="8"/><line x1="4.5" y1="5.5" x2="8.5" y2="5.5"/><rect x="6" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.8"/><rect x="2" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="2" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><path d="M4.75 0.5L4.25 2.3M8.25 0.5L8.75 2.3" opacity="0.45"/></svg>Задачи</div>
+      <div class="navtab n13"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><rect x="2.5" y="1.5" width="8" height="2"/><rect x="3.5" y="3.5" width="6" height="6"/><rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/><line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/><line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/></svg>Архив</div>
+      <div class="navtab n13"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5C5 3.4 3.2 3.2 1.5 3.75V10.5C3.2 9.9 5 10.1 6.5 11C8 10.1 9.8 9.9 11.5 10.5V3.75C9.8 3.2 8 3.4 6.5 4.5Z"/><path d="M6.5 4.5V11" opacity="0.5"/><path d="M6.5 1L7 2L8 2.5L7 3L6.5 4L6 3L5 2.5L6 2Z" fill="currentColor" stroke="none"/><rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><rect x="10" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><path d="M4 5.5H5.5M3 7.5H5.5" opacity="0.45"/><path d="M9 5.5H7.5M10 7.5H7.5" opacity="0.45"/><path d="M5.5 11V12.5L6.5 11.75L7.5 12.5V11" opacity="0.6"/></svg>Гримуар</div>
+    </div>
+    <div class="sizes" style="margin-top:6px"><span class="g48"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4.75 0.5H8.25L11.5 3.25V11.25Q6.5 13.25 1.5 11.25V3.25Z"/><line x1="6.5" y1="4" x2="6.5" y2="8"/><line x1="4.5" y1="5.5" x2="8.5" y2="5.5"/><rect x="6" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.8"/><rect x="2" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="2" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><path d="M4.75 0.5L4.25 2.3M8.25 0.5L8.75 2.3" opacity="0.45"/></svg></span><span class="g24"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4.75 0.5H8.25L11.5 3.25V11.25Q6.5 13.25 1.5 11.25V3.25Z"/><line x1="6.5" y1="4" x2="6.5" y2="8"/><line x1="4.5" y1="5.5" x2="8.5" y2="5.5"/><rect x="6" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.8"/><rect x="2" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="2" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><path d="M4.75 0.5L4.25 2.3M8.25 0.5L8.75 2.3" opacity="0.45"/></svg></span></div></div>
+  <div class="menucol"><span class="menucap">(а) орто · те же 13px</span>
+    <div class="navmock">
+      <div class="navtab n13 on"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M4.5 0.5H8.5V2.5H10.5V9.5H8.5V11.5H4.5V9.5H2.5V2.5H4.5Z"/><line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/><line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/><rect x="3" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="9" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="3" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="9" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/></svg>Задачи</div>
+      <div class="navtab n13"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><rect x="2.5" y="1.5" width="8" height="2"/><rect x="3.5" y="3.5" width="6" height="6"/><rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/><line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/><line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/></svg>Архив</div>
+      <div class="navtab n13"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5C5 3.4 3.2 3.2 1.5 3.75V10.5C3.2 9.9 5 10.1 6.5 11C8 10.1 9.8 9.9 11.5 10.5V3.75C9.8 3.2 8 3.4 6.5 4.5Z"/><path d="M6.5 4.5V11" opacity="0.5"/><path d="M6.5 1L7 2L8 2.5L7 3L6.5 4L6 3L5 2.5L6 2Z" fill="currentColor" stroke="none"/><rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><rect x="10" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><path d="M4 5.5H5.5M3 7.5H5.5" opacity="0.45"/><path d="M9 5.5H7.5M10 7.5H7.5" opacity="0.45"/><path d="M5.5 11V12.5L6.5 11.75L7.5 12.5V11" opacity="0.6"/></svg>Гримуар</div>
+    </div>
+    <div class="sizes" style="margin-top:6px"><span class="g48"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M4.5 0.5H8.5V2.5H10.5V9.5H8.5V11.5H4.5V9.5H2.5V2.5H4.5Z"/><line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/><line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/><rect x="3" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="9" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="3" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="9" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/></svg></span><span class="g48"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M4.5 0.5H8.5V2.5H10.5V6.5H9.5V9.5H8.5V11.5H4.5V9.5H3.5V6.5H2.5V2.5H4.5Z"/><line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/><line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/><rect x="4" y="1" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="8" y="1" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="4" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="8" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/></svg></span><span class="g24"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M4.5 0.5H8.5V2.5H10.5V9.5H8.5V11.5H4.5V9.5H2.5V2.5H4.5Z"/><line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/><line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/><rect x="3" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="9" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="3" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="9" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/></svg></span><span class="g24"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M4.5 0.5H8.5V2.5H10.5V6.5H9.5V9.5H8.5V11.5H4.5V9.5H3.5V6.5H2.5V2.5H4.5Z"/><line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/><line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/><rect x="4" y="1" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="8" y="1" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="4" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="8" y="10" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/></svg></span></div>
+    <span class="tagline">одна ступень · две ступени</span></div>
+  <div class="menucol rec"><span class="menucap">(б) 15px · трио переобведено</span>
+    <div class="navmock">
+      <div class="navtab n15 on"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M5.5 0.5H9.5L12.5 3.5V10.5L9.5 13.5H5.5L2.5 10.5V3.5Z"/><line x1="3" y1="3.5" x2="12" y2="3.5" stroke-linecap="butt" opacity="0.5"/><line x1="7.5" y1="5" x2="7.5" y2="11" stroke-linecap="butt"/><line x1="5" y1="7.5" x2="10" y2="7.5" stroke-linecap="butt"/><rect x="7" y="4" width="1" height="1" fill="currentColor" stroke="none"/><rect x="7" y="11" width="1" height="1" fill="currentColor" stroke="none"/><rect x="4" y="7" width="1" height="1" fill="currentColor" stroke="none"/><rect x="10" y="7" width="1" height="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="11" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="3" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="11" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/></svg>Задачи</div>
+      <div class="navtab n15"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><rect x="2.5" y="1.5" width="10" height="2"/><rect x="3.5" y="3.5" width="8" height="6"/><rect x="1.5" y="9.5" width="12" height="2" opacity="0.75"/><line x1="7.5" y1="4.5" x2="7.5" y2="8.5" stroke-linecap="butt" opacity="0.85"/><line x1="5.5" y1="6.5" x2="9.5" y2="6.5" stroke-linecap="butt" opacity="0.85"/><rect x="4" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="10" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/><rect x="3" y="12" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="11" y="12" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/></svg>Архив</div>
+      <div class="navtab n15"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5C6 3.8 3.8 3.6 1.5 4.3V11.5C3.8 10.8 6 11 7.5 12.2C9 11 11.2 10.8 13.5 11.5V4.3C11.2 3.6 9 3.8 7.5 5Z"/><path d="M7.5 5V12.2" opacity="0.5"/><path d="M7.5 0.6L8.1 2L9.5 2.6L8.1 3.2L7.5 4.6L6.9 3.2L5.5 2.6L6.9 2Z" fill="currentColor" stroke="none"/><path d="M3.5 6.5H6.5M2.5 8.5H6.5M3.5 10.5H6.5" opacity="0.45"/><path d="M11.5 6.5H8.5M12.5 8.5H8.5M11.5 10.5H8.5" opacity="0.45"/><rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><rect x="12" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/><path d="M6 12.4V14L7.5 13.1L9 14V12.4" opacity="0.6"/></svg>Гримуар</div>
+    </div>
+    <div class="sizes" style="margin-top:6px"><span class="g48"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M5.5 0.5H9.5L12.5 3.5V10.5L9.5 13.5H5.5L2.5 10.5V3.5Z"/><line x1="3" y1="3.5" x2="12" y2="3.5" stroke-linecap="butt" opacity="0.5"/><line x1="7.5" y1="5" x2="7.5" y2="11" stroke-linecap="butt"/><line x1="5" y1="7.5" x2="10" y2="7.5" stroke-linecap="butt"/><rect x="7" y="4" width="1" height="1" fill="currentColor" stroke="none"/><rect x="7" y="11" width="1" height="1" fill="currentColor" stroke="none"/><rect x="4" y="7" width="1" height="1" fill="currentColor" stroke="none"/><rect x="10" y="7" width="1" height="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="11" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="3" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="11" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/></svg></span><span class="g24"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><path d="M5.5 0.5H9.5L12.5 3.5V10.5L9.5 13.5H5.5L2.5 10.5V3.5Z"/><line x1="3" y1="3.5" x2="12" y2="3.5" stroke-linecap="butt" opacity="0.5"/><line x1="7.5" y1="5" x2="7.5" y2="11" stroke-linecap="butt"/><line x1="5" y1="7.5" x2="10" y2="7.5" stroke-linecap="butt"/><rect x="7" y="4" width="1" height="1" fill="currentColor" stroke="none"/><rect x="7" y="11" width="1" height="1" fill="currentColor" stroke="none"/><rect x="4" y="7" width="1" height="1" fill="currentColor" stroke="none"/><rect x="10" y="7" width="1" height="1" fill="currentColor" stroke="none"/><rect x="3" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="11" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="3" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/><rect x="11" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/></svg></span></div>
+    <span class="tagline">шов крышки · крест pattée с заклёпками · гвозди</span></div>
+</div>
+<p class="note"><b>(а) 13px, ортогональный.</b> Плечи ступенькой, ни одной пологой
+грани, ни одного полутона. Дёшево и ничего в вёрстке не двигается — но потолок
+детализации остаётся низким: на 13 пикселях помещается силуэт, крест и четыре
+гвоздя, больше туда физически не входит.<br>
+<b>(б) 15px, нечётная канва.</b> Центр 7.5 попадает в центр пикселя, поэтому
+осевой штрих креста ложится точно (на чётной канве он расщепился бы на два
+полутона — из-за этого канва 15, а не 16). Грани только 45°, то есть лестница
+читается как намеренная фаска. Появляется бюджет на шов крышки, крест pattée с
+концевыми заклёпками и гвозди по бортам.<br>
+<b>Чего стоит (б).</b> Арт саркофага и тома живёт в
+<code>&lt;symbol id="icon-tomb"&gt;</code> / <code>icon-tome</code> и раздаётся
+ЕЩЁ ТРЁМ потребителям, кроме нав-табов: створка-drawer на мобиле, сегменты
+Гримуара «Записи/Склеп», заголовок страницы «Архив». Все они рендерят 13px, и
+если арт переедет на сетку 15, а они останутся на 13 — там начнётся ровно та
+каша, от которой мы уходим. Значит поднимать надо всех четверых разом. Это
+делается, но это в три раза больше правок, чем (а).</p>
 </body>
 </html>
