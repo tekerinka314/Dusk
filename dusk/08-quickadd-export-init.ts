@@ -1062,16 +1062,28 @@ class SegmentedInput {
                 <path d="M17.5 3.5 C17.5 3.5 13 8.5 12 12 C11 15.5 6.5 20.5 6.5 20.5"/>
                 <path d="M8.5 19 Q12 14.5 15.5 19" fill="currentColor" stroke="none" opacity="0.8"/>
               </svg>`
-            // GOTHIC ARCH CALENDAR — lancet arch frame (architectural gothic motif) with
-            // two horizontal shelf lines creating three week-rows, and a prominent circled
-            // date in the middle row = "pick a date." Instantly legible as a date selector.
-            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 22V10C5 6.5 8 3 12 3C16 3 19 6.5 19 10V22Z"/>
-                <line x1="3" y1="22" x2="21" y2="22"/>
-                <line x1="5" y1="13.5" x2="19" y2="13.5"/>
-                <line x1="5" y1="18.5" x2="19" y2="18.5"/>
-                <circle cx="12" cy="16" r="2.4"/>
-                <circle cx="12" cy="16" r="0.75" fill="currentColor" stroke="none"/>
+            // X1 · LANCET TABLET — the arch stays, but it now carries a real month
+            // grid instead of three bare shelves, and the chosen day is a forged
+            // lozenge rather than a naked circle. Cross finial on the apex ties it
+            // to the rest of the deadline language.
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 21V9.5C5 6.1 8 3.7 12 3.7C16 3.7 19 6.1 19 9.5V21"/>
+
+                <line x1="3.4" y1="21" x2="20.6" y2="21" stroke-width="1.5"/>
+
+                <path d="M12 3.7V2.4M10.9 2.4H13.1" stroke-width="1.1" opacity="0.6"/>
+
+                <line x1="5" y1="8.6" x2="19" y2="8.6" stroke-width="1.1" opacity="0.7"/>
+
+                <line x1="5" y1="12.6" x2="19" y2="12.6" stroke-width="0.9" opacity="0.4"/>
+
+                <line x1="5" y1="16.6" x2="19" y2="16.6" stroke-width="0.9" opacity="0.4"/>
+
+                <line x1="9.7" y1="8.6" x2="9.7" y2="21" stroke-width="0.9" opacity="0.4"/>
+
+                <line x1="14.3" y1="8.6" x2="14.3" y2="21" stroke-width="0.9" opacity="0.4"/>
+
+                <path d="M12 13.6L13 14.6L12 15.6L11 14.6Z" fill="currentColor" stroke="none" opacity="0.9"/>
               </svg>`;
 
         // Prevent mousedown from blurring the seg-input widget
@@ -1108,8 +1120,8 @@ class SegmentedInput {
               </svg>`
             // Gothic arch/calendar (faded) pierced by an ×  —  for date inputs
             : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 22V10C5 6.5 8 3 12 3C16 3 19 6.5 19 10V22Z" opacity="0.45"/>
-                <line x1="3" y1="22" x2="21" y2="22" opacity="0.45"/>
+                <path d="M5 21V9.5C5 6.1 8 3.7 12 3.7C16 3.7 19 6.1 19 9.5V21" opacity="0.45"/>
+                <line x1="3.4" y1="21" x2="20.6" y2="21" opacity="0.45"/>
                 <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke-width="2.1"/>
                 <line x1="18.5" y1="5.5" x2="5.5" y2="18.5" stroke-width="2.1"/>
               </svg>`;
