@@ -66,7 +66,7 @@
     --tw-high: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%227%22%20y%3D%220%22%20width%3D%221%22%20height%3D%222%22%2F%3E%3Cpath%20d%3D%22M7.5%202L10.5%205H4.5Z%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%225%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%226%22%20width%3D%222%22%20height%3D%226%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%226%22%20width%3D%222%22%20height%3D%226%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
     --tw-medium: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%227%22%20y%3D%223%22%20width%3D%221%22%20height%3D%222%22%2F%3E%3Cpath%20d%3D%22M7.5%205L10.5%208H4.5Z%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%228%22%20width%3D%225%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%229%22%20width%3D%222%22%20height%3D%223%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%229%22%20width%3D%222%22%20height%3D%223%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
     --tw-low: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%227%22%20y%3D%225%22%20width%3D%221%22%20height%3D%222%22%2F%3E%3Cpath%20d%3D%22M7.5%207L10.5%2010H4.5Z%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%2210%22%20width%3D%225%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%2211%22%20width%3D%222%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%2211%22%20width%3D%222%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
-    --tw-none: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%225%22%20y%3D%229%22%20width%3D%222%22%20height%3D%223%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%2210%22%20width%3D%222%22%20height%3D%222%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2211%22%20width%3D%221%22%20height%3D%221%22%20opacity%3D%220.6%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
+    --tw-none: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%223%22%20height%3D%221%22%20opacity%3D%220.85%22%2F%3E%3Cpath%20d%3D%22M5%2012V6H6V8H7V12Z%22%2F%3E%3Cpath%20d%3D%22M8%2012V10H9V9H10V12Z%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%222%22%20height%3D%222%22%20opacity%3D%220.7%22%2F%3E%3Crect%20x%3D%222%22%20y%3D%2211%22%20width%3D%222%22%20height%3D%221%22%20opacity%3D%220.5%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
 
     /* Checked checkbox → violet/purple */
     --check-done-bg:     linear-gradient(135deg, #7030d0, #a060ff);
@@ -466,7 +466,7 @@ html::after {
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-.nav-tab svg { width: 15px; height: 15px; }
+.nav-tab svg { width: 13px; height: 13px; }
 .nav-tab:hover { color: var(--text-secondary); }
 .nav-tab.active {
     background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));
@@ -845,6 +845,9 @@ html::after {
     -webkit-mask: var(--tw-none) center / 15px 15px no-repeat;
             mask: var(--tw-none) center / 15px 15px no-repeat;
 }
+/* «Без приоритета»: цвета у уровня нет, поэтому руина берёт цвет самой кнопки. */
+.prio-dot.prio-none { background: currentColor; opacity: 0.7; }
+.prio-btn.prio-none.active .prio-dot, .prio-grid-btn[data-prio="none"].active .prio-dot { opacity: 1; }
 .prio-low .prio-dot,    .prio-dot.prio-low,    .fm-prio-dot.p-low,
 .subtask-item[data-sprio="low"] .sub-prio-dot {
     -webkit-mask-image: var(--tw-low); mask-image: var(--tw-low);
@@ -4191,7 +4194,7 @@ textarea:focus-visible {
     letter-spacing: 2px;
     text-transform: uppercase;
 }
-.archive-title svg { width: 15px; height: 15px; }
+.archive-title svg { width: 13px; height: 13px; }
 
 /* Shared style for all archive header buttons */
 .btn-archive-action {
@@ -6962,10 +6965,10 @@ kbd {
     cursor: pointer;
     transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
-/* 15px ровно: сегментные глифы — те же нав-арты на пиксельной сетке 15
+/* 13px ровно: сегментные глифы — те же нав-арты на пиксельной сетке 13
    (1 единица viewBox = 1 пиксель). Любой другой размер снова кладёт штрихи
    между пикселями и даёт лестницу полутонов. */
-.grim-seg svg { width: 15px; height: 15px; }
+.grim-seg svg { width: 13px; height: 13px; }
 .grim-seg:hover { color: var(--text-secondary); }
 .grim-seg.active {
     background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));

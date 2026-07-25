@@ -67,43 +67,37 @@
 
         <nav class="page-nav">
             <button class="nav-tab active" id="nav-main" data-act="switchPage" data-page="main">
-                <!-- AA1c: столярный гроб на сетке 15 (Tasks tab). Канва НЕЧЁТНАЯ намеренно:
-                     центр 7.5 попадает в центр пикселя, поэтому осевой штрих креста ложится
-                     точно (на канве 16 он расщепился бы на два полутона). Прежний арт болел
-                     не только скудостью — нижний скос был задан кривой Q, и последний ряд
-                     пикселей шёл сплошным полутоном: ровно та лестница, из-за которой
-                     переделывали «Архив». Здесь грани только 45°, всё остальное орто. -->
-                <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
-                    <path d="M5.5 0.5H9.5L12.5 3.5V10.5L9.5 13.5H5.5L2.5 10.5V3.5Z"/>
-                    <line x1="3" y1="3.5" x2="12" y2="3.5" stroke-linecap="butt" opacity="0.5"/>
-                    <line x1="7.5" y1="5" x2="7.5" y2="11" stroke-linecap="butt"/>
-                    <line x1="5" y1="7.5" x2="10" y2="7.5" stroke-linecap="butt"/>
-                    <rect x="7" y="4" width="1" height="1" fill="currentColor" stroke="none"/>
-                    <rect x="7" y="11" width="1" height="1" fill="currentColor" stroke="none"/>
-                    <rect x="4" y="7" width="1" height="1" fill="currentColor" stroke="none"/>
-                    <rect x="10" y="7" width="1" height="1" fill="currentColor" stroke="none"/>
-                    <rect x="3" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
-                    <rect x="11" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
-                    <rect x="3" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
-                    <rect x="11" y="9" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
+                <!-- AA1d: ортогональный гроб на сетке 13 (Tasks tab). Прежний арт болел не
+                     только скудостью: нижний скос задавался кривой Q, и последний ряд шёл
+                     сплошным полутоном — та же лестница, из-за которой переделывали «Архив».
+                     Здесь плечи и стопы даны СТУПЕНЬКОЙ, косых граней не осталось вовсе,
+                     каждый штрих лежит на полупиксельном центре: растр даёт сплошную альфу
+                     на всех несущих линиях и ни одного полутона. -->
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
+                    <path d="M4.5 0.5H8.5V2.5H10.5V9.5H8.5V11.5H4.5V9.5H2.5V2.5H4.5Z"/>
+                    <line x1="6.5" y1="4" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>
+                    <line x1="5" y1="5.5" x2="8" y2="5.5" stroke-linecap="butt" opacity="0.85"/>
+                    <rect x="3" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
+                    <rect x="9" y="3" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
+                    <rect x="3" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
+                    <rect x="9" y="8" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
                 </svg>
                 Задачи
             </button>
             <button class="nav-tab" id="nav-archive" data-act="switchPage" data-page="archive">
                 <!-- AA1b: rectilinear tomb chest — slab lid / body with cross / plinth (Archive tab).
-                     No slanted edge survives at this size: a 1-in-5 slope aliases into a staircase and
+                     No slanted edge survives 13px: a 1-in-5 slope aliases into a staircase and
                      reads as "crooked". Every edge is now orthogonal and on the pixel grid.
                      Art lives once in <symbol id="icon-tomb"> — shared with the archive page
-                     title and the grimoire «Склеп» segment (one navigation glyph, three tabs).
-                     ПАРТИЯ 7: сетка 13 → 15 вместе с остальным трио. -->
-                <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
+                     title and the grimoire «Склеп» segment (one navigation glyph, three tabs). -->
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                 Архив
                 <span class="archive-badge" id="archive-badge" style="display:none"></span>
             </button>
             <button class="nav-tab" id="nav-notes" data-act="switchPage" data-page="notes">
-                <!-- AA1: tome with drop-cap marks on margins + bookmark ribbon (Grimoire tab) — redrawn on the 15px pixel grid.
+                <!-- AA1: tome with drop-cap marks on margins + bookmark ribbon (Grimoire tab) — redrawn on the 13px pixel grid.
                      Art lives once in <symbol id="icon-tome"> — shared with the grimoire «Записи» segment. -->
-                <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-tome"/></svg>
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-tome"/></svg>
                 Гримуар
             </button>
         </nav>
@@ -152,7 +146,7 @@
                         <div class="field-group">
                             <label class="field-label">Приоритет</label>
                             <div class="prio-grid" id="priority-selector">
-                                <button class="prio-grid-btn active" data-prio="none"><svg class="prio-none-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>Нет<svg class="prio-none-ic none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg></button>
+                                <button class="prio-grid-btn active" data-prio="none"><span class="prio-dot prio-none"></span>Нет</button>
                                 <button class="prio-grid-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
                                 <button class="prio-grid-btn prio-medium" data-prio="medium"><span class="prio-dot"></span>Средний</button>
                                 <button class="prio-grid-btn prio-high" data-prio="high"><span class="prio-dot"></span>Высокий</button>
@@ -653,7 +647,7 @@
                         <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="high" title="Высокий приоритет"><span class="prio-dot prio-high"></span></button>
                         <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="medium" title="Средний приоритет"><span class="prio-dot prio-medium"></span></button>
                         <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="low" title="Низкий приоритет"><span class="prio-dot prio-low"></span></button>
-                        <button class="sb-btn prio-bulk-btn sb-prio-none" data-act="bulkSetPriority" data-prio="none" title="Без приоритета">—</button>
+                        <button class="sb-btn prio-bulk-btn sb-prio-none" data-act="bulkSetPriority" data-prio="none" title="Без приоритета"><span class="prio-dot prio-none"></span></button>
                     </div>
                     <!-- Cluster 2 — group / colour / deadline -->
                     <div class="select-bar-group">
@@ -743,8 +737,8 @@
         <div id="archive-page" style="display:none">
             <div class="archive-header">
                 <h3 class="archive-title" id="archive-title-icon">
-                    <!-- AA1b: same rectilinear tomb chest as the Archive nav tab (15px pixel grid) -->
-                    <svg aria-hidden="true" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
+                    <!-- AA1b: same rectilinear tomb chest as the Archive nav tab (13px pixel grid) -->
+                    <svg aria-hidden="true" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                     Архив
                 </h3>
                 <!-- Archive search — full width row below title, no focus border -->
@@ -808,14 +802,14 @@
             <div class="grim-bar">
                 <div class="grim-segment" role="tablist" aria-label="Раздел гримуара">
                     <!-- Сегменты Гримуара = тот же навигационный язык, что и нав-табы: том (AA1)
-                         и саркофаг-ларь (AA1b), оба на пиксельной сетке 15. Раньше «Склеп» нёс тот
+                         и саркофаг-ларь (AA1b), оба на пиксельной сетке 13. Раньше «Склеп» нёс тот
                          же гроб, что и ДЕЙСТВИЕ «отправить в склеп» — навигация и действие слиплись. -->
                     <button class="grim-seg active" id="grim-seg-active" role="tab" data-act="grimSetMode" data-mode="active">
-                        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-tome"/></svg>
+                        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-tome"/></svg>
                         <span>Записи</span>
                     </button>
                     <button class="grim-seg" id="grim-seg-archive" role="tab" data-act="grimSetMode" data-mode="archive" title="Архив заметок">
-                        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
+                        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                         <span>Склеп</span>
                         <span class="grim-seg-count" id="grim-seg-count" style="display:none"></span>
                     </button>
@@ -1313,7 +1307,7 @@
     <div class="modal modal-small">
         <h3 class="modal-title" id="prio-modal-title">Изменить приоритет</h3>
         <div class="priority-selector modal-prio-selector" id="modal-prio-selector">
-            <button class="prio-btn prio-none" data-prio="none"><svg class="prio-none-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg>Нет<svg class="prio-none-ic none-moon-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3.35A9 9 0 1 0 14.5 20.65A9 9 0 0 1 14.5 3.35Z"/></svg></button>
+            <button class="prio-btn prio-none" data-prio="none"><span class="prio-dot prio-none"></span>Нет</button>
             <button class="prio-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
             <button class="prio-btn prio-medium" data-prio="medium"><span class="prio-dot"></span>Средний</button>
             <button class="prio-btn prio-high" data-prio="high"><span class="prio-dot"></span>Высокий</button>
@@ -1640,33 +1634,24 @@
     <!-- ПАРТИЯ 5 · де-алиасинг Гримуара. Навигация и массовые действия делили один
          глиф с одиночными: нав-таб «Склеп» = кнопка «отправить в склеп», «вернуть
          отмеченные» = одиночное «вернуть». Ниже — арты, живущие ОДНОЙ копией и
-         раздаваемые через <use>: навигационные (том/саркофаг, пиксельная сетка 15)
-         и «восстановить отмеченное» (AB1). Штрихи задаёт внешняя <svg>-обёртка.
-         ПАРТИЯ 7: сетка поднята 13 → 15 вместе с нав-табом «Задачи». Канва
-         нечётная намеренно — центр 7.5 = центр пикселя, поэтому осевые штрихи
-         (крест саркофага, корешок тома) не расщепляются на полутона. Все пять
-         потребителей обоих символов переведены на 15 разом; оставить кого-то на
-         13 значило бы рендерить арт сетки 15 в 13 пикселей — та самая каша. -->
-    <symbol id="icon-tomb" viewBox="0 0 15 15">
-      <rect x="2.5" y="1.5" width="10" height="2"/>
-      <rect x="3.5" y="3.5" width="8" height="6"/>
-      <rect x="1.5" y="9.5" width="12" height="2" opacity="0.75"/>
-      <line x1="7.5" y1="4.5" x2="7.5" y2="8.5" stroke-linecap="butt" opacity="0.85"/>
-      <line x1="5.5" y1="6.5" x2="9.5" y2="6.5" stroke-linecap="butt" opacity="0.85"/>
-      <rect x="4" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>
-      <rect x="10" y="2" width="1" height="1" fill="currentColor" stroke="none" opacity="0.55"/>
-      <rect x="3" y="12" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
-      <rect x="11" y="12" width="1" height="1" fill="currentColor" stroke="none" opacity="0.5"/>
+         раздаваемые через <use>: навигационные (том/саркофаг, пиксельная сетка 13)
+         и «восстановить отмеченное» (AB1). Штрихи задаёт внешняя <svg>-обёртка. -->
+    <symbol id="icon-tomb" viewBox="0 0 13 13">
+      <rect x="2.5" y="1.5" width="8" height="2"/>
+      <rect x="3.5" y="3.5" width="6" height="6"/>
+      <rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/>
+      <line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>
+      <line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/>
     </symbol>
-    <symbol id="icon-tome" viewBox="0 0 15 15">
-      <path d="M7.5 5C6 3.8 3.8 3.6 1.5 4.3V11.5C3.8 10.8 6 11 7.5 12.2C9 11 11.2 10.8 13.5 11.5V4.3C11.2 3.6 9 3.8 7.5 5Z"/>
-      <path d="M7.5 5V12.2" opacity="0.5"/>
-      <path d="M7.5 0.6L8.1 2L9.5 2.6L8.1 3.2L7.5 4.6L6.9 3.2L5.5 2.6L6.9 2Z" fill="currentColor" stroke="none"/>
-      <path d="M3.5 6.5H6.5M2.5 8.5H6.5M3.5 10.5H6.5" opacity="0.45"/>
-      <path d="M11.5 6.5H8.5M12.5 8.5H8.5M11.5 10.5H8.5" opacity="0.45"/>
+    <symbol id="icon-tome" viewBox="0 0 13 13">
+      <path d="M6.5 4.5C5 3.4 3.2 3.2 1.5 3.75V10.5C3.2 9.9 5 10.1 6.5 11C8 10.1 9.8 9.9 11.5 10.5V3.75C9.8 3.2 8 3.4 6.5 4.5Z"/>
+      <path d="M6.5 4.5V11" opacity="0.5"/>
+      <path d="M6.5 1L7 2L8 2.5L7 3L6.5 4L6 3L5 2.5L6 2Z" fill="currentColor" stroke="none"/>
       <rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>
-      <rect x="12" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>
-      <path d="M6 12.4V14L7.5 13.1L9 14V12.4" opacity="0.6"/>
+      <rect x="10" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>
+      <path d="M4 5.5H5.5M3 7.5H5.5" opacity="0.45"/>
+      <path d="M9 5.5H7.5M10 7.5H7.5" opacity="0.45"/>
+      <path d="M5.5 11V12.5L6.5 11.75L7.5 12.5V11" opacity="0.6"/>
     </symbol>
     <!-- AB1 · Восставший гроб — «восстановить ОТМЕЧЕННОЕ» (задачи и заметки). -->
     <symbol id="icon-restore-sel" viewBox="0 0 24 24">
