@@ -36,7 +36,10 @@ function parseQuickInput(raw) {
         low:'low', l:'low', низ:'low', низкий:'low',
         none:'none', n:'none', нет:'none',
     };
-    text = text.replace(/(^|\s)!([a-zA-Zа-яё]+)\b/gi, (m, pre, word) => {
+    // V2-B1-11: `\b` без флага `u` определяется через ASCII-`\w`, поэтому после
+    // кириллической буквы границы слова НЕ существует и «!высокий» не матчился
+    // вовсе. Правая граница задана явным lookahead'ом по Unicode-классам.
+    text = text.replace(/(^|\s)!(\p{L}+)(?![\p{L}\p{N}_])/gu, (m, pre, word) => {
         const key = word.toLowerCase();
         if (prioMap[key] !== undefined) { priority = prioMap[key]; return pre; }
         return m;

@@ -1211,13 +1211,17 @@ function shakeInput() {
 //  HASHTAGS & SEARCH HIGHLIGHT
 // ============================================================
 // Tags are written with a leading "*" (e.g. *дом). Highlighted + clickable.
+// V2-B1-11: тело тега — Unicode-классы, а не ручной перечень RU+EN: старый
+// `[\wа-яёА-ЯЁ]` резал «*café» до «*caf» и любую нелатинскую/некириллическую
+// букву. Оба места ОБЯЗАНЫ совпадать (подсветка и извлечение).
+const _TAG_BODY_RE = /\*([\p{L}\p{N}_]+)/gu;
 function highlightHashtags(html) {
-    return html.replace(/\*([\wа-яёА-ЯЁ]+)/gu, '<span class="hashtag" data-act="filterByTag" data-tag="*$1">*$1</span>');
+    return html.replace(_TAG_BODY_RE, '<span class="hashtag" data-act="filterByTag" data-tag="*$1">*$1</span>');
 }
 
 /** Extract all *tag strings from a text string. Returns lowercase array. */
 function extractTags(text) {
-    const matches = text.match(/\*([\wа-яёА-ЯЁ]+)/gu) || [];
+    const matches = text.match(_TAG_BODY_RE) || [];
     return [...new Set(matches.map(t => t.toLowerCase()))];
 }
 
