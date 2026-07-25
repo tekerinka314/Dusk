@@ -29,7 +29,7 @@
   "preview": "<svg viewBox=\"0 0 13 13\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linecap",
   "locations": [
    "index.html:90",
-   "index.html:829"
+   "index.html:809"
   ]
  },
  "db5291c3d86dc30a": {
@@ -38,7 +38,7 @@
   "preview": "<svg viewBox=\"0 0 13 13\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linecap",
   "locations": [
    "index.html:97",
-   "index.html:825"
+   "index.html:805"
   ]
  },
  "0e296b2a6267ac9f": {
@@ -47,9 +47,9 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
   "locations": [
    "index.html:131",
-   "index.html:611",
-   "dusk/01-core.ts:506",
-   "dusk/01-core.ts:518"
+   "index.html:599",
+   "dusk/01-core.ts:504",
+   "dusk/01-core.ts:516"
   ]
  },
  "4aac93069ae0221c": {
@@ -58,7 +58,7 @@
   "preview": "<svg class=\"prio-none-ic\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-wid",
   "locations": [
    "index.html:146",
-   "index.html:1335"
+   "index.html:1307"
   ]
  },
  "a16c7c15aea34046": {
@@ -67,7 +67,7 @@
   "preview": "<svg class=\"prio-none-ic none-moon-r\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor",
   "locations": [
    "index.html:146",
-   "index.html:1335"
+   "index.html:1307"
   ]
  },
  "bba4e0aad3e0bac8": {
@@ -92,20 +92,21 @@
   "preview": "<svg class=\"dl-month-chevron\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke",
   "locations": [
    "index.html:205",
-   "index.html:259",
-   "index.html:1063",
-   "index.html:1113",
-   "index.html:1460",
+   "index.html:255",
+   "index.html:1035",
+   "index.html:1085",
+   "index.html:1432",
    "dusk/02-grimoire.ts:848"
   ]
  },
- "359c63d0f54f9337": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
+ "7970d81ddbdfeb0f": {
+  "role": "B1 · дедлайн (окно со свечой)",
+  "note": "IC.window + триггер дедлайна в форме задачи + «Дедлайн» для отмеченных. Один смысл «срок» — один арт; мёртвая инлайн-арка в форме (совпадала с «По будням» в модалке повтора) снята",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:223",
-   "index.html:1424"
+   "index.html:226",
+   "index.html:681",
+   "dusk/01-core.ts:333"
   ]
  },
  "0e5210026f788778": {
@@ -113,10 +114,10 @@
   "note": "X1 · ланца вниз, подача под 17px (шары r=0.8, перекладина 1.9, навершие-ромб). Все 4 степпера «минус»: form-anchor, dl-monthday, dl-year, repeat-anchor. Две старые вариации (с перекладиной и без) схлопнуты в одну.",
   "preview": "<svg viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:282",
-   "index.html:1095",
-   "index.html:1147",
-   "index.html:1490"
+   "index.html:278",
+   "index.html:1067",
+   "index.html:1119",
+   "index.html:1462"
   ]
  },
  "89787bb5880738f4": {
@@ -124,10 +125,10 @@
   "note": "X1 · ланца вверх, подача под 17px. Все 4 степпера «плюс» — зеркало пары по y=11.",
   "preview": "<svg viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:289",
-   "index.html:1099",
-   "index.html:1152",
-   "index.html:1495"
+   "index.html:285",
+   "index.html:1071",
+   "index.html:1124",
+   "index.html:1467"
   ]
  },
  "e63ec455797137fc": {
@@ -135,7 +136,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linec",
   "locations": [
-   "index.html:310"
+   "index.html:306"
   ]
  },
  "df99dfc82f5de36b": {
@@ -143,7 +144,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:327"
+   "index.html:323"
   ]
  },
  "00b1c77c4771b404": {
@@ -151,7 +152,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:337"
+   "index.html:333"
   ]
  },
  "1fbdd3d2d28031e6": {
@@ -159,7 +160,7 @@
   "note": "be-fil left — vine tendril with leaf (BF1)",
   "preview": "<svg class=\"be-fil\" viewBox=\"0 0 22 12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.",
   "locations": [
-   "index.html:355"
+   "index.html:351"
   ]
  },
  "28d23e2d4d6d371f": {
@@ -167,16 +168,17 @@
   "note": "be-fil right — vine tendril with leaf, mirrored (BF1)",
   "preview": "<svg class=\"be-fil be-fil-r\" viewBox=\"0 0 22 12\" fill=\"none\" stroke=\"currentColor\" stroke-",
   "locations": [
-   "index.html:366"
+   "index.html:362"
   ]
  },
- "6d2d85ed197fe0c9": {
-  "role": "UNASSIGNED",
-  "note": "",
+ "300f416bb9369833": {
+  "role": "S2 · поиск (единый)",
+  "note": "обёртка <use #icon-scrying> — тулбар задач, поиск по архиву, поиск по Гримуару. Было три почти одинаковые копии, тулбарная обеднённая",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:387",
-   "dusk/01-core.ts:437"
+   "index.html:383",
+   "index.html:743",
+   "index.html:851"
   ]
  },
  "2929554b7730cd0b": {
@@ -184,9 +186,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:399",
-   "index.html:770",
-   "index.html:887"
+   "index.html:387",
+   "index.html:750",
+   "index.html:859"
   ]
  },
  "4ba258e362d32ca9": {
@@ -194,7 +196,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:415"
+   "index.html:403"
   ]
  },
  "de95db4dfe54433a": {
@@ -202,8 +204,8 @@
   "note": "T1 · Орлой — астрономический циферблат. Единый язык времени: IC.sundial (сепараторы «С дедлайном», сортировка группы, +1 неделя) + кнопка #btn-schedule.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:425",
-   "dusk/01-core.ts:538"
+   "index.html:413",
+   "dusk/01-core.ts:536"
   ]
  },
  "8c9fb6bfaeb857c7": {
@@ -211,7 +213,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:444"
+   "index.html:432"
   ]
  },
  "d89a6a71a48065a2": {
@@ -219,7 +221,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:448"
+   "index.html:436"
   ]
  },
  "8f5b28277213e433": {
@@ -227,7 +229,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:471"
+   "index.html:459"
   ]
  },
  "f6bb606445df1276": {
@@ -235,8 +237,8 @@
   "note": "P3 око-ВЫКЛ (открытое) — IC.gothEyeOpen + инлайн #btn-filter",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:495",
-   "dusk/01-core.ts:580"
+   "index.html:483",
+   "dusk/01-core.ts:578"
   ]
  },
  "df6069d9dd527b15": {
@@ -244,7 +246,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:515"
+   "index.html:503"
   ]
  },
  "df13a09a731b5667": {
@@ -252,7 +254,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:530"
+   "index.html:518"
   ]
  },
  "0ce3548c71ad0bfe": {
@@ -260,7 +262,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linec",
   "locations": [
-   "index.html:535"
+   "index.html:523"
   ]
  },
  "4f61cfc0c72e6fbd": {
@@ -268,7 +270,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:546",
+   "index.html:534",
    "dusk/08-quickadd-export-init.ts:263",
    "dusk/08-quickadd-export-init.ts:284"
   ]
@@ -278,7 +280,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:564",
+   "index.html:552",
    "dusk/08-quickadd-export-init.ts:283"
   ]
  },
@@ -287,7 +289,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:583",
+   "index.html:571",
    "dusk/08-quickadd-export-init.ts:285"
   ]
  },
@@ -296,7 +298,7 @@
   "note": "обёртка <use href=#icon-archive-all> — «Архивировать ВСЁ» (тулбар + пункт меню)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:597",
+   "index.html:585",
    "dusk/01-core.ts:329"
   ]
  },
@@ -305,7 +307,7 @@
   "note": "обёртка <use #icon-purge-all> — череп на постаменте из трёх убывающих плит. Тулбар «Удалить всё навсегда» + строка ⋯-шита (IC.purgeAll). Голый IC.skull остался одиночному удалению",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.95\" stroke-line",
   "locations": [
-   "index.html:601",
+   "index.html:589",
    "dusk/01-core.ts:321"
   ]
  },
@@ -314,7 +316,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
   "locations": [
-   "index.html:616"
+   "index.html:604"
   ]
  },
  "07e7400104e0d2b4": {
@@ -322,7 +324,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:637"
+   "index.html:625"
   ]
  },
  "c4ca1d362d1fa699": {
@@ -330,7 +332,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:667"
+   "index.html:655"
   ]
  },
  "0864c21ae284974e": {
@@ -338,18 +340,9 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:681",
-   "index.html:924",
+   "index.html:669",
+   "index.html:896",
    "dusk/02-grimoire.ts:1188"
-  ]
- },
- "7970d81ddbdfeb0f": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
-  "locations": [
-   "index.html:693",
-   "dusk/01-core.ts:333"
   ]
  },
  "90f29fc557f85975": {
@@ -357,8 +350,8 @@
   "note": "обёртка <use href=#icon-archive-sel> — «Архивировать ОТМЕЧЕННЫЕ»",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:709",
-   "index.html:917"
+   "index.html:697",
+   "index.html:889"
   ]
  },
  "136eeaf9df06fbe3": {
@@ -366,8 +359,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:713",
-   "index.html:933",
+   "index.html:701",
+   "index.html:905",
    "dusk/01-core.ts:317"
   ]
  },
@@ -376,7 +369,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linec",
   "locations": [
-   "index.html:732"
+   "index.html:720"
   ]
  },
  "1ef91a8141c20f6f": {
@@ -384,16 +377,7 @@
   "note": "обёртка <use #icon-tomb> с aria-hidden — заголовок страницы архива",
   "preview": "<svg aria-hidden=\"true\" viewBox=\"0 0 13 13\" fill=\"none\" stroke=\"currentColor\" stroke-width",
   "locations": [
-   "index.html:750"
-  ]
- },
- "bcee187c25f7aa26": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
-  "locations": [
-   "index.html:755",
-   "index.html:871"
+   "index.html:738"
   ]
  },
  "29d968205ee64f5d": {
@@ -401,8 +385,8 @@
   "note": "обёртка <use #icon-restore-all> — урна на трёх плитах. #btn-restore-all (задачи) + #grim-restore-all (заметки)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.95\" stroke-line",
   "locations": [
-   "index.html:777",
-   "index.html:842"
+   "index.html:757",
+   "index.html:822"
   ]
  },
  "50da0b302baa9e3b": {
@@ -410,8 +394,8 @@
   "note": "обёртка <use #icon-select-mark> — рунный круг. #btn-select-mode + #grim-select-btn (в Гримуаре раньше стоял голый портал-арка = алиас с архивом)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:782",
-   "index.html:836"
+   "index.html:762",
+   "index.html:816"
   ]
  },
  "7ac9e1d944739cb2": {
@@ -419,8 +403,8 @@
   "note": "обёртка <use #icon-empty-crypt> — опрокинутая урна. #btn-clear-archive (задачи, был череп) + #grim-empty-crypt (заметки)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:789",
-   "index.html:853"
+   "index.html:769",
+   "index.html:833"
   ]
  },
  "8b848601da3b7f10": {
@@ -428,8 +412,8 @@
   "note": "обёртка <use #icon-restore-sel> — восставший гроб. Задачи + Гримуар: массовый restore больше не равен одиночной AY1-урне",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:804",
-   "index.html:920"
+   "index.html:784",
+   "index.html:892"
   ]
  },
  "c394a5465d933eca": {
@@ -437,8 +421,8 @@
   "note": "grim-io transfer — tiered feathers (BJ1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "index.html:847",
-   "index.html:928"
+   "index.html:827",
+   "index.html:900"
   ]
  },
  "dc590dde6fa3c124": {
@@ -446,7 +430,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:858",
+   "index.html:838",
    "dusk/02-grimoire.ts:182"
   ]
  },
@@ -455,7 +439,7 @@
   "note": "GIC.foldClosed + inline gt-closed — clasped tome, bindery finish (BK1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:862",
+   "index.html:842",
    "dusk/02-grimoire.ts:192"
   ]
  },
@@ -464,7 +448,7 @@
   "note": "GIC.foldOpen + inline gt-open — open tome, bindery finish (BK1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:863",
+   "index.html:843",
    "dusk/02-grimoire.ts:191"
   ]
  },
@@ -473,7 +457,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:896"
+   "index.html:868"
   ]
  },
  "2834083947e7a78a": {
@@ -481,8 +465,8 @@
   "note": "T1-lean (Орлой под 13-15px): метка «Время (необязательно)» index.html + строки канала %дата в типахеде квик-эдда (IC.sundialLean). Один арт — один хэш.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1162",
-   "dusk/01-core.ts:721"
+   "index.html:1134",
+   "dusk/01-core.ts:719"
   ]
  },
  "8b46f5318e4db326": {
@@ -490,7 +474,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-l",
   "locations": [
-   "index.html:1187"
+   "index.html:1159"
   ]
  },
  "6afa30949ac7ebf6": {
@@ -498,7 +482,7 @@
   "note": "BI1 угол-филигрань dl-dur (tl)",
   "preview": "<svg class=\"dl-dur-corner tl\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1221"
+   "index.html:1193"
   ]
  },
  "05d29576193d420a": {
@@ -506,7 +490,7 @@
   "note": "BI1 угол-филигрань dl-dur (tr)",
   "preview": "<svg class=\"dl-dur-corner tr\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1222"
+   "index.html:1194"
   ]
  },
  "9e9b192b891b4ec5": {
@@ -514,7 +498,7 @@
   "note": "BI1 угол-филигрань dl-dur (bl)",
   "preview": "<svg class=\"dl-dur-corner bl\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1223"
+   "index.html:1195"
   ]
  },
  "1d8c4d915ae4cfdc": {
@@ -522,7 +506,7 @@
   "note": "BI1 угол-филигрань dl-dur (br)",
   "preview": "<svg class=\"dl-dur-corner br\" viewBox=\"0 0 34 34\" fill=\"none\" stroke=\"currentColor\" aria-h",
   "locations": [
-   "index.html:1224"
+   "index.html:1196"
   ]
  },
  "b1142558b9deea17": {
@@ -530,7 +514,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 60 116\" aria-hidden=\"true\"><defs><radialGradient id=\"dlc-halo\" cx=\"50%\" ",
   "locations": [
-   "index.html:1231"
+   "index.html:1203"
   ]
  },
  "2164c5df9402ff01": {
@@ -538,10 +522,10 @@
   "note": "BI1 кованая волна — степперы dl-dur x4",
   "preview": "<svg viewBox=\"0 0 24 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1266",
-   "index.html:1270",
-   "index.html:1284",
-   "index.html:1288"
+   "index.html:1238",
+   "index.html:1242",
+   "index.html:1256",
+   "index.html:1260"
   ]
  },
  "2d1e3f999d840c1f": {
@@ -549,7 +533,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 13 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1275"
+   "index.html:1247"
   ]
  },
  "16e13f426d825a36": {
@@ -557,7 +541,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 60 116\" aria-hidden=\"true\"><ellipse class=\"dl-halo\" cx=\"30\" cy=\"34\" rx=\"",
   "locations": [
-   "index.html:1295"
+   "index.html:1267"
   ]
  },
  "11ea7201060f4c18": {
@@ -565,7 +549,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1380"
+   "index.html:1352"
   ]
  },
  "93bbc52fd197f6a1": {
@@ -573,7 +557,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "index.html:1403"
+   "index.html:1375"
   ]
  },
  "6e405ae0c993830f": {
@@ -581,7 +565,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1411"
+   "index.html:1383"
   ]
  },
  "618850e41adf2101": {
@@ -589,8 +573,16 @@
   "note": "AZ6 со чешуёй — заменил старую лемнискату во всех точках IC.ouroboros + инлайн кнопка Еженедельно; генератор gen-az5.mjs",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
-   "index.html:1420",
-   "dusk/01-core.ts:602"
+   "index.html:1392",
+   "dusk/01-core.ts:600"
+  ]
+ },
+ "359c63d0f54f9337": {
+  "role": "UNASSIGNED",
+  "note": "",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
+  "locations": [
+   "index.html:1396"
   ]
  },
  "a90a43bbea7837ac": {
@@ -598,7 +590,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1436"
+   "index.html:1408"
   ]
  },
  "005057c23abfe8cc": {
@@ -606,7 +598,7 @@
   "note": "sync reptilian-eye FAB — scale brows + spine-lashes (BC1); state classes intact",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "index.html:1544"
+   "index.html:1516"
   ]
  },
  "379dda1781ff688f": {
@@ -614,15 +606,15 @@
   "note": "shortcuts-hint key — sacristy key, quatrefoil bow (BB1)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.45\" stroke-line",
   "locations": [
-   "index.html:1582"
+   "index.html:1554"
   ]
  },
- "63dd7cd7668ae3b9": {
+ "47850ce0801af8ab": {
   "role": "defs · symbol-библиотека",
-  "note": "весь блок <defs>: градиенты + symbol icon-archive-all/sel, icon-tomb/tome/restore-sel, icon-purge-all/restore-all/empty-crypt/select-mark, coffin-emblem. Хэш меняется при правке ЛЮБОГО symbol",
+  "note": "весь блок <defs>: градиенты + symbol icon-archive-all/sel, tomb/tome/restore-sel, purge-all/restore-all/empty-crypt/select-mark/scrying, coffin-emblem. Хэш меняется при правке ЛЮБОГО symbol",
   "preview": "<svg width=\"0\" height=\"0\" style=\"position:absolute;overflow:hidden\"><defs><linearGradient ",
   "locations": [
-   "index.html:1611"
+   "index.html:1583"
   ]
  },
  "1ea4cc51eae3da83": {
@@ -630,7 +622,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "index.html:1777"
+   "index.html:1761"
   ]
  },
  "34a05efc0c7d809f": {
@@ -874,7 +866,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:430",
-   "dusk/01-core.ts:637"
+   "dusk/01-core.ts:635"
   ]
  },
  "0325b54977b30eeb": {
@@ -883,7 +875,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:432",
-   "dusk/01-core.ts:648"
+   "dusk/01-core.ts:646"
   ]
  },
  "d897e9500c3bfbda": {
@@ -900,7 +892,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:440"
+   "dusk/01-core.ts:438"
   ]
  },
  "418748bbd0216d9b": {
@@ -908,7 +900,7 @@
   "note": "IC.drag — forged vertical chain (AX1 redesign)",
   "preview": "<svg viewBox=\"0 0 16 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.1\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:446"
+   "dusk/01-core.ts:444"
   ]
  },
  "848c39cea746853c": {
@@ -916,7 +908,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:464"
+   "dusk/01-core.ts:462"
   ]
  },
  "82d7cab58955070f": {
@@ -924,7 +916,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:479"
+   "dusk/01-core.ts:477"
   ]
  },
  "ca5c9669e171bd66": {
@@ -932,7 +924,7 @@
   "note": "",
   "preview": "<svg viewBox=\"-74 -113 660 660\" fill=\"none\" stroke=\"none\"><path d=\"M 45.251 1.537 C 4.564 ",
   "locations": [
-   "dusk/01-core.ts:498"
+   "dusk/01-core.ts:496"
   ]
  },
  "ecadf9d5d6aac4ee": {
@@ -940,7 +932,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:501"
+   "dusk/01-core.ts:499"
   ]
  },
  "6e039fef6fb36d09": {
@@ -948,7 +940,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:504"
+   "dusk/01-core.ts:502"
   ]
  },
  "ad504cfad8e6b78d": {
@@ -956,7 +948,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:508"
+   "dusk/01-core.ts:506"
   ]
  },
  "5534b6a18c7381b4": {
@@ -964,8 +956,8 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:514",
-   "dusk/01-core.ts:610"
+   "dusk/01-core.ts:512",
+   "dusk/01-core.ts:608"
   ]
  },
  "ad032aa5df2af110": {
@@ -973,7 +965,7 @@
   "note": "",
   "preview": "<svg class=\"none-moon-r\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-widt",
   "locations": [
-   "dusk/01-core.ts:515"
+   "dusk/01-core.ts:513"
   ]
  },
  "cc6258eba451c15a": {
@@ -981,7 +973,7 @@
   "note": "P3 око-ВКЛ (полуприкрытое) — IC.gothEyeHalf, свап через eyeGlyph()",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:563"
+   "dusk/01-core.ts:561"
   ]
  },
  "7cfe38dd17667ae1": {
@@ -989,7 +981,7 @@
   "note": "тот же AZ6 без чешуи для 9px cycle-until бейджа",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.0\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:605"
+   "dusk/01-core.ts:603"
   ]
  },
  "612f0726febf2f79": {
@@ -997,7 +989,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:608"
+   "dusk/01-core.ts:606"
   ]
  },
  "4bf45cc49e2aee1b": {
@@ -1005,7 +997,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:615"
+   "dusk/01-core.ts:613"
   ]
  },
  "b444c884ade6e6e8": {
@@ -1013,7 +1005,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:618"
+   "dusk/01-core.ts:616"
   ]
  },
  "ff8bdb44097ed3c4": {
@@ -1021,7 +1013,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" stroke=\"none\" stroke-linejoin=\"round\"><path d=\"M2.8 5.6 L5.6 2.8 ",
   "locations": [
-   "dusk/01-core.ts:625"
+   "dusk/01-core.ts:623"
   ]
  },
  "731fc055ba91251e": {
@@ -1029,7 +1021,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:662"
+   "dusk/01-core.ts:660"
   ]
  },
  "11e098411fcaf4e1": {
@@ -1037,7 +1029,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:665"
+   "dusk/01-core.ts:663"
   ]
  },
  "dba9dfcd43c9ed8c": {
@@ -1045,7 +1037,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:669"
+   "dusk/01-core.ts:667"
   ]
  },
  "a28cfc6097964a06": {
@@ -1053,7 +1045,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:681"
+   "dusk/01-core.ts:679"
   ]
  },
  "e8ed0909e8e603d9": {
@@ -1061,7 +1053,7 @@
   "note": "PA · башня-ранг, высокий приоритет (навершие крест-ромб) — строка !high в типахеде квик-эдда.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:703"
+   "dusk/01-core.ts:701"
   ]
  },
  "35587e4ceee3e397": {
@@ -1069,7 +1061,7 @@
   "note": "PA · башня-ранг, средний приоритет (навершие ромб) — строка !medium.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:704"
+   "dusk/01-core.ts:702"
   ]
  },
  "f8f98c8d10fecf41": {
@@ -1077,7 +1069,7 @@
   "note": "PA · башня-ранг, низкий приоритет (навершие шар) — строка !low.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:705"
+   "dusk/01-core.ts:703"
   ]
  },
  "00b2005f354d4fea": {
@@ -1085,7 +1077,7 @@
   "note": "PA · руина (цоколь + два обломка стен, шпиля нет) — строка !none «Без приоритета».",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:706"
+   "dusk/01-core.ts:704"
   ]
  },
  "77eddd484ff31129": {
@@ -1093,7 +1085,7 @@
   "note": "N3 · щит-тег со звездой-сигилом — строки канала *тег в типахеде квик-эдда.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/01-core.ts:710"
+   "dusk/01-core.ts:708"
   ]
  },
  "10f7fd556c0e848b": {
