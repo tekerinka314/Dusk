@@ -311,8 +311,14 @@ const IC = {
         <circle cx="12" cy="12" r="1.9" fill="currentColor" stroke="none" opacity=".9"/>
         <path d="M15.6 8.4L16.7 7.3M15.6 15.6L16.7 16.7M8.4 15.6L7.3 16.7M8.4 8.4L7.3 7.3" stroke-width="1" opacity="0.4"/>
     </svg>`,
-    // Skull (delete forever)
+    // Skull (delete forever) — ОДИНОЧНОЕ уничтожение: задача, подпункт, шаблон, запись.
+    // Массовое живёт в purgeAll (череп на постаменте): «удалить всё» не должно
+    // выглядеть как «удалить эту строку».
     skull: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>`,
+    // AT1 + квантор «ВСЁ» (три убывающие плиты) — «Удалить всё навсегда». Арт живёт
+    // одной копией в <symbol id="icon-purge-all">; штрих 1.95 компенсирует ужатую до
+    // 0.78 базу, чтобы линии остались >=1px на 13-15px.
+    purgeAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-purge-all"/></svg>`,
     // Sarcophagus icon — inline paths, no <use> dependency
     // U2 · Crypt portal — keystone diamond, descending steps, down-arrow (B13: bury, not shelve).
     archive: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10C5 5.8 8 3 12 3C16 3 19 5.8 19 10V20"/><line x1="3.4" y1="20" x2="20.6" y2="20" stroke-width="1.5"/><path d="M12 2.2L12.7 3.1L12 4L11.3 3.1Z" fill="currentColor" stroke="none" opacity="0.7"/><path d="M7.6 20V17.6H16.4V20" stroke-width="1.2" opacity="0.75"/><path d="M9 17.6V15.6H15V17.6" stroke-width="1.2" opacity="0.55"/><line x1="12" y1="8" x2="12" y2="12.6" stroke-width="1.5"/><path d="M9.9 10.7L12 13.2L14.1 10.7"/></svg>`,

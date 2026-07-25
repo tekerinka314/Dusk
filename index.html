@@ -84,29 +84,17 @@
             <button class="nav-tab" id="nav-archive" data-act="switchPage" data-page="archive">
                 <!-- AA1b: rectilinear tomb chest — slab lid / body with cross / plinth (Archive tab).
                      No slanted edge survives 13px: a 1-in-5 slope aliases into a staircase and
-                     reads as "crooked". Every edge is now orthogonal and on the pixel grid. -->
-                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
-                    <rect x="2.5" y="1.5" width="8" height="2"/>
-                    <rect x="3.5" y="3.5" width="6" height="6"/>
-                    <rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/>
-                    <line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>
-                    <line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/>
-                </svg>
+                     reads as "crooked". Every edge is now orthogonal and on the pixel grid.
+                     Art lives once in <symbol id="icon-tomb"> — shared with the archive page
+                     title and the grimoire «Склеп» segment (one navigation glyph, three tabs). -->
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                 Архив
                 <span class="archive-badge" id="archive-badge" style="display:none"></span>
             </button>
             <button class="nav-tab" id="nav-notes" data-act="switchPage" data-page="notes">
-                <!-- AA1: tome with drop-cap marks on margins + bookmark ribbon (Grimoire tab) — redrawn on the 13px pixel grid -->
-                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6.5 4.5C5 3.4 3.2 3.2 1.5 3.75V10.5C3.2 9.9 5 10.1 6.5 11C8 10.1 9.8 9.9 11.5 10.5V3.75C9.8 3.2 8 3.4 6.5 4.5Z"/>
-                    <path d="M6.5 4.5V11" opacity="0.5"/>
-                    <path d="M6.5 1L7 2L8 2.5L7 3L6.5 4L6 3L5 2.5L6 2Z" fill="currentColor" stroke="none"/>
-                    <rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>
-                    <rect x="10" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>
-                    <path d="M4 5.5H5.5M3 7.5H5.5" opacity="0.45"/>
-                    <path d="M9 5.5H7.5M10 7.5H7.5" opacity="0.45"/>
-                    <path d="M5.5 11V12.5L6.5 11.75L7.5 12.5V11" opacity="0.6"/>
-                </svg>
+                <!-- AA1: tome with drop-cap marks on margins + bookmark ribbon (Grimoire tab) — redrawn on the 13px pixel grid.
+                     Art lives once in <symbol id="icon-tome"> — shared with the grimoire «Записи» segment. -->
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-tome"/></svg>
                 Гримуар
             </button>
         </nav>
@@ -608,8 +596,9 @@
                     </button>
                     <button class="btn-tool" id="btn-archive-all" data-act="archiveAll" title="Архивировать всё"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive-all"/></svg></button>
                     <button class="btn-tool btn-danger" data-act="clearAll" title="Удалить всё навсегда">
-                        <!-- AT1 · Череп (удалить всё навсегда) -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>
+                        <!-- AT1 на постаменте из трёх плит — квантор «ВСЁ». Голый череп остался у ОДИНОЧНОГО
+                             «удалить навсегда»; тут стирается вся база, и глиф обязан это показывать. -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-purge-all"/></svg>
                     </button>
                     </div><span class="toolbar-group-label">данные</span></div>
                 </div>
@@ -758,13 +747,7 @@
             <div class="archive-header">
                 <h3 class="archive-title" id="archive-title-icon">
                     <!-- AA1b: same rectilinear tomb chest as the Archive nav tab (13px pixel grid) -->
-                    <svg aria-hidden="true" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
-                        <rect x="2.5" y="1.5" width="8" height="2"/>
-                        <rect x="3.5" y="3.5" width="6" height="6"/>
-                        <rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/>
-                        <line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>
-                        <line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/>
-                    </svg>
+                    <svg aria-hidden="true" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                     Архив
                 </h3>
                 <!-- Archive search — full width row below title, no focus border -->
@@ -789,24 +772,21 @@
                 </div>
                 <div class="archive-btns" id="archive-btns" style="display:none">
                     <button class="btn-archive-action" id="btn-restore-all" data-act="restoreAll" title="Восстановить всё">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 21V14.7L6.9 11.4L8.2 8.9H15.8L17.1 11.4L15.8 14.7V21"/><path d="M9.4 20V14.9L8.4 11.4L9.4 10.1" stroke-width="0.7" opacity="0.32"/><path d="M14.6 20V14.9L15.6 11.4L14.6 10.1" stroke-width="0.7" opacity="0.32"/><line x1="10.1" y1="12.6" x2="13.9" y2="12.6" stroke-width="1" opacity="0.6"/><circle cx="12" cy="15.6" r="0.45" fill="currentColor" stroke="none" opacity="0.5"/><path d="M7.1 21H16.9L18.3 22.9H5.7Z"/><path d="M15.4 8.9L19.9 6.4L20.7 7.8L16.4 10.2" stroke-width="1.2"/><line x1="17.7" y1="7.3" x2="18.3" y2="8.5" stroke-width="0.7" opacity="0.5"/><line x1="12" y1="1.4" x2="12" y2="6.8" stroke-width="1.6"/><path d="M10.5 3L12 1.4L13.5 3" stroke-width="1.6"/><path d="M11 5.7L12 6.8L13 5.7" stroke-width="0.9" opacity="0.6"/><path d="M9.2 4.6C8.7 3.7 8.8 2.7 9.4 1.9" stroke-width="0.8" opacity="0.4"/><path d="M14.8 4.6C15.3 3.7 15.2 2.7 14.6 1.9" stroke-width="0.8" opacity="0.4"/></svg>
+                        <!-- AY1 на постаменте из трёх убывающих плит — квантор «ВСЁ» (тот же счётный знак,
+                             что в оссуарии A2). Одиночное «Восстановить» осталось голой урной. -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-all"/></svg>
                         Вернуть всё
                     </button>
                     <button class="btn-archive-action btn-select-mode" id="btn-select-mode" data-act="toggleSelectMode" title="Отметить для восстановления">
-                        <!-- K1 · Рунный круг (отметить для восстановления — как select везде) -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="5.8"/>
-                            <line x1="12" y1="9.3" x2="12" y2="14.7" stroke-width="1.1" opacity="0.45"/>
-                            <line x1="12" y1="4.2" x2="12" y2="5.5" stroke-width="1" opacity="0.5"/>
-                            <line x1="12" y1="18.5" x2="12" y2="19.8" stroke-width="1" opacity="0.5"/>
-                            <line x1="4.2" y1="12" x2="5.5" y2="12" stroke-width="1" opacity="0.5"/>
-                            <line x1="18.5" y1="12" x2="19.8" y2="12" stroke-width="1" opacity="0.5"/>
-                        </svg>
+                        <!-- K1 · рунный круг — знак отметки. Один и тот же в задачах и в Гримуаре. -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-select-mark"/></svg>
                         Отметить
                     </button>
                     <button class="btn-archive-action btn-clear-archive" id="btn-clear-archive" data-act="clearArchive" style="display:none">
-                        <!-- AT1 · Череп (очистить архив навсегда) -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></svg>
+                        <!-- BR1 · опрокинутая урна — «опустошить хранилище». Тот же глиф, что «Опустошить склеп»
+                             в Гримуаре; раньше здесь стоял ЧЕРЕП, равный одиночному «удалить навсегда»
+                             в строках того же списка — масштаб последствий был неразличим. -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-empty-crypt"/></svg>
                         Очистить
                     </button>
                 </div>
@@ -818,21 +798,10 @@
                 <div class="select-bar-actions">
                     <button class="btn-select-bar-cancel" data-act="toggleSelectMode">Отмена</button>
                     <button class="btn-select-bar-restore" id="btn-restore-selected" data-act="restoreSelected" disabled>
-                        <!-- AB1 · Восставший гроб (восстановить из склепа) -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
-                            <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
-                            <path d="M7.4 10.2C6.4 10 5.8 10.6 6 11.4" stroke-width="1" opacity="0.6"/>
-                            <path d="M16.6 10.2C17.6 10 18.2 10.6 18 11.4" stroke-width="1" opacity="0.6"/>
-                            <path d="M9.6 11L10.3 10.3L11 11L10.3 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
-                            <path d="M11.3 11L12 10.3L12.7 11L12 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
-                            <path d="M13 11L13.7 10.3L14.4 11L13.7 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
-                            <line x1="10.2" y1="15.4" x2="13.8" y2="15.4" stroke-width="1" opacity="0.45"/>
-                            <line x1="12" y1="1.8" x2="12" y2="6.8" stroke-width="1.6"/>
-                            <path d="M9.7 4.1L12 1.8L14.3 4.1"/>
-                            <path d="M8.9 6.4C9.5 5.2 10.4 4.5 11 4.3" stroke-width="0.95" opacity="0.5"/>
-                            <path d="M15.1 6.4C14.5 5.2 13.6 4.5 13 4.3" stroke-width="0.95" opacity="0.5"/>
-                        </svg>
+                        <!-- AB1 · Восставший гроб (восстановить ОТМЕЧЕННОЕ). Арт живёт одной копией
+                             в <symbol id="icon-restore-sel"> — тот же глиф несёт «вернуть отмеченные»
+                             в Гримуаре, иначе массовое снова слипнется с одиночным (AY1-урна). -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-sel"/></svg>
                         Восстановить отмеченное
                     </button>
                 </div>
@@ -849,25 +818,28 @@
         <div id="notes-page" style="display:none">
             <div class="grim-bar">
                 <div class="grim-segment" role="tablist" aria-label="Раздел гримуара">
+                    <!-- Сегменты Гримуара = тот же навигационный язык, что и нав-табы: том (AA1)
+                         и саркофаг-ларь (AA1b), оба на пиксельной сетке 13. Раньше «Склеп» нёс тот
+                         же гроб, что и ДЕЙСТВИЕ «отправить в склеп» — навигация и действие слиплись. -->
                     <button class="grim-seg active" id="grim-seg-active" role="tab" data-act="grimSetMode" data-mode="active">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8 C9.5 6.3 6.2 6 3.5 7 V19.2 C6.2 18.2 9.5 18.4 12 20 C14.5 18.4 17.8 18.2 20.5 19.2 V7 C17.8 6 14.5 6.3 12 8 Z"/><path d="M12 8 V20" opacity="0.5"/><path d="M5.7 10.4 H9.2 M5.7 12.7 H9.2 M14.8 10.4 H18.3 M14.8 12.7 H18.3" stroke-width="1" opacity="0.4"/><path d="M12 2 L12.9 4.1 L15 5 L12.9 5.9 L12 8 L11.1 5.9 L9 5 L11.1 4.1 Z" fill="currentColor" stroke="none"/></svg>
+                        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-tome"/></svg>
                         <span>Записи</span>
                     </button>
                     <button class="grim-seg" id="grim-seg-archive" role="tab" data-act="grimSetMode" data-mode="archive" title="Архив заметок">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M9.7 3.8 H14.3 L16.6 8.2 L15.1 20.2 H8.9 L7.4 8.2 Z" stroke-width="0.7" opacity="0.32"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.45"/><path d="M12 8.6 V15 M9.7 11.2 H14.3" stroke-width="1.25"/><path d="M12 8.2 L12.6 9.1 L11.4 9.1 Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M12 15.4 L12.6 14.5 L11.4 14.5 Z" fill="currentColor" stroke="none" opacity="0.8"/><circle cx="7.1" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="16.9" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="12" cy="19.4" r="0.35" fill="currentColor" stroke="none" opacity="0.4"/></svg>
+                        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                         <span>Склеп</span>
                         <span class="grim-seg-count" id="grim-seg-count" style="display:none"></span>
                     </button>
                 </div>
                 <div class="grim-bar-acts">
                     <button class="grim-ghost-btn" id="grim-select-btn" data-act="grimToggleSelectMode" title="Выбрать несколько записей" style="display:none">
-                        <svg viewBox="0 2 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11C5 7.5 7.24 5 10 5C12.76 5 15 7.5 15 11V19"/><line x1="3" y1="19" x2="17" y2="19"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-select-mark"/></svg>
                         <span>Выбрать</span>
                     </button>
                     <!-- «Вернуть всё» из склепа — постоянная кнопка (вне select-режима),
                          зеркалит task-архивную #btn-restore-all. Иконка = AY1 (отваленная крышка). -->
                     <button class="grim-ghost-btn" id="grim-restore-all" data-act="grimRestoreAll" title="Вернуть все записи из склепа" style="display:none">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 21V14.7L6.9 11.4L8.2 8.9H15.8L17.1 11.4L15.8 14.7V21"/><path d="M9.4 20V14.9L8.4 11.4L9.4 10.1" stroke-width="0.7" opacity="0.32"/><path d="M14.6 20V14.9L15.6 11.4L14.6 10.1" stroke-width="0.7" opacity="0.32"/><line x1="10.1" y1="12.6" x2="13.9" y2="12.6" stroke-width="1" opacity="0.6"/><circle cx="12" cy="15.6" r="0.45" fill="currentColor" stroke="none" opacity="0.5"/><path d="M7.1 21H16.9L18.3 22.9H5.7Z"/><path d="M15.4 8.9L19.9 6.4L20.7 7.8L16.4 10.2" stroke-width="1.2"/><line x1="17.7" y1="7.3" x2="18.3" y2="8.5" stroke-width="0.7" opacity="0.5"/><line x1="12" y1="1.4" x2="12" y2="6.8" stroke-width="1.6"/><path d="M10.5 3L12 1.4L13.5 3" stroke-width="1.6"/><path d="M11 5.7L12 6.8L13 5.7" stroke-width="0.9" opacity="0.6"/><path d="M9.2 4.6C8.7 3.7 8.8 2.7 9.4 1.9" stroke-width="0.8" opacity="0.4"/><path d="M14.8 4.6C15.3 3.7 15.2 2.7 14.6 1.9" stroke-width="0.8" opacity="0.4"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-all"/></svg>
                         <span>Вернуть всё</span>
                     </button>
                     <div class="grim-io-split" id="grim-io-split">
@@ -878,9 +850,7 @@
                         <div class="grim-tpl-pop grim-io-pop" id="grim-io-pop" role="menu"></div>
                     </div>
                     <button class="grim-ghost-btn grim-danger-btn" id="grim-empty-crypt" data-act="grimEmptyCrypt" title="Опустошить склеп — уничтожить все записи в нём" style="display:none">
-                        <!-- BR1 — toppled engraved urn: lid flies off, ashes spill in a
-                             dwindling dotted arc, two sparks depart = "empty the crypt". -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 8.2L6.4 5.6L9.2 4.4L14 5.2L15.4 7.4L14.6 10.6L12.2 12.2L7.4 11.4Z" transform="rotate(24 10 8)"/><path d="M6.8 7.2L8.2 5.9" stroke-width="0.7" opacity="0.35" transform="rotate(24 10 8)"/><line x1="6.2" y1="9.2" x2="10.4" y2="9.9" stroke-width="1" opacity="0.6" transform="rotate(24 10 8)"/><path d="M13.2 13.6H18.6L19.8 15.4H12.4Z" transform="rotate(24 15 14)" opacity="0.85"/><circle cx="13.6" cy="16.2" r="0.6" fill="currentColor" stroke="none" opacity="0.75"/><circle cx="15.8" cy="18" r="0.5" fill="currentColor" stroke="none" opacity="0.6"/><circle cx="12.2" cy="19" r="0.45" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="14.4" cy="20.7" r="0.4" fill="currentColor" stroke="none" opacity="0.45"/><circle cx="10.9" cy="21.4" r="0.35" fill="currentColor" stroke="none" opacity="0.35"/><path d="M9.2 17.8C10.4 18.9 12.4 20.4 15 21.4" stroke-width="0.7" opacity="0.3"/><path d="M17.4 20.9L18.3 22.3M19.1 19.4L20.5 20.2" stroke-width="0.8" opacity="0.4"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-empty-crypt"/></svg>
                         <span>Опустошить</span>
                     </button>
                     <div class="grim-new-split" id="grim-new-split">
@@ -940,11 +910,14 @@
                 <span class="select-bar-count" id="grim-select-count">0 отмечено</span>
                 <span class="select-bar-actions">
                     <span class="select-bar-group">
+                        <!-- Массовые действия Гримуара говорят тем же квантором, что и задачные:
+                             «отмеченные» = рунный круг K1 в проёме (B1), «вернуть отмеченные» =
+                             восставший гроб (AB1). Один смысл — один глиф в обоих разделах. -->
                         <button class="sb-btn sb-archive" id="grim-bulk-archive" data-act="grimBulkArchive" title="Отправить в склеп" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M9.7 3.8 H14.3 L16.6 8.2 L15.1 20.2 H8.9 L7.4 8.2 Z" stroke-width="0.7" opacity="0.32"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.45"/><path d="M12 8.6 V15 M9.7 11.2 H14.3" stroke-width="1.25"/><path d="M12 8.2 L12.6 9.1 L11.4 9.1 Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M12 15.4 L12.6 14.5 L11.4 14.5 Z" fill="currentColor" stroke="none" opacity="0.8"/><circle cx="7.1" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="16.9" cy="8.6" r="0.4" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="12" cy="19.4" r="0.35" fill="currentColor" stroke="none" opacity="0.4"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive-sel"/></svg>
                         </button>
                         <button class="sb-btn sb-archive" id="grim-bulk-restore" data-act="grimBulkRestore" title="Вернуть в гримуар" disabled style="display:none">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 21V14.7L6.9 11.4L8.2 8.9H15.8L17.1 11.4L15.8 14.7V21"/><path d="M9.4 20V14.9L8.4 11.4L9.4 10.1" stroke-width="0.7" opacity="0.32"/><path d="M14.6 20V14.9L15.6 11.4L14.6 10.1" stroke-width="0.7" opacity="0.32"/><line x1="10.1" y1="12.6" x2="13.9" y2="12.6" stroke-width="1" opacity="0.6"/><circle cx="12" cy="15.6" r="0.45" fill="currentColor" stroke="none" opacity="0.5"/><path d="M7.1 21H16.9L18.3 22.9H5.7Z"/><path d="M15.4 8.9L19.9 6.4L20.7 7.8L16.4 10.2" stroke-width="1.2"/><line x1="17.7" y1="7.3" x2="18.3" y2="8.5" stroke-width="0.7" opacity="0.5"/><line x1="12" y1="1.4" x2="12" y2="6.8" stroke-width="1.6"/><path d="M10.5 3L12 1.4L13.5 3" stroke-width="1.6"/><path d="M11 5.7L12 6.8L13 5.7" stroke-width="0.9" opacity="0.6"/><path d="M9.2 4.6C8.7 3.7 8.8 2.7 9.4 1.9" stroke-width="0.8" opacity="0.4"/><path d="M14.8 4.6C15.3 3.7 15.2 2.7 14.6 1.9" stroke-width="0.8" opacity="0.4"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-sel"/></svg>
                         </button>
                         <button class="sb-btn" id="grim-bulk-color" data-act="openGrimBulkColorModal" title="Цвет выбранных" disabled>
                             <!-- H2 · Алхимический фиал (цвет) -->
@@ -1682,6 +1655,72 @@
       <line x1="8.55" y1="8.9" x2="7.4" y2="8.9" stroke-width="0.95" opacity="0.55"/>
       <line x1="15.45" y1="8.9" x2="16.6" y2="8.9" stroke-width="0.95" opacity="0.55"/>
       <path d="M9.9 12.3L12 14.6L14.1 12.3" stroke-width="1.5"/>
+    </symbol>
+    <!-- ПАРТИЯ 5 · де-алиасинг Гримуара. Навигация и массовые действия делили один
+         глиф с одиночными: нав-таб «Склеп» = кнопка «отправить в склеп», «вернуть
+         отмеченные» = одиночное «вернуть». Ниже — арты, живущие ОДНОЙ копией и
+         раздаваемые через <use>: навигационные (том/саркофаг, пиксельная сетка 13)
+         и «восстановить отмеченное» (AB1). Штрихи задаёт внешняя <svg>-обёртка. -->
+    <symbol id="icon-tomb" viewBox="0 0 13 13">
+      <rect x="2.5" y="1.5" width="8" height="2"/>
+      <rect x="3.5" y="3.5" width="6" height="6"/>
+      <rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/>
+      <line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>
+      <line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/>
+    </symbol>
+    <symbol id="icon-tome" viewBox="0 0 13 13">
+      <path d="M6.5 4.5C5 3.4 3.2 3.2 1.5 3.75V10.5C3.2 9.9 5 10.1 6.5 11C8 10.1 9.8 9.9 11.5 10.5V3.75C9.8 3.2 8 3.4 6.5 4.5Z"/>
+      <path d="M6.5 4.5V11" opacity="0.5"/>
+      <path d="M6.5 1L7 2L8 2.5L7 3L6.5 4L6 3L5 2.5L6 2Z" fill="currentColor" stroke="none"/>
+      <rect x="2" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>
+      <rect x="10" y="5" width="1" height="1" fill="currentColor" stroke="none" opacity="0.6"/>
+      <path d="M4 5.5H5.5M3 7.5H5.5" opacity="0.45"/>
+      <path d="M9 5.5H7.5M10 7.5H7.5" opacity="0.45"/>
+      <path d="M5.5 11V12.5L6.5 11.75L7.5 12.5V11" opacity="0.6"/>
+    </symbol>
+    <!-- AB1 · Восставший гроб — «восстановить ОТМЕЧЕННОЕ» (задачи и заметки). -->
+    <symbol id="icon-restore-sel" viewBox="0 0 24 24">
+      <path d="M8 20H16L17.5 22H6.5L8 20Z"/>
+      <path d="M8.5 20V14.5L7 11L8.5 8H15.5L17 11L15.5 14.5V20"/>
+      <path d="M7.4 10.2C6.4 10 5.8 10.6 6 11.4" stroke-width="1" opacity="0.6"/>
+      <path d="M16.6 10.2C17.6 10 18.2 10.6 18 11.4" stroke-width="1" opacity="0.6"/>
+      <path d="M9.6 11L10.3 10.3L11 11L10.3 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
+      <path d="M11.3 11L12 10.3L12.7 11L12 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
+      <path d="M13 11L13.7 10.3L14.4 11L13.7 11.7Z" fill="currentColor" stroke="none" opacity="0.6"/>
+      <line x1="10.2" y1="15.4" x2="13.8" y2="15.4" stroke-width="1" opacity="0.45"/>
+      <line x1="12" y1="1.8" x2="12" y2="6.8" stroke-width="1.6"/>
+      <path d="M9.7 4.1L12 1.8L14.3 4.1"/>
+      <path d="M8.9 6.4C9.5 5.2 10.4 4.5 11 4.3" stroke-width="0.95" opacity="0.5"/>
+      <path d="M15.1 6.4C14.5 5.2 13.6 4.5 13 4.3" stroke-width="0.95" opacity="0.5"/>
+    </symbol>
+    <!-- Квантор «ВСЁ» — три убывающие плиты (тот же счётный знак, что внутри
+         оссуария A2). Ставится ПОСТАМЕНТОМ под глифом действия: «уничтожить всё»
+         и «вернуть всё» больше не равны одиночному черепу/урне в строках списка.
+         База ужата до 0.78 — потребитель компенсирует штрих (stroke-width 1.95). -->
+    <symbol id="icon-purge-all" viewBox="0 0 24 24">
+      <g transform="translate(2.6 -2.4) scale(0.78)"><path d="M5.4 10.8C5.4 6.7 8.3 3.6 12 3.6C15.7 3.6 18.6 6.7 18.6 10.8C18.6 12.6 17.9 13.8 16.9 14.7C16.5 15.05 16.3 15.4 16.3 15.9V16.6H7.7V15.9C7.7 15.4 7.5 15.05 7.1 14.7C6.1 13.8 5.4 12.6 5.4 10.8Z"/><path d="M12 3.6C11.6 4.5 12.4 5.2 12 6.1" stroke-width="0.7" opacity="0.4"/><path d="M8.2 5.4C9 5.9 9.8 5.5 10.4 6" stroke-width="0.7" opacity="0.35"/><path d="M15.8 5.4C15 5.9 14.2 5.5 13.6 6" stroke-width="0.7" opacity="0.35"/><ellipse cx="9.1" cy="10.4" rx="1.75" ry="1.4" transform="rotate(-14 9.1 10.4)" fill="currentColor" stroke="none"/><ellipse cx="14.9" cy="10.4" rx="1.75" ry="1.4" transform="rotate(14 14.9 10.4)" fill="currentColor" stroke="none"/><path d="M12 11.4L13 13.7H11Z" fill="currentColor" stroke="none" opacity="0.9"/><path d="M6.6 12.5C7.1 13.1 7.7 13.4 8.3 13.5" stroke-width="0.75" opacity="0.45"/><path d="M17.4 12.5C16.9 13.1 16.3 13.4 15.7 13.5" stroke-width="0.75" opacity="0.45"/><line x1="7.7" y1="16.6" x2="16.3" y2="16.6" stroke-width="1" opacity="0.6"/><path d="M8.4 16.6V18.3C8.4 19.1 9 19.7 9.8 19.7H14.2C15 19.7 15.6 19.1 15.6 18.3V16.6" stroke-width="1.4"/><line x1="10" y1="15" x2="10" y2="19.1" stroke-width="0.95"/><line x1="12" y1="15.2" x2="12" y2="19.5" stroke-width="0.95"/><line x1="14" y1="15" x2="14" y2="19.1" stroke-width="0.95"/></g>
+      <line x1="5.6" y1="18.2" x2="18.4" y2="18.2" stroke-width="1.6"/>
+      <line x1="7.2" y1="20.6" x2="16.8" y2="20.6" stroke-width="1.45" opacity="0.8"/>
+      <line x1="8.8" y1="22.7" x2="15.2" y2="22.7" stroke-width="1.3" opacity="0.58"/>
+    </symbol>
+    <symbol id="icon-restore-all" viewBox="0 0 24 24">
+      <g transform="translate(2.6 -2.4) scale(0.78)"><path d="M8.2 21V14.7L6.9 11.4L8.2 8.9H15.8L17.1 11.4L15.8 14.7V21"/><path d="M9.4 20V14.9L8.4 11.4L9.4 10.1" stroke-width="0.7" opacity="0.32"/><path d="M14.6 20V14.9L15.6 11.4L14.6 10.1" stroke-width="0.7" opacity="0.32"/><line x1="10.1" y1="12.6" x2="13.9" y2="12.6" stroke-width="1" opacity="0.6"/><circle cx="12" cy="15.6" r="0.45" fill="currentColor" stroke="none" opacity="0.5"/><path d="M7.1 21H16.9L18.3 22.9H5.7Z"/><path d="M15.4 8.9L19.9 6.4L20.7 7.8L16.4 10.2" stroke-width="1.2"/><line x1="17.7" y1="7.3" x2="18.3" y2="8.5" stroke-width="0.7" opacity="0.5"/><line x1="12" y1="1.4" x2="12" y2="6.8" stroke-width="1.6"/><path d="M10.5 3L12 1.4L13.5 3" stroke-width="1.6"/><path d="M11 5.7L12 6.8L13 5.7" stroke-width="0.9" opacity="0.6"/><path d="M9.2 4.6C8.7 3.7 8.8 2.7 9.4 1.9" stroke-width="0.8" opacity="0.4"/><path d="M14.8 4.6C15.3 3.7 15.2 2.7 14.6 1.9" stroke-width="0.8" opacity="0.4"/></g>
+      <line x1="5.6" y1="18.2" x2="18.4" y2="18.2" stroke-width="1.6"/>
+      <line x1="7.2" y1="20.6" x2="16.8" y2="20.6" stroke-width="1.45" opacity="0.8"/>
+      <line x1="8.8" y1="22.7" x2="15.2" y2="22.7" stroke-width="1.3" opacity="0.58"/>
+    </symbol>
+    <!-- BR1 · опрокинутая урна — «опустошить хранилище» (склеп задач и склеп заметок). -->
+    <symbol id="icon-empty-crypt" viewBox="0 0 24 24">
+      <path d="M4.6 8.2L6.4 5.6L9.2 4.4L14 5.2L15.4 7.4L14.6 10.6L12.2 12.2L7.4 11.4Z" transform="rotate(24 10 8)"/><path d="M6.8 7.2L8.2 5.9" stroke-width="0.7" opacity="0.35" transform="rotate(24 10 8)"/><line x1="6.2" y1="9.2" x2="10.4" y2="9.9" stroke-width="1" opacity="0.6" transform="rotate(24 10 8)"/><path d="M13.2 13.6H18.6L19.8 15.4H12.4Z" transform="rotate(24 15 14)" opacity="0.85"/><circle cx="13.6" cy="16.2" r="0.6" fill="currentColor" stroke="none" opacity="0.75"/><circle cx="15.8" cy="18" r="0.5" fill="currentColor" stroke="none" opacity="0.6"/><circle cx="12.2" cy="19" r="0.45" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="14.4" cy="20.7" r="0.4" fill="currentColor" stroke="none" opacity="0.45"/><circle cx="10.9" cy="21.4" r="0.35" fill="currentColor" stroke="none" opacity="0.35"/><path d="M9.2 17.8C10.4 18.9 12.4 20.4 15 21.4" stroke-width="0.7" opacity="0.3"/><path d="M17.4 20.9L18.3 22.3M19.1 19.4L20.5 20.2" stroke-width="0.8" opacity="0.4"/>
+    </symbol>
+    <!-- K1 · рунный круг — «отметить несколько» (задачи и Гримуар). -->
+    <symbol id="icon-select-mark" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="5.8"/>
+                            <line x1="12" y1="9.3" x2="12" y2="14.7" stroke-width="1.1" opacity="0.45"/>
+                            <line x1="12" y1="4.2" x2="12" y2="5.5" stroke-width="1" opacity="0.5"/>
+                            <line x1="12" y1="18.5" x2="12" y2="19.8" stroke-width="1" opacity="0.5"/>
+                            <line x1="4.2" y1="12" x2="5.5" y2="12" stroke-width="1" opacity="0.5"/>
+                            <line x1="18.5" y1="12" x2="19.8" y2="12" stroke-width="1" opacity="0.5"/>
     </symbol>
     <!-- BE1 — ceremonial coffin emblem: double rivet-studded border, pattée cross
          with trefoil-ringed arms + medallion, lancet arch around the cross, star-rosette

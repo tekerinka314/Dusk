@@ -4174,7 +4174,10 @@ textarea:focus-visible {
     text-transform: uppercase;
     white-space: nowrap;
 }
-.btn-archive-action svg { width: 11px; height: 11px; flex-shrink: 0; }
+/* 13px — общая нижняя граница читаемости в приложении. На 11px кванторные глифы
+   («вернуть ВСЁ» = урна на плитах, «очистить» = опрокинутая урна BR1) схлопывались
+   в кляксу и переставали отличаться от одиночных действий в строках того же списка. */
+.btn-archive-action svg { width: 13px; height: 13px; flex-shrink: 0; }
 .btn-archive-action:hover { border-color: var(--border-bright); color: var(--accent-hover); background: var(--accent-dim); }
 .btn-archive-action.btn-select-mode.active {
     background: var(--accent-soft);
@@ -6919,7 +6922,10 @@ kbd {
     cursor: pointer;
     transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
-.grim-seg svg { width: 14px; height: 14px; }
+/* 13px ровно: сегментные глифы — те же нав-арты на пиксельной сетке 13
+   (1 единица viewBox = 1 пиксель). Любой другой размер снова кладёт штрихи
+   между пикселями и даёт лестницу полутонов. */
+.grim-seg svg { width: 13px; height: 13px; }
 .grim-seg:hover { color: var(--text-secondary); }
 .grim-seg.active {
     background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));

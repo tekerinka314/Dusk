@@ -293,7 +293,7 @@ function openToolsMenu(event) {
         <button type="button" role="menuitem" data-act="_toolsMore" data-more="import">${_TOOLS_IMPORT_IC}<span>Импорт бэкапа (.json)</span></button>
         <button type="button" role="menuitem" data-act="_toolsMore" data-more="backups">${_TOOLS_BACKUP_IC}<span>Точки восстановления</span></button>
         <button type="button" role="menuitem" data-act="_toolsMore" data-more="archiveAll">${IC.archiveAll}<span>Архивировать всё</span></button>
-        <button type="button" role="menuitem" class="fm-danger fm-clear-all" data-act="clearAll" title="Удалить всё навсегда">${IC.skull}<span>Удалить всё навсегда</span></button>`,
+        <button type="button" role="menuitem" class="fm-danger fm-clear-all" data-act="clearAll" title="Удалить всё навсегда">${IC.purgeAll}<span>Удалить всё навсегда</span></button>`,
         'tools-menu');
 }
 function _toolsMore(act) {
