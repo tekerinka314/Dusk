@@ -253,8 +253,8 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "index.html:537",
-   "dusk/08-quickadd-export-init.ts:263",
-   "dusk/08-quickadd-export-init.ts:284"
+   "dusk/08-quickadd-export-init.ts:266",
+   "dusk/08-quickadd-export-init.ts:287"
   ]
  },
  "f2cbdb6ea65b39a2": {
@@ -263,7 +263,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "index.html:555",
-   "dusk/08-quickadd-export-init.ts:283"
+   "dusk/08-quickadd-export-init.ts:286"
   ]
  },
  "530596adf5004cd1": {
@@ -272,7 +272,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "index.html:574",
-   "dusk/08-quickadd-export-init.ts:285"
+   "dusk/08-quickadd-export-init.ts:288"
   ]
  },
  "f43a0d2ad6ee0c0a": {
@@ -639,10 +639,10 @@
    "style.css:68"
   ]
  },
- "351976326f0ef8b3": {
+ "3dd1478a172d6284": {
   "role": "PA-solid",
-  "note": "маркер «без приоритета» — обезглавленная башня: корпус цел, шпиль срезан по диагонали",
-  "preview": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 15 15\" fill=\"#000\"><path d=\"M4.5 8L7 ",
+  "note": "Руина «без приоритета», ред.4 — залитая, маска --tw-none",
+  "preview": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 15 15\" fill=\"#000\"><rect x=\"5\" y=\"5\" ",
   "locations": [
    "style.css:69"
   ]
@@ -1086,9 +1086,9 @@
    "dusk/01-core.ts:703"
   ]
  },
- "00b2005f354d4fea": {
+ "5b9c8a88b7f915a4": {
   "role": "PA",
-  "note": "PA · руина (цоколь + два обломка стен, шпиля нет) — строка !none «Без приоритета».",
+  "note": "Руина «без приоритета», ред.4 — контурная, IC.prioRankNone",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:704"
@@ -1577,7 +1577,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:267"
+   "dusk/08-quickadd-export-init.ts:270"
   ]
  },
  "df62e463b38a8ec2": {
@@ -1585,7 +1585,7 @@
   "note": "X1 · ланцетная скрижаль — триггер нативного пикера даты (seg-picker-btn). Настоящая месячная сетка вместо трёх голых полок, выбранный день = кованый ромб, крест-навершие.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1062"
+   "dusk/08-quickadd-export-init.ts:1065"
   ]
  },
  "8c556340c332a4f2": {
@@ -1593,7 +1593,7 @@
   "note": "призрак циферблата под × (очистка времени)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1106"
+   "dusk/08-quickadd-export-init.ts:1109"
   ]
  },
  "85c938ef10aada2a": {
@@ -1601,7 +1601,7 @@
   "note": "Призрак X1-скрижали под × у кнопки очистки даты (seg-clear-btn) — арка приведена к пропорциям новой скрижали.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1113"
+   "dusk/08-quickadd-export-init.ts:1116"
   ]
  }
 }
