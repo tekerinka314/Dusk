@@ -515,29 +515,30 @@ const IC = {
     // cancellation X inside. The starburst outline = official document / sealed note;
     // the X = voided / erased. Compact, does not overlap with any existing icon.
     // Gothic tower clock — for "sort by deadline"
-    // Medieval mechanical tower clock: lancet arch casing + clock face + pendulum.
-    // AV1 · Clock tower — the lancet arch is the defining gothic architectural form;
-    // the pendulum clock with visible hands = timekeeping = deadline ordering. Twin-
-    // walled body + crabbed base to sit in the same language as the M3 sort towers.
+    // T1 · Orloj — an astronomical dial of the Prague type, NOT a clock tower. The
+    // user rejected every tower-with-a-face as "the same clock, merely refined", so
+    // the instrument itself changed: time is read from where the luminaries stand,
+    // not from hands sweeping a scale. Rim of 12 divisions with thickened cardinals,
+    // a zodiac ring inside, the solar arrow carrying a rayed disc, the lunar pointer
+    // carrying a crescent, hub in a ring, cross finial at the top of the rim.
+    // This one glyph is the WHOLE language of time in DUSK: it replaced the AV1
+    // clock tower here, the primitive tower clock on #btn-schedule and the generic
+    // circle-clock on the "Время" label, so no second species of clock survives.
     sundial: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6.6 22V10.8C6.6 6.6 8.9 3.9 12 3.9C15.1 3.9 17.4 6.6 17.4 10.8V22"/>
-        <path d="M8 22V11C8 7.6 9.8 5.4 12 5.4C14.2 5.4 16 7.6 16 11V22" stroke-width="0.75" opacity="0.32"/>
-        <line x1="4.6" y1="22" x2="19.4" y2="22" stroke-width="1.6"/>
-        <line x1="5.6" y1="23.3" x2="18.4" y2="23.3" stroke-width="0.8" opacity="0.4"/>
-        <line x1="12" y1="3.9" x2="12" y2="1.7" stroke-width="1.2"/>
-        <line x1="11.2" y1="2.5" x2="12.8" y2="2.5" stroke-width="1"/>
-        <path d="M9.1 5.7l-1 -0.6M14.9 5.7l1 -0.6" stroke-width="0.8" opacity="0.5"/>
-        <circle cx="12" cy="12.4" r="3.7"/>
-        <circle cx="12" cy="12.4" r="2.95" stroke-width="0.7" opacity="0.4"/>
-        <line x1="12" y1="9.2" x2="12" y2="9.9" stroke-width="0.8" opacity="0.6"/>
-        <line x1="12" y1="14.9" x2="12" y2="15.6" stroke-width="0.8" opacity="0.6"/>
-        <line x1="8.8" y1="12.4" x2="9.5" y2="12.4" stroke-width="0.8" opacity="0.6"/>
-        <line x1="14.5" y1="12.4" x2="15.2" y2="12.4" stroke-width="0.8" opacity="0.6"/>
-        <line x1="12" y1="12.4" x2="10.5" y2="10.7" stroke-width="1.8"/>
-        <line x1="12" y1="12.4" x2="13.5" y2="11.1" stroke-width="1.15"/>
-        <circle cx="12" cy="12.4" r="0.8" fill="currentColor" stroke="none"/>
-        <line x1="12" y1="16.1" x2="12" y2="19.3" stroke-width="0.95" opacity="0.6"/>
-        <path d="M12 18.7L12.85 19.8L12 20.9L11.15 19.8Z" fill="currentColor" stroke="none" opacity="0.8"/>
+        <circle cx="12" cy="12" r="10.3"/>
+        <circle cx="12" cy="12" r="8.5" stroke-width="0.85" opacity="0.5"/>
+        <path d="M20.5 12L22.3 12" stroke-width="0.9" opacity="0.75"/><path d="M19.36 16.25L20.92 17.15" stroke-width="0.9" opacity="0.75"/><path d="M16.25 19.36L17.15 20.92" stroke-width="0.9" opacity="0.75"/><path d="M12 20.5L12 22.3" stroke-width="0.9" opacity="0.75"/><path d="M7.75 19.36L6.85 20.92" stroke-width="0.9" opacity="0.75"/><path d="M4.64 16.25L3.08 17.15" stroke-width="0.9" opacity="0.75"/><path d="M3.5 12L1.7 12" stroke-width="0.9" opacity="0.75"/><path d="M4.64 7.75L3.08 6.85" stroke-width="0.9" opacity="0.75"/><path d="M7.75 4.64L6.85 3.08" stroke-width="0.9" opacity="0.75"/><path d="M12 3.5L12 1.7" stroke-width="0.9" opacity="0.75"/><path d="M16.25 4.64L17.15 3.08" stroke-width="0.9" opacity="0.75"/><path d="M19.36 7.75L20.92 6.85" stroke-width="0.9" opacity="0.75"/>
+        <path d="M20.2 12L22.3 12" stroke-width="1.35" opacity="0.95"/><path d="M12 20.2L12 22.3" stroke-width="1.35" opacity="0.95"/><path d="M3.8 12L1.7 12" stroke-width="1.35" opacity="0.95"/><path d="M12 3.8L12 1.7" stroke-width="1.35" opacity="0.95"/>
+        <circle cx="12" cy="12" r="6.5" stroke-width="0.75" opacity="0.35"/>
+        <path d="M18.5 12L20.5 12" stroke-width="0.65" opacity="0.3"/><path d="M16.6 16.6L18.01 18.01" stroke-width="0.65" opacity="0.3"/><path d="M12 18.5L12 20.5" stroke-width="0.65" opacity="0.3"/><path d="M7.4 16.6L5.99 18.01" stroke-width="0.65" opacity="0.3"/><path d="M5.5 12L3.5 12" stroke-width="0.65" opacity="0.3"/><path d="M7.4 7.4L5.99 5.99" stroke-width="0.65" opacity="0.3"/><path d="M12 5.5L12 3.5" stroke-width="0.65" opacity="0.3"/><path d="M16.6 7.4L18.01 5.99" stroke-width="0.65" opacity="0.3"/>
+        <path d="M12 12L14.72 6.43" stroke-width="1.5"/>
+        <circle cx="15.02" cy="5.8" r="1.5" stroke-width="1.1"/>
+        <path d="M15.9 4L16.35 5.05M15.9 4L14.8 4.29" stroke-width="0.7" opacity="0.7"/>
+        <path d="M12 12L8.19 14.57" stroke-width="1.05" opacity="0.75"/>
+        <path d="M6.53 15.69a1.55 1.55 0 1 1 -0.05 -1.7a1.25 1.25 0 1 0 0.05 1.7Z" fill="currentColor" stroke="none" opacity="0.85"/>
+        <circle cx="12" cy="12" r="1.15" stroke-width="1.1"/>
+        <circle cx="12" cy="12" r="0.42" fill="currentColor" stroke="none"/>
+        <path d="M12 1.7V0.5M11.35 1.05H12.65" stroke-width="1" opacity="0.8"/>
     </svg>`,
 
     // P3 gothic eye of truth — a PAIR of glyphs, one per state. The vesica piscis eye

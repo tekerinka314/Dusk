@@ -934,3 +934,17 @@ ${cell('сейчас · сортировка', 'голая арка, голый 
 `;
 fs.writeFileSync(OUT, html);
 console.log('written · AZ3', AZ3.length, '· FL2', FL2.join('').length, '· BL2', Object.values(BL2).join('').length);
+
+/* `--dump <file>` выгружает утверждённые глифы как JSON — вживление берёт SVG
+   ОТСЮДА, а не переписыванием руками, поэтому превью и приложение совпадают
+   символ в символ (та же дисциплина, что дал tidy() на BL2).                 */
+if (process.argv.includes('--dump')) {
+  const to = process.argv[process.argv.indexOf('--dump') + 1];
+  fs.writeFileSync(to, JSON.stringify({
+    T1, T1_LEAN,
+    PA_high: PA.high, PA_medium: PA.medium, PA_low: PA.low, PA_none: PA.none,
+    N3_TAG,
+    X1_STEP_UP_B, X1_STEP_DOWN_B, X1_CAL,
+  }, null, 1) + '\n');
+  console.log('dumped →', to);
+}
