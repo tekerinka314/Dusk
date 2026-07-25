@@ -24,10 +24,16 @@
     --bg-group-header: rgba(9, 3, 28, 0.90);
     --bg-tag:          rgba(28, 8, 72, 0.68);
 
-    /* ---- text — --text-muted raised to #9068c0 (≈4.6:1 contrast, WCAG AA) ---- */
+    /* ---- text ----------------------------------------------------------
+       W2-2 (V2-B5-12): --text-muted was tuned to *just* pass AA on the
+       darkest card (4.7:1, zero headroom) and dropped below AA anywhere the
+       backdrop got lighter (bg-gothic bright regions) or the consumer dimmed
+       it with `opacity` (quick-add hint: 3.72:1 measured). Lifted ONE step
+       in lightness with the hue held (HSL 267.3° / S 41% / L 58%→64%) →
+       6.0:1 on-card, still a clear step below --text-secondary (7.0:1). */
     --text-primary:    #f0e8ff;
     --text-secondary:  #b880e8;
-    --text-muted:      #9068c0;
+    --text-muted:      #a07ec9;
     --text-link:       #c090ff;
 
     --border:          rgba(88, 30, 160, 0.32);
@@ -82,9 +88,15 @@
     --deadline-warn-bg:    rgba(20, 20, 120, 0.40);
     --deadline-urgent:     #d09020;
     --deadline-urgent-bg:  rgba(110, 55, 5, 0.38);
-    --deadline-critical:   #e03060;
+    /* W2-2 (V2-B5-01): the two red statuses are painted ON a red-tinted chip,
+       not on the near-black card — measured backdrops rgb(53,3,27) / rgb(50,1,20).
+       Ground truth before the fix: critical 4.03:1, over 2.29:1 (and 3.05 / 1.90
+       for the date half, which the chip dims with opacity). Both hues held,
+       lightness only: critical 343.6° L53%→62%, over 353.1° L35%→64%. The
+       over-red stays the hotter of the two, as the escalation demands. */
+    --deadline-critical:   #e76186;
     --deadline-critical-bg:rgba(120, 5, 35, 0.40);
-    --deadline-over:       #a01525;
+    --deadline-over:       #ea5d6d;
     --deadline-over-bg:    rgba(90, 0, 18, 0.52);
 
     --radius-xs: 3px;
@@ -3659,7 +3671,11 @@ textarea:focus-visible {
    Sharing a baseline makes them read as one line. */
 .dl-badge-inner { display: flex; flex-direction: row; align-items: baseline; gap: 4px; white-space: nowrap; }
 .dl-countdown { font-size: 10.5px; font-weight: 700; }
-.dl-absolute  { font-size: 9.5px; opacity: 0.80; }
+/* W2-2: opacity 0.80 was the single biggest contrast leak on the whole chip —
+   it dimmed the ink AFTER the token had been tuned, so even the passing statuses
+   (warn 5.55→3.96) failed on the date half. Hierarchy is carried by size and
+   weight; the dimmer is kept at a whisper (0.92) instead of a full stop. */
+.dl-absolute  { font-size: 10px; opacity: 0.92; }
 .dl-sep { opacity: 0.35; font-size: 9px; }
 
 /* Deadline status colors */
