@@ -94,7 +94,7 @@
    "index.html:1092",
    "index.html:1142",
    "index.html:1489",
-   "dusk/02-grimoire.ts:850"
+   "dusk/02-grimoire.ts:848"
   ]
  },
  "359c63d0f54f9337": {
@@ -341,7 +341,7 @@
   "locations": [
    "index.html:692",
    "index.html:953",
-   "dusk/02-grimoire.ts:1190"
+   "dusk/02-grimoire.ts:1188"
   ]
  },
  "7970d81ddbdfeb0f": {
@@ -466,7 +466,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "index.html:894",
-   "dusk/02-grimoire.ts:194"
+   "dusk/02-grimoire.ts:192"
   ]
  },
  "c417de76f0b8eb18": {
@@ -475,7 +475,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "index.html:895",
-   "dusk/02-grimoire.ts:193"
+   "dusk/02-grimoire.ts:191"
   ]
  },
  "6cc45bd9222e92f4": {
@@ -867,7 +867,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:401",
-   "dusk/02-grimoire.ts:189"
+   "dusk/02-grimoire.ts:187"
   ]
  },
  "78b7552a2979d8a7": {
@@ -1096,20 +1096,12 @@
    "dusk/02-grimoire.ts:181"
   ]
  },
- "76220120591804b8": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
-  "locations": [
-   "dusk/02-grimoire.ts:187"
-  ]
- },
  "9e2802c5a210088d": {
   "role": "UNASSIGNED",
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:197"
+   "dusk/02-grimoire.ts:195"
   ]
  },
  "4a7d1296b13e8cff": {
@@ -1117,7 +1109,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 12 12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:199"
+   "dusk/02-grimoire.ts:197"
   ]
  },
  "b835dc7a267e48e1": {
@@ -1125,7 +1117,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:204"
+   "dusk/02-grimoire.ts:202"
   ]
  },
  "c8411e424adfe3b8": {
@@ -1133,7 +1125,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:209"
+   "dusk/02-grimoire.ts:207"
   ]
  },
  "9fbf3b408b44a1da": {
@@ -1141,7 +1133,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:213"
+   "dusk/02-grimoire.ts:211"
   ]
  },
  "b3faf39e5266a822": {
@@ -1149,7 +1141,7 @@
   "note": "BM1 флёр-де-лис — разделитель GIC.dividerFleur",
   "preview": "<svg viewBox=\"0 0 40 12\" width=\"40\" height=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-w",
   "locations": [
-   "dusk/02-grimoire.ts:215"
+   "dusk/02-grimoire.ts:213"
   ]
  },
  "3be222fdaaabc088": {
@@ -1157,7 +1149,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:217"
+   "dusk/02-grimoire.ts:215"
   ]
  },
  "8ccd8da887ce9fc8": {
@@ -1165,7 +1157,7 @@
   "note": "GIC.focusLvl[0] — codex spread, full (FL2 redesign)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "dusk/02-grimoire.ts:223"
+   "dusk/02-grimoire.ts:221"
   ]
  },
  "df7a806dd7fcd196": {
@@ -1173,7 +1165,7 @@
   "note": "GIC.focusLvl[1] — left page furled to edge (FL2 redesign)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "dusk/02-grimoire.ts:224"
+   "dusk/02-grimoire.ts:222"
   ]
  },
  "9dd8892ee0cc38ac": {
@@ -1181,7 +1173,7 @@
   "note": "GIC.focusLvl[2] — single page full, quire-curl (FL2 redesign)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "dusk/02-grimoire.ts:225"
+   "dusk/02-grimoire.ts:223"
   ]
  },
  "be0c47f0369a822d": {
@@ -1189,7 +1181,7 @@
   "note": "BL2 шторка — GIC.barLvl.auto (заслонка на половине)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:237"
+   "dusk/02-grimoire.ts:235"
   ]
  },
  "fb09e53e3d05c8fe": {
@@ -1197,7 +1189,7 @@
   "note": "BL2 шторка — GIC.barLvl.open (заслонка поднята)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:238"
+   "dusk/02-grimoire.ts:236"
   ]
  },
  "00ff54fd13e49a88": {
@@ -1205,7 +1197,7 @@
   "note": "BL2 шторка — GIC.barLvl.closed (заслонка до низа планки)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:239"
+   "dusk/02-grimoire.ts:237"
   ]
  },
  "ea7427497cc26645": {
@@ -1213,7 +1205,7 @@
   "note": "",
   "preview": "<svg class=\"grim-crypt-month-chevron\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor",
   "locations": [
-   "dusk/02-grimoire.ts:1106"
+   "dusk/02-grimoire.ts:1104"
   ]
  },
  "2099df8caa078c47": {
@@ -1221,7 +1213,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"rgba(255,255,255,0.95)\" stroke-width=\"2.8\" st",
   "locations": [
-   "dusk/02-grimoire.ts:1609",
+   "dusk/02-grimoire.ts:1607",
    "dusk/03-render.ts:1440"
   ]
  },
@@ -1230,7 +1222,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:2754"
+   "dusk/02-grimoire.ts:2752"
   ]
  },
  "d49aa99a7dd5927c": {
@@ -1238,7 +1230,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:2756"
+   "dusk/02-grimoire.ts:2754"
   ]
  },
  "c450df9c9970a13c": {
@@ -1246,7 +1238,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:2758"
+   "dusk/02-grimoire.ts:2756"
   ]
  },
  "70b05d44af2b6a78": {
@@ -1254,7 +1246,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3199"
+   "dusk/02-grimoire.ts:3197"
   ]
  },
  "7863ad121e300d5d": {
@@ -1262,7 +1254,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3200"
+   "dusk/02-grimoire.ts:3198"
   ]
  },
  "268ad0ff38c901ba": {
@@ -1270,7 +1262,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3201"
+   "dusk/02-grimoire.ts:3199"
   ]
  },
  "05ce304ae271cb9d": {
@@ -1278,7 +1270,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3202"
+   "dusk/02-grimoire.ts:3200"
   ]
  },
  "a93d6f52591597a1": {
@@ -1286,7 +1278,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3203"
+   "dusk/02-grimoire.ts:3201"
   ]
  },
  "0b95035aad7ffa0a": {
@@ -1294,7 +1286,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3204"
+   "dusk/02-grimoire.ts:3202"
   ]
  },
  "565ff82cba8d5371": {
@@ -1302,7 +1294,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3205"
+   "dusk/02-grimoire.ts:3203"
   ]
  },
  "3b5d52eb7ff92da8": {
@@ -1310,7 +1302,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3206"
+   "dusk/02-grimoire.ts:3204"
   ]
  },
  "c01900ef0b41a55b": {
@@ -1318,7 +1310,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3207"
+   "dusk/02-grimoire.ts:3205"
   ]
  },
  "482f67d140b6b706": {
@@ -1326,7 +1318,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3209"
+   "dusk/02-grimoire.ts:3207"
   ]
  },
  "a3acaaffab59a051": {
@@ -1334,7 +1326,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3210"
+   "dusk/02-grimoire.ts:3208"
   ]
  },
  "fe54d344ce64a7bb": {
@@ -1342,7 +1334,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3211"
+   "dusk/02-grimoire.ts:3209"
   ]
  },
  "75b76fb5fc15edc2": {
@@ -1350,7 +1342,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3212"
+   "dusk/02-grimoire.ts:3210"
   ]
  },
  "d68d5a238df27d95": {
@@ -1358,7 +1350,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3215"
+   "dusk/02-grimoire.ts:3213"
   ]
  },
  "243774aa4190e42e": {
@@ -1366,7 +1358,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3216"
+   "dusk/02-grimoire.ts:3214"
   ]
  },
  "afb0b09245349e62": {
@@ -1374,7 +1366,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3220"
+   "dusk/02-grimoire.ts:3218"
   ]
  },
  "a7e3b2ead111cea4": {
@@ -1382,7 +1374,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3221"
+   "dusk/02-grimoire.ts:3219"
   ]
  },
  "0f54eac1f5e693e4": {
@@ -1390,7 +1382,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3222"
+   "dusk/02-grimoire.ts:3220"
   ]
  },
  "110cec175075a523": {
@@ -1398,7 +1390,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3223"
+   "dusk/02-grimoire.ts:3221"
   ]
  },
  "654c64d86d6dac30": {
@@ -1406,7 +1398,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3225"
+   "dusk/02-grimoire.ts:3223"
   ]
  },
  "01fd94eb23d811d1": {
@@ -1414,7 +1406,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3226"
+   "dusk/02-grimoire.ts:3224"
   ]
  },
  "aed11c515768dee7": {
@@ -1422,7 +1414,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3227"
+   "dusk/02-grimoire.ts:3225"
   ]
  },
  "f58a81ff80f74720": {
@@ -1430,7 +1422,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3370"
+   "dusk/02-grimoire.ts:3368"
   ]
  },
  "82d2830eed322763": {
@@ -1438,7 +1430,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3371"
+   "dusk/02-grimoire.ts:3369"
   ]
  },
  "bbc18662f3fe5bb9": {
@@ -1446,7 +1438,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-line",
   "locations": [
-   "dusk/02-grimoire.ts:3372"
+   "dusk/02-grimoire.ts:3370"
   ]
  },
  "a9ab18b76aa4948b": {
@@ -1454,7 +1446,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3375"
+   "dusk/02-grimoire.ts:3373"
   ]
  },
  "0c13d9579206c97d": {
@@ -1462,7 +1454,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3921"
+   "dusk/02-grimoire.ts:3919"
   ]
  },
  "ef28d967e5f97cfa": {
@@ -1470,7 +1462,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3922"
+   "dusk/02-grimoire.ts:3920"
   ]
  },
  "f59b74765364a793": {
@@ -1478,7 +1470,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3923"
+   "dusk/02-grimoire.ts:3921"
   ]
  },
  "b047c1b717816cde": {
@@ -1486,7 +1478,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.35\" stroke-line",
   "locations": [
-   "dusk/02-grimoire.ts:3924"
+   "dusk/02-grimoire.ts:3922"
   ]
  },
  "bec891d2da115e11": {
@@ -1494,7 +1486,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3925"
+   "dusk/02-grimoire.ts:3923"
   ]
  },
  "e589e83052b938e3": {
@@ -1502,7 +1494,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
   "locations": [
-   "dusk/02-grimoire.ts:3928"
+   "dusk/02-grimoire.ts:3926"
   ]
  },
  "7fca0ce9607359d1": {
@@ -1566,28 +1558,20 @@
    "dusk/08-quickadd-export-init.ts:267"
   ]
  },
- "e9de64c0ef9978de": {
-  "role": "UNASSIGNED",
-  "note": "",
-  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
-  "locations": [
-   "dusk/08-quickadd-export-init.ts:1058"
-  ]
- },
  "df62e463b38a8ec2": {
   "role": "X1",
   "note": "X1 · ланцетная скрижаль — триггер нативного пикера даты (seg-picker-btn). Настоящая месячная сетка вместо трёх голых полок, выбранный день = кованый ромб, крест-навершие.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1069"
+   "dusk/08-quickadd-export-init.ts:1062"
   ]
  },
- "af6a8b11ca9eeb5c": {
-  "role": "UNASSIGNED",
-  "note": "",
+ "8c556340c332a4f2": {
+  "role": "T1",
+  "note": "призрак циферблата под × (очистка времени)",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1113"
+   "dusk/08-quickadd-export-init.ts:1106"
   ]
  },
  "85c938ef10aada2a": {
@@ -1595,7 +1579,7 @@
   "note": "Призрак X1-скрижали под × у кнопки очистки даты (seg-clear-btn) — арка приведена к пропорциям новой скрижали.",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1122"
+   "dusk/08-quickadd-export-init.ts:1113"
   ]
  }
 }

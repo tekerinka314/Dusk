@@ -1052,16 +1052,9 @@ class SegmentedInput {
         pickerBtn.title = pickerTitle;
         pickerBtn.setAttribute('aria-label', pickerTitle);
         pickerBtn.innerHTML = this.type === 'time'
-            // GOTHIC HOURGLASS — proper curves (not X-diagonals).
-            // Two rails frame the glass; flowing S-curves form the true hourglass silhouette;
-            // filled sand triangle at base = time elapsed. Distinct from the toolbar tower-clock.
-            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="3.5" x2="19" y2="3.5"/>
-                <line x1="5" y1="20.5" x2="19" y2="20.5"/>
-                <path d="M6.5 3.5 C6.5 3.5 11 8.5 12 12 C13 15.5 17.5 20.5 17.5 20.5"/>
-                <path d="M17.5 3.5 C17.5 3.5 13 8.5 12 12 C11 15.5 6.5 20.5 6.5 20.5"/>
-                <path d="M8.5 19 Q12 14.5 15.5 19" fill="currentColor" stroke="none" opacity="0.8"/>
-              </svg>`
+            // T1 «Орлой» (lean) — часы приложения. Ссылка, а не копия: у языка
+            // времени ровно одна точка правды, копию пришлось бы вести вручную.
+            ? IC.sundialLean
             // X1 · LANCET TABLET — the arch stays, but it now carries a real month
             // grid instead of three bare shelves, and the chosen day is a forged
             // lozenge rather than a naked circle. Cross finial on the apex ties it
@@ -1099,7 +1092,7 @@ class SegmentedInput {
         // ── Clear button: resets all segments to placeholder ──────────────────
         // Sits between the seg-input and the picker trigger — same ghost style but
         // smaller, danger-coloured on hover. Icon mirrors IC.deadlineClear pattern:
-        // the domain symbol (hourglass for time, arch for date) at half opacity,
+        // the domain symbol (orloj dial for time, arch for date) at half opacity,
         // pierced by a bold ×. Consistent with existing note-delete and DL-clear icons.
         const clearBtn = document.createElement('button');
         clearBtn.type = 'button';
@@ -1109,12 +1102,10 @@ class SegmentedInput {
         clearBtn.title = clearTitle;
         clearBtn.setAttribute('aria-label', clearTitle);
         clearBtn.innerHTML = this.type === 'time'
-            // Gothic hourglass (faded) pierced by an ×  —  matches IC.deadlineClear style
+            // T1-циферблат (погашенный) под тем же ×, что и у очистки даты
             ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="3.5" x2="19" y2="3.5" opacity="0.45"/>
-                <line x1="5" y1="20.5" x2="19" y2="20.5" opacity="0.45"/>
-                <path d="M6.5 3.5 C6.5 3.5 11 8.5 12 12 C13 15.5 17.5 20.5 17.5 20.5" opacity="0.45"/>
-                <path d="M17.5 3.5 C17.5 3.5 13 8.5 12 12 C11 15.5 6.5 20.5 6.5 20.5" opacity="0.45"/>
+                <circle cx="12" cy="12" r="10" opacity="0.45"/>
+                <path d="M19.9 12L22 12" stroke-width="1.7" opacity="0.45"/><path d="M12 19.9L12 22" stroke-width="1.7" opacity="0.45"/><path d="M4.1 12L2 12" stroke-width="1.7" opacity="0.45"/><path d="M12 4.1L12 2" stroke-width="1.7" opacity="0.45"/>
                 <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke-width="2.1"/>
                 <line x1="18.5" y1="5.5" x2="5.5" y2="18.5" stroke-width="2.1"/>
               </svg>`
