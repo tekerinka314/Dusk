@@ -53,6 +53,21 @@
     --prio-low-bg:      rgba(5, 90, 30, 0.28);
     --prio-low-border:  rgba(30, 180, 70, 0.48);
 
+    /* ПАРТИЯ 7 · башни-ранги приоритета. Маркер приоритета был цветным кружком
+       6-11px; контурная башня квик-эдда в такой размер не переносится вовсе
+       (растровая проба: 0-1 пикселя полного покрытия даже на 15px). Поэтому в
+       маркерах живёт ЗАЛИТАЯ башня: цвет возвращается площадью, как у кружка, а
+       уровень читается высотой и навершием, как у контурной. Арт раздаётся
+       МАСКОЙ, а не разметкой: цвет остаётся обычным background, поэтому все
+       прежние правила окраски (и динамика data-sprio) работают без правок JS.
+       Канва 15 нечётная — центр 7.5 попадает в центр пикселя. Источник арта:
+       audit-v2/previews/gen-fb4-v3.mjs (PS15), fill подменён на #000, потому
+       что маска читает альфу, а не тему. */
+    --tw-high: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%227%22%20y%3D%220%22%20width%3D%221%22%20height%3D%222%22%2F%3E%3Cpath%20d%3D%22M7.5%202L10.5%205H4.5Z%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%225%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%226%22%20width%3D%222%22%20height%3D%226%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%226%22%20width%3D%222%22%20height%3D%226%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
+    --tw-medium: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%227%22%20y%3D%223%22%20width%3D%221%22%20height%3D%222%22%2F%3E%3Cpath%20d%3D%22M7.5%205L10.5%208H4.5Z%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%228%22%20width%3D%225%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%229%22%20width%3D%222%22%20height%3D%223%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%229%22%20width%3D%222%22%20height%3D%223%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
+    --tw-low: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%227%22%20y%3D%225%22%20width%3D%221%22%20height%3D%222%22%2F%3E%3Cpath%20d%3D%22M7.5%207L10.5%2010H4.5Z%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%2210%22%20width%3D%225%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%2211%22%20width%3D%222%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%2211%22%20width%3D%222%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
+    --tw-none: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2015%22%20fill%3D%22%23000%22%3E%3Crect%20x%3D%225%22%20y%3D%229%22%20width%3D%222%22%20height%3D%223%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%2210%22%20width%3D%222%22%20height%3D%222%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2211%22%20width%3D%221%22%20height%3D%221%22%20opacity%3D%220.6%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%221%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2213%22%20width%3D%2213%22%20height%3D%221%22%20opacity%3D%220.55%22%2F%3E%3C%2Fsvg%3E");
+
     /* Checked checkbox → violet/purple */
     --check-done-bg:     linear-gradient(135deg, #7030d0, #a060ff);
     --check-done-border: rgba(160, 80, 255, 0.72);
@@ -818,7 +833,30 @@ html::after {
     white-space: nowrap;
     letter-spacing: 1px;
 }
-.prio-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+/* ── ПАРТИЯ 7 · маркер приоритета = залитая башня-ранг ───────────────────────
+   Один силуэт на все точки: сетка формы, пилюли модалки, панель массовых
+   действий, ⋯-меню подпункта, кнопка приоритета подпункта. Размер один — 15px,
+   ровно как у соседних иконок панели выбора. Уровень задаётся ТОЛЬКО маской,
+   цвет — прежним background, поэтому окраска и динамика остались как были.
+   Свечения ушли с самой метки: маска обрезает box-shadow (тень лежит вне альфы
+   глифа), поэтому ореол переехал на кнопку — см. .prio-bulk-btn ниже.        */
+.prio-dot, .fm-prio-dot, .sub-prio-dot {
+    width: 15px; height: 15px; flex: none;
+    -webkit-mask: var(--tw-none) center / 15px 15px no-repeat;
+            mask: var(--tw-none) center / 15px 15px no-repeat;
+}
+.prio-low .prio-dot,    .prio-dot.prio-low,    .fm-prio-dot.p-low,
+.subtask-item[data-sprio="low"] .sub-prio-dot {
+    -webkit-mask-image: var(--tw-low); mask-image: var(--tw-low);
+}
+.prio-medium .prio-dot, .prio-dot.prio-medium, .fm-prio-dot.p-medium,
+.subtask-item[data-sprio="medium"] .sub-prio-dot {
+    -webkit-mask-image: var(--tw-medium); mask-image: var(--tw-medium);
+}
+.prio-high .prio-dot,   .prio-dot.prio-high,   .fm-prio-dot.p-high,
+.subtask-item[data-sprio="high"] .sub-prio-dot {
+    -webkit-mask-image: var(--tw-high); mask-image: var(--tw-high);
+}
 /* "Нет" priority — gothic crescent moons flanking the label on both sides */
 .prio-none-ic { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.8; margin: 0 -2px; }
 /* right-hand crescent is the mirror of the left one (used in prio + group dropdown) */
@@ -887,7 +925,6 @@ html::after {
     .prio-grid-btn::after { display: none; }
 }
 
-.prio-grid-btn .prio-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .prio-grid-btn.prio-low   .prio-dot { background: var(--prio-low); }
 .prio-grid-btn.prio-medium .prio-dot { background: var(--prio-medium); }
 .prio-grid-btn.prio-high  .prio-dot { background: var(--prio-high); }
@@ -1277,8 +1314,9 @@ html::after {
 }
 .snooze-menu.action-sheet .fm-q.active { color: var(--accent-hover); }
 /* subtask priority dots (radio strip) */
-.fm-prio-dot { width: 11px; height: 11px; border-radius: 50%; background: rgba(150, 130, 190, 0.45); flex: none; }
-.fm-q.active .fm-prio-dot { box-shadow: 0 0 8px currentColor; }
+.fm-prio-dot { background: rgba(150, 130, 190, 0.45); }
+/* свечение метки снято вместе с кружком: маска обрезает box-shadow. Активная
+   строка меню и без него читается — у неё своя подложка. */
 .fm-prio-dot.p-low    { background: var(--prio-low); }
 .fm-prio-dot.p-medium { background: var(--prio-medium); }
 .fm-prio-dot.p-high   { background: var(--prio-high); }
@@ -3059,15 +3097,12 @@ html::after {
 }
 
 .sub-prio-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
     background: var(--border-mid);
-    transition: background var(--transition), box-shadow var(--transition);
+    transition: background var(--transition);
 }
-.subtask-item[data-sprio="high"]   .sub-prio-dot { background: var(--prio-high);   box-shadow: 0 0 4px rgba(220,30,70,0.5); }
-.subtask-item[data-sprio="medium"] .sub-prio-dot { background: var(--prio-medium); box-shadow: 0 0 4px rgba(210,120,20,0.5); }
-.subtask-item[data-sprio="low"]    .sub-prio-dot { background: var(--prio-low);    box-shadow: 0 0 4px rgba(40,200,80,0.4); }
+.subtask-item[data-sprio="high"]   .sub-prio-dot { background: var(--prio-high);   }
+.subtask-item[data-sprio="medium"] .sub-prio-dot { background: var(--prio-medium); }
+.subtask-item[data-sprio="low"]    .sub-prio-dot { background: var(--prio-low);    }
 
 .sub-actions {
     display: flex;
@@ -3078,9 +3113,11 @@ html::after {
 }
 .subtask-item:hover .sub-actions { opacity: 1; }
 
-/* prio-btn is now inside sub-actions — same sizing/transition as btn-sub-action */
+/* prio-btn is now inside sub-actions — same sizing/transition as btn-sub-action.
+   Скругление было «под мотив кружка»; мотив стал башней, поэтому кнопка
+   возвращается к общей форме соседей по ряду. */
 .btn-sub-action.sub-prio-btn {
-    border-radius: 50%;   /* circular to match prio-dot motif */
+    border-radius: var(--radius-xs);
 }
 .btn-sub-action.sub-prio-btn:hover { background: var(--accent-soft); }
 
@@ -6677,7 +6714,10 @@ kbd {
 .bulk-group-none:hover { background: var(--accent-dim); color: var(--text-primary); }
 
 /* ── Bulk priority buttons — box comes from .sb-btn; this only owns the dot ──── */
-.prio-bulk-btn .prio-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px currentColor; }
+/* Ореол уехал с метки на кнопку: маска обрезала бы box-shadow метки. */
+.prio-bulk-btn[data-prio="high"]   { box-shadow: 0 0 8px rgba(220, 30, 70, 0.22); }
+.prio-bulk-btn[data-prio="medium"] { box-shadow: 0 0 8px rgba(210, 130, 20, 0.20); }
+.prio-bulk-btn[data-prio="low"]    { box-shadow: 0 0 8px rgba(40, 200, 80, 0.18); }
 .prio-bulk-btn .prio-dot.prio-high   { background: var(--prio-high);   color: var(--prio-high); }
 .prio-bulk-btn .prio-dot.prio-medium { background: var(--prio-medium); color: var(--prio-medium); }
 .prio-bulk-btn .prio-dot.prio-low    { background: var(--prio-low);    color: var(--prio-low); }

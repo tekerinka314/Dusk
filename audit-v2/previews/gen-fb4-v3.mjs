@@ -1382,6 +1382,8 @@ if (process.argv.includes('--dump')) {
     N3_TAG,
     X1_STEP_UP_B, X1_STEP_DOWN_B, X1_CAL,
     AR_ALL_2, AR_SEL_1,
+    PS15_high: PS15.high, PS15_medium: PS15.medium, PS15_low: PS15.low, PS15_none: PS15.none,
+    NAV_B_MAIN, NAV_B_TOMB, NAV_B_TOME,
   }, null, 1) + '\n');
   console.log('dumped →', to);
 }
