@@ -466,7 +466,7 @@ html::after {
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-.nav-tab svg { width: 13px; height: 13px; }
+.nav-tab svg { width: 15px; height: 15px; }
 .nav-tab:hover { color: var(--text-secondary); }
 .nav-tab.active {
     background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));
@@ -4191,7 +4191,7 @@ textarea:focus-visible {
     letter-spacing: 2px;
     text-transform: uppercase;
 }
-.archive-title svg { width: 13px; height: 13px; }
+.archive-title svg { width: 15px; height: 15px; }
 
 /* Shared style for all archive header buttons */
 .btn-archive-action {
@@ -6962,10 +6962,10 @@ kbd {
     cursor: pointer;
     transition: color var(--transition), background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition), transform var(--transition);
 }
-/* 13px ровно: сегментные глифы — те же нав-арты на пиксельной сетке 13
+/* 15px ровно: сегментные глифы — те же нав-арты на пиксельной сетке 15
    (1 единица viewBox = 1 пиксель). Любой другой размер снова кладёт штрихи
    между пикселями и даёт лестницу полутонов. */
-.grim-seg svg { width: 13px; height: 13px; }
+.grim-seg svg { width: 15px; height: 15px; }
 .grim-seg:hover { color: var(--text-secondary); }
 .grim-seg.active {
     background: linear-gradient(135deg, rgba(110, 30, 220, 0.30), rgba(80, 15, 180, 0.20));
