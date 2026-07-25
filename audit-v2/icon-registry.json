@@ -261,8 +261,8 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "index.html:565",
-   "dusk/08-quickadd-export-init.ts:260",
-   "dusk/08-quickadd-export-init.ts:281"
+   "dusk/08-quickadd-export-init.ts:263",
+   "dusk/08-quickadd-export-init.ts:284"
   ]
  },
  "f2cbdb6ea65b39a2": {
@@ -271,7 +271,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "index.html:583",
-   "dusk/08-quickadd-export-init.ts:280"
+   "dusk/08-quickadd-export-init.ts:283"
   ]
  },
  "530596adf5004cd1": {
@@ -280,7 +280,7 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
   "locations": [
    "index.html:602",
-   "dusk/08-quickadd-export-init.ts:282"
+   "dusk/08-quickadd-export-init.ts:285"
   ]
  },
  "4032dcf4376d966d": {
@@ -492,12 +492,13 @@
    "index.html:1544"
   ]
  },
- "f92d0657d56f2c45": {
+ "2834083947e7a78a": {
   "role": "T1",
-  "note": "T1-lean под 13px — метка «Время (необязательно)» в дедлайн-модалке.",
-  "preview": "<svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-w",
+  "note": "T1-lean (Орлой под 13-15px): метка «Время (необязательно)» index.html + строки канала %дата в типахеде квик-эдда (IC.sundialLean). Один арт — один хэш.",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "index.html:1207"
+   "index.html:1207",
+   "dusk/01-core.ts:710"
   ]
  },
  "8b46f5318e4db326": {
@@ -685,7 +686,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'><path d",
   "locations": [
-   "style.css:3167"
+   "style.css:3170"
   ]
  },
  "7c54d94a021aff1a": {
@@ -693,7 +694,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='n",
   "locations": [
-   "style.css:3911"
+   "style.css:3914"
   ]
  },
  "3983c4bd59004170": {
@@ -701,7 +702,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 20' fill='none' stroke='#c898ff' s",
   "locations": [
-   "style.css:6161"
+   "style.css:6165"
   ]
  },
  "3822b6c11ca30eb9": {
@@ -709,7 +710,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 20' fill='none' stroke='#c898ff' s",
   "locations": [
-   "style.css:6178"
+   "style.css:6182"
   ]
  },
  "f9829e5bd895d11d": {
@@ -717,7 +718,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 32 32' fill='n",
   "locations": [
-   "style.css:7860"
+   "style.css:7864"
   ]
  },
  "b4709620283f3c96": {
@@ -725,7 +726,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12'><line x1='0' y1='6' x2='80' y",
   "locations": [
-   "style.css:8167"
+   "style.css:8171"
   ]
  },
  "ca5ca565d868a8dd": {
@@ -733,7 +734,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8206"
+   "style.css:8210"
   ]
  },
  "dd88000e9d33935f": {
@@ -741,7 +742,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8210"
+   "style.css:8214"
   ]
  },
  "ac8a1a1aa765da28": {
@@ -749,7 +750,7 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#000' stro",
   "locations": [
-   "style.css:8214"
+   "style.css:8218"
   ]
  },
  "7c3f121cf1b4883a": {
@@ -757,8 +758,8 @@
   "note": "",
   "preview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 5.2 6 6.5 4 7.8 2 ",
   "locations": [
-   "style.css:8576",
-   "style.css:8577"
+   "style.css:8580",
+   "style.css:8581"
   ]
  },
  "b05b2f3b1b09ce82": {
@@ -1051,6 +1052,46 @@
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
   "locations": [
    "dusk/01-core.ts:670"
+  ]
+ },
+ "e8ed0909e8e603d9": {
+  "role": "PA",
+  "note": "PA · башня-ранг, высокий приоритет (навершие крест-ромб) — строка !high в типахеде квик-эдда.",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
+  "locations": [
+   "dusk/01-core.ts:692"
+  ]
+ },
+ "35587e4ceee3e397": {
+  "role": "PA",
+  "note": "PA · башня-ранг, средний приоритет (навершие ромб) — строка !medium.",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
+  "locations": [
+   "dusk/01-core.ts:693"
+  ]
+ },
+ "f8f98c8d10fecf41": {
+  "role": "PA",
+  "note": "PA · башня-ранг, низкий приоритет (навершие шар) — строка !low.",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
+  "locations": [
+   "dusk/01-core.ts:694"
+  ]
+ },
+ "00b2005f354d4fea": {
+  "role": "PA",
+  "note": "PA · руина (цоколь + два обломка стен, шпиля нет) — строка !none «Без приоритета».",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linec",
+  "locations": [
+   "dusk/01-core.ts:695"
+  ]
+ },
+ "77eddd484ff31129": {
+  "role": "N3",
+  "note": "N3 · щит-тег со звездой-сигилом — строки канала *тег в типахеде квик-эдда.",
+  "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linec",
+  "locations": [
+   "dusk/01-core.ts:699"
   ]
  },
  "bb2feda03e1b1c97": {
@@ -1528,7 +1569,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:264"
+   "dusk/08-quickadd-export-init.ts:267"
   ]
  },
  "e9de64c0ef9978de": {
@@ -1536,7 +1577,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1055"
+   "dusk/08-quickadd-export-init.ts:1058"
   ]
  },
  "841c35bee7d398e3": {
@@ -1544,7 +1585,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1065"
+   "dusk/08-quickadd-export-init.ts:1068"
   ]
  },
  "af6a8b11ca9eeb5c": {
@@ -1552,7 +1593,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1098"
+   "dusk/08-quickadd-export-init.ts:1101"
   ]
  },
  "120c5a9f2e68ada5": {
@@ -1560,7 +1601,7 @@
   "note": "",
   "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linec",
   "locations": [
-   "dusk/08-quickadd-export-init.ts:1107"
+   "dusk/08-quickadd-export-init.ts:1110"
   ]
  }
 }

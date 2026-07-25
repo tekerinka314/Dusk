@@ -79,7 +79,7 @@ declare var _recSig: any;
 // Classic scripts hoisted these into the shared global scope before any code
 // ran; publish them first so load-time cross-module calls keep working.
 Object.assign(globalThis, {
-    coffinSVG, cycleCoffinSVG, subCoffinSVG, eyeGlyph, hexToRgb, prefersReducedMotion, _pickerOpenUp, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
+    coffinSVG, cycleCoffinSVG, subCoffinSVG, eyeGlyph, qaSigil, hexToRgb, prefersReducedMotion, _pickerOpenUp, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
     _resetDragHandle, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
     loadState, _migrateV3toV4, migrateTasks, uid, nowTs, _contentSig, _trackedRecords, primeRecSig,
     bumpUpdatedAt, addTombstone, _delegate, normalizeState, migrateFromOld, loadUiState, saveUiState, pushUndo,
@@ -677,6 +677,46 @@ const IC = {
         <line x1="10.1" y1="13.8" x2="13.9" y2="13.8" stroke-width="1.1" opacity="0.65"/>
         <path d="M12 7.6L12.9 8.8L12 10L11.1 8.8Z" fill="currentColor" stroke="none" opacity="0.8"/>
     </svg>`,
+
+    // ── quick-add typeahead sigils (N/PA) — every suggestion row used to carry an
+    // 8px coloured DOT, which said nothing about what kind of token was being
+    // offered. Each channel now gets its own silhouette, all three legible at 15px
+    // and deliberately non-confusable with one another: tower / shield / dial.
+
+    // PA · rank towers. The masonry language is lifted from `sortPriority` (M3) —
+    // the icon this app ALREADY uses to mean "priority" — so the level reads off a
+    // SINGLE property of the silhouette: tower height. Finials are ranked in their
+    // own right (cross-and-lozenge → lozenge → orb) and the colour still rides on
+    // top via currentColor. "No priority" is the same tower as a ruin: plinth, two
+    // broken wall stumps, no spire.
+    prioRankHigh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8.4" y1="18.6" x2="8.4" y2="8.4"/><line x1="15.6" y1="18.6" x2="15.6" y2="8.4"/><path d="M8.4 8.4L12 3.2L15.6 8.4"/><path d="M9.6 8.4H14.4" stroke-width="0.85" opacity="0.45"/><line x1="12" y1="3.2" x2="12" y2="1.9" stroke-width="1"/><path d="M12 0.9L12.75 1.8L12 2.7L11.25 1.8Z" fill="currentColor" stroke="none"/><path d="M9.5 5.9l-1.1-0.7M14.5 5.9l1.1-0.7" stroke-width="0.75" opacity="0.5"/><path d="M10.4 18.6V13.6C10.4 12 11.1 11.2 12 11.2C12.9 11.2 13.6 12 13.6 13.6V18.6" stroke-width="0.9" opacity="0.5"/><line x1="12" y1="12.4" x2="12" y2="18.6" stroke-width="0.7" opacity="0.32"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg>`,
+    prioRankMedium: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8.4" y1="18.6" x2="8.4" y2="12"/><line x1="15.6" y1="18.6" x2="15.6" y2="12"/><path d="M8.4 12L12 7.2L15.6 12"/><path d="M9.6 12H14.4" stroke-width="0.85" opacity="0.45"/><line x1="12" y1="7.2" x2="12" y2="6.1" stroke-width="0.95"/><path d="M12 5.3L12.62 6.05L12 6.8L11.38 6.05Z" fill="currentColor" stroke="none"/><path d="M10.4 18.6V15.2C10.4 13.9 11.1 13.2 12 13.2C12.9 13.2 13.6 13.9 13.6 15.2V18.6" stroke-width="0.9" opacity="0.5"/><line x1="12" y1="14.2" x2="12" y2="18.6" stroke-width="0.7" opacity="0.32"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg>`,
+    prioRankLow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8.4" y1="18.6" x2="8.4" y2="15.4"/><line x1="15.6" y1="18.6" x2="15.6" y2="15.4"/><path d="M8.4 15.4L12 11.6L15.6 15.4"/><path d="M9.6 15.4H14.4" stroke-width="0.85" opacity="0.45"/><line x1="12" y1="11.6" x2="12" y2="10.8" stroke-width="0.9"/><circle cx="12" cy="10.2" r="0.62" stroke-width="0.9"/><line x1="12" y1="16.6" x2="12" y2="18.6" stroke-width="0.85" opacity="0.45"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg>`,
+    prioRankNone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 18.6V15.9L9.3 14.9L8.9 13.6" stroke-width="1.35" opacity="0.75"/><path d="M15.6 18.6V16.6L14.8 15.6L15.2 14.4" stroke-width="1.35" opacity="0.75"/><path d="M10.6 18.6V17.2H13.1" stroke-width="0.9" opacity="0.4"/><path d="M12.9 15.4L14.1 15.9L13.6 17L12.4 16.5Z" stroke-width="0.8" opacity="0.5"/><path d="M7.2 20.4V18.6H16.8V20.4" stroke-width="1.1" opacity="0.8"/><line x1="4.6" y1="20.4" x2="19.4" y2="20.4" stroke-width="1.5"/><line x1="5.6" y1="21.7" x2="18.4" y2="21.7" stroke-width="0.8" opacity="0.4"/></svg>`,
+
+    // N3 · tag shield — a bordered escutcheon with a star-sigil charged on it.
+    // A tag is a MARK BORNE by the task, which is exactly what a coat of arms is.
+    tagSigil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6.6 4.5H17.4V11.6C17.4 15.6 15 18.5 12 19.8C9 18.5 6.6 15.6 6.6 11.6Z"/>
+        <path d="M8.2 6.1H15.8V11.5C15.8 14.5 14.1 16.8 12 17.9C9.9 16.8 8.2 14.5 8.2 11.5Z" stroke-width="0.9" opacity="0.4"/>
+        <line x1="12" y1="8.4" x2="12" y2="13.6" stroke-width="1.3"/>
+        <line x1="9.8" y1="9.7" x2="14.2" y2="12.3" stroke-width="1.3"/>
+        <line x1="14.2" y1="9.7" x2="9.8" y2="12.3" stroke-width="1.3"/>
+        </svg>`,
+
+    // T1-lean — the Orloj stripped for 13-15px: fine divisions and the zodiac ring
+    // drop out, strokes come up to >=1.2, the instrument's silhouette survives.
+    // Shared byte-for-byte with the "Время (необязательно)" label in index.html.
+    sundialLean: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M19.9 12L22 12" stroke-width="1.7" opacity="1"/><path d="M12 19.9L12 22" stroke-width="1.7" opacity="1"/><path d="M4.1 12L2 12" stroke-width="1.7" opacity="1"/><path d="M12 4.1L12 2" stroke-width="1.7" opacity="1"/>
+        <path d="M20.8 12L22 12" stroke-width="1.2" opacity="0.6"/><path d="M18.22 18.22L19.07 19.07" stroke-width="1.2" opacity="0.6"/><path d="M12 20.8L12 22" stroke-width="1.2" opacity="0.6"/><path d="M5.78 18.22L4.93 19.07" stroke-width="1.2" opacity="0.6"/><path d="M3.2 12L2 12" stroke-width="1.2" opacity="0.6"/><path d="M5.78 5.78L4.93 4.93" stroke-width="1.2" opacity="0.6"/><path d="M12 3.2L12 2" stroke-width="1.2" opacity="0.6"/><path d="M18.22 5.78L19.07 4.93" stroke-width="1.2" opacity="0.6"/>
+        <path d="M12 12L14.45 6.97" stroke-width="1.7"/>
+        <circle cx="14.89" cy="6.07" r="1.7" stroke-width="1.4"/>
+        <path d="M12 12L8.35 14.46" stroke-width="1.3" opacity="0.8"/>
+        <path d="M6.69 15.58a1.75 1.75 0 1 1 -0.05 -1.9a1.4 1.4 0 1 0 0.05 1.9Z" fill="currentColor" stroke="none" opacity="0.9"/>
+        <circle cx="12" cy="12" r="0.75" fill="currentColor" stroke="none"/>
+        </svg>`,
 };
 
 /**
@@ -689,6 +729,21 @@ const IC = {
  */
 function eyeGlyph(narrowed) {
     return narrowed ? IC.gothEyeHalf : IC.gothEyeOpen;
+}
+
+/**
+ * Sigil for one quick-add typeahead row. `type` is the token channel the user is
+ * typing (!prio / *tag / %date); `cls` only matters for priority, where it names
+ * the level. Single point of truth so the three channels can never drift into
+ * lookalike silhouettes — the failure the dots had by construction.
+ */
+function qaSigil(type, cls) {
+    if (type === 'tag') return IC.tagSigil;
+    if (type === 'date') return IC.sundialLean;
+    if (cls === 'prio-high') return IC.prioRankHigh;
+    if (cls === 'prio-medium') return IC.prioRankMedium;
+    if (cls === 'prio-low') return IC.prioRankLow;
+    return IC.prioRankNone;
 }
 
 // ============================================================

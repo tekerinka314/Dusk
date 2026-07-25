@@ -162,13 +162,16 @@ function _qaRenderMenu() {
         _qaMenuEl.setAttribute('role', 'listbox');
         document.body.appendChild(_qaMenuEl);
     }
-    const { items, active } = _qaState;
+    const { items, active, type } = _qaState;
+    // The row's sigil says WHICH channel is being offered (tower / shield / dial);
+    // the priority colour rides on it through currentColor instead of being the
+    // only signal, as it was back when this was an 8px dot.
     _qaMenuEl.innerHTML = items.map((it, i) => it.disabled
-        ? `<div class="qa-item qa-disabled"><span class="qa-dot qa-dot-blank"></span><span class="qa-label">${escHtml(it.label)}</span></div>`
+        ? `<div class="qa-item qa-disabled"><span class="qa-sig">${qaSigil(type, it.cls)}</span><span class="qa-label">${escHtml(it.label)}</span></div>`
         : `<button type="button" role="option" class="qa-item${i === active ? ' active' : ''}" data-idx="${i}"
                 aria-selected="${i === active ? 'true' : 'false'}"
                 data-pd data-act="_qaAccept" data-actover="_qaHover">
-            ${it.cls ? `<span class="qa-dot ${it.cls}"></span>` : `<span class="qa-dot qa-dot-blank"></span>`}
+            <span class="qa-sig${it.cls ? ' ' + it.cls : ''}">${qaSigil(type, it.cls)}</span>
             <span class="qa-label">${escHtml(it.label)}</span>
             ${it.hint ? `<span class="qa-hint">${escHtml(it.hint)}</span>` : ''}
         </button>`).join('');
