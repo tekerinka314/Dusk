@@ -1067,6 +1067,7 @@ if (process.argv.includes('--dump')) {
     PA_high: PA.high, PA_medium: PA.medium, PA_low: PA.low, PA_none: PA.none,
     N3_TAG,
     X1_STEP_UP_B, X1_STEP_DOWN_B, X1_CAL,
+    AR_ALL_2, AR_SEL_1,
   }, null, 1) + '\n');
   console.log('dumped →', to);
 }

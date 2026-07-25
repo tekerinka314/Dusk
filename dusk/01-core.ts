@@ -316,6 +316,11 @@ const IC = {
     // Sarcophagus icon — inline paths, no <use> dependency
     // U2 · Crypt portal — keystone diamond, descending steps, down-arrow (B13: bury, not shelve).
     archive: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10C5 5.8 8 3 12 3C16 3 19 5.8 19 10V20"/><line x1="3.4" y1="20" x2="20.6" y2="20" stroke-width="1.5"/><path d="M12 2.2L12.7 3.1L12 4L11.3 3.1Z" fill="currentColor" stroke="none" opacity="0.7"/><path d="M7.6 20V17.6H16.4V20" stroke-width="1.2" opacity="0.75"/><path d="M9 17.6V15.6H15V17.6" stroke-width="1.2" opacity="0.55"/><line x1="12" y1="8" x2="12" y2="12.6" stroke-width="1.5"/><path d="M9.9 10.7L12 13.2L14.1 10.7"/></svg>`,
+    // A2 · Оссуарий — «Архивировать ВСЁ». Отдельная семантика от одиночного
+    // «В архив» (IC.archive, U2-крипта): массовое действие не должно выглядеть
+    // как штучное. Арт живёт ОДНОЙ копией в <symbol id="icon-archive-all">
+    // (index.html), сюда он приходит через <use> — как и кнопка тулбара.
+    archiveAll: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive-all"/></svg>`,
     // Gothic quill (edit / rename)
     quill: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.8 3.2C13.8 4.4 9 8.4 6.4 14.9L5 19L9.1 17.6C15.6 15 19 10 19.8 3.2Z"/><path d="M17.6 5.6C13.4 8.2 10.2 11.8 8 16" stroke-width="1" opacity="0.55"/><path d="M15.4 6.2L13.9 5.4M13.5 8.1L12 7.3M11.8 10L10.4 9.2M10.3 12L9 11.3" stroke-width="0.95" opacity="0.45"/><path d="M6.1 16.1L5 19L7.9 17.9" stroke-width="1.2"/><line x1="5.6" y1="18.4" x2="4.2" y2="19.8" stroke-width="1.1"/><circle cx="3.4" cy="21.2" r="0.8" fill="currentColor" stroke="none" opacity="0.85"/></svg>`,
     // Lancet window (deadline)
@@ -1157,11 +1162,11 @@ async function init() {
     registerGothicPicker(document.getElementById('grim-new-split'), _grimCloseTplMenu);
     registerGothicPicker(document.getElementById('grim-io-split'),  _grimCloseIoSplit);
     registerGothicPicker(document.getElementById('grim-io-sel'),    _grimCloseIoSel);
-    // O-FINAL Batch-9: archive-all keeps its inline <use href="#icon-archive"/> (U2
-    // crypt) directly — DECOUPLED from the nav-archive tab. The tab is now the AA1
-    // sarcophagus (a navigation identity); the archive ACTION is the U2 crypt
-    // («хоронить, не складировать»), consistent with per-task/⋯ «В архив». The old
-    // clone-from-tab hack would have dragged the sarcophagus onto the action button.
+    // O-FINAL партия 4: archive-all и bulk-archive ушли на СВОИ symbol'ы
+    // (#icon-archive-all = A2 оссуарий, #icon-archive-sel = B1 рунный круг).
+    // Нав-таб «Архив» — это AA1 саркофаг (навигационная идентичность), одиночное
+    // «В архив» — U2 крипта (IC.archive). Три смысла = три глифа; общий
+    // #icon-archive, который их склеивал, снят.
     // Inject gothic deadline-clear icon into the inline form X button
     const btnDlClear = document.getElementById('deadline-clear-btn');
     if (btnDlClear) btnDlClear.innerHTML = IC.deadlineClear;
