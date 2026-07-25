@@ -82,15 +82,15 @@
                 Задачи
             </button>
             <button class="nav-tab" id="nav-archive" data-act="switchPage" data-page="archive">
-                <!-- AA1: sarcophagus on pedestal with cross (Archive tab) — redrawn on the 13px pixel grid -->
-                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2.5 9.5L3.5 4.5H9.5L10.5 9.5Z"/>
-                    <path d="M3 4.5L3.8 1.5H9.2L10 4.5"/>
-                    <line x1="6.5" y1="6" x2="6.5" y2="8" opacity="0.85"/>
-                    <line x1="5.5" y1="6.5" x2="7.5" y2="6.5" opacity="0.85"/>
-                    <line x1="3.5" y1="9.5" x2="3.5" y2="11.5" opacity="0.75"/>
-                    <line x1="9.5" y1="9.5" x2="9.5" y2="11.5" opacity="0.75"/>
-                    <line x1="2.5" y1="11.5" x2="10.5" y2="11.5" opacity="0.6"/>
+                <!-- AA1b: rectilinear tomb chest — slab lid / body with cross / plinth (Archive tab).
+                     No slanted edge survives 13px: a 1-in-5 slope aliases into a staircase and
+                     reads as "crooked". Every edge is now orthogonal and on the pixel grid. -->
+                <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
+                    <rect x="2.5" y="1.5" width="8" height="2"/>
+                    <rect x="3.5" y="3.5" width="6" height="6"/>
+                    <rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/>
+                    <line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>
+                    <line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/>
                 </svg>
                 Архив
                 <span class="archive-badge" id="archive-badge" style="display:none"></span>
@@ -757,15 +757,13 @@
         <div id="archive-page" style="display:none">
             <div class="archive-header">
                 <h3 class="archive-title" id="archive-title-icon">
-                    <!-- AA1: same sarcophagus as the Archive nav tab (13px pixel grid) -->
-                    <svg aria-hidden="true" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2.5 9.5L3.5 4.5H9.5L10.5 9.5Z"/>
-                        <path d="M3 4.5L3.8 1.5H9.2L10 4.5"/>
-                        <line x1="6.5" y1="6" x2="6.5" y2="8" opacity="0.85"/>
-                        <line x1="5.5" y1="6.5" x2="7.5" y2="6.5" opacity="0.85"/>
-                        <line x1="3.5" y1="9.5" x2="3.5" y2="11.5" opacity="0.75"/>
-                        <line x1="9.5" y1="9.5" x2="9.5" y2="11.5" opacity="0.75"/>
-                        <line x1="2.5" y1="11.5" x2="10.5" y2="11.5" opacity="0.6"/>
+                    <!-- AA1b: same rectilinear tomb chest as the Archive nav tab (13px pixel grid) -->
+                    <svg aria-hidden="true" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
+                        <rect x="2.5" y="1.5" width="8" height="2"/>
+                        <rect x="3.5" y="3.5" width="6" height="6"/>
+                        <rect x="1.5" y="9.5" width="10" height="2" opacity="0.75"/>
+                        <line x1="6.5" y1="5" x2="6.5" y2="8" stroke-linecap="butt" opacity="0.85"/>
+                        <line x1="5" y1="6.5" x2="8" y2="6.5" stroke-linecap="butt" opacity="0.85"/>
                     </svg>
                     Архив
                 </h3>
