@@ -401,7 +401,7 @@
                          Icon + option list injected by JS (_renderTaskSortControl). -->
                     <span class="task-sort dl-month-picker" id="task-sort-picker">
                         <button class="btn-tool" id="btn-sort-mode" type="button" data-act="toggleSortPicker"
-                                aria-haspopup="listbox" aria-expanded="false" title="Сортировка"></button>
+                                aria-haspopup="listbox" aria-expanded="false" title="Порядок"></button>
                         <div class="dl-month-list task-sort-list" id="task-sort-list" role="listbox" aria-hidden="true"></div>
                     </span>
                     <!-- Web Notifications bell (hidden if API unsupported) -->
@@ -414,7 +414,7 @@
                             <line x1="9.5" y1="2.2" x2="14.5" y2="2.2" stroke-width="1.2" opacity="0.5"/>
                         </svg>
                     </button>
-                    <button class="btn-tool" id="btn-schedule" data-act="toggleScheduleMode" title="Сортировка по дедлайну">
+                    <button class="btn-tool" id="btn-schedule" data-act="toggleScheduleMode" title="Порядок по исходу">
                         <!-- T1 · Орлой (астрономический циферблат) -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10.3"/>
@@ -434,7 +434,7 @@
                             </svg>
                     </button>
                     <!-- P-B: "Today" view — lancet-arch tablet with a marked day (today only) -->
-                    <button class="btn-tool" id="btn-today" data-act="toggleTodayMode" title="Только на сегодня и просроченные">
+                    <button class="btn-tool" id="btn-today" data-act="toggleTodayMode" title="Лишь нынешние и просроченные">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4.5" y1="21" x2="4.5" y2="9"/><path d="M3 11L4.5 7L6 11"/><line x1="19.5" y1="21" x2="19.5" y2="9"/><path d="M18 11L19.5 7L21 11"/><line x1="2.5" y1="21" x2="21.5" y2="21" stroke-width="1.5"/><circle cx="12" cy="14.6" r="3.4"/><circle cx="12" cy="14.6" r="1" fill="currentColor" stroke="none"/><line x1="12" y1="9.6" x2="12" y2="7.8" stroke-width="1.2" opacity="0.65"/><line x1="8.6" y1="11.2" x2="7.5" y2="10.1" stroke-width="1.1" opacity="0.5"/><line x1="15.4" y1="11.2" x2="16.5" y2="10.1" stroke-width="1.1" opacity="0.5"/></svg>
                     </button>
                     <!-- P7: Split groups — gothic bifurcation rune (two lancet arches side by side) -->
@@ -482,7 +482,7 @@
                     <button class="btn-tool" id="btn-sub-anymode" data-act="openSubAnyModeMenu" title="Чек родителя по подпунктам" aria-haspopup="menu"></button>
                     </div><span class="toolbar-group-label">вид</span></div>
                     <div class="toolbar-group"><div class="toolbar-group-btns">
-                    <button class="btn-tool" id="btn-filter" data-act="toggleFilter" title="Фильтр: только невыполненные">
+                    <button class="btn-tool" id="btn-filter" data-act="toggleFilter" title="Явить лишь неисполненные">
                         <!-- P3 gothic eye of truth, OFF state (wide open = all tasks shown).
                              Filter ON swaps the whole glyph for the half-lidded one —
                              see IC.gothEyeOpen / IC.gothEyeHalf + eyeGlyph() in 01-core. -->
@@ -517,7 +517,7 @@
                     </div><span class="toolbar-group-label">фильтр</span></div>
                     <div class="toolbar-group"><div class="toolbar-group-btns">
                     <!-- Bulk select toggle for main list -->
-                    <button class="btn-tool" id="btn-main-select" data-act="toggleMainSelectMode" title="Выбрать несколько задач">
+                    <button class="btn-tool" id="btn-main-select" data-act="toggleMainSelectMode" title="Отметить несколько обетов">
                         <!-- Two gothic lancet arches offset behind each other (= "multiple items").
                              Front arch has a gothic cross-check mark (= "select").
                              The heraldic "doubles" pattern communicates plurality. -->
@@ -536,7 +536,7 @@
                     </div><span class="toolbar-group-label">выбор</span></div>
                     <div class="toolbar-group toolbar-group-data"><div class="toolbar-group-btns">
                     <!-- T1 · Манускрипт-экспорт: валик с шарами-навершиями, подвязки, кованая стрела вниз -->
-                    <button class="btn-tool" id="btn-export" data-act="openExportMenu" title="Экспорт: только задачи / всё" aria-haspopup="menu">
+                    <button class="btn-tool" id="btn-export" data-act="openExportMenu" title="Отдать свиток: только обеты / всё" aria-haspopup="menu">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="5.6" y1="3.4" x2="18.4" y2="3.4" stroke-width="1.4"/>
                             <circle cx="4.6" cy="3.4" r="0.8" stroke-width="1.2"/>
@@ -554,7 +554,7 @@
                         </svg>
                     </button>
                     <!-- T1 · Манускрипт-импорт: та же рама, стрела вверх -->
-                    <button class="btn-tool" data-act="triggerImport" title="Импорт полного бэкапа DUSK (.json)">
+                    <button class="btn-tool" data-act="triggerImport" title="Принять свиток DUSK (.json)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="5.6" y1="3.4" x2="18.4" y2="3.4" stroke-width="1.4"/>
                             <circle cx="4.6" cy="3.4" r="0.8" stroke-width="1.2"/>
@@ -588,13 +588,13 @@
                             <path d="M9.7 19Q12 16.4 14.3 19Z" fill="currentColor" stroke="none" opacity="0.8"/>
                         </svg>
                     </button>
-                    <button class="btn-tool" id="btn-archive-all" data-act="archiveAll" title="Архивировать всё"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive-all"/></svg></button>
-                    <button class="btn-tool btn-danger" data-act="clearAll" title="Удалить всё навсегда">
+                    <button class="btn-tool" id="btn-archive-all" data-act="archiveAll" title="Предать склепу всё"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive-all"/></svg></button>
+                    <button class="btn-tool btn-danger" data-act="clearAll" title="Уничтожить всё">
                         <!-- AT1 на постаменте из трёх плит — квантор «ВСЁ». Голый череп остался у ОДИНОЧНОГО
                              «удалить навсегда»; тут стирается вся база, и глиф обязан это показывать. -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-purge-all"/></svg>
                     </button>
-                    </div><span class="toolbar-group-label">данные</span></div>
+                    </div><span class="toolbar-group-label">хранилище</span></div>
                 </div>
             </div>
 
@@ -647,10 +647,10 @@
                 <div class="select-bar-actions">
                     <!-- Cluster 1 — bulk priority -->
                     <div class="select-bar-group">
-                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="high" title="Высокий приоритет"><span class="prio-dot prio-high"></span></button>
-                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="medium" title="Средний приоритет"><span class="prio-dot prio-medium"></span></button>
-                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="low" title="Низкий приоритет"><span class="prio-dot prio-low"></span></button>
-                        <button class="sb-btn prio-bulk-btn sb-prio-none" data-act="bulkSetPriority" data-prio="none" title="Без приоритета"><span class="prio-dot prio-none"></span></button>
+                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="high" title="Высокий ранг"><span class="prio-dot prio-high"></span></button>
+                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="medium" title="Средний ранг"><span class="prio-dot prio-medium"></span></button>
+                        <button class="sb-btn prio-bulk-btn" data-act="bulkSetPriority" data-prio="low" title="Низкий ранг"><span class="prio-dot prio-low"></span></button>
+                        <button class="sb-btn prio-bulk-btn sb-prio-none" data-act="bulkSetPriority" data-prio="none" title="Без ранга"><span class="prio-dot prio-none"></span></button>
                     </div>
                     <!-- Cluster 2 — group / colour / deadline -->
                     <div class="select-bar-group">
@@ -699,7 +699,7 @@
                     </div>
                     <!-- Cluster 3 — archive / delete -->
                     <div class="select-bar-group">
-                        <button class="sb-btn sb-archive" id="btn-bulk-archive" data-act="bulkArchive" disabled title="Архивировать отмеченные">
+                        <button class="sb-btn sb-archive" id="btn-bulk-archive" data-act="bulkArchive" disabled title="Предать склепу отмеченные">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive-sel"/></svg>
                         </button>
                         <button class="sb-btn sb-delete" id="btn-bulk-delete" data-act="bulkDelete" disabled title="Удалить навсегда">
@@ -1864,8 +1864,8 @@ if ('serviceWorker' in navigator) {
 <div id="import-choice-overlay" style="display:none" class="modal-overlay"
      role="dialog" aria-modal="true" aria-labelledby="import-choice-title">
     <div class="modal import-choice-modal">
-        <h3 class="modal-title" id="import-choice-title">Импорт данных</h3>
-        <p class="import-choice-desc">Добавить задачи к существующим или полностью заменить?</p>
+        <h3 class="modal-title" id="import-choice-title">Принять свиток</h3>
+        <p class="import-choice-desc">Добавить к нынешним обетам или заместить всё?</p>
         <div class="modal-actions import-choice-actions">
             <button class="btn-modal-cancel" id="import-cancel-btn">Отмена</button>
             <button class="btn-modal-confirm" id="import-merge-btn">Добавить</button>

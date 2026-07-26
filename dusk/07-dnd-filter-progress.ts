@@ -277,10 +277,10 @@ function toggleFilter() {
     btnFilter.classList.toggle('active', isFiltered);
     btnFilter.innerHTML = eyeGlyph(isFiltered);   // P3: half-lidded when narrowed, open when not
     render();
-    showToast(isFiltered ? 'Фильтр: только невыполненные' : 'Показаны все задачи');
+    showToast(isFiltered ? 'Явить лишь неисполненные' : 'Явлены все обеты');
     // D-3: announce result count for screen readers
     const visible = _visibleTaskEls().length;
-    announce(isFiltered ? `Показано ${visible} невыполненных задач` : `Показаны все задачи`);
+    announce(isFiltered ? `Явлено ${visible} неисполненных обетов` : `Явлены все обеты`);
 }
 
 // Toggle schedule sort mode — null = global, number = per-group
@@ -306,12 +306,12 @@ function toggleTodayMode() {
     if (btn) btn.classList.toggle('active', isTodayMode);
     saveUiState();
     render();
-    showToast(isTodayMode ? 'Только на сегодня и просроченные' : 'Показаны все задачи');
+    showToast(isTodayMode ? 'Лишь нынешние и просроченные' : 'Явлены все обеты');
     if (isTodayMode) {
         const visible = _visibleTaskEls().length;
         announce(`На сегодня: ${visible} задач`);
     } else {
-        announce('Показаны все задачи');
+        announce('Явлены все обеты');
     }
 }
 

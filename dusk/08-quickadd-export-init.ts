@@ -274,9 +274,9 @@ const _EXPORT_MD_IC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 function openExportMenu(event) {
     event.stopPropagation();
     _openFloatMenu(event.currentTarget, `
-        <button type="button" role="menuitem" data-act="exportData" data-exp="tasks">${_EXPORT_TASKS_IC}<span>Только задачи</span></button>
-        <button type="button" role="menuitem" data-act="exportData" data-exp="all">${GRIM_IO_IC.full}<span>Всё — полный бэкап</span></button>
-        <button type="button" role="menuitem" data-act="exportData" data-exp="md">${_EXPORT_MD_IC}<span>Задачи — markdown-чеклист</span></button>`,
+        <button type="button" role="menuitem" data-act="exportData" data-exp="tasks">${_EXPORT_TASKS_IC}<span>Только обеты</span></button>
+        <button type="button" role="menuitem" data-act="exportData" data-exp="all">${GRIM_IO_IC.full}<span>Всё — полный свиток</span></button>
+        <button type="button" role="menuitem" data-act="exportData" data-exp="md">${_EXPORT_MD_IC}<span>Обеты — markdown-чеклист</span></button>`,
         'export-menu');
 }
 
@@ -291,12 +291,12 @@ function openToolsMenu(event) {
     event.stopPropagation();
     _toolsMenuAnchor = event.currentTarget;
     _openFloatMenu(event.currentTarget, `
-        <div class="float-menu-head">Данные</div>
-        <button type="button" role="menuitem" data-act="_toolsMore" data-more="export">${_TOOLS_EXPORT_IC}<span>Экспорт…</span></button>
-        <button type="button" role="menuitem" data-act="_toolsMore" data-more="import">${_TOOLS_IMPORT_IC}<span>Импорт бэкапа (.json)</span></button>
+        <div class="float-menu-head">Хранилище</div>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="export">${_TOOLS_EXPORT_IC}<span>Отдать свиток…</span></button>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="import">${_TOOLS_IMPORT_IC}<span>Принять свиток (.json)</span></button>
         <button type="button" role="menuitem" data-act="_toolsMore" data-more="backups">${_TOOLS_BACKUP_IC}<span>Точки восстановления</span></button>
-        <button type="button" role="menuitem" data-act="_toolsMore" data-more="archiveAll">${IC.archiveAll}<span>Архивировать всё</span></button>
-        <button type="button" role="menuitem" class="fm-danger fm-clear-all" data-act="clearAll" title="Удалить всё навсегда">${IC.purgeAll}<span>Удалить всё навсегда</span></button>`,
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="archiveAll">${IC.archiveAll}<span>Предать склепу всё</span></button>
+        <button type="button" role="menuitem" class="fm-danger fm-clear-all" data-act="clearAll" title="Уничтожить всё">${IC.purgeAll}<span>Уничтожить всё</span></button>`,
         'tools-menu');
 }
 function _toolsMore(act) {
@@ -335,7 +335,7 @@ function exportData(scope) {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast(scope === 'tasks' ? `Экспортировано (только задачи): ${filename}` : `Экспортировано: ${filename}`);
+    showToast(scope === 'tasks' ? `Начертано в свиток (только обеты): ${filename}` : `Начертано в свиток: ${filename}`);
 }
 
 // X-2: serialize tasks to a portable markdown checklist (grouped, nested subtasks,

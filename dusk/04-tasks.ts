@@ -1160,7 +1160,7 @@ function archiveAll() {
     });
     state.tasks = [];
     saveState(); render();
-    showToast('Все задачи архивированы', { undo: true });
+    showToast('Все обеты преданы склепу', { undo: true });
 }
 
 // ── Two-step confirm helpers ──────────────────────────────────────────────────
@@ -1181,7 +1181,7 @@ function clearAll() {
         if (_clearAllArmed) {
             clearTimeout(_clearAllTimer);
             _clearAllArmed = false;
-            if (btn) { btn.classList.remove('confirm-armed'); btn.title = 'Удалить всё навсегда'; }
+            if (btn) { btn.classList.remove('confirm-armed'); btn.title = 'Уничтожить всё'; }
         }
         return;
     }
@@ -1191,18 +1191,18 @@ function clearAll() {
         _clearAllArmed = true;
         if (btn) {
             btn.classList.add('confirm-armed');
-            btn.title = 'Нажмите ещё раз — удалить всё';
+            btn.title = 'Нажмите ещё раз — уничтожить всё';
         }
         _clearAllTimer = setTimeout(() => {
             _clearAllArmed = false;
-            if (btn) { btn.classList.remove('confirm-armed'); btn.title = 'Удалить всё навсегда'; }
+            if (btn) { btn.classList.remove('confirm-armed'); btn.title = 'Уничтожить всё'; }
         }, 3000);
         return;
     }
     // ── Fire ──
     clearTimeout(_clearAllTimer);
     _clearAllArmed = false;
-    if (btn) { btn.classList.remove('confirm-armed'); btn.title = 'Удалить всё навсегда'; }
+    if (btn) { btn.classList.remove('confirm-armed'); btn.title = 'Уничтожить всё'; }
     if (btn && btn.classList.contains('fm-clear-all')) closeFloatMenu();   // F2: fired from the tools sheet
 
     pushUndo();
@@ -1216,7 +1216,7 @@ function clearAll() {
     state.tasks.forEach(t => addTombstone(t.uid, 'task'));   // Idea 8: tombstone every wiped task
     state.tasks = [];
     saveState(); render();
-    showToast('Все задачи удалены навсегда', { undo: true });
+    showToast('Все обеты уничтожены', { undo: true });
 }
 
 // Delete group — two-step confirm keyed by group id

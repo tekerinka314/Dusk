@@ -200,10 +200,10 @@ function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride
         : `
                 <div class="group-actions" data-act="noop">
                     <button class="btn-group-action${grpSched ? ' active-sched' : ''}"
-                            data-act="toggleScheduleMode" title="Сортировка по дедлайну">${IC.sundial}</button>
+                            data-act="toggleScheduleMode" title="Порядок по исходу">${IC.sundial}</button>
                     ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
-                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}">${IC.focusMode}</button>
+                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Замкнуться на этой группе'}">${IC.focusMode}</button>
                     <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
                     <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
                     <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>
@@ -227,9 +227,9 @@ function openGroupMoreMenu(event, id) {
     const grpSched = scheduleModeGroups.has(id);
     const grpSortMode = getEffectiveSortMode(id);
     _openFloatMenu(event.currentTarget, `
-        <button type="button" role="menuitemcheckbox" aria-checked="${grpSched}" class="${grpSched ? 'fm-on' : ''}" data-act="_groupMore" data-more="sched" data-gid="${id}">${IC.sundial}<span>Сортировка по дедлайну</span></button>
+        <button type="button" role="menuitemcheckbox" aria-checked="${grpSched}" class="${grpSched ? 'fm-on' : ''}" data-act="_groupMore" data-more="sched" data-gid="${id}">${IC.sundial}<span>Порядок по исходу</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="sort" data-gid="${id}">${_taskSortIcon(grpSortMode)}<span>Порядок: ${_taskSortLabel(grpSortMode).toLowerCase()}</span></button>
-        <button type="button" role="menuitemcheckbox" aria-checked="${focusGroupId === id}" class="${focusGroupId === id ? 'fm-on' : ''}" data-act="_groupMore" data-more="focus" data-gid="${id}">${IC.focusMode}<span>${focusGroupId === id ? 'Снять фокус' : 'Фокус на этой группе'}</span></button>
+        <button type="button" role="menuitemcheckbox" aria-checked="${focusGroupId === id}" class="${focusGroupId === id ? 'fm-on' : ''}" data-act="_groupMore" data-more="focus" data-gid="${id}">${IC.focusMode}<span>${focusGroupId === id ? 'Снять фокус' : 'Замкнуться на этой группе'}</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="dup" data-gid="${id}">${IC.twinCoffin}<span>Дублировать группу</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="rename" data-gid="${id}">${IC.quill}<span>Переименовать</span></button>
         <button type="button" role="menuitem" class="fm-danger fm-group-del" data-act="_groupMore" data-more="delete" data-gid="${id}">${IC.tombstone}<span>Удалить группу</span></button>`,
@@ -884,7 +884,7 @@ function scheduleActive(groupId) {
 // ── NA-11: task sort as a gothic 3-mode picker (priority / order / alpha), global +
 // per-group override. Reuses the .dl-month-* picker visuals (deadline / grimoire sort).
 const TASK_SORTS = [
-    { k: 'priority', label: 'По приоритету' },
+    { k: 'priority', label: 'По рангу' },
     { k: 'order',    label: 'По порядку'    },
     { k: 'alpha',    label: 'По алфавиту'   },
 ];
@@ -905,7 +905,7 @@ function _groupSortPicker(groupId, curK, hasOverride) {
     return `<span class="task-sort grp-sort dl-month-picker">
         <button class="btn-group-action btn-group-sort${hasOverride ? ' sort-overridden' : ''}" type="button"
                 data-act="toggleSortPicker" aria-haspopup="listbox" aria-expanded="false"
-                title="Сортировка: ${_taskSortLabel(curK).toLowerCase()}">${_taskSortIcon(curK)}</button>
+                title="Порядок: ${_taskSortLabel(curK).toLowerCase()}">${_taskSortIcon(curK)}</button>
         <div class="dl-month-list task-sort-list" role="listbox" aria-hidden="true">${_taskSortOptions(curK, groupId)}</div>
     </span>`;
 }
@@ -914,7 +914,7 @@ function _renderTaskSortControl() {
     const btn = document.getElementById('btn-sort-mode');
     if (btn) {
         btn.innerHTML = _taskSortIcon(state.sortMode);
-        btn.title = 'Сортировка: ' + _taskSortLabel(state.sortMode).toLowerCase();
+        btn.title = 'Порядок: ' + _taskSortLabel(state.sortMode).toLowerCase();
         btn.classList.toggle('active', state.sortMode !== 'priority');   // priority = the default
     }
     const list = document.getElementById('task-sort-list');
@@ -994,7 +994,7 @@ function setTaskSort(k) {
     saveState();
     render();
     _renderTaskSortControl();
-    showToast('Сортировка: ' + _taskSortLabel(k).toLowerCase());
+    showToast('Порядок: ' + _taskSortLabel(k).toLowerCase());
 }
 // Per-group override (clears itself when it matches the global mode → group follows global).
 function setGroupSort(groupId, k) {
@@ -1014,11 +1014,11 @@ function toggleSortMode() {
     const btn = document.getElementById('btn-sort-mode');
     if (btn) {
         btn.innerHTML = state.sortMode === 'order' ? IC.sortOrder : IC.sortPriority;
-        btn.title     = state.sortMode === 'order' ? 'Режим: по порядку' : 'Режим: по приоритету';
+        btn.title     = state.sortMode === 'order' ? 'Режим: по порядку' : 'Режим: по рангу';
         btn.classList.toggle('active', state.sortMode === 'order');
     }
     render();
-    showToast(state.sortMode === 'order' ? 'Сортировка: по порядку' : 'Сортировка: по приоритету');
+    showToast(state.sortMode === 'order' ? 'Порядок: по порядку' : 'Порядок: по рангу');
 }
 
 function toggleGroupSortMode(groupId) {
@@ -1554,7 +1554,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             // C3-2: do NOT wipe undoStack — pushUndo() above is the only safety net
             // that lets the user undo a destructive "Replace" import.
             saveState(); render(); updateArchiveBadge();
-            showToast(`Импортировано: ${state.tasks.length} задач`, { undo: true });
+            showToast(`Принято обетов: ${state.tasks.length}`, { undo: true });
         };
 
         mergeBtn.onclick = () => {
@@ -1653,8 +1653,8 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         // title/desc, so set our own here too — each opener is self-contained, text can't bleed.
         const _t = document.getElementById('import-choice-title');
         const _d = overlay.querySelector('.import-choice-desc');
-        if (_t) _t.textContent = 'Импорт данных';
-        if (_d) _d.textContent = 'Добавить задачи к существующим или полностью заменить?';
+        if (_t) _t.textContent = 'Принять свиток';
+        if (_d) _d.textContent = 'Добавить к нынешним обетам или заместить всё?';
         // U-1: NO backdrop-close for this destructive choice (per user) — a stray click
         // outside must not dismiss it. Esc + the three buttons remain the only exits.
         openModalWithFocus('import-choice-overlay');
@@ -1682,7 +1682,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         if (!keepGrim) _grimRestoreVersions(loaded, 'replace');   // NA-3: только если файл нёс записи
         // C3-2: keep the pre-import snapshot so Replace stays undoable.
         saveState(); render(); updateArchiveBadge();
-        showToast(`Импортировано: ${state.tasks.length} задач`, { undo: true });
+        showToast(`Принято обетов: ${state.tasks.length}`, { undo: true });
     }
 }
 
@@ -1924,7 +1924,7 @@ function renderGroupBar() {
         wrap.innerHTML = `
             <button type="button" class="meta-tag group-pill${focused ? ' pill-focused' : ''}" style="background:${bg};color:${g.color};border-color:${bd}"
                 data-act="focusGroupById" data-gid="${g.id}" aria-pressed="${focused}"
-                title="${focused ? 'Снять фокус' : 'Фокус на этой группе'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
+                title="${focused ? 'Снять фокус' : 'Замкнуться на этой группе'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
             <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd};--pill-bg:${bg}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
         groupsList.appendChild(wrap);
     });
