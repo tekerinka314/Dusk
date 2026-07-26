@@ -2122,6 +2122,10 @@ function loadUiState() {
         btnExpand.classList.add('open');
         extraFields.classList.add('open');
         extraFields.style.maxHeight = 'none';
+        // V2-B5-02: разметка стартует с inert (свёрнутое состояние по умолчанию);
+        // восстановленная открытая панель возвращает свои контролы в табы.
+        extraFields.removeAttribute('inert');
+        extraFields.style.visibility = '';
     }
     btnFilter.classList.toggle('active', isFiltered);
     btnFilter.innerHTML = eyeGlyph(isFiltered);   // P3: restored state draws its own glyph

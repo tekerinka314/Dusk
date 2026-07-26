@@ -589,6 +589,32 @@ function setFormRepeat(repeat) {
 // ============================================================
 //  EXPAND EXTRA FIELDS
 // ============================================================
+// V2-B5-02: свёрнутая панель клипуется max-height:0, но её ~40 контролов
+// остаются фокусируемыми (31 таб-стоп ПЕРЕД кнопкой «Параметры» — замерено).
+// `inert` убирает поддерево из табов и из AT, не трогая max-height-анимацию.
+// Фоллбэк для движков без inert — visibility:hidden, но только ПОСЛЕ анимации
+// (он прячет мгновенно и сорвал бы схлопывание).
+const _SUPPORTS_INERT = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
+
+function setExtraFieldsInert(on) {
+    const ef = extraFields as any;
+    if (ef._inertCancel) { ef._inertCancel(); ef._inertCancel = null; }
+    if (on) {
+        // Фокус внутри гасимого поддерева иначе улетает на <body>.
+        if (extraFields.contains(document.activeElement)) btnExpand.focus();
+        extraFields.setAttribute('inert', '');
+        if (!_SUPPORTS_INERT) {
+            ef._inertCancel = onMaxHeightEnd(extraFields, () => {
+                ef._inertCancel = null;
+                if (!expandOpen) extraFields.style.visibility = 'hidden';
+            });
+        }
+    } else {
+        extraFields.removeAttribute('inert');
+        extraFields.style.visibility = '';
+    }
+}
+
 function toggleExpand() {
     expandOpen = !expandOpen;
     saveUiState();
@@ -596,6 +622,7 @@ function toggleExpand() {
 
     if (expandOpen) {
         // ── Open: measure content height and animate to it ──────────
+        setExtraFieldsInert(false);   // до замера scrollHeight
         extraFields.classList.add('open');
         extraFields.style.maxHeight = extraFields.scrollHeight + 'px';
         // M-4: switch to 'none' only after the MAX-HEIGHT transition ends (the
@@ -609,6 +636,7 @@ function toggleExpand() {
     } else {
         // ── Close: pin current height first, then animate to 0 ──────
         extraFields.style.maxHeight = extraFields.scrollHeight + 'px';
+        setExtraFieldsInert(true);
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 extraFields.style.maxHeight = '0';

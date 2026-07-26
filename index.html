@@ -141,7 +141,10 @@
                     <span><b>!</b>приоритет</span>
                 </div>
 
-                <div class="extra-fields" id="extra-fields">
+                <!-- V2-B5-02: панель стартует свёрнутой (max-height:0), поэтому
+                     её ~40 контролов должны быть ВНЕ цепочки табов. inert снимает
+                     toggleExpand / loadUiState при развороте. -->
+                <div class="extra-fields" id="extra-fields" inert>
                     <div class="extra-row">
                         <div class="field-group">
                             <label class="field-label">Приоритет</label>
