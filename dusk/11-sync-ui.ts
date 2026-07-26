@@ -7,6 +7,7 @@ Object.assign(globalThis, {
     syncNow, scheduleSyncPush, _afterSaveState, _toastResult, _toastErr, syncSignIn, syncSignOut, syncNowManual,
     _syncPanelHtml, openSyncPanel, _refreshSyncPanelIfOpen, _escHtml, _collArrays, _findRec, _findTask, _allocId,
     _subsetToLive, restoreQuarantineEntry, _resolveEntry, _entryWhat, _entryLoserPreview, _trim, _esc, openQuarantine,
+    _quarFieldRu, _quarValueRu,
     _refreshQuarOverlay, closeQuarantine, _quarListHTML, _initSyncUI,
 });
 
@@ -611,25 +612,90 @@ function _resolveEntry(entryUid, action) {
     refreshQuarantineBadge();
 }
 
+// V2-B4-07: разбор конфликтов существует ДЛЯ ЧЕЛОВЕКА, а не для отладки, поэтому
+// внутренние имена полей («text», «name», «_groupUid») в него не протекают.
+// Карта (recType → поле → RU); общий раздел '*' покрывает поля, одинаковые у всех
+// видов записей. Незнакомое поле деградирует в нейтральное «поле «X»» — это хуже
+// человеческого имени, но всё ещё честно и никогда не бросает.
+const _QUAR_FIELD_RU = {
+    '*': {
+        color: 'Цвет метки', order: 'Порядок в списке', archivedAt: 'Архивация',
+        _arch: 'Архивация',
+    },
+    tasks: {
+        text: 'Заголовок задачи', note: 'Заметка задачи', deadline: 'Дедлайн задачи',
+        priority: 'Приоритет задачи', checked: 'Отметка «выполнено»', pinned: 'Закрепление',
+        repeat: 'Повтор', cycleChecked: 'Отметка цикла', nextReset: 'Возврат повтора',
+        subtasksOpen: 'Раскрытие подпунктов', noteOpen: 'Раскрытие заметки',
+        groupId: 'Группа', _groupUid: 'Группа',
+    },
+    groups:    { name: 'Название группы', color: 'Цвет группы' },
+    notes:     { title: 'Заголовок записи', body: 'Текст записи', color: 'Цвет записи', fmt: 'Оформление' },
+    templates: { text: 'Название шаблона', note: 'Заметка шаблона', priority: 'Приоритет шаблона',
+                 deadline: 'Дедлайн шаблона', repeat: 'Повтор шаблона' },
+};
+const _QUAR_REC_RU = { tasks: 'задачи', groups: 'группы', notes: 'записи', templates: 'шаблона' };
+const _QUAR_REC_NOM = { tasks: 'Задача', groups: 'Группа', notes: 'Запись', templates: 'Шаблон' };
+
+function _quarFieldRu(recType, field) {
+    const byType = _QUAR_FIELD_RU[recType] || {};
+    return byType[field] || _QUAR_FIELD_RU['*'][field] || null;
+}
+
 // Human label for an entry (best-effort; falls back to the record type).
 function _entryWhat(e) {
     const T = { field: 'поле', subtask: 'подпункт', 'delete-vs-edit': 'удаление', 'note-both': 'заметка' };
     if (e.kind === 'subtask') {
         const t = _findTask(state, e.parentUid);
-        return 'подпункт' + (t && t.text ? ' в «' + _trim(t.text) + '»' : '');
+        return 'Текст подпункта' + (t && t.text ? ' — в «' + _trim(t.text) + '»' : '');
     }
     if (e.kind === 'field') {
         const r = _findRec(state, e.recType, e.recUid);
-        const name = r ? (r.text || r.name || '') : '';
-        return 'поле «' + e.field + '»' + (name ? ' — «' + _trim(name) + '»' : '');
+        const name = r ? (r.text || r.name || r.title || '') : '';
+        const human = _quarFieldRu(e.recType, e.field);
+        const what = human || ('поле «' + e.field + '» ' + (_QUAR_REC_RU[e.recType] || ''));
+        return what.trim() + (name ? ' — «' + _trim(name) + '»' : '');
     }
     if (e.kind === 'delete-vs-edit') {
         const l = e.loser || {};
-        return 'удалённая запись' + (l.text || l.name ? ' «' + _trim(l.text || l.name) + '»' : '');
+        const who = _QUAR_REC_NOM[e.recType] || 'Запись';
+        const name = l.text || l.name || l.title;
+        return who + ' удалена при правке на другом устройстве' + (name ? ' — «' + _trim(name) + '»' : '');
     }
-    if (e.kind === 'note-both') return 'заметка изменена на двух устройствах';
+    if (e.kind === 'note-both') return 'Запись изменена на двух устройствах — сохранены обе версии';
     return T[e.kind] || 'конфликт';
 }
+// V2-B4-07 (вторая течь): у field-конфликта превью показывало СЫРОЕ значение —
+// `true`, `high`, `{"mode":"date","value":…}`. Человек, который решает «вернуть
+// или отклонить», должен видеть значение своими словами.
+const _QUAR_PRIO_RU   = { none: 'Нет', low: 'Низкий', medium: 'Средний', high: 'Высокий' };
+const _QUAR_REPEAT_RU = { none: 'Нет', daily: 'Ежедневно', weekly: 'Еженедельно',
+                          weekdays: 'По будням', monthly: 'Ежемесячно' };
+
+function _quarValueRu(recType, field, v) {
+    if (v === null || v === undefined || v === '') return '';
+    if (typeof v === 'boolean') return v ? 'да' : 'нет';
+    if (field === 'priority') return _QUAR_PRIO_RU[v] || String(v);
+    if (field === 'repeat')   return _QUAR_REPEAT_RU[v] || String(v);
+    if (field === 'deadline') {
+        // Значение приехало с другого устройства — форма не гарантирована, а
+        // форматтер на кривом входе не бросает, а возвращает мусор («NaN undefined
+        // NaN»): проверяем результат, а не только исключение.
+        let s = '';
+        try { s = formatDeadlineAbsolute(v, true) || ''; } catch (err) { s = ''; }
+        return (s && !/NaN|undefined|Invalid/.test(s)) ? s : 'дедлайн';
+    }
+    if (field === '_groupUid' || field === 'groupId') {
+        const g = _findRec(state, 'groups', v);
+        return g && g.name ? g.name : 'без группы';
+    }
+    if (field === 'nextReset' || field === 'archivedAt') {
+        const d = new Date(Number(v));
+        return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString('ru-RU');
+    }
+    return typeof v === 'object' ? JSON.stringify(v) : String(v);
+}
+
 function _entryLoserPreview(e) {
     // V2-B6-04: label fields can legitimately be empty while the record still
     // carries recoverable content — notes are body-first, subtasks can be
@@ -639,7 +705,9 @@ function _entryLoserPreview(e) {
     const l = e.loser;
     const v = e.kind === 'field' ? l
         : (l && (l.text || l.name || l.title || l.body || l.note)) || '';
-    let s = typeof v === 'object' ? JSON.stringify(v) : String(v == null ? '' : v);
+    let s = e.kind === 'field'
+        ? _quarValueRu(e.recType, e.field, v)
+        : (typeof v === 'object' ? JSON.stringify(v) : String(v == null ? '' : v));
     s = s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();   // strip any HTML, collapse ws
     return s.length > 120 ? s.slice(0, 117) + '…' : s;
 }

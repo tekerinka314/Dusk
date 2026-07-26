@@ -41,8 +41,13 @@ it('a truly empty loser still previews empty (→ «пусто» in the panel)',
     expect(P({ kind: 'subtask', loser: { text: '', note: '' } })).toBe('');
 });
 
-it('field kind unchanged: raw loser value (string / object JSON / false)', () => {
+// V2-B4-07 переопределил этот кейс: field-превью больше НЕ сырое — значение
+// проходит через _quarValueRu (булево → «да/нет», приоритет/повтор → слова,
+// дедлайн → дата). Пин сохранён на том, что не покрыто картой: обычная строка
+// проходит как есть, а неизвестный объект всё ещё деградирует в JSON, а не в
+// «пусто» (потерять содержимое проигравшей стороны нельзя — её удалит GC).
+it('field kind: строка как есть, булево словом, неизвестный объект — JSON', () => {
     expect(P({ kind: 'field', loser: 'строка' })).toBe('строка');
-    expect(P({ kind: 'field', loser: false })).toBe('false');
+    expect(P({ kind: 'field', loser: false })).toBe('нет');
     expect(P({ kind: 'field', loser: { a: 1 } })).toBe('{"a":1}');
 });
