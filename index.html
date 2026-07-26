@@ -129,8 +129,8 @@
             <!-- Input Section -->
             <div class="input-section">
                 <div class="row" id="input-row">
-                    <input type="text" id="input-box" placeholder="Новая задача..." autocomplete="off" spellcheck="false" maxlength="200" autocapitalize="off" autocorrect="off" enterkeyhint="done">
-                    <button class="btn-add" id="btn-add" data-act="addTask" title="Добавить задачу">
+                    <input type="text" id="input-box" placeholder="Новый обет…" autocomplete="off" spellcheck="false" maxlength="200" autocapitalize="off" autocorrect="off" enterkeyhint="done">
+                    <button class="btn-add" id="btn-add" data-act="addTask" title="Дать обет">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4.8" x2="12" y2="19.2"/><line x1="4.8" y1="12" x2="19.2" y2="12"/><line x1="10.2" y1="6.4" x2="13.8" y2="6.4" stroke-width="1.4"/><line x1="10.2" y1="17.6" x2="13.8" y2="17.6" stroke-width="1.4"/><line x1="6.4" y1="10.2" x2="6.4" y2="13.8" stroke-width="1.4"/><line x1="17.6" y1="10.2" x2="17.6" y2="13.8" stroke-width="1.4"/><circle cx="12" cy="4" r="1" stroke-width="1.3"/><circle cx="12" cy="20" r="1" stroke-width="1.3"/><circle cx="4" cy="12" r="1" stroke-width="1.3"/><circle cx="20" cy="12" r="1" stroke-width="1.3"/><circle cx="12" cy="12" r="1.5" stroke-width="1.4"/></svg>
                     </button>
                 </div>
@@ -138,7 +138,7 @@
                 <div class="qa-syntax-hint" id="qa-syntax-hint" aria-hidden="true">
                     <span><b>*</b>тег</span>
                     <span><b>%</b>дата</span>
-                    <span><b>!</b>приоритет</span>
+                    <span><b>!</b>ранг</span>
                 </div>
 
                 <!-- V2-B5-02: панель стартует свёрнутой (max-height:0), поэтому
@@ -147,7 +147,7 @@
                 <div class="extra-fields" id="extra-fields" inert>
                     <div class="extra-row">
                         <div class="field-group">
-                            <label class="field-label">Приоритет</label>
+                            <label class="field-label">Ранг</label>
                             <div class="prio-grid" id="priority-selector">
                                 <button class="prio-grid-btn active" data-prio="none"><span class="prio-dot prio-none"></span>Нет</button>
                                 <button class="prio-grid-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
@@ -224,24 +224,24 @@
                     </div>
                     <div class="extra-row">
                         <div class="field-group field-deadline">
-                            <label class="field-label">Дедлайн</label>
+                            <label class="field-label">Исход</label>
                             <button class="deadline-trigger" id="deadline-trigger" data-act="openFormDeadline">
                                 <!-- B1 · Свеча в окне — тот же арт, что init подставляет сюда (IMP-7) и что несёт
                              дедлайн по всему приложению. Инлайн-арка тут была мёртвой заготовкой и
                              вдобавок совпадала с «По будням» в модалке повтора. -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V11C6 6.6 8.7 3.6 12 3.6C15.3 3.6 18 6.6 18 11V21"/><line x1="3.6" y1="21" x2="20.4" y2="21" stroke-width="1.6"/><path d="M10.7 21V13.6H13.3V21" stroke-width="1.4"/><line x1="13.3" y1="15.6" x2="13.3" y2="17" stroke-width="2" opacity="0.5"/><line x1="12" y1="13.6" x2="12" y2="12.5" stroke-width="1.1"/><path d="M12 8.9C10.95 10.35 11.25 11.85 12 12.1C12.75 11.85 13.05 10.35 12 8.9Z" fill="currentColor" stroke="currentColor" stroke-width="0.9"/><line x1="9.4" y1="9.4" x2="8.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="14.6" y1="9.4" x2="15.5" y2="8.7" stroke-width="1" opacity="0.5"/><line x1="12" y1="6.8" x2="12" y2="5.7" stroke-width="1" opacity="0.5"/></svg>
-                                <span id="deadline-trigger-text">Установить дедлайн</span>
-                                <span class="deadline-clear-btn" id="deadline-clear-btn" data-act="clearFormDeadline" style="display:none" title="Снять дедлайн"></span>
+                                <span id="deadline-trigger-text">Назначить исход</span>
+                                <span class="deadline-clear-btn" id="deadline-clear-btn" data-act="clearFormDeadline" style="display:none" title="Снять исход"></span>
                             </button>
                         </div>
                         <div class="field-group field-note">
-                            <label class="field-label">Заметка</label>
-                            <input type="text" id="task-note" class="note-input" placeholder="Краткий комментарий..." maxlength="300" spellcheck="false">
+                            <label class="field-label">Примечание</label>
+                            <input type="text" id="task-note" class="note-input" placeholder="Краткое примечание…" maxlength="300" spellcheck="false">
                         </div>
                     </div>
                     <div class="extra-row">
                         <div class="field-group field-repeat">
-                            <label class="field-label">Повтор</label>
+                            <label class="field-label">Круговорот</label>
                             <div class="repeat-selector" id="repeat-selector">
                                 <button class="repeat-btn active" data-repeat="none">Нет</button>
                                 <button class="repeat-btn" data-repeat="daily">Ежедневно</button>
@@ -305,7 +305,7 @@
                             <div class="form-subs-section">
                                 <div class="form-sub-add-row">
                                     <input class="form-sub-input" id="form-sub-input"
-                                        placeholder="Новый подпункт..."
+                                        placeholder="Новый подпункт…"
                                         maxlength="200" autocomplete="off" spellcheck="false"
                                         data-actkey="formSubAddKey">
                                     <button class="btn-form-sub-add" data-act="addFormSubtask" title="Добавить подпункт">
@@ -325,23 +325,23 @@
                     <div class="extra-row form-action-row">
                         <button type="button" class="form-flag-toggle" id="form-pin-toggle"
                                 data-act="toggleFormPin" aria-pressed="false"
-                                title="Закрепить новую задачу вверху списка">
+                                title="Пригвоздить новый обет наверху">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <line x1="12" y1="3" x2="12" y2="19"/>
                                 <path d="M9 7L12 3L15 7"/>
                                 <line x1="8" y1="10" x2="16" y2="10"/>
                                 <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
                             </svg>
-                            <span>Закрепить задачу</span>
+                            <span>Пригвоздить обет</span>
                         </button>
                         <button type="button" class="form-tpl-btn" data-act="saveFormAsTemplate"
-                                title="Сохранить параметры формы как шаблон (без создания задачи)">
+                                title="Сохранить условия как образец — обет при этом не даётся">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
                                 <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
                                 <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
                             </svg>
-                            <span>Сохранить как шаблон</span>
+                            <span>Сохранить как образец</span>
                         </button>
                     </div>
                 </div>
@@ -364,7 +364,7 @@
                         <path d="M2.5 6 L3.4 6.7 L3.4 5.3 Z" fill="currentColor" stroke="none"/>
                         <circle cx="1.6" cy="6" r="0.55" fill="currentColor" stroke="none" opacity="0.6"/>
                     </svg>
-                    <span class="be-label">Параметры</span>
+                    <span class="be-label">Условия обета</span>
                     <svg class="be-fil be-fil-r" viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 6 C15 6 15 2 10 2 C7 2 7 6 4 6"/>
                         <path d="M4 6 C7 6 7 10 10 10 C12.5 10 13.5 8 13.5 7"/>
@@ -606,13 +606,13 @@
                     Группа
                 </button>
                 <!-- Idea 6: templates launcher (hidden until at least one template exists) -->
-                <button class="btn-add-group btn-templates" id="btn-templates" data-act="openTemplatesModal" style="display:none" title="Создать задачу из шаблона">
+                <button class="btn-add-group btn-templates" id="btn-templates" data-act="openTemplatesModal" style="display:none" title="Отлить обет по образцу">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
                         <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
                         <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
                     </svg>
-                    Шаблоны
+                    Образцы
                 </button>
                 <div class="groups-list" id="groups-list"></div>
             </div>
@@ -1029,7 +1029,7 @@
 <div class="modal-overlay" id="deadline-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="deadline-modal-title">
     <div class="modal modal-deadline">
-        <h3 class="modal-title" id="deadline-modal-title">Установить дедлайн</h3>
+        <h3 class="modal-title" id="deadline-modal-title">Назначить исход</h3>
         <div class="dl-mode-grid">
             <button class="dl-mode-btn" data-mode="time">Время</button>
             <button class="dl-mode-btn" data-mode="weektime">День&nbsp;+&nbsp;Время</button>
@@ -1094,7 +1094,7 @@
                 </div>
                 <p class="dl-hint" id="dl-monthday-hint">Каждый N-й день месяца</p>
                 <p class="dl-hint dl-monthday-warn" id="dl-monthday-warn" aria-live="polite" hidden></p>
-                <p class="dl-hint dl-monthday-note" id="dl-monthday-note" hidden>В коротких месяцах задача сдвинется на следующий месяц.</p>
+                <p class="dl-hint dl-monthday-note" id="dl-monthday-note" hidden>В коротких месяцах обет сдвинется на следующий месяц.</p>
             </div>
             <!-- month — custom gothic dropdown (native select hidden, used for value) -->
             <div class="dl-input-wrap" id="dl-wrap-month">
@@ -1145,7 +1145,7 @@
                         <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3L6.4 8.8H15.6Z" fill="currentColor" stroke="currentColor" stroke-width="1"/><line x1="11" y1="10.4" x2="11" y2="18.4"/><line x1="7.8" y1="12.8" x2="14.2" y2="12.8" stroke-width="1.9"/><circle cx="7" cy="12.8" r="0.8" fill="currentColor" stroke="none"/><circle cx="15" cy="12.8" r="0.8" fill="currentColor" stroke="none"/><path d="M11 18.1L11.85 19.25L11 20.6L10.15 19.25Z" fill="currentColor" stroke="none" opacity="0.85"/></svg>
                     </button>
                 </div>
-                <p class="dl-hint">Задача завершается в указанном году</p>
+                <p class="dl-hint">Обет завершается в указанном году</p>
             </div>
             <!-- date -->
             <div class="dl-input-wrap active" id="dl-wrap-date">
@@ -1166,7 +1166,7 @@
                     </label>
                     <input type="time" class="modal-input dl-date-time-input" id="dl-date-time" placeholder="—">
                 </div>
-                <p class="dl-hint">Если время указано — дедлайн активен до HH:MM этого дня</p>
+                <p class="dl-hint">Если время указано — исход наступает в HH:MM этого дня</p>
             </div>
         </div>
         <!-- X-8: shared auto-repeat toggle — shown for the rhythmic modes (time =
@@ -1174,7 +1174,7 @@
              one-shot deadline. Label/sub are set per mode by _updateDlRepeatToggle. -->
         <button type="button" class="dl-repeat-toggle on" id="dl-repeat-toggle" hidden
                 role="switch" aria-checked="true" data-act="toggleDlAutoRepeat"
-                title="Авто-повтор дедлайна">
+                title="Авто-круговорот исхода">
             <span class="dl-rt-glyph" aria-hidden="true">
                 <!-- Лунный круг — венец фаз луны вокруг полнолуния (мотив DUSK) -->
                 <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -1199,7 +1199,7 @@
             </span>
             <span class="dl-rt-txt">
                 <span class="dl-rt-title">Повторять каждую неделю</span>
-                <span class="dl-rt-sub">Дедлайн сдвигается на следующую неделю — в выбранный день</span>
+                <span class="dl-rt-sub">Исход сдвигается на следующую неделю — в выбранный день</span>
             </span>
             <span class="dl-rt-switch" aria-hidden="true">
                 <span class="dl-rt-stars"><i></i><i></i><i></i></span>
@@ -1323,7 +1323,7 @@
 <div class="modal-overlay" id="prio-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="prio-modal-title">
     <div class="modal modal-small">
-        <h3 class="modal-title" id="prio-modal-title">Изменить приоритет</h3>
+        <h3 class="modal-title" id="prio-modal-title">Изменить ранг</h3>
         <div class="priority-selector modal-prio-selector" id="modal-prio-selector">
             <button class="prio-btn prio-none" data-prio="none"><span class="prio-dot prio-none"></span>Нет</button>
             <button class="prio-btn prio-low" data-prio="low"><span class="prio-dot"></span>Низкий</button>
@@ -1389,7 +1389,7 @@
 <div class="modal-overlay" id="repeat-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="repeat-modal-title">
     <div class="modal modal-small">
-        <h3 class="modal-title" id="repeat-modal-title">Повтор задачи</h3>
+        <h3 class="modal-title" id="repeat-modal-title">Круговорот обета</h3>
         <div class="repeat-modal-grid" id="modal-repeat-selector">
             <button class="repeat-modal-btn active" data-repeat="none">
                 <!-- New moon (dark orb) — repeat "none": the cycle is unlit -->
@@ -1496,7 +1496,7 @@
             <div class="repeat-anchor-row repeat-anchor-time-row">
                 <input type="time" id="repeat-anchor-time" class="modal-input repeat-anchor-time-input">
             </div>
-            <p class="dl-hint" id="repeat-anchor-hint">Задача перейдёт обратно в незавершённые в указанное время, а не от момента выполнения</p>
+            <p class="dl-hint" id="repeat-anchor-hint">Обет вернётся в неисполненные в указанное время, а не от момента исполнения</p>
         </div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" data-act="closeRepeatModal">Отмена</button>
@@ -1830,7 +1830,7 @@ if ('serviceWorker' in navigator) {
 <div class="modal-overlay" id="templates-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="templates-modal-title">
     <div class="modal modal-templates">
-        <h3 class="modal-title" id="templates-modal-title">Шаблоны задач</h3>
+        <h3 class="modal-title" id="templates-modal-title">Образцы обетов</h3>
         <div class="templates-list" id="templates-list"></div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" data-act="closeTemplatesModal">Закрыть</button>

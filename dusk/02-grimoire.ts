@@ -4085,7 +4085,7 @@ function _grimRenderTplMenu() {
             <div class="grim-tpl-item user" role="menuitem" data-act="grimUseTpl" data-id="${t.id}">
                 <span class="grim-tpl-ic">${GRIM_TPL_IC.save}</span>
                 <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(t.name || 'Шаблон')}</span><span class="grim-tpl-desc">своя заготовка</span></span>
-                <button class="grim-tpl-del" data-act="grimDeleteTpl" data-id="${t.id}" title="Удалить шаблон">${GRIM_TPL_IC.del}</button>
+                <button class="grim-tpl-del" data-act="grimDeleteTpl" data-id="${t.id}" title="Стереть образец">${GRIM_TPL_IC.del}</button>
             </div>`).join('');
     }
     pop.innerHTML = html;

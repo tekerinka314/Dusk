@@ -304,9 +304,9 @@ function _stepDlDuration(which, delta) {
 // coupling for time/monthday below.
 const _AUTO_REPEAT_BY_MODE = { time: 'daily', weektime: 'weekly', monthday: 'monthly' };
 const _DL_REPEAT_LABELS = {
-    weektime: { t: 'Повторять каждую неделю', s: 'Дедлайн сдвигается на следующую неделю — в выбранный день' },
-    time:     { t: 'Повторять каждый день',   s: 'Дедлайн сдвигается на следующий день — в то же время' },
-    monthday: { t: 'Повторять каждый месяц',  s: 'Дедлайн сдвигается на следующий месяц — на то же число' },
+    weektime: { t: 'Повторять каждую неделю', s: 'Исход сдвигается на следующую неделю — в выбранный день' },
+    time:     { t: 'Повторять каждый день',   s: 'Исход сдвигается на следующий день — в то же время' },
+    monthday: { t: 'Повторять каждый месяц',  s: 'Исход сдвигается на следующий месяц — на то же число' },
 };
 // Show + relabel the shared auto-repeat toggle for the active deadline mode.
 function _updateDlRepeatToggle(mode) {
@@ -339,7 +339,7 @@ function confirmDeadline() {
     if (mode === 'time') {
         value = segInputs['dl-time']?.getValue() || (document.getElementById('dl-time') as HTMLInputElement).value;
         if (!value) {
-            showToast('Введите время дедлайна');
+            showToast('Не указано время исхода');
             (segInputs['dl-time'] ? segInputs['dl-time']._focus(0) : document.getElementById('dl-time').focus());
             return;
         }
@@ -491,7 +491,7 @@ function confirmDeadline() {
         value = (document.getElementById('dl-year') as HTMLInputElement).value;
         const yv = parseInt(value);
         if (!value) {
-            showToast('Введите год дедлайна');
+            showToast('Не указан год исхода');
             document.getElementById('dl-year').focus();
             return;
         }
@@ -505,7 +505,7 @@ function confirmDeadline() {
 
         // Empty: user pressed Save without entering anything
         if (!value && (!dateSeg || dateSeg.segs.some(s => !s.buf.length))) {
-            showToast('Введите дату дедлайна');
+            showToast('Не указана дата исхода');
             if (dateSeg) dateSeg._focus(0); else document.getElementById('dl-date').focus();
             return;
         }
@@ -633,7 +633,7 @@ function updateFormDeadlineDisplay() {
         trigger.textContent = formatDeadlineForm(formDeadline);  // full months, no relative words
         clearBtn.style.display = 'inline-flex';
     } else {
-        trigger.textContent = 'Установить дедлайн';
+        trigger.textContent = 'Назначить исход';
         clearBtn.style.display = 'none';
     }
 }
@@ -768,11 +768,11 @@ function monthdayNoteText(v) {    if (!v || isNaN(v) || v < 29) return '';
         || nextFebYear % 400 === 0;
     if (v === 29) {
         // In a leap year Feb 29 exists — no caveat needed.
-        return isNextFebLeap ? '' : 'В феврале задача сдвинется на следующий месяц.';
+        return isNextFebLeap ? '' : 'В феврале обет сдвинется на следующий месяц.';
     }
     if (v === 30) {
         // Feb never has 30 days, even in a leap year.
-        return 'В феврале задача сдвинется на следующий месяц.';
+        return 'В феврале обет сдвинется на следующий месяц.';
     }
     // v >= 31 — affects February and months with 30 days (Apr, Jun, Sep, Nov).
     return 'В коротких месяцах задача сдвинется на следующий месяц.';

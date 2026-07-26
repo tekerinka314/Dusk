@@ -843,12 +843,12 @@ globalThis._undoFormSnapshot = null;
 // ============================================================
 function addTask() {
     const raw = inputBox.value.trim();
-    if (!raw) { shakeInput(); showToast('Введите название задачи'); return; }
+    if (!raw) { shakeInput(); showToast('Обет не назван'); return; }
     _qaClose();
     // Idea 4: pull inline !priority / ~date tokens out of the text (#tags stay).
     const parsed = parseQuickInput(raw);
     const text = parsed.text;
-    if (!text) { shakeInput(); showToast('Введите название задачи'); return; }
+    if (!text) { shakeInput(); showToast('Обет не назван'); return; }
     const effPriority = parsed.priority || selectedPriority;
 
     // UX-4 + I-5: capture full form snapshot BEFORE clearing so undo() can
@@ -1336,10 +1336,10 @@ function saveTaskAsTemplate(id) {
 // task. Mirrors saveTaskAsTemplate() but reads from the live form state.
 function saveFormAsTemplate() {
     const raw = inputBox.value.trim();
-    if (!raw) { shakeInput(); showToast('Введите название для шаблона'); return; }
+    if (!raw) { shakeInput(); showToast('Образец не назван'); return; }
     const parsed = parseQuickInput(raw);
     const text = parsed.text;
-    if (!text) { shakeInput(); showToast('Введите название для шаблона'); return; }
+    if (!text) { shakeInput(); showToast('Образец не назван'); return; }
     if (!state.templates) state.templates = [];
     if (!state.nextTemplateId) state.nextTemplateId = 1;
 
@@ -1436,7 +1436,7 @@ function _renderTemplatesList() {
     if (!cont) return;
     const tpls = state.templates || [];
     if (!tpls.length) {
-        cont.innerHTML = '<p class="templates-empty">Нет сохранённых шаблонов</p>';
+        cont.innerHTML = '<p class="templates-empty">Образцов ещё не сложено</p>';
         return;
     }
     cont.innerHTML = tpls.map(t => {
@@ -1446,11 +1446,11 @@ function _renderTemplatesList() {
         if (t.deadline)                          bits.push(`<span class="tpl-bit">${IC.window}исход</span>`);
         if (t.subtasks && t.subtasks.length)     bits.push(`<span class="tpl-bit">${t.subtasks.length} подп.</span>`);
         return `<div class="template-item">
-            <button class="template-create" data-act="createTaskFromTemplate" data-id="${t.id}" title="Создать задачу из шаблона">
+            <button class="template-create" data-act="createTaskFromTemplate" data-id="${t.id}" title="Отлить обет по образцу">
                 <span class="template-name">${escHtml(t.name)}</span>
                 ${bits.length ? `<span class="template-meta">${bits.join('')}</span>` : ''}
             </button>
-            <button class="template-del" data-act="deleteTemplate" data-id="${t.id}" title="Удалить шаблон">${IC.skull}</button>
+            <button class="template-del" data-act="deleteTemplate" data-id="${t.id}" title="Стереть образец">${IC.skull}</button>
         </div>`;
     }).join('');
 }
