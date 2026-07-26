@@ -7,7 +7,7 @@ Object.assign(globalThis, {
     syncNow, scheduleSyncPush, _afterSaveState, _toastResult, _toastErr, syncSignIn, syncSignOut, syncNowManual,
     _syncPanelHtml, openSyncPanel, _refreshSyncPanelIfOpen, _escHtml, _collArrays, _findRec, _findTask, _allocId,
     _subsetToLive, restoreQuarantineEntry, _resolveEntry, _entryWhat, _entryLoserPreview, _trim, _esc, openQuarantine,
-    _refreshQuarOverlay, closeQuarantine, _initSyncUI,
+    _refreshQuarOverlay, closeQuarantine, _quarListHTML, _initSyncUI,
 });
 
 // ============================================================
@@ -647,34 +647,45 @@ function _trim(s) { s = String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g,
 function _esc(s) { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
 
 globalThis._quarOverlay = null;
-function openQuarantine() {
-    if (typeof closeFloatMenu === 'function') closeFloatMenu();
-    closeQuarantine();
+
+// Rows only — kept separate so a Restore/Dismiss can rebuild the list IN PLACE
+// (B5-04: a close+reopen would drop the focus trap and bounce focus to the FAB
+// in the middle of a review).
+function _quarListHTML() {
     const entries = (state.syncJournal || []).filter(e => e && !e.resolved);
+    if (!entries.length) return `<div class="sync-quar-empty">Нет конфликтов на разборе.</div>`;
+    return entries.map(e => `
+        <div class="sync-quar-row" data-uid="${_esc(e.uid)}">
+            <div class="sync-quar-info">
+                <div class="sync-quar-what">${_esc(_entryWhat(e))}</div>
+                <div class="sync-quar-loser">${_esc(_entryLoserPreview(e)) || '<i>пусто</i>'}</div>
+            </div>
+            <div class="sync-quar-acts">
+                <button type="button" class="sync-quar-restore" data-uid="${_esc(e.uid)}">Восстановить</button>
+                <button type="button" class="sync-quar-dismiss" data-uid="${_esc(e.uid)}">Отклонить</button>
+            </div>
+        </div>`).join('');
+}
+
+function openQuarantine() {
+    // B5-04: remember the real trigger BEFORE closeFloatMenu() removes the focused
+    // menu row — after that document.activeElement is <body> and the helper would
+    // have nothing to return focus to.
+    const trigger = document.activeElement as HTMLElement;
+    if (typeof closeFloatMenu === 'function') closeFloatMenu();
+    closeQuarantine(true);
     const overlay = document.createElement('div');
+    overlay.id = 'quar-overlay';                       // Esc → dismissModalById(id)
     overlay.className = 'modal-overlay sync-quar-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'quar-title');
     overlay.innerHTML = `
         <div class="modal sync-quar-modal">
-            <h3 class="modal-title">Конфликты синхронизации</h3>
+            <h3 class="modal-title" id="quar-title">Конфликты синхронизации</h3>
             <p class="sync-quar-desc">Изменения объединены автоматически; ниже — проигравшие версии.
                «Восстановить» вернёт версию (победит при следующем синке), «Отклонить» оставит как есть.</p>
-            <div class="sync-quar-list">${
-                entries.length
-                    ? entries.map(e => `
-                        <div class="sync-quar-row" data-uid="${_esc(e.uid)}">
-                            <div class="sync-quar-info">
-                                <div class="sync-quar-what">${_esc(_entryWhat(e))}</div>
-                                <div class="sync-quar-loser">${_esc(_entryLoserPreview(e)) || '<i>пусто</i>'}</div>
-                            </div>
-                            <div class="sync-quar-acts">
-                                <button type="button" class="sync-quar-restore" data-uid="${_esc(e.uid)}">Восстановить</button>
-                                <button type="button" class="sync-quar-dismiss" data-uid="${_esc(e.uid)}">Отклонить</button>
-                            </div>
-                        </div>`).join('')
-                    : `<div class="sync-quar-empty">Нет конфликтов на разборе.</div>`
-            }</div>
+            <div class="sync-quar-list">${_quarListHTML()}</div>
             <div class="modal-actions"><button type="button" class="btn-modal-cancel sync-quar-close">Закрыть</button></div>
         </div>`;
     document.body.appendChild(overlay);
@@ -686,13 +697,42 @@ function openQuarantine() {
         const rb = t.closest('.sync-quar-restore') as HTMLElement; if (rb) { _resolveEntry(rb.dataset.uid, 'restore'); _refreshQuarOverlay(); return; }
         const db = t.closest('.sync-quar-dismiss') as HTMLElement; if (db) { _resolveEntry(db.dataset.uid, 'dismiss'); _refreshQuarOverlay(); return; }
     });
+
+    // label + focus-in + Tab trap + focus return, same machinery as the 13 static modals
+    openModalWithFocus('quar-overlay');
+    (overlay as any)._returnFocus =
+        (trigger && document.contains(trigger) && trigger.focus) ? trigger : _glyph();
 }
+
 function _refreshQuarOverlay() {
     if (!_quarOverlay) return;
     if (unresolvedCount(state) === 0) { closeQuarantine(); return; }
-    closeQuarantine(); openQuarantine();
+    const list = _quarOverlay.querySelector('.sync-quar-list');
+    if (!list) return;
+    const wasInside = document.activeElement && _quarOverlay.contains(document.activeElement);
+    list.innerHTML = _quarListHTML();
+    // the button that was clicked is gone with its row — park focus on the next
+    // actionable control so the trap still has somewhere to hold the keyboard.
+    if (wasInside && !_quarOverlay.contains(document.activeElement)) {
+        const next = _quarOverlay.querySelector('.sync-quar-restore') ||
+                     _quarOverlay.querySelector('.sync-quar-close');
+        if (next) (next as HTMLElement).focus({ preventScroll: true });
+    }
 }
-function closeQuarantine() { if (_quarOverlay) { _quarOverlay.remove(); _quarOverlay = null; } }
+
+// instant = teardown without the exit animation (reopen path); the normal path
+// animates out, removes the trap and hands focus back to the trigger first.
+function closeQuarantine(instant?) {
+    const ov = _quarOverlay;
+    if (!ov) return;
+    _quarOverlay = null;
+    if (instant) { ov.remove(); return; }
+    closeModalWithAnim('quar-overlay', () => ov.remove());
+    // the exit animation runs for ~250 ms; a reopen inside that window would put a
+    // second #quar-overlay in the DOM and getElementById would keep resolving the
+    // dying one (Esc → no-op). closeModalWithAnim already captured the element.
+    ov.removeAttribute('id');
+}
 
 // ── register delegated actions + boot ─────────────────────────────────────────
 if (typeof ACT === 'object' && ACT) {
@@ -703,6 +743,12 @@ if (typeof ACT === 'object' && ACT) {
         syncNowManual:  () => syncNowManual(),
         openQuarantine: () => openQuarantine(),
     });
+}
+// B5-04: the quarantine overlay is built at runtime, so it can't sit in the static
+// registry in 05. Registering it here gives it the same Esc + backdrop routing (and
+// the cleanup-aware close) as the 13 markup modals.
+if (typeof MODAL_CLOSERS === 'object' && MODAL_CLOSERS) {
+    MODAL_CLOSERS['quar-overlay'] = () => closeQuarantine();
 }
 
 function _initSyncUI() {
