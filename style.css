@@ -1875,6 +1875,17 @@ html::after {
     from { opacity: 1; transform: translateX(-50%) translateY(0)  scale(1);    }
     to   { opacity: 0; transform: translateX(-50%) translateY(9px) scale(0.93); }
 }
+/* V2-B5-07: под reduced-motion тост проявляется и гаснет ЧИСТОЙ прозрачностью —
+   без подъёма и без масштаба (остальные 50 поверхностей это уже соблюдают).
+   ⚠ transform не обнуляется: translateX(-50%) здесь центрирование, а не
+   движение — обнулив его, тост уехал бы вправо на половину своей ширины.       */
+@media (prefers-reduced-motion: reduce) {
+    .toast      { transform: translateX(-50%); }
+    .toast.show { animation: toastFadeIn  var(--dur-quick) linear forwards; }
+    .toast.hide { animation: toastFadeOut var(--dur-quick) linear forwards; }
+    @keyframes toastFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes toastFadeOut { from { opacity: 1; } to { opacity: 0; } }
+}
 
 /* Modal improved — veil lifts / stone falls.
    D-2: the single source of truth for @keyframes modalIn is in the MODAL section
