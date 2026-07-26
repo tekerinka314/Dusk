@@ -1,0 +1,810 @@
+dusk/01-core.ts:1266	[js]	Хранилище переполнено — изменения могут не сохраниться
+dusk/01-core.ts:2182	[js]	Нечего отменять
+dusk/01-core.ts:2249	[js]	Отменено
+dusk/01-core.ts:2255	[js]	Нечего повторить
+dusk/01-core.ts:2266	[js]	Повторено
+dusk/02-grimoire.ts:1074	[js]	title="Клик — свернуть/развернуть запись"
+dusk/02-grimoire.ts:1080	[js]	${grimMode === 'archive' ? 'В склепе с' : 'Последняя правка'}
+dusk/02-grimoire.ts:1109	[js]	Свернуть / развернуть месяц
+dusk/02-grimoire.ts:1135	[js]	Выберите запись из склепа
+dusk/02-grimoire.ts:1135	[js]	Выберите запись или начертайте новую
+dusk/02-grimoire.ts:1143	[js]	<button class="grim-back" data-act="grimBack" title="К списку">${GIC.back}</button>
+dusk/02-grimoire.ts:1161	[js]	В склепе с
+dusk/02-grimoire.ts:1164	[js]	Уничтожить навсегда
+dusk/02-grimoire.ts:1168 dusk/02-grimoire.ts:1204	[js]	Оглавление
+dusk/02-grimoire.ts:1181	[js]	Заглавие записи…
+dusk/02-grimoire.ts:1186	[js]	Начертайте запись…
+dusk/02-grimoire.ts:1191	[js]	Последняя правка
+dusk/02-grimoire.ts:1192	[js]	<span class="grim-stamp is-created" title="Когда начертана">${IC.sundialLean}<span>начертано ${grimDate(note.createdAt)}</span></span>
+dusk/02-grimoire.ts:1195	[js]	${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}
+dusk/02-grimoire.ts:1195	[js]	закреплено
+dusk/02-grimoire.ts:1195	[js]	закрепить
+dusk/02-grimoire.ts:1198	[js]	Летопись — история версий записи
+dusk/02-grimoire.ts:1449	[js]	Нажмите ещё раз, чтобы удалить запись
+dusk/02-grimoire.ts:1459	[js]	Запись удалена
+dusk/02-grimoire.ts:1474	[js]	Запись закреплена
+dusk/02-grimoire.ts:1474	[js]	Запись откреплена
+dusk/02-grimoire.ts:1491	[js]	Запись в склепе
+dusk/02-grimoire.ts:1514	[js]	Запись возвращена
+dusk/02-grimoire.ts:1520	[js]	Нажмите ещё раз — запись будет уничтожена
+dusk/02-grimoire.ts:1529	[js]	Запись уничтожена
+dusk/02-grimoire.ts:1548	[js]	Нажмите ещё раз — склеп опустеет (будет уничтожено записей: ${n})
+dusk/02-grimoire.ts:1559	[js]	Склеп опустошён
+dusk/02-grimoire.ts:1612	[js]	<p class="grim-cfilter-empty">Нет записей с цветом</p>
+dusk/02-grimoire.ts:1618 dusk/02-grimoire.ts:1618 dusk/03-render.ts:1437	[js]	Цвет ${c}
+dusk/02-grimoire.ts:1622 dusk/03-render.ts:1448	[js]	Снять фильтр по цвету
+dusk/02-grimoire.ts:1709	[js]	Поиск по записи
+dusk/02-grimoire.ts:1711	[js]	<button class="gf-btn gf-prev" data-act="grimFindPrev" title="Предыдущее (Shift+F3)" aria-label="Предыдущее совпадение">${IC.sword}</button>
+dusk/02-grimoire.ts:1712	[js]	<button class="gf-btn gf-next" data-act="grimFindNext" title="Следующее (F3)" aria-label="Следующее совпадение">${IC.sword}</button>
+dusk/02-grimoire.ts:1715	[js]	<button class="gf-btn gf-close" data-act="grimFindClose" title="Закрыть (Esc)" aria-label="Закрыть поиск">${IC.crossedSwords}</button>
+dusk/02-grimoire.ts:1740 dusk/08-quickadd-export-init.ts:506	[js]	Нажмите ещё раз для подтверждения
+dusk/02-grimoire.ts:1741	[js]	Нажмите ещё раз, чтобы удалить
+dusk/02-grimoire.ts:1795 dusk/03-render.ts:2281 dusk/08-quickadd-export-init.ts:466	[js]	${count} отмечено
+dusk/02-grimoire.ts:1819	[js]	В склепе: ${count}
+dusk/02-grimoire.ts:1842 dusk/02-grimoire.ts:1864	[js]	Возвращено: ${count}
+dusk/02-grimoire.ts:1871	[js]	Нажмите ещё раз — записи будут уничтожены (${grimSelectedIds.size})
+dusk/02-grimoire.ts:1883	[js]	Уничтожено: ${count}
+dusk/02-grimoire.ts:1899	[js]	Цвет установлен: ${count}
+dusk/02-grimoire.ts:1899	[js]	Цвет снят: ${count}
+dusk/02-grimoire.ts:243	[js]	Свернуть список в рейл
+dusk/02-grimoire.ts:243	[js]	Скрыть список — заметка во весь экран
+dusk/02-grimoire.ts:243	[js]	Показать список
+dusk/02-grimoire.ts:245	[js]	Тулбар: по наведению — нажмите, чтобы закрепить
+dusk/02-grimoire.ts:245	[js]	Тулбар закреплён — нажмите, чтобы скрыть
+dusk/02-grimoire.ts:245	[js]	Тулбар скрыт — нажмите для режима «по наведению»
+dusk/02-grimoire.ts:247	[js]	Оглавление — разделы записи
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	янв
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	фев
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	мар
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	апр
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/02-grimoire.ts:3936	[js]	мая
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	июн
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	июл
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	авг
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	сен
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	окт
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	ноя
+dusk/02-grimoire.ts:252 dusk/02-grimoire.ts:405 dusk/06-deadlines.ts:1087	[js]	дек
+dusk/02-grimoire.ts:256	[js]	сегодня · ${hh}:${mm}
+dusk/02-grimoire.ts:2689	[js]	размер
+dusk/02-grimoire.ts:2759 dusk/02-grimoire.ts:3968 dusk/02-grimoire.ts:3970	[js]	Скрижаль
+dusk/02-grimoire.ts:2761	[js]	Угроза
+dusk/02-grimoire.ts:2763	[js]	Шёпот
+dusk/02-grimoire.ts:2936	[js]	Правка структуры таблицы
+dusk/02-grimoire.ts:2979	[js]	Добавить колонку
+dusk/02-grimoire.ts:2987	[js]	Добавить строку
+dusk/02-grimoire.ts:3050	[js]	Колонка слева
+dusk/02-grimoire.ts:3051	[js]	Удалить колонку
+dusk/02-grimoire.ts:3052	[js]	Колонка справа
+dusk/02-grimoire.ts:3059	[js]	(Shift — всем колонкам)
+dusk/02-grimoire.ts:3075	[js]	По левому краю
+dusk/02-grimoire.ts:3076	[js]	По центру
+dusk/02-grimoire.ts:3077	[js]	По правому краю
+dusk/02-grimoire.ts:3081	[js]	Строка выше
+dusk/02-grimoire.ts:3082	[js]	Удалить строку
+dusk/02-grimoire.ts:3083	[js]	Строка ниже
+dusk/02-grimoire.ts:3245	[js]	Форматирование
+dusk/02-grimoire.ts:3247	[js]	Заголовок 1
+dusk/02-grimoire.ts:3248	[js]	Заголовок 2
+dusk/02-grimoire.ts:3249	[js]	Заголовок 3
+dusk/02-grimoire.ts:3252	[js]	Жирный (Ctrl+B)
+dusk/02-grimoire.ts:3253	[js]	Курсив (Ctrl+I)
+dusk/02-grimoire.ts:3254	[js]	Подчёркнутый (Ctrl+U)
+dusk/02-grimoire.ts:3255	[js]	Зачёркнутый
+dusk/02-grimoire.ts:3258	[js]	Маркированный список
+dusk/02-grimoire.ts:3259	[js]	Нумерованный список
+dusk/02-grimoire.ts:3260	[js]	Чек-лист
+dusk/02-grimoire.ts:3263	[js]	Цитата
+dusk/02-grimoire.ts:3264	[js]	Код
+dusk/02-grimoire.ts:3265	[js]	Блок кода (```)
+dusk/02-grimoire.ts:3266	[js]	Разделитель
+dusk/02-grimoire.ts:3267	[js]	Ссылка (Ctrl+K)
+dusk/02-grimoire.ts:3269	[js]	Таблица
+dusk/02-grimoire.ts:3270	[js]	Врезка (каллаут)
+dusk/02-grimoire.ts:3272	[js]	Экспорт записи в .md
+dusk/02-grimoire.ts:3285	[js]	Экспортировано:
+dusk/02-grimoire.ts:3288 dusk/02-grimoire.ts:3415 dusk/02-grimoire.ts:3418	[js]	без-заглавия
+dusk/02-grimoire.ts:3407 dusk/02-grimoire.ts:3414 dusk/02-grimoire.ts:3446	[js]	Нет записей для экспорта
+dusk/02-grimoire.ts:3425	[js]	Экспортировано: grimoire.zip (
+dusk/02-grimoire.ts:3441	[js]	Нет выбранных записей
+dusk/02-grimoire.ts:3499	[js]	<div class="grim-tpl-head">Перенос записей</div>
+dusk/02-grimoire.ts:3500	[js]	<div class="grim-tpl-sect">Импорт</div>
+dusk/02-grimoire.ts:3501	[js]	Импорт файлов
+dusk/02-grimoire.ts:3501	[js]	.md · .zip · .json · можно несколько
+dusk/02-grimoire.ts:3502	[js]	<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Экспорт всего</div>
+dusk/02-grimoire.ts:3503 dusk/02-grimoire.ts:3510	[js]	Полный бэкап записей
+dusk/02-grimoire.ts:3503	[js]	.json · все записи Гримуара + летопись
+dusk/02-grimoire.ts:3504 dusk/02-grimoire.ts:3511	[js]	Резервная копия
+dusk/02-grimoire.ts:3504	[js]	один .md, разворачивается обратно
+dusk/02-grimoire.ts:3505 dusk/02-grimoire.ts:3512	[js]	Для чтения
+dusk/02-grimoire.ts:3505	[js]	ZIP · по файлу на заметку
+dusk/02-grimoire.ts:3509	[js]	<div class="grim-tpl-head">Экспорт выбранных</div>
+dusk/02-grimoire.ts:3510	[js]	.json · выбранные записи + летопись
+dusk/02-grimoire.ts:3511	[js]	один .md
+dusk/02-grimoire.ts:3512	[js]	ZIP · по файлу
+dusk/02-grimoire.ts:3765	[js]	Нет записей для импорта
+dusk/02-grimoire.ts:3780	[js]	Файлы пусты
+dusk/02-grimoire.ts:3789	[js]	Импортировано записей:
+dusk/02-grimoire.ts:3800	[js]	Импорт записей
+dusk/02-grimoire.ts:3801	[js]	Добавить записи Гримуара к существующим или полностью заменить?
+dusk/02-grimoire.ts:3847	[js]	Заменено · записей:
+dusk/02-grimoire.ts:3847	[js]	Добавлено записей:
+dusk/02-grimoire.ts:3902	[js]	Не удалось прочитать .json
+dusk/02-grimoire.ts:3906	[js]	Это полный бэкап DUSK — импортируйте его на странице «Задачи» (кнопка импорта в тулбаре)
+dusk/02-grimoire.ts:3907	[js]	Это не бэкап записей Гримуара
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1133	[js]	января
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1133	[js]	февраля
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1133	[js]	марта
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1133	[js]	апреля
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1133	[js]	июня
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1134	[js]	июля
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1134	[js]	августа
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1134	[js]	сентября
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1134	[js]	октября
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1134	[js]	ноября
+dusk/02-grimoire.ts:3936 dusk/06-deadlines.ts:1134	[js]	декабря
+dusk/02-grimoire.ts:3941	[js]	Дневник
+dusk/02-grimoire.ts:3941	[js]	дата · проза · намерения
+dusk/02-grimoire.ts:3944	[js]	<blockquote>«Что записано — то не потеряно во тьме.»</blockquote>
+dusk/02-grimoire.ts:3945	[js]	<h2>Событие дня</h2><p><br></p>
+dusk/02-grimoire.ts:3946	[js]	<h2>Мысли и чувства</h2><p><br></p>
+dusk/02-grimoire.ts:3947	[js]	<h2>Намерения на завтра</h2><ul class="task"><li>Первое</li><li>Второе</li></ul>
+dusk/02-grimoire.ts:3949 dusk/02-grimoire.ts:3951	[js]	Ритуал
+dusk/02-grimoire.ts:3949	[js]	цель · подготовка · шаги
+dusk/02-grimoire.ts:3952	[js]	<h2>Цель</h2><p><br></p>
+dusk/02-grimoire.ts:3953	[js]	<h2>Подготовка</h2><ul><li>Что понадобится</li></ul>
+dusk/02-grimoire.ts:3954	[js]	<h2>Шаги</h2><ol><li>Подготовка пространства</li><li>Основное действие</li><li>Завершение</li></ol>
+dusk/02-grimoire.ts:3955	[js]	<blockquote>Предостережение: <em>не прерывай начатое.</em></blockquote>
+dusk/02-grimoire.ts:3957	[js]	Кодекс
+dusk/02-grimoire.ts:3957	[js]	полный труд: H1–H3 · список · таблица · код
+dusk/02-grimoire.ts:3959	[js]	Заглавие труда
+dusk/02-grimoire.ts:3960	[js]	<p><strong>Краткое вступление</strong> — о чём этот кодекс.</p>
+dusk/02-grimoire.ts:3961	[js]	<h2>Первый раздел</h2><p><br></p>
+dusk/02-grimoire.ts:3962	[js]	<h3>Подраздел</h3><ul><li>Пункт</li><li>Пункт</li></ul>
+dusk/02-grimoire.ts:3964	[js]	<h2>Сводная таблица</h2>
+dusk/02-grimoire.ts:3965	[js]	<table><thead><tr><th>Понятие</th><th>Описание</th></tr></thead><tbody><tr><td></td><td></td></tr><tr><td></td><td></td></tr></tbody></table>
+dusk/02-grimoire.ts:3966	[js]	<p>Термин в тексте: <code>код</code>.</p>
+dusk/02-grimoire.ts:3968	[js]	таблица: данные · сравнение · реестр
+dusk/02-grimoire.ts:3971	[js]	<h2>Реестр</h2><p>Назначение таблицы.</p>
+dusk/02-grimoire.ts:3972	[js]	<table><thead><tr><th>Столбец 1</th><th>Столбец 2</th><th>Столбец 3</th></tr></thead><tbody><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></tbody></table>
+dusk/02-grimoire.ts:4006 dusk/02-grimoire.ts:4087 dusk/04-tasks.ts:1313	[js]	Шаблон
+dusk/02-grimoire.ts:4012 dusk/04-tasks.ts:1332 dusk/04-tasks.ts:1373	[js]	Сохранено как шаблон
+dusk/02-grimoire.ts:4021	[js]	Запись из шаблона «
+dusk/02-grimoire.ts:4028	[js]	Запись из шаблона
+dusk/02-grimoire.ts:4036 dusk/04-tasks.ts:1415	[js]	Шаблон удалён
+dusk/02-grimoire.ts:4074	[js]	<div class="grim-tpl-head">Начертать из шаблона</div>
+dusk/02-grimoire.ts:4075	[js]	<div class="grim-tpl-sect">Встроенные</div>
+dusk/02-grimoire.ts:408 dusk/06-deadlines.ts:1009 dusk/06-deadlines.ts:1020	[js]	сегодня
+dusk/02-grimoire.ts:4083	[js]	<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Свои</div>
+dusk/02-grimoire.ts:4088 dusk/04-tasks.ts:1453	[js]	Удалить шаблон
+dusk/02-grimoire.ts:409 dusk/06-deadlines.ts:1116	[js]	вчера
+dusk/02-grimoire.ts:415 dusk/04-tasks.ts:1463 dusk/06-deadlines.ts:1063	[js]	только что
+dusk/02-grimoire.ts:416	[js]	мин назад
+dusk/02-grimoire.ts:417	[js]	ч назад
+dusk/02-grimoire.ts:418	[js]	дн назад
+dusk/02-grimoire.ts:496	[js]	<span class="grim-hist-tag back">бэкап</span>
+dusk/02-grimoire.ts:497	[js]	<span class="grim-hist-tag now">сейчас</span>
+dusk/02-grimoire.ts:498 dusk/02-grimoire.ts:515 dusk/02-grimoire.ts:1048	[js]	Без заглавия
+dusk/02-grimoire.ts:508	[js]	<div class="grim-hist-sect back">Перед откатами</div>
+dusk/02-grimoire.ts:509	[js]	<div class="grim-hist-sect">Снимки${autos.length ? ' · ' + autos.length : ''}</div>
+dusk/02-grimoire.ts:510	[js]	<div class="grim-hist-empty">Снимков пока нет</div>
+dusk/02-grimoire.ts:517	[js]	<span class="grim-hist-cur">текущая версия</span>
+dusk/02-grimoire.ts:518	[js]	<button type="button" class="grim-hist-restore" data-act="grimHistRestore" data-at="${sel.at}">${GIC.restore}<span>Восстановить</span></button>
+dusk/02-grimoire.ts:524	[js]	<p class="grim-hist-blank">— пустая запись —</p>
+dusk/02-grimoire.ts:526	[js]	<div class="grim-hist-empty big">Эта запись ещё без летописи.<br>Снимки появятся по мере правок.</div>
+dusk/02-grimoire.ts:534	[js]	Летопись записи
+dusk/02-grimoire.ts:537	[js]	Закрыть летопись
+dusk/02-grimoire.ts:568	[js]	Версия восстановлена · прежняя сохранена в «Перед откатами»
+dusk/02-grimoire.ts:782	[js]	<div class="grim-toc-inner"><div class="grim-toc-scroll"><div class="grim-toc-head">${GIC.toc}<span>Оглавление</span><button type="button" class="grim-toc-close" data-act="grimToggleToc" title="Свернуть оглавление" aria-label="Свернуть оглавление">${GIC.tocClose}</button></div><nav class="grim-toc-nav">${nav}</nav></div></div>
+dusk/02-grimoire.ts:846	[js]	По правке
+dusk/02-grimoire.ts:847	[js]	По созданию
+dusk/02-grimoire.ts:848	[js]	По заглавию
+dusk/02-grimoire.ts:861	[js]	Порядок записей
+dusk/03-render.ts:1017	[js]	Режим: по порядку
+dusk/03-render.ts:1017	[js]	Режим: по приоритету
+dusk/03-render.ts:1021	[js]	Сортировка: по порядку
+dusk/03-render.ts:1021	[js]	Сортировка: по приоритету
+dusk/03-render.ts:1046	[js]	Фокус: ${escHtml(grp ? grp.name : '...')}
+dusk/03-render.ts:1048	[js]	Фокус снят
+dusk/03-render.ts:1064	[js]	Повтор снят
+dusk/03-render.ts:1073 dusk/03-render.ts:1869 dusk/04-tasks.ts:2607	[js]	Дедлайн снят
+dusk/03-render.ts:1115	[js]	на 1 час
+dusk/03-render.ts:1115 dusk/04-tasks.ts:1752 dusk/04-tasks.ts:1754	[js]	до завтра
+dusk/03-render.ts:1115	[js]	на неделю
+dusk/03-render.ts:1116	[js]	Дедлайн отложен ${label}
+dusk/03-render.ts:1366	[js]	дн
+dusk/03-render.ts:1366 dusk/08-quickadd-export-init.ts:78	[js]	нед
+dusk/03-render.ts:1367	[js]	Дедлайн отложен на ${n} ${u}
+dusk/03-render.ts:1377	[js]	Цвет
+dusk/03-render.ts:1407	[js]	Фильтр по цвету очищен
+dusk/03-render.ts:1430	[js]	<p class="color-filter-empty">В текущем списке нет задач с метками</p>
+dusk/03-render.ts:1481	[js]	Это бэкап записей Гримуара — импортируйте его в Гримуаре (Перенос → Импорт)
+dusk/03-render.ts:1484	[js]	Неверный формат файла
+dusk/03-render.ts:1515	[js]	Ошибка чтения файла
+dusk/03-render.ts:1557 dusk/03-render.ts:1685	[js]	Импортировано: ${state.tasks.length} задач
+dusk/03-render.ts:1648	[js]	Добавлено: ${newTasks.length} задач
+dusk/03-render.ts:1691	[js]	Уведомления не поддерживаются
+dusk/03-render.ts:1699	[js]	Уведомления включены
+dusk/03-render.ts:1699	[js]	Доступ к уведомлениям отклонён
+dusk/03-render.ts:1719	[js]	DUSK — дедлайн
+dusk/03-render.ts:1809	[js]	Сначала выберите задачи
+dusk/03-render.ts:1825 dusk/05-edit-notes-groups.ts:821	[js]	Приоритет изменён
+dusk/03-render.ts:1844	[js]	Перемещено в «${grp.name}»
+dusk/03-render.ts:1844	[js]	Убрано из групп
+dusk/03-render.ts:1857 dusk/05-edit-notes-groups.ts:931	[js]	Цвет установлен
+dusk/03-render.ts:1857 dusk/05-edit-notes-groups.ts:911 dusk/05-edit-notes-groups.ts:931	[js]	Цвет снят
+dusk/03-render.ts:1869 dusk/06-deadlines.ts:395 dusk/06-deadlines.ts:416	[js]	Дедлайн установлен
+dusk/03-render.ts:1907	[js]	${pills}<button class="bulk-group-pill bulk-group-none" data-act="bulkSetGroup">Без группы</button>
+dusk/03-render.ts:1927	[js]	${focused ? 'Снять фокус' : 'Фокус на этой группе'}
+dusk/03-render.ts:1950	[js]	<div class="rail-head">Грядущее</div>
+dusk/03-render.ts:1975	[js]	Задача сейчас скрыта (фильтр/фокус/свёрнутая группа)
+dusk/03-render.ts:198	[js]	Действия группы
+dusk/03-render.ts:1984	[js]	<option value="">— без группы —</option>
+dusk/03-render.ts:1991	[js]	+ Создать группу...
+dusk/03-render.ts:2014	[js]	${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}
+dusk/03-render.ts:2016	[js]	<div class="dl-month-option grp-dd-opt grp-dd-none${currentGid === '' ? ' active' : ''}" role="option" data-gid="" data-act="selectGroupChip" data-chip="">${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}</div>
+dusk/03-render.ts:2025	[js]	<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" data-act="selectGroupChip" data-chip="__new__">${IC.crossAdd}<span class="grp-dd-name">Создать группу</span></div>
+dusk/03-render.ts:206	[js]	${focusGroupId === group.id ? 'Снять фокус' : 'Фокус на этой группе'}
+dusk/03-render.ts:207	[js]	Дублировать группу
+dusk/03-render.ts:208	[js]	Переименовать
+dusk/03-render.ts:209 dusk/03-render.ts:1928 dusk/03-render.ts:2022	[js]	Удалить группу
+dusk/03-render.ts:212	[js]	Перетащить группу
+dusk/03-render.ts:2222	[js]	Восстановить
+dusk/03-render.ts:2281	[js]	Ничего не отмечено
+dusk/03-render.ts:2301	[js]	Восстановлено: ${ids.length}
+dusk/03-render.ts:2315	[js]	Все задачи восстановлены
+dusk/03-render.ts:232	[js]	Снять фокус
+dusk/03-render.ts:232	[js]	Фокус на этой группе
+dusk/03-render.ts:248	[js]	<div class="float-menu-head">Порядок задач</div>${rows}
+dusk/03-render.ts:331	[js]	Закреплённые · ${pinned.length}
+dusk/03-render.ts:359 dusk/04-tasks.ts:462	[js]	Активные · ${active.length}
+dusk/03-render.ts:375 dusk/04-tasks.ts:473	[js]	Выполненные · ${done.length}
+dusk/03-render.ts:412 dusk/03-render.ts:456 dusk/03-render.ts:640	[js]	<span>${IC.sundial}<span>С дедлайном · ${withDl.length}</span></span>
+dusk/03-render.ts:427 dusk/03-render.ts:466 dusk/03-render.ts:656	[js]	<span>${IC.moon}<span>Без дедлайна · ${noDl.length}</span></span>
+dusk/03-render.ts:729	[js]	${IC.pin}<span>Закреплённые · ${pinned.length}</span>${_PIN_HDR_CHEVRON}
+dusk/03-render.ts:887	[js]	По приоритету
+dusk/03-render.ts:888	[js]	По порядку
+dusk/03-render.ts:889	[js]	По алфавиту
+dusk/03-render.ts:908	[js]	Сортировка: ${_taskSortLabel(curK).toLowerCase()}
+dusk/03-render.ts:917 dusk/03-render.ts:997	[js]	Сортировка:
+dusk/04-tasks.ts:105	[js]	<button class="btn-subtask-toggle${task.subtasksOpen ? ' open' : ''}" data-tid="${task.id}" data-act="toggleSubtasksSection" title="Подпункты">${IC.sword}<span>подпункты${subLbl}</span></button>
+dusk/04-tasks.ts:109	[js]	<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов'}">${eyeGlyph(!task.subNotesAlwaysOpen)}</button>
+dusk/04-tasks.ts:1090	[js]	Цикл завершён · ${repeatLabel(task.repeat)}
+dusk/04-tasks.ts:1163	[js]	Все задачи архивированы
+dusk/04-tasks.ts:1194	[js]	Нажмите ещё раз — удалить всё
+dusk/04-tasks.ts:1219	[js]	Все задачи удалены навсегда
+dusk/04-tasks.ts:1239	[js]	Нажмите ещё раз — удалить группу со всеми задачами
+dusk/04-tasks.ts:1239	[js]	Нажмите ещё раз — удалить группу
+dusk/04-tasks.ts:1268	[js]	Группа удалена со всеми задачами
+dusk/04-tasks.ts:1268	[js]	Группа удалена
+dusk/04-tasks.ts:1278	[js]	(копия)
+dusk/04-tasks.ts:1300	[js]	Группа «${escHtml(group.name)}» скопирована
+dusk/04-tasks.ts:133	[js]	<button class="btn-task-action${hasNote ? ' edit-note-btn' : ''}" id="note-modal-btn-${task.id}" data-act="${hasNote ? 'openEditNoteModal' : 'openNoteModal'}" title="${hasNote ? 'Изменить заметку в окне' : 'Заметка в окне'}">${hasNote ? IC.editNote : IC.addNote}</button>
+dusk/04-tasks.ts:1339 dusk/04-tasks.ts:1342	[js]	Введите название для шаблона
+dusk/04-tasks.ts:1407	[js]	Задача создана из шаблона
+dusk/04-tasks.ts:143	[js]	Цикл завершён · ${formatCycleUntil(task)} — нажмите чтобы отменить
+dusk/04-tasks.ts:1439	[js]	<p class="templates-empty">Нет сохранённых шаблонов</p>
+dusk/04-tasks.ts:1444	[js]	<span class="tpl-bit tpl-prio-${t.priority}">${{high:'высокий',medium:'средний',low:'низкий'}[t.priority]}</span>
+dusk/04-tasks.ts:1446	[js]	<span class="tpl-bit">${IC.window}дедлайн</span>
+dusk/04-tasks.ts:1447	[js]	<span class="tpl-bit">${t.subtasks.length} подп.</span>
+dusk/04-tasks.ts:145	[js]	Отмечено как выполненное: ${task.text} — нажмите чтобы снять отметку
+dusk/04-tasks.ts:146	[js]	Отметить как выполненное: ${task.text}
+dusk/04-tasks.ts:1464	[js]	${min} мин назад
+dusk/04-tasks.ts:1466	[js]	${hrs} ч назад
+dusk/04-tasks.ts:1468	[js]	${days} дн назад
+dusk/04-tasks.ts:1490	[js]	<p class="backups-empty">Точек восстановления пока нет</p>
+dusk/04-tasks.ts:1495	[js]	${c.tasks ?? '?'} задач
+dusk/04-tasks.ts:1495	[js]	${c.groups ?? '?'} групп
+dusk/04-tasks.ts:1495	[js]	${c.archive ?? '?'} в архиве
+dusk/04-tasks.ts:1497	[js]	Восстановить это состояние
+dusk/04-tasks.ts:1510	[js]	Точка восстановления не найдена
+dusk/04-tasks.ts:1513	[js]	Снимок повреждён
+dusk/04-tasks.ts:1527	[js]	Состояние восстановлено
+dusk/04-tasks.ts:1533 dusk/04-tasks.ts:1731 dusk/06-deadlines.ts:1089	[js]	пн
+dusk/04-tasks.ts:1533 dusk/04-tasks.ts:1731 dusk/06-deadlines.ts:1089	[js]	вт
+dusk/04-tasks.ts:1533 dusk/04-tasks.ts:1731 dusk/06-deadlines.ts:1089	[js]	ср
+dusk/04-tasks.ts:1533 dusk/04-tasks.ts:1731 dusk/06-deadlines.ts:1089	[js]	чт
+dusk/04-tasks.ts:1533 dusk/04-tasks.ts:1731 dusk/06-deadlines.ts:1089	[js]	пт
+dusk/04-tasks.ts:1533 dusk/04-tasks.ts:1731 dusk/06-deadlines.ts:1089	[js]	сб
+dusk/04-tasks.ts:1533 dusk/04-tasks.ts:1731 dusk/06-deadlines.ts:1089	[js]	вс
+dusk/04-tasks.ts:1535	[js]	${anchorMonthday}-го
+dusk/04-tasks.ts:1537	[js]	в ${anchorTime}
+dusk/04-tasks.ts:166	[js]	${task.cycleChecked ? 'Нажмите, чтобы отменить · ' + escHtml(formatCycleUntil(task)) : task.checked ? 'Снять отметку' : 'Отметить выполненным'}
+dusk/04-tasks.ts:172 dusk/04-tasks.ts:200 dusk/04-tasks.ts:554	[js]	Двойной клик — редактировать
+dusk/04-tasks.ts:174 dusk/04-tasks.ts:185	[js]	Ещё действия
+dusk/04-tasks.ts:1743	[js]	${days}д
+dusk/04-tasks.ts:1744	[js]	${hours}ч
+dusk/04-tasks.ts:1745	[js]	${mins}м
+dusk/04-tasks.ts:1746	[js]	<1м
+dusk/04-tasks.ts:1752	[js]	до завтра · ${cd}
+dusk/04-tasks.ts:176	[js]	${task.pinned ? 'Открепить' : 'Закрепить задачу'}
+dusk/04-tasks.ts:1761	[js]	до ${day} · ${cd}
+dusk/04-tasks.ts:1761	[js]	до ${day}
+dusk/04-tasks.ts:1763	[js]	до следующего рабочего дня
+dusk/04-tasks.ts:1771	[js]	до ${day}, ${dt} · ${cd}
+dusk/04-tasks.ts:1771	[js]	до ${day}, ${dt}
+dusk/04-tasks.ts:1773	[js]	до следующей недели
+dusk/04-tasks.ts:1780 dusk/04-tasks.ts:1788	[js]	до ${dt} · ${cd}
+dusk/04-tasks.ts:1780 dusk/04-tasks.ts:1788	[js]	до ${dt}
+dusk/04-tasks.ts:1782	[js]	до следующего месяца
+dusk/04-tasks.ts:1790	[js]	цикл завершён
+dusk/04-tasks.ts:181	[js]	<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отложить дедлайн">${IC.snooze}</button>
+dusk/04-tasks.ts:1816	[js]	Задача восстановлена
+dusk/04-tasks.ts:1851	[js]	Удалено из архива
+dusk/04-tasks.ts:186	[js]	В архив
+dusk/04-tasks.ts:1865 dusk/04-tasks.ts:1866	[js]	Нажмите ещё раз — очистить весь архив
+dusk/04-tasks.ts:1886	[js]	Архив очищен
+dusk/04-tasks.ts:194 dusk/04-tasks.ts:571 dusk/04-tasks.ts:706	[js]	начертайте примечание…
+dusk/04-tasks.ts:195 dusk/11-sync-ui.ts:626	[js]	Заметка задачи
+dusk/04-tasks.ts:1991 dusk/05-edit-notes-groups.ts:271	[js]	Скрыть все заметки
+dusk/04-tasks.ts:1991 dusk/05-edit-notes-groups.ts:271	[js]	Показать все заметки подпунктов
+dusk/04-tasks.ts:202 dusk/05-edit-notes-groups.ts:183	[js]	Удалить заметку
+dusk/04-tasks.ts:2254	[js]	Подпункт стал задачей
+dusk/04-tasks.ts:2292	[js]	<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Чек по подпунктам</span></button>
+dusk/04-tasks.ts:2300	[js]	Свойства задачи
+dusk/04-tasks.ts:2301	[js]	Открепить
+dusk/04-tasks.ts:2301	[js]	Закрепить
+dusk/04-tasks.ts:2309	[js]	<button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>
+dusk/04-tasks.ts:2311	[js]	<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отложить дедлайн</span></button>
+dusk/04-tasks.ts:2319	[js]	<button type="button" role="menuitem" data-act="_taskMore" data-more="demote" data-id="${id}">${IC.demote}<span>Сделать подпунктом</span></button>
+dusk/04-tasks.ts:2355	[js]	Как везде
+dusk/04-tasks.ts:2356 dusk/04-tasks.ts:2379	[js]	По любому подпункту
+dusk/04-tasks.ts:2357 dusk/04-tasks.ts:2378	[js]	По всем подпунктам
+dusk/04-tasks.ts:2400	[js]	Родитель чекается по любому подпункту
+dusk/04-tasks.ts:2401	[js]	Родитель чекается по всем подпунктам
+dusk/04-tasks.ts:2415	[js]	Нет другой задачи для вложения
+dusk/04-tasks.ts:2420 dusk/04-tasks.ts:2425	[js]	Без группы
+dusk/04-tasks.ts:2427	[js]	<div class="float-menu-head">В подпункт к…</div>
+dusk/04-tasks.ts:2487	[js]	Задача стала подпунктом · подпункты отброшены
+dusk/04-tasks.ts:2487	[js]	Задача стала подпунктом
+dusk/04-tasks.ts:2524 dusk/05-edit-notes-groups.ts:676	[js]	Изменить заметку
+dusk/04-tasks.ts:494	[js]	Подпункт выполнен: ${s.text} — снять отметку
+dusk/04-tasks.ts:495	[js]	Отметить подпункт: ${s.text}
+dusk/04-tasks.ts:507	[js]	Повтор: ${repeatLabel(s.repeat)}${subAnchorLabel ?
+dusk/04-tasks.ts:507 dusk/04-tasks.ts:662 dusk/05-edit-notes-groups.ts:1196	[js]	: ''} — нажмите чтобы изменить
+dusk/04-tasks.ts:508 dusk/04-tasks.ts:663 dusk/05-edit-notes-groups.ts:1197	[js]	Назначить повтор
+dusk/04-tasks.ts:527	[js]	<button type="button" class="sub-deadline-badge${subDlStatusCls}" data-act="openSubDeadlineModal" title="${escHtml(subDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>
+dusk/04-tasks.ts:531	[js]	<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openSubDeadlineModal" title="Назначить дедлайн">${IC.window}</button>
+dusk/04-tasks.ts:535 dusk/04-tasks.ts:680 dusk/04-tasks.ts:2523	[js]	Изменить дедлайн
+dusk/04-tasks.ts:557	[js]	Действия
+dusk/04-tasks.ts:559 dusk/04-tasks.ts:695 dusk/04-tasks.ts:2518	[js]	Приоритет подпункта
+dusk/04-tasks.ts:562 dusk/04-tasks.ts:698	[js]	${s.note ? 'Редактировать заметку' : 'Добавить заметку'}
+dusk/04-tasks.ts:563	[js]	Сделать самостоятельной задачей
+dusk/04-tasks.ts:564 dusk/04-tasks.ts:699	[js]	Удалить подпункт
+dusk/04-tasks.ts:572 dusk/04-tasks.ts:707	[js]	Заметка подпункта
+dusk/04-tasks.ts:578 dusk/04-tasks.ts:713	[js]	<button type="button" class="btn-sub-note-delete" data-act="_noteDeleteClick" title="Удалить заметку">${IC.dagger}</button>
+dusk/04-tasks.ts:662	[js]	Повтор: ${repeatLabel(s.repeat)}${anchorLabel ?
+dusk/04-tasks.ts:672	[js]	<button type="button" class="sub-deadline-badge${fDlCls}" data-act="openFormSubDeadline" title="${escHtml(fDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>
+dusk/04-tasks.ts:676	[js]	<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openFormSubDeadline" title="Назначить дедлайн">${IC.window}</button>
+dusk/04-tasks.ts:68 dusk/06-deadlines.ts:1010 dusk/06-deadlines.ts:1021	[js]	завтра
+dusk/04-tasks.ts:846 dusk/04-tasks.ts:851	[js]	Введите название задачи
+dusk/04-tasks.ts:87	[js]	<span class="meta-tag-wrap"><span class="${tc}" role="button" tabindex="0" title="Изменить дедлайн" data-act="openDeadlineModal" data-actkey="kactivate">${IC.window}<span class="dl-badge-inner">${cdHtml}<span class="dl-absolute">${absolute}</span></span></span><button class="btn-tag-clear" data-act="clearTaskDeadline" title="Убрать дедлайн">${IC.crossedSwords}</button></span>
+dusk/04-tasks.ts:93	[js]	<span class="meta-tag-wrap"><span class="meta-tag repeat-tag" role="button" tabindex="0" title="Изменить повтор" data-act="openRepeatModal" data-actkey="kactivate">${IC.ouroboros}<span>${repeatLabel(task.repeat)}${rptAnchorLabel ?
+dusk/04-tasks.ts:93	[js]	: ''}</span></span><button class="btn-tag-clear" data-act="clearTaskRepeat" title="Убрать повтор">${IC.crossedSwords}</button></span>
+dusk/04-tasks.ts:950	[js]	Задача добавлена
+dusk/04-tasks.ts:988	[js]	Задача перемещена в архив
+dusk/04-tasks.ts:99	[js]	<button class="btn-note-toggle${(hasNote && task.noteOpen) ? ' open' : ''}" id="note-toggle-${task.id}" data-pd data-act="toggleTaskNote" title="${hasNote ? (task.noteOpen ? 'Скрыть заметку' : 'Показать заметку') : 'Добавить заметку'}">${IC.sword}<span>заметка</span></button>
+dusk/05-edit-notes-groups.ts:1148	[js]	Повтор отключён
+dusk/05-edit-notes-groups.ts:1149	[js]	Повтор: ${repeatLabel(newRepeat)}${label ?
+dusk/05-edit-notes-groups.ts:1196	[js]	Повтор: ${repeatLabel(sub.repeat)}${anchorLabel ?
+dusk/05-edit-notes-groups.ts:1505	[js]	Группа «${name}» создана
+dusk/05-edit-notes-groups.ts:1599	[js]	Развернуть все группы
+dusk/05-edit-notes-groups.ts:1599	[js]	Свернуть все группы
+dusk/05-edit-notes-groups.ts:1637	[js]	Группа переименована
+dusk/05-edit-notes-groups.ts:172	[js]	Редактировать заметку
+dusk/05-edit-notes-groups.ts:314	[js]	${IC.sword}<span>подпункты${cnt > 0 ?
+dusk/05-edit-notes-groups.ts:526 dusk/05-edit-notes-groups.ts:536	[js]	Показать заметку
+dusk/05-edit-notes-groups.ts:536 dusk/05-edit-notes-groups.ts:653	[js]	Скрыть заметку
+dusk/05-edit-notes-groups.ts:658	[js]	Изменить заметку в окне
+dusk/05-edit-notes-groups.ts:658	[js]	Заметка в окне
+dusk/05-edit-notes-groups.ts:707	[js]	Заметка сохранена
+dusk/05-edit-notes-groups.ts:717	[js]	Заметка удалена
+dusk/05-edit-notes-groups.ts:778	[js]	Задача удалена навсегда
+dusk/05-edit-notes-groups.ts:911	[js]	Цвет записи установлен
+dusk/06-deadlines.ts:1000 dusk/06-deadlines.ts:1019 dusk/06-deadlines.ts:1037	[js]	просрочено
+dusk/06-deadlines.ts:1001	[js]	в этом году
+dusk/06-deadlines.ts:1002	[js]	следующий год
+dusk/06-deadlines.ts:1003	[js]	через ${left} л.
+dusk/06-deadlines.ts:1011 dusk/06-deadlines.ts:1022 dusk/06-deadlines.ts:1053	[js]	через ${days}д
+dusk/06-deadlines.ts:1035 dusk/06-deadlines.ts:1064	[js]	просрочено ${Math.round(ago/60000)}м
+dusk/06-deadlines.ts:1036 dusk/06-deadlines.ts:1065	[js]	просрочено ${Math.round(ago/3600000)}ч
+dusk/06-deadlines.ts:1043 dusk/06-deadlines.ts:1071	[js]	через ${m}м
+dusk/06-deadlines.ts:1044	[js]	сегодня${timeSuffix}
+dusk/06-deadlines.ts:1046	[js]	завтра${timeSuffix}
+dusk/06-deadlines.ts:1047	[js]	через ${days}д${timeSuffix}
+dusk/06-deadlines.ts:1072	[js]	через ${h}ч
+dusk/06-deadlines.ts:1073	[js]	через ${h}ч ${m}м
+dusk/06-deadlines.ts:1075	[js]	через ${Math.round(diff/3600000)}ч
+dusk/06-deadlines.ts:1087 dusk/06-deadlines.ts:1088	[js]	май
+dusk/06-deadlines.ts:1088	[js]	январь
+dusk/06-deadlines.ts:1088	[js]	февраль
+dusk/06-deadlines.ts:1088	[js]	март
+dusk/06-deadlines.ts:1088	[js]	апрель
+dusk/06-deadlines.ts:1088	[js]	июнь
+dusk/06-deadlines.ts:1088	[js]	июль
+dusk/06-deadlines.ts:1088	[js]	август
+dusk/06-deadlines.ts:1088	[js]	сентябрь
+dusk/06-deadlines.ts:1088	[js]	октябрь
+dusk/06-deadlines.ts:1088	[js]	ноябрь
+dusk/06-deadlines.ts:1088	[js]	декабрь
+dusk/06-deadlines.ts:1090	[js]	${value} г.
+dusk/06-deadlines.ts:1091	[js]	${value}-го числа
+dusk/06-deadlines.ts:1092	[js]	в ${value}
+dusk/06-deadlines.ts:1097	[js]	${DAYS[parseInt(wd)] || '?'} в ${t}
+dusk/06-deadlines.ts:308	[js]	Повторять каждый день
+dusk/06-deadlines.ts:308	[js]	Дедлайн сдвигается на следующий день — в то же время
+dusk/06-deadlines.ts:309	[js]	Повторять каждый месяц
+dusk/06-deadlines.ts:309	[js]	Дедлайн сдвигается на следующий месяц — на то же число
+dusk/06-deadlines.ts:342	[js]	Введите время дедлайна
+dusk/06-deadlines.ts:350	[js]	Выберите день недели
+dusk/06-deadlines.ts:438	[js]	январе
+dusk/06-deadlines.ts:438	[js]	феврале
+dusk/06-deadlines.ts:438	[js]	марте
+dusk/06-deadlines.ts:438	[js]	апреле
+dusk/06-deadlines.ts:438	[js]	мае
+dusk/06-deadlines.ts:438	[js]	июне
+dusk/06-deadlines.ts:439	[js]	июле
+dusk/06-deadlines.ts:439	[js]	августе
+dusk/06-deadlines.ts:439	[js]	сентябре
+dusk/06-deadlines.ts:439	[js]	октябре
+dusk/06-deadlines.ts:439	[js]	ноябре
+dusk/06-deadlines.ts:439	[js]	декабре
+dusk/06-deadlines.ts:454	[js]	Введите корректный день
+dusk/06-deadlines.ts:462	[js]	${raw} — такого числа не бывает ни в одном месяце
+dusk/06-deadlines.ts:476	[js]	${raw}-го числа в ${monthName} не существует — подставлено ближайшее: ${maxDay}. Нажмите «Сохранить» ещё раз, чтобы подтвердить.
+dusk/06-deadlines.ts:494	[js]	Введите год дедлайна
+dusk/06-deadlines.ts:499	[js]	Введите год от ${getYearMin()} до ${YEAR_MAX}
+dusk/06-deadlines.ts:508	[js]	Введите дату дедлайна
+dusk/06-deadlines.ts:525 dusk/06-deadlines.ts:541	[js]	Такой даты не существует — введите корректное число
+dusk/06-deadlines.ts:547	[js]	Нельзя выбрать дату в прошлом
+dusk/06-deadlines.ts:604 dusk/06-deadlines.ts:620	[js]	Дедлайн удалён
+dusk/06-deadlines.ts:771 dusk/06-deadlines.ts:775	[js]	В феврале задача сдвинется на следующий месяц.
+dusk/06-deadlines.ts:790	[js]	1–31 (в коротких месяцах — следующий день)
+dusk/06-deadlines.ts:981	[js]	идёт сейчас
+dusk/06-deadlines.ts:983	[js]	идёт · ещё ${Math.max(1, Math.ceil(left / 1000))}с
+dusk/06-deadlines.ts:984	[js]	идёт · ещё ${Math.round(left / 60000)}м
+dusk/06-deadlines.ts:987	[js]	идёт · ещё ${h}ч ${m}м
+dusk/06-deadlines.ts:987	[js]	идёт · ещё ${h}ч
+dusk/06-deadlines.ts:994	[js]	в этом месяце
+dusk/06-deadlines.ts:995	[js]	следующий месяц
+dusk/06-deadlines.ts:996	[js]	через ${left} мес.
+dusk/07-dnd-filter-progress.ts:1162 dusk/07-dnd-filter-progress.ts:1171	[js]	Звук пера включён
+dusk/07-dnd-filter-progress.ts:1162 dusk/07-dnd-filter-progress.ts:1171	[js]	Звук пера выключен
+dusk/07-dnd-filter-progress.ts:1221	[js]	${IC.restore}<span>Отменить</span>
+dusk/07-dnd-filter-progress.ts:1236	[js]	${msg}. Доступна отмена
+dusk/07-dnd-filter-progress.ts:1276	[js]	задача
+dusk/07-dnd-filter-progress.ts:1278	[js]	задач
+dusk/07-dnd-filter-progress.ts:1323	[js]	Найдено ${visible} задач по тегу ${tag}
+dusk/07-dnd-filter-progress.ts:1323	[js]	Фильтр по тегу снят
+dusk/07-dnd-filter-progress.ts:280 dusk/07-dnd-filter-progress.ts:283 dusk/07-dnd-filter-progress.ts:309	[js]	Показаны все задачи
+dusk/07-dnd-filter-progress.ts:283	[js]	Показано ${visible} невыполненных задач
+dusk/07-dnd-filter-progress.ts:312	[js]	На сегодня: ${visible} задач
+dusk/07-dnd-filter-progress.ts:325	[js]	Режим: активные / выполненные
+dusk/07-dnd-filter-progress.ts:325	[js]	Режим: обычный список
+dusk/07-dnd-filter-progress.ts:398	[js]	<svg viewBox="0 0 14 18" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="7" cy="3.8" rx="3.4" ry="2.9" stroke="none" fill="currentColor" opacity="0.1"/><path d="M7 6.3C7 6.3 5.2 4.9 5.2 3.2C5.2 2.1 5.9 1.2 6.6 1C6.5 1.8 6.2 2.4 7 3C7.8 2.4 7.5 1.8 7.4 1C8.1 1.2 8.8 2.1 8.8 3.2C8.8 4.9 7 6.3 7 6.3Z" fill="currentColor" stroke="none" opacity="0.75"/><path d="M7 4.1C6.6 4.5 6.6 5.1 7 5.5C7.4 5.1 7.4 4.5 7 4.1Z" fill="#efe6ff" stroke="none" opacity="0.8"/><line x1="7" y1="6.3" x2="7" y2="7.4" stroke-width="1"/><path d="M4.7 7.4H9.3V15.3H4.7Z"/><path d="M4.7 8.6C5.3 9.4 5.3 10.4 4.7 11.2" stroke-width="0.75" opacity="0.55"/><path d="M9.3 9.8C8.9 10.9 9.1 12.1 9.3 12.8" stroke-width="0.7" opacity="0.4"/><ellipse cx="7" cy="15.3" rx="3.6" ry="0.85" stroke-width="1"/><line x1="2.4" y1="16.8" x2="11.6" y2="16.8" stroke-width="1.1"/></svg><span>Активные · ${active.length}</span><svg class="split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.6L13.25 5.4V13.6H10.75V5.4Z" stroke-width="1.4"/><line x1="12" y1="4.6" x2="12" y2="12.8" stroke-width="0.8" opacity="0.45"/><path d="M7.6 14.9C9.5 14.05 14.5 14.05 16.4 14.9" stroke-width="1.5"/><circle cx="7.1" cy="15.05" r="0.72" stroke-width="1.15"/><circle cx="16.9" cy="15.05" r="0.72" stroke-width="1.15"/><line x1="12" y1="15.1" x2="12" y2="19.1" stroke-width="1.7"/><line x1="11.15" y1="16.05" x2="12.85" y2="16.55" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="17.1" x2="12.85" y2="17.6" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="18.15" x2="12.85" y2="18.65" stroke-width="0.75" opacity="0.55"/><circle cx="12" cy="20.75" r="1.15" stroke-width="1.3"/><circle cx="12" cy="20.75" r="0.3" fill="currentColor" stroke="none"/></svg>
+dusk/07-dnd-filter-progress.ts:429	[js]	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 H15.5 L18 10 L14.5 21 H9.5 L6 10 Z"/><path d="M9.4 4.3 H14.6 L16.6 10 L13.6 19.7 H10.4 L7.4 10 Z" stroke-width="0.7" opacity="0.35"/><line x1="12" y1="7.6" x2="12" y2="14.4" stroke-width="1.25"/><line x1="9.7" y1="10.4" x2="14.3" y2="10.4" stroke-width="1.25"/><path d="M12 7.2 L12.6 8.1 L11.4 8.1 Z" fill="currentColor" stroke="none" opacity="0.8"/><path d="M12 14.8 L12.6 13.9 L11.4 13.9 Z" fill="currentColor" stroke="none" opacity="0.8"/><circle cx="7.2" cy="8.4" r="0.42" fill="currentColor" stroke="none" opacity="0.55"/><circle cx="16.8" cy="8.4" r="0.42" fill="currentColor" stroke="none" opacity="0.55"/></svg><span>Выполненные · ${done.length}</span><svg class="split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.6L13.25 5.4V13.6H10.75V5.4Z" stroke-width="1.4"/><line x1="12" y1="4.6" x2="12" y2="12.8" stroke-width="0.8" opacity="0.45"/><path d="M7.6 14.9C9.5 14.05 14.5 14.05 16.4 14.9" stroke-width="1.5"/><circle cx="7.1" cy="15.05" r="0.72" stroke-width="1.15"/><circle cx="16.9" cy="15.05" r="0.72" stroke-width="1.15"/><line x1="12" y1="15.1" x2="12" y2="19.1" stroke-width="1.7"/><line x1="11.15" y1="16.05" x2="12.85" y2="16.55" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="17.1" x2="12.85" y2="17.6" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="18.15" x2="12.85" y2="18.65" stroke-width="0.75" opacity="0.55"/><circle cx="12" cy="20.75" r="1.15" stroke-width="1.3"/><circle cx="12" cy="20.75" r="0.3" fill="currentColor" stroke="none"/></svg>
+dusk/07-dnd-filter-progress.ts:469	[js]	Найдено ${visible} задач
+dusk/07-dnd-filter-progress.ts:817	[js]	Тишина в ответ
+dusk/07-dnd-filter-progress.ts:818	[js]	Ни одна задача не отозвалась на зов
+dusk/07-dnd-filter-progress.ts:981	[js]	Звук включён
+dusk/07-dnd-filter-progress.ts:981	[js]	Звук выключен
+dusk/07-dnd-filter-progress.ts:996	[js]	Звук пера: вкл — клавиши шуршат пером при письме. Нажми, чтобы выключить.
+dusk/07-dnd-filter-progress.ts:997	[js]	Звук пера: выкл — письмо беззвучно. Нажми, чтобы перо шуршало при наборе в заметках и задачах.
+dusk/08-quickadd-export-init.ts:1054	[js]	Выбрать время
+dusk/08-quickadd-export-init.ts:1054	[js]	Открыть календарь
+dusk/08-quickadd-export-init.ts:1104	[js]	Очистить время
+dusk/08-quickadd-export-init.ts:1104	[js]	Очистить дату
+dusk/08-quickadd-export-init.ts:130	[js]	новый тег
+dusk/08-quickadd-export-init.ts:133	[js]	Введите название тега…
+dusk/08-quickadd-export-init.ts:138	[js]	распознано
+dusk/08-quickadd-export-init.ts:140	[js]	Сегодня
+dusk/08-quickadd-export-init.ts:140	[js]	%сегодня
+dusk/08-quickadd-export-init.ts:141	[js]	Завтра
+dusk/08-quickadd-export-init.ts:141	[js]	%завтра
+dusk/08-quickadd-export-init.ts:142	[js]	Через неделю
+dusk/08-quickadd-export-init.ts:143	[js]	%пн
+dusk/08-quickadd-export-init.ts:144	[js]	%сб
+dusk/08-quickadd-export-init.ts:338	[js]	Экспортировано (только задачи): ${filename}
+dusk/08-quickadd-export-init.ts:338	[js]	Экспортировано: ${filename}
+dusk/08-quickadd-export-init.ts:347	[js]	_(до: ${formatDeadlineAbsolute(dl)})_
+dusk/08-quickadd-export-init.ts:354	[js]	# DUSK — задачи
+dusk/08-quickadd-export-init.ts:356	[js]	## Без группы
+dusk/08-quickadd-export-init.ts:362	[js]	_(задач нет)_
+dusk/08-quickadd-export-init.ts:417	[js]	Задача скопирована
+dusk/08-quickadd-export-init.ts:427	[js]	Задача закреплена
+dusk/08-quickadd-export-init.ts:427	[js]	Задача откреплена
+dusk/08-quickadd-export-init.ts:496	[js]	Архивировано: ${count}
+dusk/08-quickadd-export-init.ts:529	[js]	Удалено: ${count}
+dusk/08-quickadd-export-init.ts:897	[js]	<kbd>N</kbd> новая &nbsp;·&nbsp; <kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp;
+dusk/08-quickadd-export-init.ts:898	[js]	<kbd>E</kbd> править &nbsp;·&nbsp; <kbd>Del</kbd> в склеп &nbsp;·&nbsp; <kbd>T</kbd> закрепить &nbsp;·&nbsp;
+dusk/08-quickadd-export-init.ts:899	[js]	<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>F3</kbd> совпадение &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена &nbsp;·&nbsp;
+dusk/08-quickadd-export-init.ts:900	[js]	<kbd>S</kbd> синхронизация
+dusk/08-quickadd-export-init.ts:902	[js]	<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новая запись &nbsp;·&nbsp;
+dusk/08-quickadd-export-init.ts:903 dusk/08-quickadd-export-init.ts:906	[js]	<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>S</kbd> синхронизация
+dusk/08-quickadd-export-init.ts:905	[js]	<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новая задача &nbsp;·&nbsp;
+dusk/08-quickadd-export-init.ts:974	[js]	чч
+dusk/08-quickadd-export-init.ts:975 dusk/08-quickadd-export-init.ts:980	[js]	мм
+dusk/08-quickadd-export-init.ts:979	[js]	дд
+dusk/08-quickadd-export-init.ts:981	[js]	гггг
+dusk/11-sync-ui.ts:107	[js]	Синхронизация…
+dusk/11-sync-ui.ts:108	[js]	Синхронизировано
+dusk/11-sync-ui.ts:109	[js]	Есть несохранённые изменения
+dusk/11-sync-ui.ts:110	[js]	Не удалось синхронизировать — нажмите, чтобы повторить
+dusk/11-sync-ui.ts:111	[js]	Синхронизация выключена — нажмите, чтобы войти
+dusk/11-sync-ui.ts:112 dusk/11-sync-ui.ts:263	[js]	Офлайн — синхронизация недоступна
+dusk/11-sync-ui.ts:273	[js]	Войдите в Google, чтобы синхронизировать
+dusk/11-sync-ui.ts:298	[js]	⛔ предохранитель: пустой state при непустом baseline — синк пропущен
+dusk/11-sync-ui.ts:304	[js]	ручной
+dusk/11-sync-ui.ts:304	[js]	авто
+dusk/11-sync-ui.ts:304	[js]	· нет baseline
+dusk/11-sync-ui.ts:313	[js]	pull: пусто (файла нет)
+dusk/11-sync-ui.ts:313	[js]	· задач
+dusk/11-sync-ui.ts:319	[js]	надгробий, −
+dusk/11-sync-ui.ts:319	[js]	журнал
+dusk/11-sync-ui.ts:334	[js]	push: пропуск (Drive уже актуален)
+dusk/11-sync-ui.ts:349	[js]	конфликт версий — повтор #
+dusk/11-sync-ui.ts:360	[js]	✓ готово
+dusk/11-sync-ui.ts:360	[js]	в карантин
+dusk/11-sync-ui.ts:367	[js]	✗ ошибка:
+dusk/11-sync-ui.ts:378	[js]	Сеть подводит — повторяю…
+dusk/11-sync-ui.ts:380	[js]	Не удалось синхронизировать
+dusk/11-sync-ui.ts:413	[js]	Синхронизировано · обновлено
+dusk/11-sync-ui.ts:413	[js]	Синхронизировано — всё актуально
+dusk/11-sync-ui.ts:414	[js]	на разборе
+dusk/11-sync-ui.ts:435	[js]	Вход не выполнен
+dusk/11-sync-ui.ts:448	[js]	Синхронизация выключена
+dusk/11-sync-ui.ts:472	[js]	<button type="button" role="menuitem" data-act="syncSignOut"><span>Выйти из синхронизации</span></button>
+dusk/11-sync-ui.ts:473	[js]	<button type="button" role="menuitem" data-act="syncSignIn"${configured ? '' : DEAD_ITEM}><span>Войти в Google Drive</span></button>
+dusk/11-sync-ui.ts:474	[js]	<button type="button" role="menuitem" data-act="syncNowManual"${(_syncing || !signedIn) ? DEAD_ITEM : ''}><span>Синхронизировать сейчас</span></button>
+dusk/11-sync-ui.ts:476	[js]	<button type="button" role="menuitem" class="sync-panel-quar" data-act="openQuarantine"><span>Разобрать конфликты</span><b class="sync-panel-quar-n">${n}</b></button>
+dusk/11-sync-ui.ts:489	[js]	<div class="sync-log-row" style="opacity:.6">— пока пусто —</div>
+dusk/11-sync-ui.ts:490	[js]	<details class="sync-panel-log"><summary>Журнал</summary><div class="sync-log-list">${logRows}</div></details>
+dusk/11-sync-ui.ts:622	[js]	Порядок в списке
+dusk/11-sync-ui.ts:622 dusk/11-sync-ui.ts:623	[js]	Архивация
+dusk/11-sync-ui.ts:626	[js]	Заголовок задачи
+dusk/11-sync-ui.ts:626	[js]	Дедлайн задачи
+dusk/11-sync-ui.ts:627	[js]	Приоритет задачи
+dusk/11-sync-ui.ts:627	[js]	Отметка «выполнено»
+dusk/11-sync-ui.ts:627	[js]	Закрепление
+dusk/11-sync-ui.ts:628	[js]	Отметка цикла
+dusk/11-sync-ui.ts:628	[js]	Возврат повтора
+dusk/11-sync-ui.ts:629	[js]	Раскрытие подпунктов
+dusk/11-sync-ui.ts:629	[js]	Раскрытие заметки
+dusk/11-sync-ui.ts:632	[js]	Название группы
+dusk/11-sync-ui.ts:632	[js]	Цвет группы
+dusk/11-sync-ui.ts:633	[js]	Заголовок записи
+dusk/11-sync-ui.ts:633	[js]	Текст записи
+dusk/11-sync-ui.ts:633	[js]	Цвет записи
+dusk/11-sync-ui.ts:633	[js]	Оформление
+dusk/11-sync-ui.ts:634	[js]	Название шаблона
+dusk/11-sync-ui.ts:634	[js]	Заметка шаблона
+dusk/11-sync-ui.ts:634	[js]	Приоритет шаблона
+dusk/11-sync-ui.ts:635	[js]	Дедлайн шаблона
+dusk/11-sync-ui.ts:635	[js]	Повтор шаблона
+dusk/11-sync-ui.ts:637	[js]	группы
+dusk/11-sync-ui.ts:637	[js]	записи
+dusk/11-sync-ui.ts:637	[js]	шаблона
+dusk/11-sync-ui.ts:638	[js]	Задача
+dusk/11-sync-ui.ts:638 dusk/11-sync-ui.ts:661	[js]	Запись
+dusk/11-sync-ui.ts:647	[js]	поле
+dusk/11-sync-ui.ts:647	[js]	подпункт
+dusk/11-sync-ui.ts:647	[js]	удаление
+dusk/11-sync-ui.ts:647	[js]	заметка
+dusk/11-sync-ui.ts:650	[js]	Текст подпункта
+dusk/11-sync-ui.ts:650	[js]	— в «
+dusk/11-sync-ui.ts:656	[js]	поле «
+dusk/11-sync-ui.ts:663	[js]	удалена при правке на другом устройстве
+dusk/11-sync-ui.ts:665	[js]	Запись изменена на двух устройствах — сохранены обе версии
+dusk/11-sync-ui.ts:666	[js]	конфликт
+dusk/11-sync-ui.ts:677	[js]	да
+dusk/11-sync-ui.ts:677	[js]	нет
+dusk/11-sync-ui.ts:686	[js]	дедлайн
+dusk/11-sync-ui.ts:690	[js]	без группы
+dusk/11-sync-ui.ts:724	[js]	<div class="sync-quar-empty">Нет конфликтов на разборе.</div>
+dusk/11-sync-ui.ts:729	[js]	<i>пусто</i>
+dusk/12-sync-wake.ts:71	[js]	переподключение
+dusk/12-sync-wake.ts:78	[js]	будилка
+index.html:1000	[placeholder]	Новое название...
+index.html:1004 index.html:1317 index.html:1516	[text]	Сохранить
+index.html:1013	[text]	Вплести ссылку
+index.html:1018	[placeholder]	Имя ссылки (необязательно)…
+index.html:1021	[text]	Расплести
+index.html:1023	[text]	Вплести
+index.html:1034 dusk/08-quickadd-export-init.ts:992	[text,js]	Время
+index.html:1035	[text]	День&nbsp;+&nbsp;Время
+index.html:1036	[text]	День месяца
+index.html:1037 index.html:1110	[text,aria-label]	Месяц
+index.html:1038	[text]	Год
+index.html:1039 dusk/08-quickadd-export-init.ts:992	[text,js]	Дата
+index.html:1045	[text]	Сегодня в указанное время (если прошло — завтра)
+index.html:1082	[text]	Ближайший выбранный день недели. Время необязательно — если не указано, отображается только день.
+index.html:1087 index.html:1482	[title]	Предыдущий день
+index.html:1090 index.html:1486	[placeholder]	День
+index.html:1091 index.html:1487	[title]	Следующий день
+index.html:1095	[text]	Каждый N-й день месяца
+index.html:1097 dusk/06-deadlines.ts:778	[text,js]	В коротких месяцах задача сдвинется на следующий месяц.
+index.html:1104 index.html:1111 index.html:1127	[text,js]	Январь
+index.html:1112 index.html:1127 dusk/02-grimoire.ts:1088	[text,js]	Февраль
+index.html:1113 index.html:1128 dusk/02-grimoire.ts:1088	[text,js]	Март
+index.html:1114 index.html:1128 dusk/02-grimoire.ts:1088	[text,js]	Апрель
+index.html:1115 index.html:1129 dusk/02-grimoire.ts:1088	[text,js]	Май
+index.html:1116 index.html:1129 dusk/02-grimoire.ts:1088	[text,js]	Июнь
+index.html:1117 index.html:1130 dusk/02-grimoire.ts:1089	[text,js]	Июль
+index.html:1118 index.html:1130 dusk/02-grimoire.ts:1089	[text,js]	Август
+index.html:1119 index.html:1131 dusk/02-grimoire.ts:1089	[text,js]	Сентябрь
+index.html:1120 index.html:1131 dusk/02-grimoire.ts:1089	[text,js]	Октябрь
+index.html:1121 index.html:1132 dusk/02-grimoire.ts:1089	[text,js]	Ноябрь
+index.html:1122 index.html:1132 dusk/02-grimoire.ts:1089	[text,js]	Декабрь
+index.html:1138	[title]	Предыдущий год
+index.html:1143	[title]	Следующий год
+index.html:1148	[text]	Задача завершается в указанном году
+index.html:116 dusk/07-dnd-filter-progress.ts:1277 dusk/11-sync-ui.ts:637	[text,js]	задачи
+index.html:1169	[text]	Если время указано — дедлайн активен до HH:MM этого дня
+index.html:1177	[title]	Авто-повтор дедлайна
+index.html:1201 dusk/06-deadlines.ts:307	[text,js]	Повторять каждую неделю
+index.html:1202 dusk/06-deadlines.ts:307	[text,js]	Дедлайн сдвигается на следующую неделю — в выбранный день
+index.html:1219	[text]	сколько горит
+index.html:125	[text]	подпункты
+index.html:1258	[aria-label]	Прибавить час
+index.html:1261	[aria-label]	часов
+index.html:1262	[aria-label]	Убавить час
+index.html:1265	[text]	часы
+index.html:1276	[aria-label]	Прибавить минуты
+index.html:1279	[aria-label]	минут
+index.html:1280	[aria-label]	Убавить минуты
+index.html:1283	[text]	минуты
+index.html:132	[placeholder]	Новая задача...
+index.html:1326	[text]	Изменить приоритет
+index.html:133	[title]	Добавить задачу
+index.html:1367 index.html:1503	[text]	Применить
+index.html:1371	[title]	Убрать метку
+index.html:139	[text]	тег
+index.html:1392	[text]	Повтор задачи
+index.html:140	[text]	дата
+index.html:141	[text]	приоритет
+index.html:1444	[text]	Точка отсчёта
+index.html:1445	[text]	необязательно
+index.html:1493	[text]	Каждый N‑й день месяца
+index.html:1499	[text]	Задача перейдёт обратно в незавершённые в указанное время, а не от момента выполнения
+index.html:150 dusk/04-tasks.ts:183	[text,js]	Приоритет
+index.html:1512 dusk/05-edit-notes-groups.ts:172 dusk/05-edit-notes-groups.ts:216	[text,js]	Добавить заметку
+index.html:1513	[placeholder]	Введите заметку...
+index.html:152 index.html:246 index.html:1328	[text,js]	Нет
+index.html:1522 index.html:1523	[title,aria-label]	Звук
+index.html:153 index.html:1329 dusk/04-tasks.ts:2519	[text,js]	Низкий
+index.html:1536 index.html:1536 dusk/11-sync-ui.ts:113	[title,aria-label,js]	Синхронизация
+index.html:154 index.html:1330 dusk/04-tasks.ts:2519	[text,js]	Средний
+index.html:155 index.html:1331 dusk/04-tasks.ts:2519	[text,js]	Высокий
+index.html:1570 index.html:1571	[title,aria-label]	Горячие клавиши
+index.html:159 dusk/11-sync-ui.ts:622	[text,js]	Цвет метки
+index.html:1593	[text]	новая &nbsp;·&nbsp;
+index.html:1595	[text]	выполнить &nbsp;·&nbsp;
+index.html:1596	[text]	дублировать &nbsp;·&nbsp;
+index.html:1597	[text]	приоритет &nbsp;·&nbsp;
+index.html:1598	[text]	заметка &nbsp;·&nbsp;
+index.html:1599	[text]	закрепить &nbsp;·&nbsp;
+index.html:1599	[text]	отмена &nbsp;·&nbsp;
+index.html:161 dusk/03-render.ts:1377	[title,js]	Без цвета
+index.html:171 index.html:962 index.html:1346	[title]	Синий
+index.html:172 index.html:963 index.html:1347	[title]	Голубой
+index.html:173 index.html:964 index.html:1348	[title]	Бирюзовый
+index.html:174 index.html:965 index.html:1349	[title]	Зелёный
+index.html:175 index.html:966 index.html:1350	[title]	Лайм
+index.html:176 index.html:967 index.html:1351	[title]	Золотой
+index.html:177 index.html:968 index.html:1352	[title]	Оранжевый
+index.html:178 index.html:969 index.html:1353	[title]	Красный
+index.html:179 index.html:970 index.html:1354	[title]	Розовый
+index.html:180 index.html:971 index.html:1355	[title]	Фиолетовый
+index.html:181	[title]	Свой цвет — спектр
+index.html:1833	[text]	Шаблоны задач
+index.html:1836 index.html:1848 dusk/02-grimoire.ts:537	[text,js]	Закрыть
+index.html:1845	[text]	Автоснимки сохраняются по ходу работы. Выбери, чтобы откатиться — текущее состояние можно вернуть отменой.
+index.html:1867 dusk/03-render.ts:1656	[text,js]	Импорт данных
+index.html:1868 dusk/03-render.ts:1657	[text,js]	Добавить задачи к существующим или полностью заменить?
+index.html:1871 dusk/04-tasks.ts:310	[text,js]	Добавить
+index.html:1872	[text]	Заменить
+index.html:201 index.html:215 dusk/08-quickadd-export-init.ts:360	[text,aria-label,js]	Группа
+index.html:209 index.html:221	[text]	— без группы —
+index.html:227 index.html:685 dusk/04-tasks.ts:180	[text,title,js]	Дедлайн
+index.html:233 index.html:1032 dusk/06-deadlines.ts:636	[text,js]	Установить дедлайн
+index.html:234 dusk/04-tasks.ts:539 dusk/04-tasks.ts:539	[title,js]	Снять дедлайн
+index.html:238 dusk/04-tasks.ts:2524	[text,js]	Заметка
+index.html:239	[placeholder]	Краткий комментарий...
+index.html:244 dusk/04-tasks.ts:182 dusk/11-sync-ui.ts:628	[text,js]	Повтор
+index.html:247 dusk/04-tasks.ts:1725 dusk/11-sync-ui.ts:672	[text,js]	Ежедневно
+index.html:248 dusk/04-tasks.ts:1725 dusk/11-sync-ui.ts:672	[text,js]	Еженедельно
+index.html:249 dusk/04-tasks.ts:1725 dusk/11-sync-ui.ts:673	[text,js]	По будням
+index.html:250 dusk/04-tasks.ts:1725 dusk/11-sync-ui.ts:673	[text,js]	Ежемесячно
+index.html:255	[text]	День:
+index.html:259 index.html:266 index.html:1452	[text,js]	Любой день
+index.html:265 index.html:1060 index.html:1457	[aria-label]	День недели
+index.html:267 index.html:1054 index.html:1061	[text,js]	Понедельник
+index.html:268 index.html:1062 index.html:1073	[text,js]	Вторник
+index.html:269 index.html:1063 index.html:1074	[text,js]	Среда
+index.html:270 index.html:1064 index.html:1075	[text,js]	Четверг
+index.html:271 index.html:1065 index.html:1076	[text,js]	Пятница
+index.html:272 index.html:1066 index.html:1077	[text,js]	Суббота
+index.html:273 index.html:1067 index.html:1078	[text,js]	Воскресенье
+index.html:280	[text]	Число:
+index.html:296	[text]	Время:
+index.html:304	[text]	Подпункты
+index.html:308 dusk/04-tasks.ts:307	[placeholder,js]	Новый подпункт...
+index.html:311	[title]	Добавить подпункт
+index.html:328	[title]	Закрепить новую задачу вверху списка
+index.html:335	[text]	Закрепить задачу
+index.html:338	[title]	Сохранить параметры формы как шаблон (без создания задачи)
+index.html:344 dusk/02-grimoire.ts:1197	[text,js]	Сохранить как шаблон
+index.html:367	[text]	Параметры
+index.html:390	[placeholder]	Поиск...
+index.html:392 index.html:764 index.html:879	[title,text]	Очистить
+index.html:392 index.html:764 index.html:879	[aria-label]	Очистить поиск
+index.html:404	[title]	Сортировка
+index.html:408	[title]	Уведомления о дедлайнах
+index.html:417 dusk/03-render.ts:203	[title,js]	Сортировка по дедлайну
+index.html:437 dusk/07-dnd-filter-progress.ts:309	[title,js]	Только на сегодня и просроченные
+index.html:441	[title]	Разделить группы: активные / выполненные
+index.html:462	[title]	Свернуть / развернуть все группы
+index.html:482	[title]	Чек родителя по подпунктам
+index.html:483	[text]	вид
+index.html:485 dusk/07-dnd-filter-progress.ts:280	[title,js]	Фильтр: только невыполненные
+index.html:507	[title]	Фильтр по цвету метки
+index.html:517	[text]	фильтр
+index.html:520	[title]	Выбрать несколько задач
+index.html:528	[title]	Данные
+index.html:536	[text]	выбор
+index.html:539	[title]	Экспорт: только задачи / всё
+index.html:557	[title]	Импорт полного бэкапа DUSK (.json)
+index.html:576 index.html:1844	[title,text]	Точки восстановления
+index.html:591	[title]	Архивировать всё
+index.html:592 dusk/04-tasks.ts:1184 dusk/04-tasks.ts:1198	[title,js]	Удалить всё навсегда
+index.html:597	[text]	данные
+index.html:609 dusk/04-tasks.ts:1449	[title,js]	Создать задачу из шаблона
+index.html:630	[title]	Группы, фильтры и инструменты
+index.html:630	[aria-label]	Открыть панель групп и инструментов
+index.html:646 index.html:792 index.html:903	[text,js]	0 отмечено
+index.html:650	[title]	Высокий приоритет
+index.html:651	[title]	Средний приоритет
+index.html:652	[title]	Низкий приоритет
+index.html:653 dusk/08-quickadd-export-init.ts:119	[title,js]	Без приоритета
+index.html:657 index.html:1856	[title,text]	Переместить в группу
+index.html:673 index.html:1343 dusk/02-grimoire.ts:1196	[title,text,js]	Цветовая метка
+index.html:702	[title]	Архивировать отмеченные
+index.html:705 index.html:925 dusk/02-grimoire.ts:1200	[title,js]	Удалить навсегда
+index.html:710 index.html:794 index.html:929	[text]	Отмена
+index.html:727 dusk/07-dnd-filter-progress.ts:817	[text,js]	Алтарь пуст
+index.html:728 dusk/07-dnd-filter-progress.ts:818	[text,js]	Ни одного обета ещё не дано
+index.html:733	[text]	Дать первый обет
+index.html:741	[text]	Все обеты исполнены
+index.html:742	[text]	Ночь может забрать своё
+index.html:760	[placeholder]	Поиск в архиве...
+index.html:769	[title]	Восстановить всё
+index.html:775	[title]	Отметить для восстановления
+index.html:811	[text]	Архив пуст
+index.html:812	[text]	Ни одно деяние ещё не погребено
+index.html:821	[aria-label]	Раздел гримуара
+index.html:827 dusk/02-grimoire.ts:948	[text,js]	Записи
+index.html:829	[title]	Архив заметок
+index.html:831 dusk/02-grimoire.ts:948	[text,js]	Склеп
+index.html:836	[title]	Выбрать несколько записей
+index.html:838	[text]	Выбрать
+index.html:842	[title]	Вернуть все записи из склепа
+index.html:844	[text]	Вернуть всё
+index.html:847	[title]	Импорт и экспорт записей
+index.html:849	[text]	Перенос
+index.html:853 dusk/02-grimoire.ts:1540	[title,js]	Опустошить склеп — уничтожить все записи в нём
+index.html:855	[text]	Опустошить
+index.html:858	[title]	Начертать запись
+index.html:860	[text]	Начертать
+index.html:862	[title]	Начертать из шаблона
+index.html:873	[placeholder]	Искать в гримуаре…
+index.html:888	[title]	Фильтр по цвету
+index.html:909 dusk/02-grimoire.ts:1199	[title,js]	Отправить в склеп
+index.html:912 dusk/02-grimoire.ts:1163	[title,js]	Вернуть в гримуар
+index.html:915	[title]	Цвет выбранных
+index.html:920	[title]	Экспорт выбранных
+index.html:952	[text]	Новая группа
+index.html:954	[placeholder]	Название группы...
+index.html:976 index.html:1359	[aria-label]	Поле насыщенности и яркости
+index.html:980 index.html:1363	[aria-label]	Оттенок
+index.html:989	[text]	Создать
+index.html:998	[text]	Переименовать группу
