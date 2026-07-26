@@ -84,19 +84,19 @@ function createTaskEl(task, showDlSide) {
         else if (status === 'urgent')   tc += ' urgent';
         else if (status === 'warn')     tc += ' warn';
         const cdHtml = countdown ? `<span class="dl-countdown">${countdown}</span><span class="dl-sep">·</span>` : '';
-        deadlineHtml = `<span class="meta-tag-wrap"><span class="${tc}" role="button" tabindex="0" title="Изменить дедлайн" data-act="openDeadlineModal" data-actkey="kactivate">${IC.window}<span class="dl-badge-inner">${cdHtml}<span class="dl-absolute">${absolute}</span></span></span><button class="btn-tag-clear" data-act="clearTaskDeadline" title="Убрать дедлайн">${IC.crossedSwords}</button></span>`;
+        deadlineHtml = `<span class="meta-tag-wrap"><span class="${tc}" role="button" tabindex="0" title="Изменить исход" data-act="openDeadlineModal" data-actkey="kactivate">${IC.window}<span class="dl-badge-inner">${cdHtml}<span class="dl-absolute">${absolute}</span></span></span><button class="btn-tag-clear" data-act="clearTaskDeadline" title="Снять исход">${IC.crossedSwords}</button></span>`;
     }
 
     // ── Repeat badge ──
     const rptAnchorLabel = getRepeatAnchorLabel(task.repeat, task.repeatAnchorTime, task.repeatAnchorDay, task.repeatAnchorMonthday);
     const rptHtml = (task.repeat && task.repeat !== 'none')
-        ? `<span class="meta-tag-wrap"><span class="meta-tag repeat-tag" role="button" tabindex="0" title="Изменить повтор" data-act="openRepeatModal" data-actkey="kactivate">${IC.ouroboros}<span>${repeatLabel(task.repeat)}${rptAnchorLabel ? ` · ${rptAnchorLabel}` : ''}</span></span><button class="btn-tag-clear" data-act="clearTaskRepeat" title="Убрать повтор">${IC.crossedSwords}</button></span>` : '';
+        ? `<span class="meta-tag-wrap"><span class="meta-tag repeat-tag" role="button" tabindex="0" title="Изменить круговорот" data-act="openRepeatModal" data-actkey="kactivate">${IC.ouroboros}<span>${repeatLabel(task.repeat)}${rptAnchorLabel ? ` · ${rptAnchorLabel}` : ''}</span></span><button class="btn-tag-clear" data-act="clearTaskRepeat" title="Снять круговорот">${IC.crossedSwords}</button></span>` : '';
 
     // ── Note controls ──
     const hasNote = task.note && task.note.trim();
     // Single meta toggle (reads live DOM state): has note → show/hide the panel
     // (persisted in noteOpen); no note → open the panel straight into inline edit.
-    const noteToggle = `<button class="btn-note-toggle${(hasNote && task.noteOpen) ? ' open' : ''}" id="note-toggle-${task.id}" data-pd data-act="toggleTaskNote" title="${hasNote ? (task.noteOpen ? 'Скрыть заметку' : 'Показать заметку') : 'Добавить заметку'}">${IC.sword}<span>заметка</span></button>`;
+    const noteToggle = `<button class="btn-note-toggle${(hasNote && task.noteOpen) ? ' open' : ''}" id="note-toggle-${task.id}" data-pd data-act="toggleTaskNote" title="${hasNote ? (task.noteOpen ? 'Скрыть примечание' : 'Показать примечание') : 'Начертать примечание'}">${IC.sword}<span>примечание</span></button>`;
 
     // ── Subtask toggle + always-show-notes button ──
     const subs    = task.subtasks || [];
@@ -106,7 +106,7 @@ function createTaskEl(task, showDlSide) {
     // Always-show-notes button: only rendered when there are subtasks that have notes
     const hasSubNotes = subs.some(s => s.note && s.note.trim());
     const subNotesAlwaysBtn = (subs.length > 0 && hasSubNotes)
-        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов'}">${eyeGlyph(!task.subNotesAlwaysOpen)}</button>`
+        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания подпунктов'}">${eyeGlyph(!task.subNotesAlwaysOpen)}</button>`
         : '';
 
     const displayText = highlightHashtags(
@@ -130,7 +130,7 @@ function createTaskEl(task, showDlSide) {
     // ── Note "full editor" button (task-action) ──
     // Secondary path: opens the modal textarea for comfortable long-note editing.
     // Inline editing lives in the panel itself (primary path).
-    const addNoteBtn = `<button class="btn-task-action${hasNote ? ' edit-note-btn' : ''}" id="note-modal-btn-${task.id}" data-act="${hasNote ? 'openEditNoteModal' : 'openNoteModal'}" title="${hasNote ? 'Изменить заметку в окне' : 'Заметка в окне'}">${hasNote ? IC.editNote : IC.addNote}</button>`;
+    const addNoteBtn = `<button class="btn-task-action${hasNote ? ' edit-note-btn' : ''}" id="note-modal-btn-${task.id}" data-act="${hasNote ? 'openEditNoteModal' : 'openNoteModal'}" title="${hasNote ? 'Переписать примечание в окне' : 'Примечание в окне'}">${hasNote ? IC.editNote : IC.addNote}</button>`;
 
     // ── Subtasks section ──
     const subtaskSearchHit = searchQuery && task.subtasks && task.subtasks.some(
@@ -140,10 +140,10 @@ function createTaskEl(task, showDlSide) {
 
     // Accessible label for coffin checkbox varies by state
     const checkLabel = task.cycleChecked
-        ? `Цикл завершён · ${formatCycleUntil(task)} — нажмите чтобы отменить`
+        ? `Круг завершён · ${formatCycleUntil(task)} — нажмите, чтобы прервать`
         : task.checked
-            ? `Отмечено как выполненное: ${task.text} — нажмите чтобы снять отметку`
-            : `Отметить как выполненное: ${task.text}`;
+            ? `Обет исполнен: ${task.text} — нажмите, чтобы вернуть в неисполненные`
+            : `Исполнить обет: ${task.text}`;
 
     // Pinned mark — forged spike in the top-left corner (active pins only).
     const pinSpike = (task.pinned && !task.checked && !task.cycleChecked)
@@ -163,28 +163,28 @@ function createTaskEl(task, showDlSide) {
                     role="checkbox"
                     aria-checked="${task.checked || task.cycleChecked ? 'true' : 'false'}"
                     aria-label="${escHtml(checkLabel)}"
-                    title="${task.cycleChecked ? 'Нажмите, чтобы отменить · ' + escHtml(formatCycleUntil(task)) : task.checked ? 'Снять отметку' : 'Отметить выполненным'}"
+                    title="${task.cycleChecked ? 'Нажмите, чтобы прервать · ' + escHtml(formatCycleUntil(task)) : task.checked ? 'Вернуть в неисполненные' : 'Исполнить обет'}"
                     >${checkEl}</button>
             <div class="drag-handle" aria-hidden="true">${IC.drag}</div>
         </div>
         <div class="task-content">
             <div class="task-head">
-                <span class="task-text" data-id="${task.id}" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startInlineEdit">${displayText}</span>
+                <span class="task-text" data-id="${task.id}" spellcheck="false" title="Двойной клик — переписать" data-actdbl="startInlineEdit">${displayText}</span>
                 ${IS_COARSE ? `<div class="task-actions">
-                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
+                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Прочие деяния" aria-haspopup="menu">${IC.more}</button>
                 </div>` : `<div class="task-actions">
-                    <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" data-act="togglePin" title="${task.pinned ? 'Открепить' : 'Закрепить задачу'}">${IC.pin}</button>
+                    <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" data-act="togglePin" title="${task.pinned ? 'Снять с гвоздя' : 'Пригвоздить обет'}">${IC.pin}</button>
                     <button class="btn-task-action btn-task-color" data-act="openTaskColorModal" title="Цветовая метка" style="${task.color ? `color:${taskInk}` : ''}">
                         ${taskColorGlyph(task.color ? taskInk : null)}
                     </button>
-                    <button class="btn-task-action" data-act="openDeadlineModal" title="Дедлайн">${IC.window}</button>
-                    ${task.deadline ? `<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отложить дедлайн">${IC.snooze}</button>` : ''}
-                    <button class="btn-task-action" data-act="openRepeatModal" title="Повтор">${IC.ouroboros}</button>
-                    <button class="btn-task-action" data-act="openPrioModal" title="Приоритет">${IC.spires}</button>
+                    <button class="btn-task-action" data-act="openDeadlineModal" title="Исход">${IC.window}</button>
+                    ${task.deadline ? `<button class="btn-task-action btn-snooze" data-act="openSnoozeMenu" title="Отсрочить исход">${IC.snooze}</button>` : ''}
+                    <button class="btn-task-action" data-act="openRepeatModal" title="Круговорот">${IC.ouroboros}</button>
+                    <button class="btn-task-action" data-act="openPrioModal" title="Ранг">${IC.spires}</button>
                     ${addNoteBtn}
-                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Ещё действия" aria-haspopup="menu">${IC.more}</button>
-                    <button class="btn-task-action archive-btn" data-act="removeTask" title="В архив">${IC.archive}</button>
-                    <button class="btn-task-action danger" data-act="deleteTaskForever" title="Удалить навсегда">${IC.skull}</button>
+                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Прочие деяния" aria-haspopup="menu">${IC.more}</button>
+                    <button class="btn-task-action archive-btn" data-act="removeTask" title="В склеп">${IC.archive}</button>
+                    <button class="btn-task-action danger" data-act="deleteTaskForever" title="Уничтожить">${IC.skull}</button>
                 </div>`}
             </div>
             <div class="task-meta">${deadlineHtml}${rptHtml}${cycleUntilHtml}${noteToggle}${subToggle}${subNotesAlwaysBtn}</div>
@@ -192,14 +192,14 @@ function createTaskEl(task, showDlSide) {
                 <div class="task-note-inner">
                     <div class="task-note-text" id="note-${task.id}"
                          spellcheck="false" data-placeholder="начертайте примечание…"
-                         aria-label="Заметка задачи"
+                         aria-label="Примечание обета"
                          data-actdbl="_taskNoteEdit"
                          data-actinput="_taskNoteInput"
                          data-actkey="_taskNoteKeydown"
                          data-actblur="_taskNoteCommit"
-                         title="Двойной клик — редактировать">${hasNote ? noteDisplayHTML(task.note) : ''}</div>
+                         title="Двойной клик — переписать">${hasNote ? noteDisplayHTML(task.note) : ''}</div>
                 </div>
-                <button class="btn-note-delete" id="note-del-${task.id}" data-act="_taskNoteDelete" title="Удалить заметку"${hasNote ? '' : ' style="display:none"'}>${IC.dagger}</button>
+                <button class="btn-note-delete" id="note-del-${task.id}" data-act="_taskNoteDelete" title="Стереть примечание"${hasNote ? '' : ' style="display:none"'}>${IC.dagger}</button>
             </div>
         </div>`;
 
@@ -491,8 +491,8 @@ function buildSubtaskItemHTML(taskId, s) {
     const isCycleChecked = s.cycleChecked && s.repeat && s.repeat !== 'none';
     const isChecked = s.checked; // cycle-checked is a separate state — never add .checked class
     const subCheckLabel = isChecked || isCycleChecked
-        ? `Подпункт выполнен: ${s.text} — снять отметку`
-        : `Отметить подпункт: ${s.text}`;
+        ? `Подпункт исполнен: ${s.text} — вернуть в неисполненные`
+        : `Исполнить подпункт: ${s.text}`;
     const subDisplayText = searchQuery
         ? highlightSearch(escHtml(s.text), searchQuery)
         : escHtml(s.text);
@@ -504,8 +504,8 @@ function buildSubtaskItemHTML(taskId, s) {
     const repeatSet = s.repeat && s.repeat !== 'none';
     const subAnchorLabel = getRepeatAnchorLabel(s.repeat, s.repeatAnchorTime, s.repeatAnchorDay, s.repeatAnchorMonthday);
     const subRepeatTitle = repeatSet
-        ? `Повтор: ${repeatLabel(s.repeat)}${subAnchorLabel ? ` · ${subAnchorLabel}` : ''} — нажмите чтобы изменить`
-        : 'Назначить повтор';
+        ? `Круговорот: ${repeatLabel(s.repeat)}${subAnchorLabel ? ` · ${subAnchorLabel}` : ''} — нажмите чтобы изменить`
+        : 'Назначить круговорот';
     const subRepeatBtn = `<button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" data-act="openSubRepeatModal" title="${subRepeatTitle}">${IC.ouroboros}</button>`;
     // Note wrapper: .has-note marks an existing note (hover/always-open reveal it);
     // .note-open is the live "expanded" state driven by the unified note system.
@@ -524,19 +524,19 @@ function buildSubtaskItemHTML(taskId, s) {
     const subDlCd     = subDl ? formatDeadlineCountdown(subDl) : '';
     const subDlStatusCls = subDlStatus ? ` sub-dl-${subDlStatus}` : '';
     const subDlBadge = subDl
-        ? `<button type="button" class="sub-deadline-badge${subDlStatusCls}" data-act="openSubDeadlineModal" title="${escHtml(subDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>`
+        ? `<button type="button" class="sub-deadline-badge${subDlStatusCls}" data-act="openSubDeadlineModal" title="${escHtml(subDlAbs)}" aria-label="Исход подпункта: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>`
         : '';
     const subDlSetBtn = subDl
         ? ''
-        : `<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openSubDeadlineModal" title="Назначить дедлайн">${IC.window}</button>`;
+        : `<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openSubDeadlineModal" title="Назначить исход">${IC.window}</button>`;
     const subDlWrap = subDl
         ? `<div class="sub-deadline-wrapper${subDlStatusCls}" id="subdl-${taskId}-${s.id}">
             <div class="sub-deadline-inner">
-                <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить дедлайн"
+                <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить исход"
                       data-act="openSubDeadlineModal" data-actkey="kactivate">
                     ${subDlCd ? `<span class="sub-dl-countdown">${subDlCd}</span><span class="sub-dl-sep">·</span>` : ''}
                     <span class="sub-dl-date">${escHtml(subDlAbs)}</span>
-                    <button type="button" class="sub-dl-clear" data-act="clearSubDeadline" title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
+                    <button type="button" class="sub-dl-clear" data-act="clearSubDeadline" title="Снять исход" aria-label="Снять исход">${IC.crossedSwords}</button>
                 </span>
             </div>
         </div>`
@@ -551,16 +551,16 @@ function buildSubtaskItemHTML(taskId, s) {
                     aria-checked="${(isChecked || isCycleChecked) ? 'true' : 'false'}"
                     aria-label="${escHtml(subCheckLabel)}"
                     >${subCheckIcon}</button>
-            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startSubEdit">${subDisplayText}</span>
+            <span class="sub-text" spellcheck="false" title="Двойной клик — переписать" data-actdbl="startSubEdit">${subDisplayText}</span>
             ${subDlBadge}
             ${IS_COARSE ? `<div class="sub-actions">
-                <button type="button" class="btn-sub-action btn-sub-more" data-act="openSubMoreMenu" title="Действия" aria-haspopup="menu">${IC.more}</button>
+                <button type="button" class="btn-sub-action btn-sub-more" data-act="openSubMoreMenu" title="Деяния" aria-haspopup="menu">${IC.more}</button>
             </div>` : `<div class="sub-actions">
-                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleSubPriority" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
+                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleSubPriority" title="Ранг подпункта"><div class="sub-prio-dot"></div></button>
                 ${subRepeatBtn}
                 ${subDlSetBtn}
-                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleSubNote" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
-                <button type="button" class="btn-sub-action" data-act="promoteSubtask" title="Сделать самостоятельной задачей">${IC.promote}</button>
+                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleSubNote" title="${s.note ? 'Переписать примечание' : 'Начертать примечание'}">${s.note ? IC.editNote : IC.addNote}</button>
+                <button type="button" class="btn-sub-action" data-act="promoteSubtask" title="Возвести в обет">${IC.promote}</button>
                 <button type="button" class="btn-sub-action danger" data-act="deleteSubtask" title="Удалить подпункт">${IC.skull}</button>
             </div>`}
         </div>
@@ -569,13 +569,13 @@ function buildSubtaskItemHTML(taskId, s) {
             <div class="sub-note-inner">
                 <div class="sub-note-text" id="subnote-text-${taskId}-${s.id}"
                      spellcheck="false" data-placeholder="начертайте примечание…"
-                     aria-label="Заметка подпункта"
+                     aria-label="Примечание подпункта"
                      data-actdbl="_noteEdit"
                      data-actinput="_noteInput"
                      data-actkey="_noteKeydown"
                      data-actblur="_noteCommit"
                     >${s.note ? noteDisplayHTML(s.note) : ''}</div>
-                ${s.note ? `<button type="button" class="btn-sub-note-delete" data-act="_noteDeleteClick" title="Удалить заметку">${IC.dagger}</button>` : ''}
+                ${s.note ? `<button type="button" class="btn-sub-note-delete" data-act="_noteDeleteClick" title="Стереть примечание">${IC.dagger}</button>` : ''}
             </div>
         </div>
     </li>`;
@@ -659,8 +659,8 @@ function renderFormSubtasks() {
         const repeatSet = s.repeat && s.repeat !== 'none';
         const anchorLabel = repeatSet ? getRepeatAnchorLabel(s.repeat, s.repeatAnchorTime, s.repeatAnchorDay, s.repeatAnchorMonthday) : '';
         const repeatTitle = repeatSet
-            ? `Повтор: ${repeatLabel(s.repeat)}${anchorLabel ? ` · ${anchorLabel}` : ''} — нажмите чтобы изменить`
-            : 'Назначить повтор';
+            ? `Круговорот: ${repeatLabel(s.repeat)}${anchorLabel ? ` · ${anchorLabel}` : ''} — нажмите чтобы изменить`
+            : 'Назначить круговорот';
         const noteWrapClass = s.note ? 'has-note' : '';
         // P-E: form-subtask deadline (mirrors buildSubtaskItemHTML; index-based, no checked state)
         const fDl       = s.deadline || null;
@@ -669,19 +669,19 @@ function renderFormSubtasks() {
         const fDlCd     = fDl ? formatDeadlineCountdown(fDl) : '';
         const fDlCls    = fDlStatus ? ` sub-dl-${fDlStatus}` : '';
         const fDlBadge = fDl
-            ? `<button type="button" class="sub-deadline-badge${fDlCls}" data-act="openFormSubDeadline" title="${escHtml(fDlAbs)}" aria-label="Дедлайн подпункта: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>`
+            ? `<button type="button" class="sub-deadline-badge${fDlCls}" data-act="openFormSubDeadline" title="${escHtml(fDlAbs)}" aria-label="Исход подпункта: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>`
             : '';
         const fDlSetBtn = fDl
             ? ''
-            : `<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openFormSubDeadline" title="Назначить дедлайн">${IC.window}</button>`;
+            : `<button type="button" class="btn-sub-action sub-deadline-btn" data-act="openFormSubDeadline" title="Назначить исход">${IC.window}</button>`;
         const fDlWrap = fDl
             ? `<div class="sub-deadline-wrapper${fDlCls}">
             <div class="sub-deadline-inner">
-                <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить дедлайн"
+                <span class="sub-dl-pill" role="button" tabindex="0" title="Изменить исход"
                       data-act="openFormSubDeadline" data-actkey="kactivate">
                     ${fDlCd ? `<span class="sub-dl-countdown">${fDlCd}</span><span class="sub-dl-sep">·</span>` : ''}
                     <span class="sub-dl-date">${escHtml(fDlAbs)}</span>
-                    <button type="button" class="sub-dl-clear" data-act="clearFormSubDeadline" data-stop title="Снять дедлайн" aria-label="Снять дедлайн">${IC.crossedSwords}</button>
+                    <button type="button" class="sub-dl-clear" data-act="clearFormSubDeadline" data-stop title="Снять исход" aria-label="Снять исход">${IC.crossedSwords}</button>
                 </span>
             </div>
         </div>`
@@ -689,13 +689,13 @@ function renderFormSubtasks() {
         return `<li class="subtask-item" data-form-sub-idx="${i}" data-sprio="${s.priority || 'none'}">
         <div class="sub-main-row">
             <div class="sub-drag-handle" aria-hidden="true">${IC.drag}</div>
-            <span class="sub-text" spellcheck="false" title="Двойной клик — редактировать" data-actdbl="startFormSubEdit">${escHtml(s.text)}</span>
+            <span class="sub-text" spellcheck="false" title="Двойной клик — переписать" data-actdbl="startFormSubEdit">${escHtml(s.text)}</span>
             ${fDlBadge}
             <div class="sub-actions">
-                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleFormSubPriority" title="Приоритет подпункта"><div class="sub-prio-dot"></div></button>
+                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleFormSubPriority" title="Ранг подпункта"><div class="sub-prio-dot"></div></button>
                 <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" data-act="openFormSubRepeat" title="${repeatTitle}">${IC.ouroboros}</button>
                 ${fDlSetBtn}
-                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleFormSubNote" title="${s.note ? 'Редактировать заметку' : 'Добавить заметку'}">${s.note ? IC.editNote : IC.addNote}</button>
+                <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleFormSubNote" title="${s.note ? 'Переписать примечание' : 'Начертать примечание'}">${s.note ? IC.editNote : IC.addNote}</button>
                 <button type="button" class="btn-sub-action danger" data-act="removeFormSubtask" title="Удалить подпункт">${IC.skull}</button>
             </div>
         </div>
@@ -704,13 +704,13 @@ function renderFormSubtasks() {
             <div class="sub-note-inner">
                 <div class="sub-note-text" id="form-subnote-text-${i}"
                      spellcheck="false" data-placeholder="начертайте примечание…"
-                     aria-label="Заметка подпункта"
+                     aria-label="Примечание подпункта"
                      data-actdbl="_noteEdit"
                      data-actinput="_noteInput"
                      data-actkey="_noteKeydown"
                      data-actblur="_noteCommit"
                     >${s.note ? noteDisplayHTML(s.note) : ''}</div>
-                ${s.note ? `<button type="button" class="btn-sub-note-delete" data-act="_noteDeleteClick" title="Удалить заметку">${IC.dagger}</button>` : ''}
+                ${s.note ? `<button type="button" class="btn-sub-note-delete" data-act="_noteDeleteClick" title="Стереть примечание">${IC.dagger}</button>` : ''}
             </div>
         </div>
     </li>`;
@@ -1443,7 +1443,7 @@ function _renderTemplatesList() {
         const bits = [];
         if (t.priority && t.priority !== 'none') bits.push(`<span class="tpl-bit tpl-prio-${t.priority}">${{high:'высокий',medium:'средний',low:'низкий'}[t.priority]}</span>`);
         if (t.repeat && t.repeat !== 'none')     bits.push(`<span class="tpl-bit">${IC.ouroboros}${repeatLabel(t.repeat)}</span>`);
-        if (t.deadline)                          bits.push(`<span class="tpl-bit">${IC.window}дедлайн</span>`);
+        if (t.deadline)                          bits.push(`<span class="tpl-bit">${IC.window}исход</span>`);
         if (t.subtasks && t.subtasks.length)     bits.push(`<span class="tpl-bit">${t.subtasks.length} подп.</span>`);
         return `<div class="template-item">
             <button class="template-create" data-act="createTaskFromTemplate" data-id="${t.id}" title="Создать задачу из шаблона">
@@ -1988,7 +1988,7 @@ function toggleSubNotesAlwaysOpen(taskId) {
         btn.classList.toggle('active', task.subNotesAlwaysOpen);
         // P3: notes revealed → the eye opens; notes hidden → it half-closes
         btn.innerHTML = eyeGlyph(!task.subNotesAlwaysOpen);
-        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов';
+        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания подпунктов';
     }
     saveState();
 }
@@ -2297,18 +2297,18 @@ function openTaskMoreMenu(event, id) {
     const hasNoteNow = !!(task && task.note && task.note.trim());
     const taskInkNow = (task && task.color) ? _grimInk(task.color) : null;
     const coarseHead = IS_COARSE
-        ? `<div class="fm-quick" role="group" aria-label="Свойства задачи">
-            <button type="button" class="fm-q${task && task.pinned ? ' active' : ''}" data-act="_taskMore" data-more="pin" data-id="${id}">${IC.pin}<span>${task && task.pinned ? 'Открепить' : 'Закрепить'}</span></button>
+        ? `<div class="fm-quick" role="group" aria-label="Свойства обета">
+            <button type="button" class="fm-q${task && task.pinned ? ' active' : ''}" data-act="_taskMore" data-more="pin" data-id="${id}">${IC.pin}<span>${task && task.pinned ? 'Снять с гвоздя' : 'Пригвоздить'}</span></button>
             <button type="button" class="fm-q" data-act="_taskMore" data-more="prio" data-id="${id}">${IC.spires}<span>Приоритет</span></button>
-            <button type="button" class="fm-q${task && task.deadline ? ' active' : ''}" data-act="_taskMore" data-more="deadline" data-id="${id}">${IC.window}<span>Дедлайн</span></button>
+            <button type="button" class="fm-q${task && task.deadline ? ' active' : ''}" data-act="_taskMore" data-more="deadline" data-id="${id}">${IC.window}<span>Исход</span></button>
             <button type="button" class="fm-q${task && task.repeat && task.repeat !== 'none' ? ' active' : ''}" data-act="_taskMore" data-more="repeat" data-id="${id}">${IC.ouroboros}<span>Повтор</span></button>
             <button type="button" class="fm-q" data-act="_taskMore" data-more="color" data-id="${id}" style="${taskInkNow ? `color:${taskInkNow}` : ''}">${taskColorGlyph(taskInkNow)}<span>Цвет</span></button>
-            <button type="button" class="fm-q${hasNoteNow ? ' active' : ''}" data-act="_taskMore" data-more="notewin" data-id="${id}">${hasNoteNow ? IC.editNote : IC.addNote}<span>Заметка</span></button>
+            <button type="button" class="fm-q${hasNoteNow ? ' active' : ''}" data-act="_taskMore" data-more="notewin" data-id="${id}">${hasNoteNow ? IC.editNote : IC.addNote}<span>Примечание</span></button>
         </div>
-        <button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>`
-        : `<button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Редактировать</span></button>`;
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Переписать</span></button>`
+        : `<button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Переписать</span></button>`;
     const coarseTail = IS_COARSE ? `
-        ${task && task.deadline ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отложить дедлайн</span></button>` : ''}
+        ${task && task.deadline ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отсрочить исход</span></button>` : ''}
         <button type="button" role="menuitem" data-act="_taskMore" data-more="archive" data-id="${id}">${IC.archive}<span>В архив</span></button>
         <button type="button" role="menuitem" class="fm-danger" data-act="_taskMore" data-more="delete" data-id="${id}">${IC.skull}<span>Удалить навсегда</span></button>` : '';
     _openFloatMenu(event.currentTarget, `
@@ -2316,7 +2316,7 @@ function openTaskMoreMenu(event, id) {
         <button type="button" role="menuitem" data-act="_taskMore" data-more="tpl" data-id="${id}">${IC.template}<span>Сохранить как шаблон</span></button>
         <button type="button" role="menuitem" data-act="_taskMore" data-more="dup" data-id="${id}">${IC.twinCoffin}<span>Дублировать задачу</span></button>
         ${subModeItem}
-        ${canDemote ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="demote" data-id="${id}">${IC.demote}<span>Сделать подпунктом</span></button>` : ''}
+        ${canDemote ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="demote" data-id="${id}">${IC.demote}<span>Подчинить обету</span></button>` : ''}
         ${coarseTail}`,
         'task-more-menu');
 }
@@ -2515,13 +2515,13 @@ function openSubMoreMenu(event, taskId, subId) {
         `<button type="button" role="menuitemradio" aria-checked="${curP === val}" class="fm-q fm-q-prio${curP === val ? ' active' : ''}" data-act="_subMore" data-more="prio" data-p="${val}" ${ds}><span class="fm-prio-dot p-${val}"></span><span>${label}</span></button>`;
     const repeatSet = sub.repeat && sub.repeat !== 'none';
     _openFloatMenu(event.currentTarget, `
-        <div class="fm-quick fm-quick-4" role="group" aria-label="Приоритет подпункта">
+        <div class="fm-quick fm-quick-4" role="group" aria-label="Ранг подпункта">
             ${pOpt('none', 'Нет')}${pOpt('low', 'Низкий')}${pOpt('medium', 'Средний')}${pOpt('high', 'Высокий')}
         </div>
-        <button type="button" role="menuitem" data-act="_subMore" data-more="edit" ${ds}>${IC.quill}<span>Редактировать</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="edit" ${ds}>${IC.quill}<span>Переписать</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="repeat" ${ds}>${IC.ouroboros}<span>Повтор${repeatSet ? ` · ${repeatLabel(sub.repeat)}` : ''}</span></button>
-        <button type="button" role="menuitem" data-act="_subMore" data-more="deadline" ${ds}>${IC.window}<span>${sub.deadline ? 'Изменить дедлайн' : 'Дедлайн'}</span></button>
-        <button type="button" role="menuitem" data-act="_subMore" data-more="note" ${ds}>${sub.note ? IC.editNote : IC.addNote}<span>${sub.note ? 'Изменить заметку' : 'Заметка'}</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="deadline" ${ds}>${IC.window}<span>${sub.deadline ? 'Изменить исход' : 'Исход'}</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="note" ${ds}>${sub.note ? IC.editNote : IC.addNote}<span>${sub.note ? 'Переписать примечание' : 'Примечание'}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="promote" ${ds}>${IC.promote}<span>Сделать задачей</span></button>
         <button type="button" role="menuitem" class="fm-danger" data-act="_subMore" data-more="delete" ${ds}>${IC.skull}<span>Удалить подпункт</span></button>`,
         'sub-more-menu');

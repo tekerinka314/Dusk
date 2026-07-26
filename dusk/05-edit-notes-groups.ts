@@ -169,7 +169,7 @@ function _notePersist(ctx, text, opts: any = {}) {
     const toggleBtn = ctx.item.querySelector('.btn-sub-note-toggle');
     if (toggleBtn) {
         toggleBtn.classList.toggle('has-note', !!text);
-        toggleBtn.title = text ? 'Редактировать заметку' : 'Добавить заметку';
+        toggleBtn.title = text ? 'Переписать примечание' : 'Начертать примечание';
         toggleBtn.innerHTML = text ? IC.editNote : IC.addNote;
     }
     if (wrap) {
@@ -180,7 +180,7 @@ function _notePersist(ctx, text, opts: any = {}) {
                 const delBtn = document.createElement('button');
                 delBtn.type = 'button';
                 delBtn.className = 'btn-sub-note-delete';
-                delBtn.title = 'Удалить заметку';
+                delBtn.title = 'Стереть примечание';
                 delBtn.innerHTML = IC.dagger;
                 delBtn.addEventListener('click', e => _noteDeleteClick(e, inner.querySelector('.sub-note-text')));
                 inner.appendChild(delBtn);
@@ -213,7 +213,7 @@ function _noteDeleteClick(e, textEl) {
         const cnt = wrap.querySelector('.sub-note-count');      if (cnt) cnt.remove();
     }
     const toggleBtn = ctx.item.querySelector('.btn-sub-note-toggle');
-    if (toggleBtn) { toggleBtn.classList.remove('has-note'); toggleBtn.title = 'Добавить заметку'; toggleBtn.innerHTML = IC.addNote; }
+    if (toggleBtn) { toggleBtn.classList.remove('has-note'); toggleBtn.title = 'Начертать примечание'; toggleBtn.innerHTML = IC.addNote; }
     if (ctx.kind === 'sub') { saveState(); updateSubNotesAlwaysBtn(ctx.taskId); }
 }
 
@@ -268,7 +268,7 @@ function updateSubNotesAlwaysBtn(taskId) {
         btn = document.createElement('button');
         btn.className = 'btn-sub-notes-always' + (task.subNotesAlwaysOpen ? ' active' : '');
         btn.dataset.tid = String(taskId);
-        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все заметки' : 'Показать все заметки подпунктов';
+        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания подпунктов';
         btn.innerHTML = eyeGlyph(!task.subNotesAlwaysOpen);
         btn.addEventListener('click', () => toggleSubNotesAlwaysOpen(taskId));
         const subToggle = meta.querySelector(`.btn-subtask-toggle[data-tid="${taskId}"]`);
@@ -523,7 +523,7 @@ function toggleTaskNote(id) {
         if (hasText) {                             // text saved → honour the hide intent
             task.noteOpen = false;
             wrap.classList.remove('visible');
-            if (btn) { btn.classList.remove('open'); btn.title = 'Показать заметку'; }
+            if (btn) { btn.classList.remove('open'); btn.title = 'Показать примечание'; }
             saveState();
         }
         return;
@@ -533,7 +533,7 @@ function toggleTaskNote(id) {
         const willOpen = !wrap.classList.contains('visible');
         task.noteOpen = willOpen;
         wrap.classList.toggle('visible', willOpen);
-        if (btn) { btn.classList.toggle('open', willOpen); btn.title = willOpen ? 'Скрыть заметку' : 'Показать заметку'; }
+        if (btn) { btn.classList.toggle('open', willOpen); btn.title = willOpen ? 'Скрыть примечание' : 'Показать примечание'; }
         saveState();
     } else {
         wrap.classList.add('visible');
@@ -650,12 +650,12 @@ function _taskNotePersist(ctx, text) {
         if (del) del.style.display = text ? '' : 'none';
     }
     const tgl = document.getElementById('note-toggle-' + ctx.id);
-    if (tgl) { tgl.classList.toggle('open', !!text); tgl.title = text ? 'Скрыть заметку' : 'Добавить заметку'; }
+    if (tgl) { tgl.classList.toggle('open', !!text); tgl.title = text ? 'Скрыть примечание' : 'Начертать примечание'; }
     const mbtn = document.getElementById('note-modal-btn-' + ctx.id);
     if (mbtn) {
         mbtn.classList.toggle('edit-note-btn', !!text);
         mbtn.innerHTML = text ? IC.editNote : IC.addNote;
-        mbtn.title = text ? 'Изменить заметку в окне' : 'Заметка в окне';
+        mbtn.title = text ? 'Переписать примечание в окне' : 'Примечание в окне';
         mbtn.setAttribute('onclick', text ? `openEditNoteModal(${ctx.id})` : `openNoteModal(${ctx.id})`);
     }
     saveState();
@@ -664,7 +664,7 @@ function _taskNotePersist(ctx, text) {
 function openNoteModal(id) {
     editingTaskId = id;
     (document.getElementById('note-modal-input') as HTMLInputElement).value = '';
-    document.getElementById('note-modal').querySelector<HTMLElement>('.modal-title').textContent = 'Добавить заметку';
+    document.getElementById('note-modal').querySelector<HTMLElement>('.modal-title').textContent = 'Начертать примечание';
     openModalWithFocus('note-modal');
 }
 
@@ -673,7 +673,7 @@ function openEditNoteModal(id) {
     if (!task) return;
     editingTaskId = id;
     (document.getElementById('note-modal-input') as HTMLInputElement).value = task.note || '';
-    document.getElementById('note-modal').querySelector<HTMLElement>('.modal-title').textContent = 'Изменить заметку';
+    document.getElementById('note-modal').querySelector<HTMLElement>('.modal-title').textContent = 'Переписать примечание';
     openModalWithFocus('note-modal');
     // Select text after focus trap moves focus in
     requestAnimationFrame(() => {
@@ -1146,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const _toastLabel = () => {
                 const label = getRepeatAnchorLabel(newRepeat, anchorTime || null, anchorDay || null, anchorMonthday || null);
                 if (newRepeat === 'none') return 'Повтор отключён';
-                return `Повтор: ${repeatLabel(newRepeat)}${label ? ` · ${label}` : ''}`;
+                return `Круговорот: ${repeatLabel(newRepeat)}${label ? ` · ${label}` : ''}`;
             };
 
             // ── Form subtask repeat (problem 3/4) ─────────────────────────────
@@ -1193,8 +1193,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         repeatBtn.classList.toggle('active', repeatSet);
                         const anchorLabel = getRepeatAnchorLabel(sub.repeat, sub.repeatAnchorTime, sub.repeatAnchorDay, sub.repeatAnchorMonthday);
                         repeatBtn.title = repeatSet
-                            ? `Повтор: ${repeatLabel(sub.repeat)}${anchorLabel ? ` · ${anchorLabel}` : ''} — нажмите чтобы изменить`
-                            : 'Назначить повтор';
+                            ? `Круговорот: ${repeatLabel(sub.repeat)}${anchorLabel ? ` · ${anchorLabel}` : ''} — нажмите чтобы изменить`
+                            : 'Назначить круговорот';
                     }
                 }
                 // Problem 5: toast was missing for subtasks
