@@ -142,7 +142,7 @@ function createTaskEl(task, showDlSide) {
     const checkLabel = task.cycleChecked
         ? `Круг завершён · ${formatCycleUntil(task)} — нажмите, чтобы прервать`
         : task.checked
-            ? `Обет исполнен: ${task.text} — нажмите, чтобы вернуть в неисполненные`
+            ? `Обет исполнен: ${task.text} — нажмите, чтобы отречься`
             : `Исполнить обет: ${task.text}`;
 
     // Pinned mark — forged spike in the top-left corner (active pins only).
@@ -163,7 +163,7 @@ function createTaskEl(task, showDlSide) {
                     role="checkbox"
                     aria-checked="${task.checked || task.cycleChecked ? 'true' : 'false'}"
                     aria-label="${escHtml(checkLabel)}"
-                    title="${task.cycleChecked ? 'Нажмите, чтобы прервать · ' + escHtml(formatCycleUntil(task)) : task.checked ? 'Вернуть в неисполненные' : 'Исполнить обет'}"
+                    title="${task.cycleChecked ? 'Нажмите, чтобы прервать · ' + escHtml(formatCycleUntil(task)) : task.checked ? 'Отречься' : 'Исполнить обет'}"
                     >${checkEl}</button>
             <div class="drag-handle" aria-hidden="true">${IC.drag}</div>
         </div>
@@ -171,9 +171,9 @@ function createTaskEl(task, showDlSide) {
             <div class="task-head">
                 <span class="task-text" data-id="${task.id}" spellcheck="false" title="Двойной клик — переписать" data-actdbl="startInlineEdit">${displayText}</span>
                 ${IS_COARSE ? `<div class="task-actions">
-                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Прочие деяния" aria-haspopup="menu">${IC.more}</button>
+                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Иное" aria-haspopup="menu">${IC.more}</button>
                 </div>` : `<div class="task-actions">
-                    <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" data-act="togglePin" title="${task.pinned ? 'Снять с гвоздя' : 'Пригвоздить обет'}">${IC.pin}</button>
+                    <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" data-act="togglePin" title="${task.pinned ? 'Расковать' : 'Приковать к вершине'}">${IC.pin}</button>
                     <button class="btn-task-action btn-task-color" data-act="openTaskColorModal" title="Цветовая метка" style="${task.color ? `color:${taskInk}` : ''}">
                         ${taskColorGlyph(task.color ? taskInk : null)}
                     </button>
@@ -182,7 +182,7 @@ function createTaskEl(task, showDlSide) {
                     <button class="btn-task-action" data-act="openRepeatModal" title="Круговорот">${IC.ouroboros}</button>
                     <button class="btn-task-action" data-act="openPrioModal" title="Ранг">${IC.spires}</button>
                     ${addNoteBtn}
-                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Прочие деяния" aria-haspopup="menu">${IC.more}</button>
+                    <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Иное" aria-haspopup="menu">${IC.more}</button>
                     <button class="btn-task-action archive-btn" data-act="removeTask" title="В склеп">${IC.archive}</button>
                     <button class="btn-task-action danger" data-act="deleteTaskForever" title="Уничтожить">${IC.skull}</button>
                 </div>`}
@@ -491,7 +491,7 @@ function buildSubtaskItemHTML(taskId, s) {
     const isCycleChecked = s.cycleChecked && s.repeat && s.repeat !== 'none';
     const isChecked = s.checked; // cycle-checked is a separate state — never add .checked class
     const subCheckLabel = isChecked || isCycleChecked
-        ? `Подпункт исполнен: ${s.text} — вернуть в неисполненные`
+        ? `Подпункт исполнен: ${s.text} — нажмите, чтобы отречься`
         : `Исполнить подпункт: ${s.text}`;
     const subDisplayText = searchQuery
         ? highlightSearch(escHtml(s.text), searchQuery)
@@ -2298,7 +2298,7 @@ function openTaskMoreMenu(event, id) {
     const taskInkNow = (task && task.color) ? _grimInk(task.color) : null;
     const coarseHead = IS_COARSE
         ? `<div class="fm-quick" role="group" aria-label="Свойства обета">
-            <button type="button" class="fm-q${task && task.pinned ? ' active' : ''}" data-act="_taskMore" data-more="pin" data-id="${id}">${IC.pin}<span>${task && task.pinned ? 'Снять с гвоздя' : 'Пригвоздить'}</span></button>
+            <button type="button" class="fm-q${task && task.pinned ? ' active' : ''}" data-act="_taskMore" data-more="pin" data-id="${id}">${IC.pin}<span>${task && task.pinned ? 'Расковать' : 'Приковать'}</span></button>
             <button type="button" class="fm-q" data-act="_taskMore" data-more="prio" data-id="${id}">${IC.spires}<span>Приоритет</span></button>
             <button type="button" class="fm-q${task && task.deadline ? ' active' : ''}" data-act="_taskMore" data-more="deadline" data-id="${id}">${IC.window}<span>Исход</span></button>
             <button type="button" class="fm-q${task && task.repeat && task.repeat !== 'none' ? ' active' : ''}" data-act="_taskMore" data-more="repeat" data-id="${id}">${IC.ouroboros}<span>Повтор</span></button>
