@@ -1213,11 +1213,26 @@ html::after {
     transition: background var(--dur-micro), color var(--dur-micro);
 }
 .snooze-menu button svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.8; }
-.snooze-menu button:hover { background: rgba(100, 25, 200, 0.20); color: var(--text-primary); }
+.snooze-menu button:hover:not(:disabled) { background: rgba(100, 25, 200, 0.20); color: var(--text-primary); }
+/* V2-B4-05: a dead menu row (sync panel while signed out) had NO skin of its own —
+   it rendered at full strength and swallowed the click. Sealed, not removed: dimmed
+   to the same register as the other disabled controls (.sb-btn .32 / .repeat-btn .28),
+   colour dropped to muted so it reads inert even on touch where there is no cursor.
+   pointer-events stays ON so `not-allowed` actually paints; hover/active rules above
+   are guarded with :not(:disabled) or they would cancel the dim. Native `disabled`
+   also keeps _apMenuKeyNav (03-render) from landing on the row. */
+.snooze-menu button:disabled,
+.snooze-menu button[aria-disabled="true"] {
+    opacity: 0.38;
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+.snooze-menu button:disabled svg,
+.snooze-menu button[aria-disabled="true"] svg { opacity: 0.55; }
 /* Destructive menu item (coarse task-⋯: «Удалить навсегда») — danger red is the
    only warm accent, reserved for destructive actions (matches .btn-task-action.danger). */
-.snooze-menu button.fm-danger:hover,
-.snooze-menu button.fm-danger:active { background: var(--prio-high-bg); color: var(--prio-high); }
+.snooze-menu button.fm-danger:hover:not(:disabled),
+.snooze-menu button.fm-danger:active:not(:disabled) { background: var(--prio-high-bg); color: var(--prio-high); }
 /* Two-step group delete armed INSIDE the group-⋯ menu (same pulse as the inline button) */
 .snooze-menu button.fm-group-del.confirm-armed,
 .snooze-menu button.fm-clear-all.confirm-armed {
@@ -1316,7 +1331,7 @@ html::after {
     cursor: pointer;
     transition: background 0.12s ease, transform 0.12s ease, color 0.12s ease;
 }
-.snooze-menu.action-sheet .fm-q:active { background: rgba(120, 60, 220, 0.16); transform: scale(0.96); }
+.snooze-menu.action-sheet .fm-q:active:not(:disabled) { background: rgba(120, 60, 220, 0.16); transform: scale(0.96); }
 .snooze-menu.action-sheet .fm-q svg { width: 20px; height: 20px; }
 .snooze-menu.action-sheet .fm-q > span:last-child {
     font-family: var(--font-label);

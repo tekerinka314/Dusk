@@ -456,6 +456,11 @@ function syncNowManual() {
 // refreshStatus() can re-render an already-open panel in place (see
 // _refreshSyncPanelIfOpen) — otherwise the status line ("выключено" / "синхронизация…"
 // / "ок") only updated when the panel was closed and reopened.
+// V2-B4-05: a dead panel row carries BOTH attributes. Native `disabled` blocks the
+// click and keeps _apMenuKeyNav from parking focus on a row that does nothing;
+// `aria-disabled` keeps the state announceable when the panel is read in browse
+// mode. Single literal so the pair can never drift apart across the two rows.
+const DEAD_ITEM = ' disabled aria-disabled="true"';
 function _syncPanelHtml() {
     const signedIn   = (typeof cloudStatus === 'function') && cloudStatus().signedIn;
     const configured = (typeof cloudIsConfigured === 'function') && cloudIsConfigured();
@@ -464,8 +469,8 @@ function _syncPanelHtml() {
 
     const acct = signedIn
         ? `<button type="button" role="menuitem" data-act="syncSignOut"><span>Выйти из синхронизации</span></button>`
-        : `<button type="button" role="menuitem" data-act="syncSignIn"${configured ? '' : ' disabled'}><span>Войти в Google Drive</span></button>`;
-    const now = `<button type="button" role="menuitem" data-act="syncNowManual"${(_syncing || !signedIn) ? ' disabled' : ''}><span>Синхронизировать сейчас</span></button>`;
+        : `<button type="button" role="menuitem" data-act="syncSignIn"${configured ? '' : DEAD_ITEM}><span>Войти в Google Drive</span></button>`;
+    const now = `<button type="button" role="menuitem" data-act="syncNowManual"${(_syncing || !signedIn) ? DEAD_ITEM : ''}><span>Синхронизировать сейчас</span></button>`;
     const quar = n > 0
         ? `<button type="button" role="menuitem" class="sync-panel-quar" data-act="openQuarantine"><span>Разобрать конфликты</span><b class="sync-panel-quar-n">${n}</b></button>`
         : '';
