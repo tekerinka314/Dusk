@@ -40,6 +40,10 @@
     --border-mid:      rgba(130, 50, 220, 0.48);
     --border-bright:   rgba(170, 90, 255, 0.68);
     --border-input:    rgba(100, 35, 170, 0.40);
+    /* B5-03: ОДИН цвет фокуса на всё приложение — кольцо кнопок и подсвеченная
+       граница текстовых полей. Замерен ≥3:1 (WCAG 2.2 §1.4.11) и на заливке
+       поля, и на карточке снаружи; прежние шесть литералов давали 2.08:1. */
+    --focus-ring:      rgba(180, 100, 255, 0.85);
 
     --accent:          #a060ff;
     --accent-soft:     rgba(110, 30, 210, 0.20);
@@ -171,7 +175,7 @@ html { scroll-behavior:smooth; }
    Purple glow matches the gothic palette. border-radius:inherit keeps coffin
    checkboxes and pill-buttons looking correct.                               */
 :focus-visible {
-    outline: 2px solid rgba(180, 100, 255, 0.85);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
     border-radius: inherit;
     box-shadow: 0 0 0 4px rgba(140, 60, 255, 0.20), 0 0 12px rgba(160, 80, 255, 0.15);
@@ -641,7 +645,7 @@ html::after {
     transition: border-color var(--transition), box-shadow var(--transition);
 }
 .row:focus-within {
-    border-color: rgba(150, 70, 255, 0.55);
+    border-color: var(--focus-ring);
     /* No inner box-shadow — border highlight only (audit p.9) */
 }
 .row.shake { animation: shake 0.4s ease; }
@@ -1108,7 +1112,7 @@ html::after {
     font-variant-numeric: lining-nums tabular-nums;
 }
 .note-input::placeholder { color: var(--text-muted); font-style: italic; }
-.note-input:focus { border-color: rgba(140, 60, 255, 0.5); }
+.note-input:focus { border-color: var(--focus-ring); }
 
 /* ===== TOAST ===== */
 .toast {
@@ -1536,7 +1540,7 @@ html::after {
     transition: border-color var(--transition);
 }
 .search-wrap:focus-within {
-    border-color: rgba(160, 80, 255, 0.75);
+    border-color: var(--focus-ring);
     /* Clean outer border only — no box-shadow inside the search field (P6) */
 }
 .search-wrap svg { width: 13px; height: 13px; color: var(--text-muted); flex-shrink: 0; }
@@ -3460,7 +3464,7 @@ textarea:focus-visible {
     transition: border-color var(--transition);
 }
 .subtask-add-input::placeholder { color: var(--text-muted); font-style: italic; }
-.subtask-add-input:focus { border-color: rgba(140,60,255,0.5); border-style: solid; }
+.subtask-add-input:focus { border-color: var(--focus-ring); border-style: solid; }
 
 .btn-subtask-confirm {
     width: 26px;
@@ -3543,7 +3547,7 @@ textarea:focus-visible {
     transition: border-color var(--transition);
 }
 .form-sub-input::placeholder { color: var(--text-muted); font-style: italic; }
-.form-sub-input:focus { border-color: rgba(150, 70, 255, 0.55); border-style: solid; }
+.form-sub-input:focus { border-color: var(--focus-ring); border-style: solid; }
 .form-sub-input.shake { animation: shake 0.4s ease; }
 .btn-form-sub-add {
     display: inline-flex;
@@ -4052,7 +4056,7 @@ textarea:focus-visible {
 }
 .inline-note-input::placeholder { color: var(--text-muted); }
 .inline-note-input:focus {
-    border-color: rgba(140, 60, 255, 0.55);
+    border-color: var(--focus-ring);
     border-style: solid;
 }
 
@@ -4547,7 +4551,7 @@ textarea:focus-visible {
     outline: none;
     transition: border-color var(--transition);
 }
-.modal-input:focus { border-color: rgba(150, 70, 255, 0.55); }
+.modal-input:focus { border-color: var(--focus-ring); }
 .modal-input option { background: #060218; }
 
 .modal-textarea {
@@ -6545,7 +6549,7 @@ kbd {
 }
 /* no highlight on focus — clean, unobtrusive */
 .archive-search-wrap:focus-within {
-    border-color: rgba(160, 80, 255, 0.75);
+    border-color: var(--focus-ring);
     box-shadow: 0 0 0 2px rgba(110, 30, 210, 0.15);
 }
 .archive-search-wrap svg {
@@ -7115,7 +7119,7 @@ kbd {
     transition: border-color var(--transition), box-shadow var(--transition);
 }
 .grim-search-wrap:focus-within {
-    border-color: var(--border-bright);
+    border-color: var(--focus-ring);
     box-shadow: 0 0 14px rgba(120, 40, 220, 0.18);
 }
 .grim-search-wrap svg { width: 15px; height: 15px; color: var(--text-muted); flex-shrink: 0; }
