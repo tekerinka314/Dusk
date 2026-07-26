@@ -1958,11 +1958,17 @@ html::after {
     0%   { transform: scale(0.3)  rotate(-45deg); opacity: 0;   }
     60%  { transform: scale(1.18) rotate(6deg);   opacity: 0.9; }
     80%  { transform: scale(0.94) rotate(-2deg);  }
-    100% { transform: scale(1)    rotate(0deg);   opacity: 0.20; }
+    100% { transform: scale(1)    rotate(0deg);   opacity: 0.5;  }
 }
 @keyframes emptyTextIn {
     from { opacity: 0; transform: translateY(7px); }
     to   { opacity: 0.65; transform: translateY(0); }
+}
+/* W2-9: у подстроки своя доводка (0.85), иначе она догоняла бы заголовок и
+   курсив терял бы вторичность. */
+@keyframes emptySubIn {
+    from { opacity: 0; transform: translateY(7px); }
+    to   { opacity: 0.85; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4145,10 +4151,13 @@ textarea:focus-visible {
 }
 .empty-rune {
     font-size: 36px;
-    opacity: 0.20;
+    opacity: 0.5;
     font-family: var(--font-label);
     animation: ornamentPulse 5s ease-in-out infinite;
 }
+/* W2-9: руна пустого состояния стала глифом — подача та же, что у `.grim-empty-ic`
+   в Гримуаре (52px, акцент, мягкий ореол), поэтому обе страницы читаются одинаково. */
+.empty-rune svg { display: block; width: 52px; height: 52px; color: var(--accent); filter: drop-shadow(0 0 12px var(--accent-glow)); }
 /* #4 (порт _grimEmptyHTML): CTA пустого состояния — та же готик-кнопка, что «Начертать первую». */
 .empty-add-btn {
     margin-top: 6px;
@@ -4170,6 +4179,9 @@ textarea:focus-visible {
 .empty-add-btn:hover { border-color: var(--border-bright); box-shadow: 0 0 16px rgba(120, 40, 220, 0.28); color: var(--text-primary); }
 .empty-add-btn svg { width: 14px; height: 14px; }
 .empty-state p { font-size: 14px; letter-spacing: 1px; font-family: var(--font-label); opacity: 0.65; }
+/* W2-9: курсивная подстрока — та же роль и та же подача, что `.grim-empty-sub`. */
+.empty-sub { font-size: 13.5px; font-style: italic; color: var(--text-muted); opacity: 0.85; max-width: 32ch; line-height: 1.45; }
+.empty-state .empty-sub { margin-top: -4px; }
 
 /* All-done: purple, not green */
 .all-done {
@@ -4181,6 +4193,7 @@ textarea:focus-visible {
     align-items: center;
     gap: 8px;
 }
+.all-done-icon svg { display: block; width: 44px; height: 44px; }
 .all-done-icon {
     font-size: 30px;
     opacity: 0.8;
@@ -7753,10 +7766,8 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
     .task-sort-list.task-sort-portal { animation: none; }
 }
-.grim-list-none {
-    font-size: 14px; font-style: italic; color: var(--text-muted);
-    padding: 16px 4px; text-align: center; opacity: 0.85;
-}
+/* W2-9: голая строка «Ничего не найдено» (`.grim-list-none`) снята — поиск без
+   результата рисует полную плиту `.grim-empty.grim-empty-inline` (см. ниже). */
 
 /* cross-app #8: crypt (note archive) month sections — mirror the task archive, styled to
    the grimoire rail (label font, gothic violet hairline). The crypt has no DnD/sort, so
@@ -8554,6 +8565,11 @@ kbd {
 .grim-empty p { font-family: var(--font-title); font-size: 19px; letter-spacing: 1.5px; color: var(--text-secondary); margin-top: 4px; }
 .grim-empty-sub { font-size: 14px; font-style: italic; color: var(--text-muted); opacity: 0.85; }
 .grim-empty-btn { margin-top: 10px; }
+/* W2-9: та же плита, но ВНУТРИ списка (поиск без результата) — своя раскладка,
+   потому что `display:flex` сюда не приходит от `.empty-state`, а рост в 64px
+   отступов разорвал бы список. */
+.grim-empty-inline { display: flex; padding: 40px 16px; text-align: center; }
+.grim-empty-inline .grim-empty-ic svg { width: 46px; height: 46px; }
 
 @media (prefers-reduced-motion: reduce) {
     .grim-leaf.gl-in, .grim-page, .grim-leaf-spike { animation: none; }

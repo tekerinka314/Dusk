@@ -488,7 +488,7 @@ function clearArchiveSearch() {
     if (sb) sb.focus();
 }
 
-// #4: empty-state CTA — focus (and reveal) the new-task field so «Добавить первую задачу»
+// #4: empty-state CTA — focus (and reveal) the new-task field so «Дать первый обет»
 // drops the user straight onto the input.
 function focusNewTaskInput() {
     const inp = document.getElementById('input-box');
@@ -782,15 +782,15 @@ function updateVisibility() {
     _emptyWasVisible = noVisible;
 
     // C-2: distinguish three "list reads empty" cases so the plaque never lies:
-    //   • every task complete  → the «Все задачи выполнены» plaque (persists across reloads)
-    //   • no tasks at all       → "Нет задач. Добавьте первую."
-    //   • tasks exist but a filter/search/Today/focus hides them → neutral "Ничего не найдено"
-    // Before: filter-ON + all-done showed a FALSE "Нет задач. Добавьте первую." on every render.
+    //   • every task complete  → the «Все обеты исполнены» plaque (persists across reloads)
+    //   • no tasks at all       → «Алтарь пуст»
+    //   • tasks exist but a filter/search/Today/focus hides them → neutral «Тишина в ответ»
+    // Before: filter-ON + all-done showed a FALSE «Алтарь пуст» on every render.
     const allDoneGlobal = state.tasks.length > 0 &&
         state.tasks.every(t => t.checked || t.cycleChecked);
     // C-2 (уточнено): плашка «Все выполнены» — только когда список пуст ИМЕННО из-за
     // завершённости (напр. при скрытии выполненных), БЕЗ активного поиска/цвет-фильтра/
-    // фокуса/Today. Если же что-то скрыто реальным фильтром — честное «Ничего не найдено».
+    // фокуса/Today. Если же что-то скрыто реальным фильтром — честное «Тишина в ответ».
     const queryFilterActive = !!query || !!colorFilter || focusGroupId !== null || isTodayMode;
 
     if (noVisible && allDoneGlobal && !queryFilterActive) {
@@ -807,13 +807,18 @@ function updateVisibility() {
         emptyState.style.flexDirection = 'column';
         emptyState.style.alignItems = 'center';
         // Honest message: tasks exist but are filtered out → "nothing found", else "add first".
+        // W2-9: у двух состояний РАЗНЫЙ голос и РАЗНЫЙ глиф — «алтарь пуст» (незажжённая
+        // свеча) против «тишина в ответ» (скраинг-шар); подстрока и <use> едут вместе с
+        // заголовком, иначе глиф соврёт о причине пустоты.
         const _msgEl = emptyState.querySelector<HTMLElement>('p');
+        const _subEl = emptyState.querySelector<HTMLElement>('.empty-sub');
+        const _useEl = emptyState.querySelector<SVGUseElement>('.empty-rune use');
         const _noTasks = state.tasks.length === 0;
-        if (_msgEl) _msgEl.textContent = _noTasks
-            ? 'Нет задач. Добавьте первую.'
-            : 'Ничего не найдено';
-        // #4: the «Добавить первую задачу» CTA only makes sense when there are NO tasks —
-        // under an active filter («Ничего не найдено») adding a task would be a non-sequitur.
+        if (_msgEl) _msgEl.textContent = _noTasks ? 'Алтарь пуст'                : 'Тишина в ответ';
+        if (_subEl) _subEl.textContent = _noTasks ? 'Ни одного обета ещё не дано' : 'Ни одна задача не отозвалась на зов';
+        if (_useEl) _useEl.setAttribute('href', _noTasks ? '#icon-candle-unlit' : '#icon-scrying');
+        // #4: the «Дать первый обет» CTA only makes sense when there are NO tasks —
+        // under an active filter («Тишина в ответ») adding a task would be a non-sequitur.
         const _addBtn = document.getElementById('empty-add-btn');
         if (_addBtn) _addBtn.style.display = _noTasks ? 'inline-flex' : 'none';
 
@@ -836,6 +841,13 @@ function updateVisibility() {
                 textEl.style.opacity   = '0';
                 void textEl.offsetWidth;
                 textEl.style.animation = 'emptyTextIn 0.32s ease 0.2s forwards';
+            }
+            // W2-9: подстрока входит следом за заголовком (та же лестница, +80 мс)
+            if (_subEl) {
+                _subEl.style.animation = 'none';
+                _subEl.style.opacity   = '0';
+                void _subEl.offsetWidth;
+                _subEl.style.animation = 'emptySubIn 0.32s ease 0.28s forwards';
             }
         }
         // ─────────────────────────────────────────────────────────

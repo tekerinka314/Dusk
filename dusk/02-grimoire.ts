@@ -179,7 +179,9 @@ function switchPage(page) {
 const GIC = {
     tomeOpen:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8 C9.5 6.3 6.2 6 3.5 7 V19.2 C6.2 18.2 9.5 18.4 12 20 C14.5 18.4 17.8 18.2 20.5 19.2 V7 C17.8 6 14.5 6.3 12 8 Z"/><path d="M12 8 V20" opacity="0.5"/><path d="M5.7 10.4 H9.2 M5.7 12.7 H9.2 M14.8 10.4 H18.3 M14.8 12.7 H18.3" stroke-width="1" opacity="0.4"/><path d="M12 2 L12.9 4.1 L15 5 L12.9 5.9 L12 8 L11.1 5.9 L9 5 L11.1 4.1 Z" fill="currentColor" stroke="none"/></svg>`,
     coffin:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/><path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/><path d="M12 8.4 V14.6 M9.8 10.9 H14.2" stroke-width="1.3"/></svg>`,
-    quill:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4 C13 5 8 9 5.5 15.5 L4 20 L8.5 18.5 C15 16 19 11 20 4 Z"/><path d="M9 15 L14 10" opacity="0.6"/></svg>`,
+    // Q1 — арт вынесен в <symbol id="icon-quill"> (index.html): тем же пером помечена
+    // кнопка «Дать первый обет» в пустом состоянии задач, копия арта была бы алиасом.
+    quill:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-quill"/></svg>`,
     // Urn with rising soul-arrow — reuses the app's archive-restore motif ("вернуть из склепа").
     // AY1 · Toppled lid — unified with IC.restore so tasks AND grimoire notes rise from one glyph.
     restore:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 21V14.7L6.9 11.4L8.2 8.9H15.8L17.1 11.4L15.8 14.7V21"/><path d="M9.4 20V14.9L8.4 11.4L9.4 10.1" stroke-width="0.7" opacity="0.32"/><path d="M14.6 20V14.9L15.6 11.4L14.6 10.1" stroke-width="0.7" opacity="0.32"/><line x1="10.1" y1="12.6" x2="13.9" y2="12.6" stroke-width="1" opacity="0.6"/><circle cx="12" cy="15.6" r="0.45" fill="currentColor" stroke="none" opacity="0.5"/><path d="M7.1 21H16.9L18.3 22.9H5.7Z"/><path d="M15.4 8.9L19.9 6.4L20.7 7.8L16.4 10.2" stroke-width="1.2"/><line x1="17.7" y1="7.3" x2="18.3" y2="8.5" stroke-width="0.7" opacity="0.5"/><line x1="12" y1="1.4" x2="12" y2="6.8" stroke-width="1.6"/><path d="M10.5 3L12 1.4L13.5 3" stroke-width="1.6"/><path d="M11 5.7L12 6.8L13 5.7" stroke-width="0.9" opacity="0.6"/><path d="M9.2 4.6C8.7 3.7 8.8 2.7 9.4 1.9" stroke-width="0.8" opacity="0.4"/><path d="M14.8 4.6C15.3 3.7 15.2 2.7 14.6 1.9" stroke-width="0.8" opacity="0.4"/></svg>`,
@@ -947,7 +949,13 @@ function renderGrimList(animate) {
     const sortCtl = grimMode === 'active' ? _grimSortControl() : '';
     const head = `<div class="grim-list-head"><span>${filtering ? `Найдено · ${shown.length}` : `${label} · ${all.length}`}</span>${sortCtl}</div>`;
     let body;
-    if (!shown.length) body = `<div class="grim-list-none">Ничего не найдено</div>`;
+    // W2-9 (V2-B5-09): поиск без результата = ПОЛНАЯ плита, как у пустого Гримуара и
+    // у задач (глиф + заголовок + курсивная подстрока), а не голая строка текста.
+    if (!shown.length) body = `<div class="grim-empty grim-empty-inline">
+            <div class="grim-empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-scrying"/></svg></div>
+            <p>Тишина в ответ</p>
+            <span class="grim-empty-sub">Ни одна запись не отозвалась на зов</span>
+        </div>`;
     else if (grimMode === 'archive') body = _grimCryptMonthsHTML(shown, q, animate, filtering);   // #8: crypt by month
     else body = shown.map((n, i) => _grimLeafHTML(n, q, i, animate)).join('');
     listEl.innerHTML = head + body;

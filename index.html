@@ -717,20 +717,29 @@
                 <div id="groups-container"></div>
             </div>
 
+            <!-- W2-9 (V2-B2-04): пустое состояние в плотной готике. Глиф свой у каждого
+                 состояния — незажжённая свеча «задач нет» ⇄ скраинг-шар «ничего не найдено»
+                 (href перекидывает updateVisibility), заголовок и курсивная подстрока тоже. -->
             <div class="empty-state" id="empty-state">
-                <div class="empty-rune">✦</div>
-                <p>Нет задач. Добавьте первую.</p>
+                <div class="empty-rune">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-candle-unlit" id="empty-rune-use"/></svg>
+                </div>
+                <p>Алтарь пуст</p>
+                <span class="empty-sub" id="empty-sub">Ни одного обета ещё не дано</span>
                 <!-- #4 (порт _grimEmptyHTML): действие в пустом состоянии. Видна только когда задач НЕТ
-                     (не при «Ничего не найдено» под фильтром) — переключается в updateVisibility. -->
+                     (не при «Тишина в ответ» под фильтром) — переключается в updateVisibility. -->
                 <button class="empty-add-btn" id="empty-add-btn" type="button" data-act="focusNewTaskInput" style="display:none">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>Добавить первую задачу</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-quill"/></svg>
+                    <span>Дать первый обет</span>
                 </button>
             </div>
 
             <div class="all-done" id="all-done" style="display:none">
-                <div class="all-done-icon">✦</div>
-                <p>Все задачи выполнены</p>
+                <div class="all-done-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-coffin-sealed"/></svg>
+                </div>
+                <p>Все обеты исполнены</p>
+                <span class="empty-sub">Ночь может забрать своё</span>
             </div>
 
             </div><!-- /main-grid -->
@@ -793,8 +802,14 @@
                 </div>
             </div>
             <div class="empty-state" id="archive-empty" style="display:flex; flex-direction:column; align-items:center">
-                <div class="empty-rune">◈</div>
+                <!-- AA1b — тот же саркофаг, что у нав-таба «Архив». Штрих ужат до 0.55,
+                     потому что арт нарисован на сетке 13, а здесь рендерится в 52px
+                     (1.0 дало бы ~4px «жирного» контура). -->
+                <div class="empty-rune">
+                    <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.55" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><use href="#icon-tomb"/></svg>
+                </div>
                 <p>Архив пуст</p>
+                <span class="empty-sub">Ни одно деяние ещё не погребено</span>
             </div>
         </div>
 
@@ -1711,6 +1726,41 @@
                         <line x1="8.4" y1="19.4" x2="7.8" y2="21" stroke-width="1.2" opacity="0.7"/>
                         <line x1="12" y1="19.5" x2="12" y2="21.2" stroke-width="1.2" opacity="0.7"/>
                         <line x1="15.6" y1="19.4" x2="16.2" y2="21" stroke-width="1.2" opacity="0.7"/>
+    </symbol>
+    <!-- Q1 · Перо — «начертать»: кнопка новой записи Гримуара (GIC.quill) и CTA пустого
+         состояния задач. Арт живёт ОДНОЙ копией здесь, оба потребителя берут <use>. -->
+    <symbol id="icon-quill" viewBox="0 0 24 24">
+      <path d="M20 4 C13 5 8 9 5.5 15.5 L4 20 L8.5 18.5 C15 16 19 11 20 4 Z"/>
+      <path d="M9 15 L14 10" opacity="0.6"/>
+    </symbol>
+    <!-- EM1 · Незажжённая свеча — пустое состояние задач («Алтарь пуст»). Оплывший
+         столб с потёками в подсвечнике, срезанный фитиль и струйка дыма: огонь ещё
+         не зажигали. Мотив цитирует свечу окна дедлайна (IC.window), но стоит
+         отдельно, без арки. -->
+    <symbol id="icon-candle-unlit" viewBox="0 0 24 24">
+      <path d="M9 8.2 C10.1 9.1 13.9 9.1 15 8.2 V16.8 H9 Z"/>
+      <path d="M9 11 C9.9 12 9.8 13.2 9.2 14.1" stroke-width="0.9" opacity="0.45"/>
+      <path d="M15 12.2 C14.2 13.1 14.3 14.3 14.9 15.2" stroke-width="0.9" opacity="0.35"/>
+      <line x1="12" y1="8.8" x2="12" y2="6.2" stroke-width="1.2"/>
+      <path d="M12 6.2 C10.7 5 13.3 3.9 12 2.4" stroke-width="0.9" opacity="0.45"/>
+      <path d="M8 16.8 H16 L14.9 18.8 H9.1 Z"/>
+      <line x1="12" y1="18.8" x2="12" y2="19.8" stroke-width="1.4"/>
+      <path d="M7.6 21.4 C9 21.4 10.2 20.5 10.4 19.8 H13.6 C13.8 20.5 15 21.4 16.4 21.4 Z"/>
+      <line x1="6.9" y1="21.4" x2="17.1" y2="21.4" stroke-width="1.4"/>
+    </symbol>
+    <!-- EM2 · Запечатанный гроб — «Все обеты исполнены». Силуэт цитирует GIC.coffin
+         символ в символ; поверх — перевязь и восковая печать с крестом: работа
+         закрыта и опечатана. -->
+    <symbol id="icon-coffin-sealed" viewBox="0 0 24 24">
+      <path d="M9 2.5 H15 L18 8 L16.2 21.5 H7.8 L6 8 Z"/>
+      <path d="M8.2 5.4 H15.8" stroke-width="1" opacity="0.4"/>
+      <path d="M6.6 14.7 H9.3 M14.7 14.7 H17.4" stroke-width="1.2" opacity="0.55"/>
+      <path d="M12 8.6 V11.9 M12 17.6 V20.8" stroke-width="1.2" opacity="0.55"/>
+      <circle cx="12" cy="14.7" r="2.7" fill="currentColor" stroke="none" opacity="0.16"/>
+      <circle cx="12" cy="14.7" r="2.7" stroke-width="1.4"/>
+      <path d="M12 13.2 V16.2 M10.55 14.7 H13.45" stroke-width="1.1"/>
+      <circle cx="8.9" cy="9.4" r="0.5" fill="currentColor" stroke="none" opacity="0.7"/>
+      <circle cx="15.1" cy="9.4" r="0.5" fill="currentColor" stroke="none" opacity="0.7"/>
     </symbol>
     <!-- BE1 — ceremonial coffin emblem: double rivet-studded border, pattée cross
          with trefoil-ringed arms + medallion, lancet arch around the cross, star-rosette
