@@ -775,7 +775,7 @@ function monthdayNoteText(v) {    if (!v || isNaN(v) || v < 29) return '';
         return 'В феврале обет сдвинется на следующий месяц.';
     }
     // v >= 31 — affects February and months with 30 days (Apr, Jun, Sep, Nov).
-    return 'В коротких месяцах задача сдвинется на следующий месяц.';
+    return 'В коротких месяцах обет сдвинется на следующий месяц.';
 }
 
 function updateMonthdayMax() {

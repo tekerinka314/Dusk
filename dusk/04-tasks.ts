@@ -174,7 +174,7 @@ function createTaskEl(task, showDlSide) {
                     <button class="btn-task-action btn-task-more" data-act="openTaskMoreMenu" title="Иное" aria-haspopup="menu">${IC.more}</button>
                 </div>` : `<div class="task-actions">
                     <button class="btn-task-action btn-pin${task.pinned ? ' active' : ''}" data-act="togglePin" title="${task.pinned ? 'Расковать' : 'Приковать к вершине'}">${IC.pin}</button>
-                    <button class="btn-task-action btn-task-color" data-act="openTaskColorModal" title="Цветовая метка" style="${task.color ? `color:${taskInk}` : ''}">
+                    <button class="btn-task-action btn-task-color" data-act="openTaskColorModal" title="Витраж" style="${task.color ? `color:${taskInk}` : ''}">
                         ${taskColorGlyph(task.color ? taskInk : null)}
                     </button>
                     <button class="btn-task-action" data-act="openDeadlineModal" title="Исход">${IC.window}</button>
@@ -1310,7 +1310,7 @@ function saveTaskAsTemplate(id) {
     state.templates.push({
         id:        state.nextTemplateId++,
         uid:       uid(), createdAt: nowTs(), updatedAt: nowTs(),   // sync identity + timestamp
-        name:      (task.text || 'Шаблон').slice(0, 60),
+        name:      (task.text || 'Образец').slice(0, 60),
         text:      task.text,
         priority:  task.priority || 'none',
         color:     task.color || null,

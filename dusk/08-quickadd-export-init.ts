@@ -116,7 +116,7 @@ function _qaSuggest(type, query) {
             { label:'Высокий',         insert:'!high',   cls:'prio-high'   },
             { label:'Средний',         insert:'!medium', cls:'prio-medium' },
             { label:'Низкий',          insert:'!low',    cls:'prio-low'    },
-            { label:'Без приоритета',  insert:'!none',   cls:''            },
+            { label:'Без ранга',       insert:'!none',   cls:''            },
         ].filter(o => !q || o.label.toLowerCase().includes(q) || o.insert.slice(1).startsWith(q));
     }
     if (type === 'tag') {
@@ -351,15 +351,15 @@ function _tasksToMarkdown() {
             lines.push(`  - [${s.checked ? 'x' : ' '}] ${(s.text || '').trim()}${dlSfx(s.deadline)}`));
         return lines.join('\n');
     };
-    const out  = [`# DUSK — задачи`, '', `_${date}_`, ''];
+    const out  = [`# DUSK — обеты`, '', `_${date}_`, ''];
     const ung  = byOrder((state.tasks || []).filter(t => !t.groupId));
     if (ung.length) { out.push('## Без свода', '', ...ung.map(renderTask), ''); }
     byOrder(state.groups || []).forEach(g => {
         const gt = byOrder((state.tasks || []).filter(t => t.groupId === g.id));
         if (!gt.length) return;
-        out.push('## ' + ((g.name || '').trim() || 'Группа'), '', ...gt.map(renderTask), '');
+        out.push('## ' + ((g.name || '').trim() || 'Свод'), '', ...gt.map(renderTask), '');
     });
-    if (out.length <= 4) out.push('_(задач нет)_', '');
+    if (out.length <= 4) out.push('_(обетов нет)_', '');
     return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
 }
 function _exportTasksMarkdown() {
@@ -895,15 +895,15 @@ globalThis._taskHintHTML = null;// the task-page (main) hint markup, captured on
 // показывать task-клавиши там было бы ложью. &nbsp; keeps each pair from wrapping mid-token.
 const _NOTES_HINT_HTML =                       // notes · «Записи» (active grimoire)
     '<kbd>N</kbd> новая &nbsp;·&nbsp; <kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; ' +
-    '<kbd>E</kbd> править &nbsp;·&nbsp; <kbd>Del</kbd> в склеп &nbsp;·&nbsp; <kbd>T</kbd> закрепить &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>F3</kbd> совпадение &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена &nbsp;·&nbsp; ' +
+    '<kbd>E</kbd> переписать &nbsp;·&nbsp; <kbd>Del</kbd> в склеп &nbsp;·&nbsp; <kbd>T</kbd> приковать &nbsp;·&nbsp; ' +
+    '<kbd>Ctrl+F</kbd> зов &nbsp;·&nbsp; <kbd>F3</kbd> совпадение &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена &nbsp;·&nbsp; ' +
     '<kbd>S</kbd> синхронизация';
 const _CRYPT_HINT_HTML =                        // notes · «Склеп» (read-only crypt: nav + search only)
     '<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новая запись &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
+    '<kbd>Ctrl+F</kbd> зов &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
 const _TASK_ARCHIVE_HINT_HTML =                 // tasks archive: nav + search + forge-new (jumps to Tasks)
-    '<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новая задача &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> поиск &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
+    '<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новый обет &nbsp;·&nbsp; ' +
+    '<kbd>Ctrl+F</kbd> зов &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
 
 // Pick the hint markup for the CURRENT context (page + grimoire segment).
 function _shortcutsHintHTML() {

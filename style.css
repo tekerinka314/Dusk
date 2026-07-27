@@ -5865,7 +5865,17 @@ textarea:focus-visible {
     color: var(--text-secondary);
     box-shadow: var(--shadow-sm);
     z-index: 50;
-    white-space: nowrap;
+    /* Партия H: легенда и ДО перевода была шире экрана (1521px при 1280 вьюпорта,
+       nowrap + fixed по центру → торчала за оба края); готические подписи довели
+       до 1560. Пары «клавиша + слово» склеены &nbsp;, поэтому перенос возможен
+       только по разделителям « · » — рвать пару нечем. */
+    /* width:max-content обязателен: у fixed-элемента с left:50% доступная ширина
+       для shrink-to-fit = vw − left, то есть половина экрана, и подсказка рвалась
+       бы на 4 строки вместо двух. */
+    width: max-content;
+    max-width: min(92vw, 1100px);
+    text-align: center;
+    line-height: 1.7;
     font-family: var(--font-label);
     backdrop-filter: blur(10px);
     letter-spacing: 1px;

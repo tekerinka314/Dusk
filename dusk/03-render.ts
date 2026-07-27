@@ -245,7 +245,7 @@ function _openGroupSortSheet(anchorEl, gid) {
     const rows = TASK_SORTS.map(s =>
         `<button type="button" role="menuitemradio" aria-checked="${s.k === cur}" class="${s.k === cur ? 'fm-on' : ''}" data-act="_grpSortPick" data-gid="${gid}" data-k="${s.k}">${_taskSortIcon(s.k)}<span>${s.label}</span></button>`
     ).join('');
-    _openFloatMenu(anchorEl, `<div class="float-menu-head">Порядок задач</div>${rows}`, 'group-sort-menu');
+    _openFloatMenu(anchorEl, `<div class="float-menu-head">Порядок обетов</div>${rows}`, 'group-sort-menu');
 }
 function _grpSortPick(gid, k) {
     closeFloatMenu();
@@ -409,7 +409,7 @@ function _renderScheduleBody(container, pinned, rest, gid, query) {
         if (hasBoth) {
             const sep = _ensureKeyed(container, 'sched_sep_dl_' + gid, 'li');
             sep.className = 'dl-subgroup-header';
-            sep.innerHTML = `<span>${IC.sundial}<span>С дедлайном · ${withDl.length}</span></span>`;
+            sep.innerHTML = `<span>${IC.sundial}<span>С исходом · ${withDl.length}</span></span>`;
             desired.push(sep);
         }
         const dlUl = _ensureKeyed(container, 'sched_dl_' + gid, 'ul');
@@ -424,7 +424,7 @@ function _renderScheduleBody(container, pinned, rest, gid, query) {
         if (hasBoth) {
             const sep2 = _ensureKeyed(container, 'sched_sep_ndl_' + gid, 'li');
             sep2.className = 'dl-subgroup-header dl-subgroup-nodl';
-            sep2.innerHTML = `<span>${IC.moon}<span>Без дедлайна · ${noDl.length}</span></span>`;
+            sep2.innerHTML = `<span>${IC.moon}<span>Без исхода · ${noDl.length}</span></span>`;
             desired.push(sep2);
         }
         const ndlUl = _ensureKeyed(container, 'sched_ndl_' + gid, 'ul');
@@ -453,7 +453,7 @@ function _renderScheduleSplitBody(container, pinned, rest, gid) {
     } else {
         const sepDl = _ensureKeyed(container, 'combo_sep_dl_' + gid, 'li');
         sepDl.className = 'dl-subgroup-header';
-        sepDl.innerHTML = `<span>${IC.sundial}<span>С дедлайном · ${withDl.length}</span></span>`;
+        sepDl.innerHTML = `<span>${IC.sundial}<span>С исходом · ${withDl.length}</span></span>`;
         const innerDl = _ensureKeyed(container, 'combo_inner_dl_' + gid, 'ul');
         innerDl.className = 'sched-split-inner';
         innerDl.dataset.zoneDl  = '1';
@@ -463,7 +463,7 @@ function _renderScheduleSplitBody(container, pinned, rest, gid) {
 
         const sepNdl = _ensureKeyed(container, 'combo_sep_ndl_' + gid, 'li');
         sepNdl.className = 'dl-subgroup-header dl-subgroup-nodl';
-        sepNdl.innerHTML = `<span>${IC.moon}<span>Без дедлайна · ${noDl.length}</span></span>`;
+        sepNdl.innerHTML = `<span>${IC.moon}<span>Без исхода · ${noDl.length}</span></span>`;
         const innerNdl = _ensureKeyed(container, 'combo_inner_ndl_' + gid, 'ul');
         innerNdl.className = 'sched-split-inner';
         innerNdl.dataset.zoneDl  = '0';
@@ -637,7 +637,7 @@ function appendScheduleSection(container, withDl, noDl, groupId) {
         if (hasBoth) {
             const sep = document.createElement('li');
             sep.className = 'dl-subgroup-header';
-            sep.innerHTML = `<span>${IC.sundial}<span>С дедлайном · ${withDl.length}</span></span>`;
+            sep.innerHTML = `<span>${IC.sundial}<span>С исходом · ${withDl.length}</span></span>`;
             container.appendChild(sep);
         }
         const dlUl = document.createElement('ul');
@@ -653,7 +653,7 @@ function appendScheduleSection(container, withDl, noDl, groupId) {
         if (hasBoth) {
             const sep2 = document.createElement('li');
             sep2.className = 'dl-subgroup-header dl-subgroup-nodl';
-            sep2.innerHTML = `<span>${IC.moon}<span>Без дедлайна · ${noDl.length}</span></span>`;
+            sep2.innerHTML = `<span>${IC.moon}<span>Без исхода · ${noDl.length}</span></span>`;
             container.appendChild(sep2);
         }
         const ndlUl = document.createElement('ul');
@@ -1374,7 +1374,7 @@ function _labelColorSwatches() {
     document.querySelectorAll<HTMLElement>('.color-swatch[data-color], .form-color-swatch[data-color]').forEach(sw => {
         if (sw.getAttribute('aria-label')) return;
         const c = sw.dataset.color;
-        sw.setAttribute('aria-label', c ? ('Цвет ' + c) : 'Без цвета');
+        sw.setAttribute('aria-label', c ? ('Витраж: ' + c) : 'Без витража');
     });
 }
 
@@ -1427,15 +1427,15 @@ function _populateColorFilterModal() {
         .filter(t => t.color)
         .map(t => t.color))];
     if (!colors.length) {
-        container.innerHTML = '<p class="color-filter-empty">В текущем списке нет задач с метками</p>';
+        container.innerHTML = '<p class="color-filter-empty">Ни один обет не помечен витражом</p>';
         return;
     }
     const swatches = colors.map(c => `
         <button class="color-filter-swatch${colorFilter === c ? ' active' : ''}"
                 style="background:${c}"
                 data-act="setColorFilter" data-color="${escHtml(c)}"
-                aria-label="Цвет ${c}"
-                title="Цвет ${c}">
+                aria-label="Витраж: ${c}"
+                title="Витраж: ${c}">
             ${colorFilter === c
                 ? `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`
                 : ''}
@@ -1445,7 +1445,7 @@ function _populateColorFilterModal() {
     const clearBtn = colorFilter ? `
         <button class="color-filter-swatch color-filter-clear"
                 data-act="setColorFilter" data-color="${escHtml(colorFilter)}"
-                title="Снять фильтр по цвету">
+                title="Снять фильтр по витражу">
             ${IC.crossedSwords}
         </button>` : '';
 
@@ -1716,7 +1716,7 @@ function _checkDeadlineNotifications() {
         if (_notifiedDeadlines.get(task.id) === sig) return;
         _notifiedDeadlines.set(task.id, sig); changed = true;
         try {
-            new Notification('DUSK — дедлайн', {
+            new Notification('DUSK — исход', {
                 body: task.text,
                 icon: './icon-192.svg',
                 tag:  'dusk-deadline-' + task.id,

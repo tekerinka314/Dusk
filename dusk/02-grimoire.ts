@@ -240,7 +240,7 @@ const GIC = {
     },
 };
 // Focus-cycle labels (tooltip describes what a click DOES next).
-const GRIM_FOCUS_TITLE = ['Свернуть список в рейл', 'Скрыть список — заметка во весь экран', 'Показать список'];
+const GRIM_FOCUS_TITLE = ['Свернуть список в рейл', 'Скрыть список — запись во весь экран', 'Показать список'];
 // Toolbar-mode labels.
 const GRIM_BAR_TITLE = { auto: 'Тулбар: по наведению — нажмите, чтобы закрепить', open: 'Тулбар закреплён — нажмите, чтобы скрыть', closed: 'Тулбар скрыт — нажмите для режима «по наведению»' };
 // п.14 TOC button label.
@@ -1193,7 +1193,7 @@ function renderGrimDetail() {
             </div>
             <span class="grim-acts">
                 <button class="grim-act is-pin${note.pinned ? ' active' : ''}" data-act="grimTogglePin" data-nid="${note.id}" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
-                <button class="grim-act is-color${note.color ? ' active' : ''}" data-act="openGrimColorModal" data-nid="${note.id}" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/><line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/><line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/><path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/><path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7" stroke-width="1" opacity="0.45"/><circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/><path d="M15 7.4L15.35 8.35L16.3 8.7L15.35 9.05L15 10L14.65 9.05L13.7 8.7L14.65 8.35Z" fill="currentColor" stroke="none" opacity="0.75"/></svg><span>цвет</span></button>
+                <button class="grim-act is-color${note.color ? ' active' : ''}" data-act="openGrimColorModal" data-nid="${note.id}" title="Витраж"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/><line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/><line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/><path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/><path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7" stroke-width="1" opacity="0.45"/><circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/><path d="M15 7.4L15.35 8.35L16.3 8.7L15.35 9.05L15 10L14.65 9.05L13.7 8.7L14.65 8.35Z" fill="currentColor" stroke="none" opacity="0.75"/></svg><span>цвет</span></button>
                 <button class="grim-act" data-act="grimSaveAsTpl" data-nid="${note.id}" title="Сохранить как образец">${GRIM_TPL_IC.save}<span>образец</span></button>
                 <button class="grim-act" data-act="grimOpenHistory" data-nid="${note.id}" title="Летопись — прежние начертания">${GIC.chronicle}<span>летопись</span></button>
                 <button class="grim-act" data-act="grimArchive" data-nid="${note.id}" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
@@ -1615,11 +1615,11 @@ function _grimBuildColorFilterPop() {
     const check = `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`;
     const swatches = colors.map(c => `
         <button class="color-filter-swatch${noteColorFilter === c ? ' active' : ''}" style="background:${c}"
-                data-act="grimSetColorFilter" data-color="${escHtml(c)}" aria-label="Цвет ${c}" title="Цвет ${c}">
+                data-act="grimSetColorFilter" data-color="${escHtml(c)}" aria-label="Витраж: ${c}" title="Витраж: ${c}">
             ${noteColorFilter === c ? check : ''}
         </button>`).join('');
     const clearBtn = noteColorFilter ? `
-        <button class="color-filter-swatch color-filter-clear" data-act="grimSetColorFilter" data-color="${escHtml(noteColorFilter)}" title="Снять фильтр по цвету">
+        <button class="color-filter-swatch color-filter-clear" data-act="grimSetColorFilter" data-color="${escHtml(noteColorFilter)}" title="Снять фильтр по витражу">
             ${IC.crossedSwords}
         </button>` : '';
     pop.innerHTML = swatches + clearBtn;
@@ -3502,7 +3502,7 @@ function _grimRenderIoMenu() {
         + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Запечатать всё</div>'
         + _grimIoItem(GRIM_IO_IC.full, 'Полный свиток записей', '.json · все записи Гримуара + летопись', 'grimExportFullBackup', 'all')
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', 'grimExportBackup', 'all')
-        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', 'grimExportReading', 'all');
+        + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на запись', 'grimExportReading', 'all');
 }
 function _grimRenderIoSelMenu() {
     const pop = document.getElementById('grim-io-sel-pop') as any; if (!pop) return;
@@ -3797,8 +3797,8 @@ function _grimFullImport(loaded) {
     if (!overlay) { _grimApplyFullBackup(loaded, 'replace'); return; }   // fallback
     const title = document.getElementById('import-choice-title') as any;
     const desc  = overlay.querySelector('.import-choice-desc');
-    if (title) title.textContent = 'Импорт записей';
-    if (desc)  desc.textContent  = 'Добавить записи Гримуара к существующим или полностью заменить?';
+    if (title) title.textContent = 'Прочесть свитки';
+    if (desc)  desc.textContent  = 'Добавить записи к нынешним или заместить всё?';
     const replaceBtn = document.getElementById('import-replace-btn') as any;
     const mergeBtn = document.getElementById('import-merge-btn') as any;
     const cancelBtn = document.getElementById('import-cancel-btn') as any;
@@ -4003,7 +4003,7 @@ function grimSaveAsTpl(id) {
     state.noteTemplates.push({
         id: uid(),
         createdAt: nowTs(), updatedAt: nowTs(),   // sync timestamp (uuid `id` is the sync key)
-        name: ((note.title || '').trim() || _grimPlain(note.body || '').trim() || 'Шаблон').slice(0, 60),
+        name: ((note.title || '').trim() || _grimPlain(note.body || '').trim() || 'Образец').slice(0, 60),
         title: note.title || '',
         body: note.body || '',
         color: note.color || null,
@@ -4084,7 +4084,7 @@ function _grimRenderTplMenu() {
         html += mine.map(t => `
             <div class="grim-tpl-item user" role="menuitem" data-act="grimUseTpl" data-id="${t.id}">
                 <span class="grim-tpl-ic">${GRIM_TPL_IC.save}</span>
-                <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(t.name || 'Шаблон')}</span><span class="grim-tpl-desc">своя заготовка</span></span>
+                <span class="grim-tpl-txt"><span class="grim-tpl-name">${escHtml(t.name || 'Образец')}</span><span class="grim-tpl-desc">своя заготовка</span></span>
                 <button class="grim-tpl-del" data-act="grimDeleteTpl" data-id="${t.id}" title="Стереть образец">${GRIM_TPL_IC.del}</button>
             </div>`).join('');
     }

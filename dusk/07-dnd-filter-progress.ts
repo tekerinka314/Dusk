@@ -309,7 +309,7 @@ function toggleTodayMode() {
     showToast(isTodayMode ? 'Лишь нынешние и просроченные' : 'Явлены все обеты');
     if (isTodayMode) {
         const visible = _visibleTaskEls().length;
-        announce(`На сегодня: ${visible} задач`);
+        announce(`На сегодня: ${visible} обетов`);
     } else {
         announce('Явлены все обеты');
     }
@@ -348,7 +348,7 @@ function appendScheduleSplitSection(container, withDl, noDl, groupId) {
     if (withDl.length > 0) {
         const sep = document.createElement('li');
         sep.className = 'dl-subgroup-header';
-        sep.innerHTML = `<span>${IC.sundial}<span>С дедлайном · ${withDl.length}</span></span>`;
+        sep.innerHTML = `<span>${IC.sundial}<span>С исходом · ${withDl.length}</span></span>`;
         container.appendChild(sep);
         const innerUl = document.createElement('ul');
         innerUl.className = 'sched-split-inner';
@@ -360,7 +360,7 @@ function appendScheduleSplitSection(container, withDl, noDl, groupId) {
     if (noDl.length > 0) {
         const sep2 = document.createElement('li');
         sep2.className = 'dl-subgroup-header dl-subgroup-nodl';
-        sep2.innerHTML = `<span>${IC.moon}<span>Без дедлайна · ${noDl.length}</span></span>`;
+        sep2.innerHTML = `<span>${IC.moon}<span>Без исхода · ${noDl.length}</span></span>`;
         container.appendChild(sep2);
         const innerUl2 = document.createElement('ul');
         innerUl2.className = 'sched-split-inner';
@@ -466,7 +466,7 @@ searchBox.addEventListener('input', () => {
         // D-3: announce result count for screen readers after debounced render
         if (searchQuery) {
             const visible = _visibleTaskEls().length;
-            announce(`Найдено ${visible} задач`);
+            announce(`Найдено ${visible} обетов`);
         }
     }, 120);
 });
@@ -1273,9 +1273,9 @@ function extractTags(text) {
 // D-1: Russian plural for "задача" (1 задача / 2 задачи / 5 задач).
 function _zadachi(n) {
     const d = n % 10, h = n % 100;
-    if (d === 1 && h !== 11) return 'задача';
-    if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return 'задачи';
-    return 'задач';
+    if (d === 1 && h !== 11) return 'обет';
+    if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return 'обета';
+    return 'обетов';
 }
 
 function renderTagCloud() {
@@ -1320,7 +1320,7 @@ function filterByTag(tag) {
     render();
     // D-3: announce result count for screen readers
     const visible = _visibleTaskEls().length;
-    announce(searchQuery ? `Найдено ${visible} задач по тегу ${tag}` : 'Фильтр по тегу снят');
+    announce(searchQuery ? `Найдено ${visible} обетов по тегу ${tag}` : 'Фильтр по тегу снят');
 }
 
 function highlightSearch(html, query) {
