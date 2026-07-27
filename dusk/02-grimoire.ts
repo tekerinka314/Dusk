@@ -242,7 +242,7 @@ const GIC = {
 // Focus-cycle labels (tooltip describes what a click DOES next).
 const GRIM_FOCUS_TITLE = ['Свернуть список в рейл', 'Скрыть список — запись во весь экран', 'Показать список'];
 // Toolbar-mode labels.
-const GRIM_BAR_TITLE = { auto: 'Тулбар: по наведению — нажмите, чтобы закрепить', open: 'Тулбар закреплён — нажмите, чтобы скрыть', closed: 'Тулбар скрыт — нажмите для режима «по наведению»' };
+const GRIM_BAR_TITLE = { auto: 'Тулбар: по наведению — нажмите, чтобы приковать', open: 'Тулбар прикован — нажмите, чтобы скрыть', closed: 'Тулбар скрыт — нажмите для режима «по наведению»' };
 // п.14 TOC button label.
 const GRIM_TOC_TITLE = 'Оглавление — разделы записи';
 
@@ -1140,7 +1140,7 @@ function renderGrimDetail() {
         return;
     }
 
-    const backBtn = `<button class="grim-back" data-act="grimBack" title="К списку">${GIC.back}</button>`;
+    const backBtn = `<button class="grim-back" data-act="grimBack" title="К записям">${GIC.back}</button>`;
     const focusBtn = `<button class="grim-focus-toggle${grimFocus ? ' on' : ''}" data-lvl="${grimFocus}" data-act="grimToggleFocus" aria-label="${GRIM_FOCUS_TITLE[grimFocus]}" title="${GRIM_FOCUS_TITLE[grimFocus]}">${GIC.focusLvl[grimFocus]}</button>`;
     const tocBtn = `<button class="grim-toc-toggle${grimTocOpen ? ' on' : ''}" data-act="grimToggleToc" aria-label="${GRIM_TOC_TITLE}" title="${GRIM_TOC_TITLE}">${GIC.toc}</button>`;
     const barBtn = `<button class="grim-bar-toggle${grimBarMode === 'open' ? ' on' : ''}" data-mode="${grimBarMode}" data-act="grimToggleBar" aria-label="${GRIM_BAR_TITLE[grimBarMode]}" title="${GRIM_BAR_TITLE[grimBarMode]}">${GIC.barLvl[grimBarMode]}</button>`;
@@ -1160,7 +1160,7 @@ function renderGrimDetail() {
             <div class="grim-meta">
                 <span class="grim-date" title="В склепе с">${GIC.coffin}<span>${grimDate(note.archivedAt || note.updatedAt)}</span></span>
                 <span class="grim-acts">
-                    <button class="grim-act" data-act="grimRestoreNote" data-nid="${note.id}" title="Вернуть в гримуар">${GIC.restore}<span>вернуть</span></button>
+                    <button class="grim-act" data-act="grimRestoreNote" data-nid="${note.id}" title="Воскресить запись">${GIC.restore}<span>воскресить</span></button>
                     <button class="grim-act danger" data-act="grimDeleteForever" data-nid="${note.id}" title="Уничтожить">${IC.skull}<span>уничтожить</span></button>
                 </span>
             </div>
@@ -1192,7 +1192,7 @@ function renderGrimDetail() {
                 ${note.createdAt ? `<span class="grim-stamp is-created" title="Когда начертана">${IC.sundialLean}<span>начертано ${grimDate(note.createdAt)}</span></span>` : ''}
             </div>
             <span class="grim-acts">
-                <button class="grim-act is-pin${note.pinned ? ' active' : ''}" data-act="grimTogglePin" data-nid="${note.id}" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
+                <button class="grim-act is-pin${note.pinned ? ' active' : ''}" data-act="grimTogglePin" data-nid="${note.id}" title="${note.pinned ? 'Расковать запись' : 'Приковать к вершине'}">${IC.pin}<span>${note.pinned ? 'приковано' : 'приковать'}</span></button>
                 <button class="grim-act is-color${note.color ? ' active' : ''}" data-act="openGrimColorModal" data-nid="${note.id}" title="Витраж"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/><line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/><line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/><path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/><path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7" stroke-width="1" opacity="0.45"/><circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/><path d="M15 7.4L15.35 8.35L16.3 8.7L15.35 9.05L15 10L14.65 9.05L13.7 8.7L14.65 8.35Z" fill="currentColor" stroke="none" opacity="0.75"/></svg><span>витраж</span></button>
                 <button class="grim-act" data-act="grimSaveAsTpl" data-nid="${note.id}" title="Сохранить как образец">${GRIM_TPL_IC.save}<span>образец</span></button>
                 <button class="grim-act" data-act="grimOpenHistory" data-nid="${note.id}" title="Летопись — прежние начертания">${GIC.chronicle}<span>летопись</span></button>
@@ -1446,7 +1446,7 @@ function _grimSyncActiveLeaf() {
 // Active note → permanent delete (two-step confirm, undoable).
 function grimDelete(id) {
     const btn = document.querySelector<HTMLElement>('#grim-detail .grim-act.danger');
-    if (!_armDanger(btn, 'Нажмите ещё раз, чтобы удалить запись')) return;
+    if (!_armDanger(btn, 'Нажмите ещё раз, чтобы стереть запись')) return;
     const idx = (state.notes || []).findIndex(n => n.id === id);
     if (idx < 0) return;
     clearTimeout(_grimSaveT);
@@ -1456,7 +1456,7 @@ function grimDelete(id) {
     if (currentNoteId === id) currentNoteId = null;
     saveState();
     renderNotes();
-    showToast('Запись удалена', { undo: true });
+    showToast('Запись стёрта', { undo: true });
 }
 
 // (Note duplication removed 2026-06-18 — see _attic/grim-note-duplicate.removed.js)
@@ -1471,7 +1471,7 @@ function grimTogglePin(id) {
     delete note.ord;            // re-enter the natural order within its (un)pinned block
     saveState();
     renderNotes();
-    showToast(note.pinned ? 'Запись закреплена' : 'Запись откреплена', { undo: true });
+    showToast(note.pinned ? 'Запись прикована' : 'Запись раскована', { undo: true });
 }
 
 // Active note → Склеп (soft archive, undoable).
@@ -3777,7 +3777,7 @@ function _grimImportDocs(docs) {
             lastId = _grimPushNote({ title: s.title, body: _grimMdToHtml(s.bodyMd), color: s.color }); added++;
         }
     });
-    if (!added) { showToast('Файлы пусты'); return; }
+    if (!added) { showToast('Свитки пусты'); return; }
     currentNoteId = lastId;
     grimNoteCollapsed = false;
     notesSearchQuery = '';

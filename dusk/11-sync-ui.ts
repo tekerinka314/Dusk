@@ -636,7 +636,7 @@ const _QUAR_FIELD_RU = {
 };
 const _QUAR_REC_RU = { tasks: 'обета', groups: 'свода', notes: 'записи', templates: 'образца' };
 const _QUAR_REC_NOM = { tasks: 'Обет', groups: 'Свод', notes: 'Запись', templates: 'Образец' };
-const _QUAR_REC_DEL = { tasks: 'Обет уничтожен', groups: 'Свод распущен', notes: 'Запись удалена', templates: 'Образец стёрт' };
+const _QUAR_REC_DEL = { tasks: 'Обет уничтожен', groups: 'Свод распущен', notes: 'Запись стёрта', templates: 'Образец стёрт' };
 
 function _quarFieldRu(recType, field) {
     const byType = _QUAR_FIELD_RU[recType] || {};
@@ -660,7 +660,7 @@ function _entryWhat(e) {
     if (e.kind === 'delete-vs-edit') {
         const l = e.loser || {};
         // Род согласуем со словом: «Свод удалён», но «Задача удалена».
-        const who = _QUAR_REC_DEL[e.recType] || 'Запись удалена';
+        const who = _QUAR_REC_DEL[e.recType] || 'Запись стёрта';
         const name = l.text || l.name || l.title;
         return who + ' при правке на другом устройстве' + (name ? ' — «' + _trim(name) + '»' : '');
     }

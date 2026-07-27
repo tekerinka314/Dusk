@@ -203,9 +203,9 @@ function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride
                             data-act="toggleScheduleMode" title="Порядок по исходу">${IC.sundial}</button>
                     ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
-                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Замкнуться на этом своде'}">${IC.focusMode}</button>
+                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Разомкнуться' : 'Замкнуться на этом своде'}">${IC.focusMode}</button>
                     <button class="btn-group-action" data-act="duplicateGroup" title="Отлить копию">${IC.twinCoffin}</button>
-                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
+                    <button class="btn-group-action" data-act="openRenameGroupModal" title="Наречь свод">${IC.quill}</button>
                     <button class="btn-group-action danger" data-act="deleteGroup" title="Распустить свод">${IC.tombstone}</button>
                 </div>`;
     return `
@@ -229,9 +229,9 @@ function openGroupMoreMenu(event, id) {
     _openFloatMenu(event.currentTarget, `
         <button type="button" role="menuitemcheckbox" aria-checked="${grpSched}" class="${grpSched ? 'fm-on' : ''}" data-act="_groupMore" data-more="sched" data-gid="${id}">${IC.sundial}<span>Порядок по исходу</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="sort" data-gid="${id}">${_taskSortIcon(grpSortMode)}<span>Порядок: ${_taskSortLabel(grpSortMode).toLowerCase()}</span></button>
-        <button type="button" role="menuitemcheckbox" aria-checked="${focusGroupId === id}" class="${focusGroupId === id ? 'fm-on' : ''}" data-act="_groupMore" data-more="focus" data-gid="${id}">${IC.focusMode}<span>${focusGroupId === id ? 'Снять фокус' : 'Замкнуться на этом своде'}</span></button>
+        <button type="button" role="menuitemcheckbox" aria-checked="${focusGroupId === id}" class="${focusGroupId === id ? 'fm-on' : ''}" data-act="_groupMore" data-more="focus" data-gid="${id}">${IC.focusMode}<span>${focusGroupId === id ? 'Разомкнуться' : 'Замкнуться на этом своде'}</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="dup" data-gid="${id}">${IC.twinCoffin}<span>Отлить копию</span></button>
-        <button type="button" role="menuitem" data-act="_groupMore" data-more="rename" data-gid="${id}">${IC.quill}<span>Переименовать</span></button>
+        <button type="button" role="menuitem" data-act="_groupMore" data-more="rename" data-gid="${id}">${IC.quill}<span>Наречь</span></button>
         <button type="button" role="menuitem" class="fm-danger fm-group-del" data-act="_groupMore" data-more="delete" data-gid="${id}">${IC.tombstone}<span>Распустить свод</span></button>`,
         'group-more-menu');
 }
@@ -328,7 +328,7 @@ function _pinnedNodes(container, pinned, gid, showDl) {
         zoneKey: key,
         headerClass: 'split-zone-header split-pinned-header',
         icon: IC.pin,
-        label: `Закреплённые · ${pinned.length}`,
+        label: `Прикованные · ${pinned.length}`,
         wrapClass: 'split-pinned-wrap',
         bodyClass: 'split-pinned-body',
         bodyData: { sortableGroup: 'split_active', groupId: gid != null ? String(gid) : '', zonePinned: '1' },
@@ -726,7 +726,7 @@ function appendPinnedBlock(container, pinned, groupId) {
 
     const hdr = document.createElement('li');
     hdr.className = 'split-zone-header split-pinned-header' + (collapsed ? ' collapsed' : '');
-    hdr.innerHTML = `${IC.pin}<span>Закреплённые · ${pinned.length}</span>${_PIN_HDR_CHEVRON}`;
+    hdr.innerHTML = `${IC.pin}<span>Прикованные · ${pinned.length}</span>${_PIN_HDR_CHEVRON}`;
     hdr.onclick = () => {
         const c = hdr.classList.toggle('collapsed');
         localStorage.setItem('groupSplit_' + key, c ? '1' : '0');
@@ -1043,9 +1043,9 @@ function toggleFocusGroup(groupId) {
     render();
     if (focusGroupId !== null) {
         const grp = state.groups.find(g => g.id === groupId);
-        showToast(`Фокус: ${escHtml(grp ? grp.name : '...')}`);
+        showToast(`Замкнуто: ${escHtml(grp ? grp.name : '...')}`);
     } else {
-        showToast('Фокус снят');
+        showToast('Разомкнуто');
     }
 }
 
@@ -1688,7 +1688,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
 
 // ---- Web Notifications ----
 function requestNotificationPermission() {
-    if (!('Notification' in window)) { showToast('Уведомления не поддерживаются'); return; }
+    if (!('Notification' in window)) { showToast('Вести не поддерживаются'); return; }
     Notification.requestPermission().then(perm => {
         const btn = document.getElementById('btn-notifications');
         const granted = perm === 'granted';
@@ -1696,7 +1696,7 @@ function requestNotificationPermission() {
         // Persist so PWA offline reload restores button state correctly
         if (granted) localStorage.setItem('dusk_notif', '1');
         else localStorage.removeItem('dusk_notif');
-        showToast(granted ? 'Уведомления включены' : 'Доступ к уведомлениям отклонён');
+        showToast(granted ? 'Вести включены' : 'В вестях отказано');
     });
 }
 
@@ -1924,7 +1924,7 @@ function renderGroupBar() {
         wrap.innerHTML = `
             <button type="button" class="meta-tag group-pill${focused ? ' pill-focused' : ''}" style="background:${bg};color:${g.color};border-color:${bd}"
                 data-act="focusGroupById" data-gid="${g.id}" aria-pressed="${focused}"
-                title="${focused ? 'Снять фокус' : 'Замкнуться на этом своде'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
+                title="${focused ? 'Разомкнуться' : 'Замкнуться на этом своде'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
             <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd};--pill-bg:${bg}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Распустить свод">${IC.tombstone}</button>`;
         groupsList.appendChild(wrap);
     });
@@ -1972,7 +1972,7 @@ function _tickRailDigest() {
 }
 function railDigestGo(id) {
     const li = document.querySelector(`.task-item[data-id="${id}"]`);
-    if (!li) { showToast('Обет сейчас скрыт (фильтр/фокус/свёрнутый свод)'); return; }
+    if (!li) { showToast('Обет сейчас скрыт (фильтр/замок/свёрнутый свод)'); return; }
     li.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
     li.classList.remove('rail-target-pulse'); void (li as HTMLElement).offsetWidth;
     li.classList.add('rail-target-pulse');
@@ -2022,7 +2022,7 @@ function renderGroupChips(currentVal) {
             <button class="grp-dd-del" type="button" data-gid="${g.id}" data-act="deleteGroupById" data-stop title="Распустить свод">${IC.tombstone}</button>
         </div>`;
     });
-    html += `<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" data-act="selectGroupChip" data-chip="__new__">${IC.crossAdd}<span class="grp-dd-name">Новый своппу</span></div>`;
+    html += `<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" data-act="selectGroupChip" data-chip="__new__">${IC.crossAdd}<span class="grp-dd-name">Новый свод</span></div>`;
     list.innerHTML = html;
 }
 

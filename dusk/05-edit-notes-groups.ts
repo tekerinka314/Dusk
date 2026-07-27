@@ -1502,7 +1502,7 @@ function confirmAddGroup() {
     // Close with animation + focus-return (was direct display:none — no animation, no focus)
     closeModalWithAnim('group-modal');
     render();
-    showToast(`Свод «${name}» создан`);
+    showToast(`Свод «${name}» возведён`);
 }
 
 
@@ -1634,7 +1634,7 @@ function confirmRenameGroup() {
     saveState();
     closeModalWithAnim('rename-group-modal', () => { renamingGroupId = null; });
     render();
-    showToast('Свод переименован');
+    showToast('Свод наречён заново');
 }
 
 document.getElementById('rename-group-input').addEventListener('keydown', e => {

@@ -1444,7 +1444,7 @@ function _renderTemplatesList() {
         if (t.priority && t.priority !== 'none') bits.push(`<span class="tpl-bit tpl-prio-${t.priority}">${{high:'высокий',medium:'средний',low:'низкий'}[t.priority]}</span>`);
         if (t.repeat && t.repeat !== 'none')     bits.push(`<span class="tpl-bit">${IC.ouroboros}${repeatLabel(t.repeat)}</span>`);
         if (t.deadline)                          bits.push(`<span class="tpl-bit">${IC.window}исход</span>`);
-        if (t.subtasks && t.subtasks.length)     bits.push(`<span class="tpl-bit">${t.subtasks.length} подп.</span>`);
+        if (t.subtasks && t.subtasks.length)     bits.push(`<span class="tpl-bit">${t.subtasks.length} звен.</span>`);
         return `<div class="template-item">
             <button class="template-create" data-act="createTaskFromTemplate" data-id="${t.id}" title="Отлить обет по образцу">
                 <span class="template-name">${escHtml(t.name)}</span>

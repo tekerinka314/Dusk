@@ -326,21 +326,14 @@
                         <button type="button" class="form-flag-toggle" id="form-pin-toggle"
                                 data-act="toggleFormPin" aria-pressed="false"
                                 title="Приковать новый обет к вершине">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <line x1="12" y1="3" x2="12" y2="19"/>
-                                <path d="M9 7L12 3L15 7"/>
-                                <line x1="8" y1="10" x2="16" y2="10"/>
-                                <circle cx="12" cy="21" r="1.2" fill="currentColor" stroke="none"/>
-                            </svg>
+                            <!-- PN1 · тот же кинжал, что у «Приковать к вершине» в строках и Гримуаре -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-pin"/></svg>
                             <span>Приковать обет</span>
                         </button>
                         <button type="button" class="form-tpl-btn" data-act="saveFormAsTemplate"
                                 title="Сохранить условия как образец — обет при этом не даётся">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M5 4.5C5 3.7 5.6 3 6.5 3H17C17.6 3 18 3.4 18 4V18.5C18 19.3 17.4 20 16.5 20H6.5C5.7 20 5 19.3 5 18.5V4.5Z"/>
-                                <path d="M5 18.5C5 17.7 5.7 17 6.5 17H18"/>
-                                <path d="M14 3V8.5L12 7L10 8.5V3" fill="currentColor" stroke="none" opacity="0.55"/>
-                            </svg>
+                            <!-- TP1 · та же литейная форма, что у «Сохранить как образец» в ⋯-меню -->
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-template"/></svg>
                             <span>Сохранить как образец</span>
                         </button>
                     </div>
@@ -770,7 +763,7 @@
                         <!-- AY1 на постаменте из трёх убывающих плит — квантор «ВСЁ» (тот же счётный знак,
                              что в оссуарии A2). Одиночное «Восстановить» осталось голой урной. -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-all"/></svg>
-                        Вернуть всё
+                        Воскресить всех
                     </button>
                     <button class="btn-archive-action btn-select-mode" id="btn-select-mode" data-act="toggleSelectMode" title="Отметить к воскрешению">
                         <!-- K1 · рунный круг — знак отметки. Один и тот же в задачах и в Гримуаре. -->
@@ -782,7 +775,7 @@
                              в Гримуаре; раньше здесь стоял ЧЕРЕП, равный одиночному «удалить навсегда»
                              в строках того же списка — масштаб последствий был неразличим. -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-empty-crypt"/></svg>
-                        Очистить
+                        Опустошить
                     </button>
                 </div>
             </div>
@@ -833,15 +826,15 @@
                     </button>
                 </div>
                 <div class="grim-bar-acts">
-                    <button class="grim-ghost-btn" id="grim-select-btn" data-act="grimToggleSelectMode" title="Выбрать несколько записей" style="display:none">
+                    <button class="grim-ghost-btn" id="grim-select-btn" data-act="grimToggleSelectMode" title="Отметить несколько записей" style="display:none">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-select-mark"/></svg>
-                        <span>Выбрать</span>
+                        <span>Отметить</span>
                     </button>
                     <!-- «Вернуть всё» из склепа — постоянная кнопка (вне select-режима),
                          зеркалит task-архивную #btn-restore-all. Иконка = AY1 (отваленная крышка). -->
-                    <button class="grim-ghost-btn" id="grim-restore-all" data-act="grimRestoreAll" title="Вернуть все записи из склепа" style="display:none">
+                    <button class="grim-ghost-btn" id="grim-restore-all" data-act="grimRestoreAll" title="Воскресить все записи склепа" style="display:none">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-all"/></svg>
-                        <span>Вернуть всё</span>
+                        <span>Воскресить всех</span>
                     </button>
                     <div class="grim-io-split" id="grim-io-split">
                         <button class="grim-ghost-btn grim-io-btn" id="grim-io" data-act="grimToggleIoMenu" title="Свитки записей" aria-haspopup="true" aria-expanded="false">
@@ -909,7 +902,7 @@
                         <button class="sb-btn sb-archive" id="grim-bulk-archive" data-act="grimBulkArchive" title="Отправить в склеп" disabled>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-archive-sel"/></svg>
                         </button>
-                        <button class="sb-btn sb-archive" id="grim-bulk-restore" data-act="grimBulkRestore" title="Вернуть в гримуар" disabled style="display:none">
+                        <button class="sb-btn sb-archive" id="grim-bulk-restore" data-act="grimBulkRestore" title="Воскресить отмеченные" disabled style="display:none">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-sel"/></svg>
                         </button>
                         <button class="sb-btn" id="grim-bulk-color" data-act="openGrimBulkColorModal" title="Витраж отмеченных" disabled>
@@ -986,7 +979,7 @@
         </div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" data-act="closeGroupModal">Отмена</button>
-            <button class="btn-modal-confirm" data-act="confirmAddGroup">Создать</button>
+            <button class="btn-modal-confirm" data-act="confirmAddGroup">Возвести</button>
         </div>
     </div>
 </div>
@@ -995,9 +988,9 @@
 <div class="modal-overlay" id="rename-group-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="rename-group-modal-title">
     <div class="modal modal-small">
-        <h3 class="modal-title" id="rename-group-modal-title">Переименовать свод</h3>
+        <h3 class="modal-title" id="rename-group-modal-title">Наречь свод</h3>
         <div class="modal-row">
-            <input type="text" id="rename-group-input" class="modal-input" placeholder="Новое название..." maxlength="40" autocomplete="off" spellcheck="false">
+            <input type="text" id="rename-group-input" class="modal-input" placeholder="Новое имя свода…" maxlength="40" autocomplete="off" spellcheck="false">
         </div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" data-act="closeRenameGroupModal">Отмена</button>
@@ -1364,7 +1357,7 @@
             <div class="grgb-foot">
                 <span class="grgb-preview" id="grgb-preview" aria-hidden="true"></span>
                 <span class="grgb-hex" id="grgb-hex">#A060FF</span>
-                <button class="grgb-apply" data-act="grgbApply">Применить</button>
+                <button class="grgb-apply" data-act="grgbApply">Наложить</button>
             </div>
         </div>
         <div class="modal-actions">
@@ -1732,6 +1725,33 @@
     <symbol id="icon-quill" viewBox="0 0 24 24">
       <path d="M20 4 C13 5 8 9 5.5 15.5 L4 20 L8.5 18.5 C15 16 19 11 20 4 Z"/>
       <path d="M9 15 L14 10" opacity="0.6"/>
+    </symbol>
+    <!-- PN1 · Кинжал с ромбовидным навершием, вбитый в угол листа — «приковать к вершине».
+         Арт живёт ОДНОЙ копией здесь: IC.pin (строки, Гримуар, шапка «Прикованные») и
+         статическая кнопка «Приковать обет» в «Условиях» берут его через <use>. -->
+    <symbol id="icon-pin" viewBox="0 0 24 24">
+      <path d="M3 13V5.2C3 3.9 3.9 3 5.2 3H13" stroke-width="1.2" opacity="0.42"/>
+      <path d="M7 3.9L10.1 7L7 10.1L3.9 7Z"/>
+      <line x1="7" y1="3.9" x2="7" y2="10.1" stroke-width="0.9" opacity="0.4"/>
+      <line x1="9.3" y1="9.3" x2="19.6" y2="19.6" stroke-width="2"/>
+      <path d="M18.4 20.5L21 21L20.5 18.4Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      <circle cx="6" cy="5.1" r="0.6" fill="currentColor" stroke="none" opacity="0.8"/>
+    </symbol>
+    <!-- TP1 · Литейная форма-складень с закладкой и звездой-печатью — «образец».
+         Одна копия на всех: IC.template (⋯-меню обета) и кнопка «Сохранить как
+         образец» в «Условиях». -->
+    <symbol id="icon-template" viewBox="0 0 24 24">
+      <path d="M6.2 3.4H16.4C17.3 3.4 17.9 4 17.9 4.9V19.1C17.9 20 17.3 20.6 16.4 20.6H6.2Z"/>
+      <line x1="8.4" y1="3.4" x2="8.4" y2="20.6" stroke-width="1" opacity="0.5"/>
+      <line x1="6.2" y1="6.4" x2="8.4" y2="6.4" stroke-width="1.1" opacity="0.6"/>
+      <line x1="6.2" y1="17.6" x2="8.4" y2="17.6" stroke-width="1.1" opacity="0.6"/>
+      <path d="M17.9 9.6H19.9C20.3 9.6 20.5 9.9 20.5 10.3V13.7C20.5 14.1 20.3 14.4 19.9 14.4H17.9" stroke-width="1.3"/>
+      <path d="M18.6 12L19.3 11.3L20 12L19.3 12.7Z" fill="currentColor" stroke="none" opacity="0.8"/>
+      <path d="M13.1 8.2L13.55 9.35L14.7 9.8L13.55 10.25L13.1 11.4L12.65 10.25L11.5 9.8L12.65 9.35Z" fill="currentColor" stroke="none" opacity="0.85"/>
+      <circle cx="13.1" cy="9.8" r="2.5" stroke-width="0.9" opacity="0.45"/>
+      <path d="M11 20.6V23L12.2 21.9L13.4 23V20.6" stroke-width="1.2" opacity="0.75"/>
+      <line x1="10.4" y1="15.4" x2="15.8" y2="15.4" stroke-width="0.9" opacity="0.4"/>
+      <line x1="10.4" y1="17.2" x2="14.6" y2="17.2" stroke-width="0.9" opacity="0.4"/>
     </symbol>
     <!-- EM1 · Незажжённая свеча — пустое состояние задач («Алтарь пуст»). Оплывший
          столб с потёками в подсвечнике, срезанный фитиль и струйка дыма: огонь ещё

@@ -864,7 +864,7 @@ function setupEventListeners() {
 
     // ── Deadline modal shortcuts ──────────────────────────────────────────
     // Enter  → save (= "Сохранить"), skipped if focus is in an input or button
-    // Delete → clear (= "Очистить"), skipped if:
+    // Delete → clear the segment, skipped if:
     //   • focus is inside a native input/select (the seg-input's _onKey calls
     //     e.preventDefault() first, so e.defaultPrevented acts as guard there)
     //   • activeElement IS the seg-input div (segment keyboard nav active)
@@ -1101,7 +1101,7 @@ class SegmentedInput {
         clearBtn.type = 'button';
         clearBtn.className = 'seg-clear-btn';
         clearBtn.setAttribute('tabindex', '-1');
-        const clearTitle = this.type === 'time' ? 'Очистить время' : 'Очистить дату';
+        const clearTitle = this.type === 'time' ? 'Снять время' : 'Снять дату';
         clearBtn.title = clearTitle;
         clearBtn.setAttribute('aria-label', clearTitle);
         clearBtn.innerHTML = this.type === 'time'
