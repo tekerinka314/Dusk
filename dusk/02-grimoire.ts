@@ -1612,7 +1612,7 @@ function _grimBuildColorFilterPop() {
         pop.innerHTML = '<p class="grim-cfilter-empty">Ни одной записи под этим витражом</p>';
         return;
     }
-    const check = `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`;
+    const check = `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-linecap="butt" stroke-linejoin="miter" width="14" height="14"><use href="#icon-mark-chosen"/></svg>`;
     const swatches = colors.map(c => `
         <button class="color-filter-swatch${noteColorFilter === c ? ' active' : ''}" style="background:${c}"
                 data-act="grimSetColorFilter" data-color="${escHtml(c)}" aria-label="Витраж: ${c}" title="Витраж: ${c}">
