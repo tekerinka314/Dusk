@@ -515,7 +515,7 @@ function _grimRenderHistory() {
         const title = (sel.t || '').trim() || 'Без заглавия';
         const action = isNow
             ? `<span class="grim-hist-cur">текущая версия</span>`
-            : `<button type="button" class="grim-hist-restore" data-act="grimHistRestore" data-at="${sel.at}">${GIC.restore}<span>Восстановить</span></button>`;
+            : `<button type="button" class="grim-hist-restore" data-act="grimHistRestore" data-at="${sel.at}">${GIC.restore}<span>Воскресить</span></button>`;
         preview = `<div class="grim-hist-pv-head">
             <span class="grim-hist-pv-when">${GIC.chronicle}<span>${_grimVerStamp(sel.at)}</span></span>
             ${action}
@@ -1161,7 +1161,7 @@ function renderGrimDetail() {
                 <span class="grim-date" title="В склепе с">${GIC.coffin}<span>${grimDate(note.archivedAt || note.updatedAt)}</span></span>
                 <span class="grim-acts">
                     <button class="grim-act" data-act="grimRestoreNote" data-nid="${note.id}" title="Вернуть в гримуар">${GIC.restore}<span>вернуть</span></button>
-                    <button class="grim-act danger" data-act="grimDeleteForever" data-nid="${note.id}" title="Уничтожить навсегда">${IC.skull}<span>удалить</span></button>
+                    <button class="grim-act danger" data-act="grimDeleteForever" data-nid="${note.id}" title="Уничтожить">${IC.skull}<span>уничтожить</span></button>
                 </span>
             </div>
           </div>
@@ -1197,7 +1197,7 @@ function renderGrimDetail() {
                 <button class="grim-act" data-act="grimSaveAsTpl" data-nid="${note.id}" title="Сохранить как образец">${GRIM_TPL_IC.save}<span>образец</span></button>
                 <button class="grim-act" data-act="grimOpenHistory" data-nid="${note.id}" title="Летопись — прежние начертания">${GIC.chronicle}<span>летопись</span></button>
                 <button class="grim-act" data-act="grimArchive" data-nid="${note.id}" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
-                <button class="grim-act danger" data-act="grimDelete" data-nid="${note.id}" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
+                <button class="grim-act danger" data-act="grimDelete" data-nid="${note.id}" title="Уничтожить">${IC.dagger}<span>уничтожить</span></button>
             </span>
         </div>
       </div><!-- /grim-page-main -->
@@ -1706,13 +1706,13 @@ function _grimFindBar() {
     if (!bar) {
         bar = document.createElement('div');
         bar.id = 'grim-find'; bar.className = 'grim-find'; bar.setAttribute('role', 'toolbar');
-        bar.setAttribute('aria-label', 'Поиск по записи');
+        bar.setAttribute('aria-label', 'Зов по записи');
         bar.innerHTML =
             `<button class="gf-btn gf-prev" data-act="grimFindPrev" title="Предыдущее (Shift+F3)" aria-label="Предыдущее совпадение">${IC.sword}</button>` +
             `<button class="gf-btn gf-next" data-act="grimFindNext" title="Следующее (F3)" aria-label="Следующее совпадение">${IC.sword}</button>` +
             `<span class="gf-cnt" id="grim-find-cnt"></span>` +
             `<span class="gf-sep"></span>` +
-            `<button class="gf-btn gf-close" data-act="grimFindClose" title="Закрыть (Esc)" aria-label="Закрыть поиск">${IC.crossedSwords}</button>`;
+            `<button class="gf-btn gf-close" data-act="grimFindClose" title="Закрыть (Esc)" aria-label="Оборвать зов">${IC.crossedSwords}</button>`;
         document.body.appendChild(bar);
     }
     return bar;
@@ -1759,7 +1759,7 @@ function _grimExitSelect() {
     grimSelectMode = false;
     grimSelectedIds.clear();
     const delBtn = document.getElementById('grim-bulk-delete') as any;
-    if (delBtn) { clearTimeout(delBtn._armTimer); delBtn._armed = false; delBtn.classList.remove('confirm-armed'); delBtn.title = 'Удалить навсегда'; }
+    if (delBtn) { clearTimeout(delBtn._armTimer); delBtn._armed = false; delBtn.classList.remove('confirm-armed'); delBtn.title = 'Уничтожить'; }
 }
 
 function grimToggleSelectMode() {
@@ -3501,14 +3501,14 @@ function _grimRenderIoMenu() {
         + _grimIoItem(GRIM_IO_IC.import, 'Прочесть свитки', '.md · .zip · .json · можно несколько', 'grimImportFiles')
         + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Запечатать всё</div>'
         + _grimIoItem(GRIM_IO_IC.full, 'Полный свиток записей', '.json · все записи Гримуара + летопись', 'grimExportFullBackup', 'all')
-        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', 'grimExportBackup', 'all')
+        + _grimIoItem(GRIM_IO_IC.backup, 'Полный свиток', 'один .md, разворачивается обратно', 'grimExportBackup', 'all')
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на запись', 'grimExportReading', 'all');
 }
 function _grimRenderIoSelMenu() {
     const pop = document.getElementById('grim-io-sel-pop') as any; if (!pop) return;
     pop.innerHTML = '<div class="grim-tpl-head">Запечатать отмеченные</div>'
         + _grimIoItem(GRIM_IO_IC.full, 'Полный свиток записей', '.json · выбранные записи + летопись', 'grimExportFullBackup', 'sel')
-        + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', 'grimExportBackup', 'sel')
+        + _grimIoItem(GRIM_IO_IC.backup, 'Полный свиток', 'один .md', 'grimExportBackup', 'sel')
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу', 'grimExportReading', 'sel');
 }
 function _grimCloseIoMenu() {

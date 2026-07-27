@@ -1145,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Build human-readable label for toast (problem 5)
             const _toastLabel = () => {
                 const label = getRepeatAnchorLabel(newRepeat, anchorTime || null, anchorDay || null, anchorMonthday || null);
-                if (newRepeat === 'none') return 'Повтор отключён';
+                if (newRepeat === 'none') return 'Круговорот прерван';
                 return `Круговорот: ${repeatLabel(newRepeat)}${label ? ` · ${label}` : ''}`;
             };
 

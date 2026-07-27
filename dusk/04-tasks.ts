@@ -348,7 +348,7 @@ function _buildSubListContent(task) {
         const activeSection = active.length > 0 ? `
             <li class="sub-split-active-header${activeCollapsed ? ' collapsed' : ''}"
                 data-act="toggleSubSplitActive" data-splitkey="${activeKey}">
-                ${IC.sword}<span>Активные · ${active.length}</span>${chevronSvg}
+                ${IC.sword}<span>Неисполненные · ${active.length}</span>${chevronSvg}
             </li>
             <li class="sub-split-active-wrap${activeCollapsed ? ' collapsed' : ''}" style="list-style:none;padding:0;margin:0;">
                 <ul class="sub-split-inner">${activeHtml}</ul>
@@ -357,7 +357,7 @@ function _buildSubListContent(task) {
         const doneSection = done.length > 0 ? `
             <li class="sub-split-done-header${doneCollapsed ? ' collapsed' : ''}"
                 data-act="toggleSubSplitDone" data-splitkey="${doneKey}">
-                ${IC.sword}<span>Выполненные · ${done.length}</span>${chevronSvg}
+                ${IC.sword}<span>Исполненные · ${done.length}</span>${chevronSvg}
             </li>
             <li class="sub-split-done-wrap${doneCollapsed ? ' collapsed' : ''}" style="list-style:none;padding:0;margin:0;">
                 <ul class="sub-split-inner">${doneHtml}</ul>
@@ -459,7 +459,7 @@ function renderSubList(taskId) {
             const z = _ensureSubZone(ul, 'sub_active_' + taskId, {
                 headerClass: 'sub-split-active-header',
                 dataAct: 'toggleSubSplitActive', splitKey: activeKey,
-                label: `Активные · ${active.length}`,
+                label: `Неисполненные · ${active.length}`,
                 wrapClass: 'sub-split-active-wrap',
                 collapsed: localStorage.getItem(activeKey) === '1',
             });
@@ -470,7 +470,7 @@ function renderSubList(taskId) {
             const z = _ensureSubZone(ul, 'sub_done_' + taskId, {
                 headerClass: 'sub-split-done-header',
                 dataAct: 'toggleSubSplitDone', splitKey: doneKey,
-                label: `Выполненные · ${done.length}`,
+                label: `Исполненные · ${done.length}`,
                 wrapClass: 'sub-split-done-wrap',
                 collapsed: localStorage.getItem(doneKey) === '1',
             });
@@ -561,7 +561,7 @@ function buildSubtaskItemHTML(taskId, s) {
                 ${subDlSetBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleSubNote" title="${s.note ? 'Переписать примечание' : 'Начертать примечание'}">${s.note ? IC.editNote : IC.addNote}</button>
                 <button type="button" class="btn-sub-action" data-act="promoteSubtask" title="Возвести в обет">${IC.promote}</button>
-                <button type="button" class="btn-sub-action danger" data-act="deleteSubtask" title="Удалить звено">${IC.skull}</button>
+                <button type="button" class="btn-sub-action danger" data-act="deleteSubtask" title="Уничтожить звено">${IC.skull}</button>
             </div>`}
         </div>
         ${subDlWrap}
@@ -696,7 +696,7 @@ function renderFormSubtasks() {
                 <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" data-act="openFormSubRepeat" title="${repeatTitle}">${IC.ouroboros}</button>
                 ${fDlSetBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleFormSubNote" title="${s.note ? 'Переписать примечание' : 'Начертать примечание'}">${s.note ? IC.editNote : IC.addNote}</button>
-                <button type="button" class="btn-sub-action danger" data-act="removeFormSubtask" title="Удалить звено">${IC.skull}</button>
+                <button type="button" class="btn-sub-action danger" data-act="removeFormSubtask" title="Уничтожить звено">${IC.skull}</button>
             </div>
         </div>
         ${fDlWrap}
@@ -2301,7 +2301,7 @@ function openTaskMoreMenu(event, id) {
             <button type="button" class="fm-q${task && task.pinned ? ' active' : ''}" data-act="_taskMore" data-more="pin" data-id="${id}">${IC.pin}<span>${task && task.pinned ? 'Расковать' : 'Приковать'}</span></button>
             <button type="button" class="fm-q" data-act="_taskMore" data-more="prio" data-id="${id}">${IC.spires}<span>Ранг</span></button>
             <button type="button" class="fm-q${task && task.deadline ? ' active' : ''}" data-act="_taskMore" data-more="deadline" data-id="${id}">${IC.window}<span>Исход</span></button>
-            <button type="button" class="fm-q${task && task.repeat && task.repeat !== 'none' ? ' active' : ''}" data-act="_taskMore" data-more="repeat" data-id="${id}">${IC.ouroboros}<span>Повтор</span></button>
+            <button type="button" class="fm-q${task && task.repeat && task.repeat !== 'none' ? ' active' : ''}" data-act="_taskMore" data-more="repeat" data-id="${id}">${IC.ouroboros}<span>Круговорот</span></button>
             <button type="button" class="fm-q" data-act="_taskMore" data-more="color" data-id="${id}" style="${taskInkNow ? `color:${taskInkNow}` : ''}">${taskColorGlyph(taskInkNow)}<span>Витраж</span></button>
             <button type="button" class="fm-q${hasNoteNow ? ' active' : ''}" data-act="_taskMore" data-more="notewin" data-id="${id}">${hasNoteNow ? IC.editNote : IC.addNote}<span>Примечание</span></button>
         </div>
@@ -2310,7 +2310,7 @@ function openTaskMoreMenu(event, id) {
     const coarseTail = IS_COARSE ? `
         ${task && task.deadline ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отсрочить исход</span></button>` : ''}
         <button type="button" role="menuitem" data-act="_taskMore" data-more="archive" data-id="${id}">${IC.archive}<span>В склеп</span></button>
-        <button type="button" role="menuitem" class="fm-danger" data-act="_taskMore" data-more="delete" data-id="${id}">${IC.skull}<span>Удалить навсегда</span></button>` : '';
+        <button type="button" role="menuitem" class="fm-danger" data-act="_taskMore" data-more="delete" data-id="${id}">${IC.skull}<span>Уничтожить</span></button>` : '';
     _openFloatMenu(event.currentTarget, `
         ${coarseHead}
         <button type="button" role="menuitem" data-act="_taskMore" data-more="tpl" data-id="${id}">${IC.template}<span>Сохранить как образец</span></button>
@@ -2519,11 +2519,11 @@ function openSubMoreMenu(event, taskId, subId) {
             ${pOpt('none', 'Нет')}${pOpt('low', 'Низкий')}${pOpt('medium', 'Средний')}${pOpt('high', 'Высокий')}
         </div>
         <button type="button" role="menuitem" data-act="_subMore" data-more="edit" ${ds}>${IC.quill}<span>Переписать</span></button>
-        <button type="button" role="menuitem" data-act="_subMore" data-more="repeat" ${ds}>${IC.ouroboros}<span>Повтор${repeatSet ? ` · ${repeatLabel(sub.repeat)}` : ''}</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="repeat" ${ds}>${IC.ouroboros}<span>Круговорот${repeatSet ? ` · ${repeatLabel(sub.repeat)}` : ''}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="deadline" ${ds}>${IC.window}<span>${sub.deadline ? 'Изменить исход' : 'Исход'}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="note" ${ds}>${sub.note ? IC.editNote : IC.addNote}<span>${sub.note ? 'Переписать примечание' : 'Примечание'}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="promote" ${ds}>${IC.promote}<span>Возвести в обет</span></button>
-        <button type="button" role="menuitem" class="fm-danger" data-act="_subMore" data-more="delete" ${ds}>${IC.skull}<span>Удалить звено</span></button>`,
+        <button type="button" role="menuitem" class="fm-danger" data-act="_subMore" data-more="delete" ${ds}>${IC.skull}<span>Уничтожить звено</span></button>`,
         'sub-more-menu');
 }
 function _subMore(act, taskId, subId, p) {

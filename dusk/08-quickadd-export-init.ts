@@ -507,7 +507,7 @@ function bulkDelete() {
         btn._armTimer = setTimeout(() => {
             btn._armed = false;
             btn.classList.remove('confirm-armed');
-            btn.title = 'Удалить навсегда';
+            btn.title = 'Уничтожить';
         }, 3000);
         return;
     }

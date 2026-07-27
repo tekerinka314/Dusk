@@ -356,7 +356,7 @@ function _splitZoneNodes(container, tasks, splitKey, gid, showDl) {
             zoneKey: 'active_' + splitKey,
             headerClass: 'split-zone-header split-active-header',
             icon: _SPLIT_ACTIVE_ICON,
-            label: `Активные · ${active.length}`,
+            label: `Неисполненные · ${active.length}`,
             wrapClass: 'split-active-wrap',
             bodyClass: 'split-active-body',
             bodyData: { sortableGroup: activeGroup, groupId: gid != null ? String(gid) : '' },
@@ -372,7 +372,7 @@ function _splitZoneNodes(container, tasks, splitKey, gid, showDl) {
             headerClass: 'split-zone-header split-done-header',
             headerAttr: ['data-split-key', String(splitKey)],
             icon: _SPLIT_DONE_ICON,
-            label: `Выполненные · ${done.length}`,
+            label: `Исполненные · ${done.length}`,
             wrapClass: 'split-done-wrap',
             bodyClass: 'split-done-body',
             bodyStyle: 'list-style:none',
@@ -2220,7 +2220,7 @@ function renderArchive() {
             const actions = selectMode ? '' : `
                 <div class="task-actions archive-actions">
                     <button class="btn-task-action restore-btn" data-act="restoreTask" title="Воскресить">${IC.restore}</button>
-                    <button class="btn-task-action danger" data-act="deleteFromArchive" title="Удалить навсегда">${IC.skull}</button>
+                    <button class="btn-task-action danger" data-act="deleteFromArchive" title="Уничтожить">${IC.skull}</button>
                 </div>`;
 
             li.innerHTML = `
