@@ -1263,7 +1263,7 @@ function saveState() {
     } catch (e) {
         if (!_quotaWarned) {
             _quotaWarned = true;
-            try { if (typeof showToast === 'function') showToast('Хранилище переполнено — изменения могут не сохраниться', { persist: true }); } catch (_) {}
+            try { if (typeof showToast === 'function') showToast('Хранилище переполнено — начертанное может не удержаться', { persist: true }); } catch (_) {}
         }
         try { console.error('[dusk] saveState: localStorage write failed', e); } catch (_) {}
     }
@@ -2179,7 +2179,7 @@ function pushUndoSnapshot(json) {
 }
 
 function undo() {
-    if (!undoStack.length) { showToast('Нечего отменять'); return; }
+    if (!undoStack.length) { showToast('Отменять нечего'); return; }
     // P-A: remember current state so the undo itself can be redone.
     redoStack.push(JSON.stringify(state));
     if (redoStack.length > 40) redoStack.shift();
@@ -2252,7 +2252,7 @@ function undo() {
 // P-A: re-apply the most recently undone change. Mirror of undo() but without the
 // add-task form-restore nicety (redo is a pure state step). Ctrl+Shift+Z / Ctrl+Y.
 function redo() {
-    if (!redoStack.length) { showToast('Нечего повторить'); return; }
+    if (!redoStack.length) { showToast('Повторять нечего'); return; }
     undoStack.push(JSON.stringify(state));
     if (undoStack.length > 40) undoStack.shift();
     state = JSON.parse(redoStack.pop());

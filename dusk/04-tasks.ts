@@ -947,7 +947,7 @@ function addTask() {
     _resetFormPin();
 
     saveState(); render();
-    showToast('Задача добавлена');
+    showToast('Обет дан');
 }
 
 function removeTask(id) {
@@ -985,7 +985,7 @@ function removeTask(id) {
     } else {
         render();
     }
-    showToast('Задача перемещена в архив', { undo: true });
+    showToast('Обет предан склепу', { undo: true });
 }
 
 // Problem 4: fade the task's current row out, then re-render so it re-appears in
@@ -1087,7 +1087,7 @@ function toggleCheck(id) {
             }
             // ──────────────────────────────────────────────────────────
 
-            showToast(`Цикл завершён · ${repeatLabel(task.repeat)}`);
+            showToast(`Круг завершён · ${repeatLabel(task.repeat)}`);
         } else {
             // Cycle un-complete → fade the row out, then re-render it as active.
             task.cycleChecked = false;
@@ -1236,7 +1236,7 @@ function deleteGroup(id) {
         }, 3000));
         setArmed(true);
         const n = state.tasks.filter(t => t.groupId === id).length;
-        showToast(n ? 'Нажмите ещё раз — удалить группу со всеми задачами' : 'Нажмите ещё раз — удалить группу');
+        showToast(n ? 'Нажмите ещё раз — распустить свод со всеми обетами' : 'Нажмите ещё раз — распустить свод');
         return;
     }
     // ── Fire ──
@@ -1265,7 +1265,7 @@ function deleteGroup(id) {
     // B6: remove any sort-mode override for this group
     if (state.sortModeOverrides) delete state.sortModeOverrides[String(id)];
     saveState(); render();
-    showToast(hadTasks ? 'Группа удалена со всеми задачами' : 'Группа удалена', { undo: true });
+    showToast(hadTasks ? 'Свод распущен со всеми обетами' : 'Свод распущен', { undo: true });
 }
 
 // Idea 6: duplicate a group + all its tasks (new ids), placed right after it.
@@ -1297,7 +1297,7 @@ function duplicateGroup(id) {
         _newTaskIds.add(copy.id);
     });
     saveState(); render();
-    showToast(`Группа «${escHtml(group.name)}» скопирована`);
+    showToast(`Свод «${escHtml(group.name)}» отлит заново`);
 }
 
 // ── Idea 6: task templates ───────────────────────────────────────────────────
@@ -1329,7 +1329,7 @@ function saveTaskAsTemplate(id) {
     });
     saveState();
     updateTemplatesBtn();
-    showToast('Сохранено как шаблон');
+    showToast('Сохранено как образец');
 }
 
 // P5: save the current ADD-TASK FORM as a template — saves only, does NOT create a
@@ -1370,7 +1370,7 @@ function saveFormAsTemplate() {
     });
     saveState();
     updateTemplatesBtn();
-    showToast('Сохранено как шаблон');
+    showToast('Сохранено как образец');
 }
 
 function createTaskFromTemplate(tid) {
@@ -1404,7 +1404,7 @@ function createTaskFromTemplate(tid) {
     _newTaskIds.add(newId);
     saveState(); render();
     closeTemplatesModal();
-    showToast('Задача создана из шаблона');
+    showToast('Обет отлит по образцу');
 }
 
 function deleteTemplate(tid) {
@@ -1412,7 +1412,7 @@ function deleteTemplate(tid) {
     saveState();
     _renderTemplatesList();
     updateTemplatesBtn();
-    showToast('Шаблон удалён');
+    showToast('Образец стёрт');
 }
 
 // Show/hide the "Шаблоны" launcher in the groups bar based on whether any exist.
@@ -1813,7 +1813,7 @@ function restoreTask(id) {
     const doTransition = () => {
         render();
         renderArchive();
-        showToast('Задача восстановлена');
+        showToast('Обет воскрешён');
         setTimeout(() => switchPage('main'), 260);
     };
 
@@ -1848,7 +1848,7 @@ function deleteFromArchive(id) {
     if (_arch) addTombstone(_arch.uid, 'task');   // Idea 8: permanent delete from archive → tombstone
     state.archive = state.archive.filter(a => a.id !== id);
     saveState(); renderArchive(); updateArchiveBadge();
-    showToast('Удалено из архива', { undo: true });
+    showToast('Изъято из склепа', { undo: true });
 }
 
 // C3-1: two-step confirm for wiping the whole archive — mirrors clearAll().
@@ -1863,7 +1863,7 @@ function clearArchive() {
         // ── Arm ──
         _clearArchiveArmed = true;
         if (btn) { btn.classList.add('confirm-armed'); btn.title = 'Нажмите ещё раз — очистить весь архив'; }
-        showToast('Нажмите ещё раз — очистить весь архив');
+        showToast('Нажмите ещё раз — опустошить склеп');
         _clearArchiveTimer = setTimeout(() => {
             _clearArchiveArmed = false;
             if (btn) { btn.classList.remove('confirm-armed'); btn.title = ''; }
@@ -1883,7 +1883,7 @@ function clearArchive() {
     state.archive.forEach(a => addTombstone(a.uid, 'task'));   // Idea 8: tombstone every wiped archive task
     state.archive = [];
     saveState(); renderArchive(); updateArchiveBadge();
-    showToast('Архив очищен', { undo: true });
+    showToast('Склеп опустошён', { undo: true });
 }
 
 // ============================================================
@@ -2251,7 +2251,7 @@ function promoteSubtask(taskId, subId) {
     _newTaskIds.add(newId);
     task.subtasks = task.subtasks.filter(s => s.id !== subId);
     saveState(); render();
-    showToast('Подпункт стал задачей');
+    showToast('Подпункт возведён в обет');
 }
 
 // ── Idea 3: demote a task into a subtask of another task ─────────────────────
@@ -2412,7 +2412,7 @@ globalThis._demoteAnchor = null;
 // (a lone ungrouped list stays flat).
 function _openDemoteMenuAt(anchorEl, id) {
     const candidates = state.tasks.filter(t => t.id !== id && !t.checked && !t.cycleChecked);
-    if (!candidates.length) { showToast('Нет другой задачи для вложения'); return; }
+    if (!candidates.length) { showToast('Нет другого обета для вложения'); return; }
     _demoteAnchor = anchorEl;
 
     const sections = [];
@@ -2484,7 +2484,7 @@ function demoteTask(id, targetId, dropSubs) {
     addTombstone(task.uid, 'task');   // Idea 8: the demoted task entity is gone (became a subtask) — tombstone so a merge can't resurrect it
     state.tasks = state.tasks.filter(t => t.id !== id);
     saveState(); render();
-    showToast(dropSubs && hadSubs ? 'Задача стала подпунктом · подпункты отброшены' : 'Задача стала подпунктом',
+    showToast(dropSubs && hadSubs ? 'Обет низведён в подпункт · подпункты отброшены' : 'Обет низведён в подпункт',
               hadSubs ? { undo: true } : undefined);
 }
 
@@ -2604,7 +2604,7 @@ function clearSubDeadline(taskId, subId) {
     sub.deadline = null;
     saveState();
     renderSubList(taskId);
-    showToast('Дедлайн снят');
+    showToast('Исход снят');
 }
 
 // P8: delete subtask note — thin wrapper over the unified _noteDeleteClick.

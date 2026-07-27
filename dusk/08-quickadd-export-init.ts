@@ -414,7 +414,7 @@ function duplicateTask(id) {
     state.tasks.push(copy);
     _newTaskIds.add(copy.id); // IMP-1: only the new copy animates
     saveState(); render();
-    showToast('Задача скопирована');
+    showToast('Обет отлит заново');
 }
 
 /** Toggle pinned state — pinned tasks float to the top of their group/section. */
@@ -424,7 +424,7 @@ function togglePin(id) {
     pushUndo();
     task.pinned = !task.pinned;
     saveState(); renderListOnly(); // 7b: pin reorders the list only
-    showToast(task.pinned ? 'Задача закреплена' : 'Задача откреплена');
+    showToast(task.pinned ? 'Обет прикован' : 'Обет раскован');
 }
 
 // ============================================================
@@ -493,7 +493,7 @@ function bulkArchive() {
     if (btn) btn.classList.remove('active');
     if (bar) bar.style.display = 'none';
     saveState(); render();
-    showToast(`Архивировано: ${count}`, { undo: true });
+    showToast(`Предано склепу: ${count}`, { undo: true });
 }
 
 function bulkDelete() {
@@ -526,7 +526,7 @@ function bulkDelete() {
     if (mainBtn) mainBtn.classList.remove('active');
     if (bar) bar.style.display = 'none';
     saveState(); render();
-    showToast(`Удалено: ${count}`, { undo: true });
+    showToast(`Уничтожено: ${count}`, { undo: true });
 }
 globalThis._focusedTaskId = null;
 globalThis._focusedByKeyboard = false;// UX-2: true only when task was selected via J/K, not just hovered

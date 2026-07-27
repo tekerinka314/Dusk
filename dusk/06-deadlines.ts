@@ -392,7 +392,7 @@ function confirmDeadline() {
                 }
                 saveState();
                 renderSubList(editingTaskId);
-                showToast('Дедлайн установлен');
+                showToast('Исход назначен');
             }
             editingTaskId = null;
             editingSubId  = null;
@@ -413,7 +413,7 @@ function confirmDeadline() {
                     task.repeatAnchorDay = parseInt(wd) || null;
                 }
                 saveState(); render();
-                showToast('Дедлайн установлен');
+                showToast('Исход назначен');
             }
             editingTaskId = null;
         } else {
@@ -601,7 +601,7 @@ function applyDeadline(dl) {
             _applyAutoRepeatToTarget(sub, dl);
             saveState();
             renderSubList(editingTaskId);
-            showToast(dl ? 'Дедлайн установлен' : 'Дедлайн удалён');
+            showToast(dl ? 'Исход назначен' : 'Исход снят');
         }
         editingTaskId = null;
         editingSubId  = null;
@@ -617,7 +617,7 @@ function applyDeadline(dl) {
         const task = state.tasks.find(t => t.id === editingTaskId);
         if (task) {
             pushUndo(); task.deadline = dl; _applyAutoRepeatToTarget(task, dl); saveState(); render();
-            showToast(dl ? 'Дедлайн установлен' : 'Дедлайн удалён');
+            showToast(dl ? 'Исход назначен' : 'Исход снят');
         }
     } else {
         formDeadline = dl;

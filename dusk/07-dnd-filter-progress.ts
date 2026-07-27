@@ -322,7 +322,7 @@ function toggleGroupSplitMode() {
     if (btn) btn.classList.toggle('active', isGroupSplitMode);
     saveUiState();
     render();
-    showToast(isGroupSplitMode ? 'Режим: активные / выполненные' : 'Режим: обычный список');
+    showToast(isGroupSplitMode ? 'Режим: неисполненные / исполненные' : 'Режим: обычный список');
 }
 
 /**

@@ -704,7 +704,7 @@ function confirmNote() {
     task.noteOpen = true;
     saveState(); render();
     closeNoteModal();
-    showToast('Заметка сохранена');
+    showToast('Примечание начертано');
 }
 
 // Delete the task note (from the panel dagger). Undoable; full re-render.
@@ -714,7 +714,7 @@ function _taskNoteDelete(event, id) {
     if (!task) return;
     pushUndo(); task.note = ''; task.noteOpen = false;
     saveState(); render();
-    showToast('Заметка удалена', { undo: true });
+    showToast('Примечание стёрто', { undo: true });
 }
 
 // ============================================================
@@ -775,7 +775,7 @@ function deleteTaskForever(id) {
     } else {
         render();
     }
-    showToast('Задача удалена навсегда', { undo: true });
+    showToast('Обет уничтожен', { undo: true });
 }
 
 // ============================================================
@@ -818,7 +818,7 @@ document.getElementById('modal-prio-selector').addEventListener('click', e => {
     if (!task) return;
     pushUndo(); _setTaskPriority(task, btn.dataset.prio);
     saveState(); renderListOnly(); closePrioModal(); // 7b: priority reorders the list only
-    showToast('Приоритет изменён');
+    showToast('Ранг изменён');
 });
 
 // ─── Task color modal ────────────────────────────────────────────────────────
@@ -928,7 +928,7 @@ function _commitColorChoice(color) {
     pushUndo();
     _setTaskColor(task, c);
     saveState(); renderListOnly(); closeTaskColorModal(); // 7b: colour label affects the list only
-    showToast(task.color ? 'Цвет установлен' : 'Цвет снят');
+    showToast(task.color ? 'Витраж наложен' : 'Витраж снят');
 }
 
 document.getElementById('task-color-picker').addEventListener('click', e => {
@@ -1502,7 +1502,7 @@ function confirmAddGroup() {
     // Close with animation + focus-return (was direct display:none — no animation, no focus)
     closeModalWithAnim('group-modal');
     render();
-    showToast(`Группа «${name}» создана`);
+    showToast(`Свод «${name}» создан`);
 }
 
 
@@ -1634,7 +1634,7 @@ function confirmRenameGroup() {
     saveState();
     closeModalWithAnim('rename-group-modal', () => { renamingGroupId = null; });
     render();
-    showToast('Группа переименована');
+    showToast('Свод переименован');
 }
 
 document.getElementById('rename-group-input').addEventListener('keydown', e => {

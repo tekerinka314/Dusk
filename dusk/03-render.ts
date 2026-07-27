@@ -1061,7 +1061,7 @@ function clearTaskRepeat(id) {
     task.nextReset    = null;
     saveState();
     render();
-    showToast('Повтор снят');
+    showToast('Круговорот прерван');
 }
 
 function clearTaskDeadline(id) {
@@ -1070,7 +1070,7 @@ function clearTaskDeadline(id) {
     task.deadline = null;
     saveState();
     render();
-    showToast('Дедлайн снят');
+    showToast('Исход снят');
 }
 
 // ── Idea 1: Snooze (quick postpone) ──────────────────────────────────────────
@@ -1113,7 +1113,7 @@ function snoozeDeadline(id, preset) {
     saveState();
     renderListOnly();
     const label = { '1h': 'на 1 час', 'tomorrow': 'до завтра', 'week': 'на неделю' }[preset] || '';
-    showToast(`Дедлайн отложен ${label}`.trim(), { undo: true });
+    showToast(`Исход отсрочен ${label}`.trim(), { undo: true });
 }
 
 // ═══ B4-02: anchored-popover engine — geometry + lifecycle only ═══════════════
@@ -1364,7 +1364,7 @@ function snoozeByRelative(id, n, unit) {
     _notifiedDeadlines.delete(id);
     saveState(); renderListOnly();
     const u = { h:'ч', d:'дн', w:'нед' }[unit] || '';
-    showToast(`Дедлайн отложен на ${n} ${u}`, { undo: true });
+    showToast(`Исход отсрочен на ${n} ${u}`, { undo: true });
 }
 
 // 6f: give every static colour swatch an accessible name (they only had a
@@ -1404,7 +1404,7 @@ function setColorFilter(color) {
     render();
     // Picking OR clearing now both auto-close the modal (was: pick kept it open + repopulated).
     closeColorFilterModal();
-    if (clearing) showToast('Фильтр по цвету очищен');
+    if (clearing) showToast('Фильтр по витражу снят');
 }
 
 function openColorFilterModal() {
@@ -1645,7 +1645,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             normalizeState();
             _grimRestoreVersions(loaded, 'merge');   // NA-3: add history for the new notes only
             saveState(); render(); updateArchiveBadge();
-            showToast(`Добавлено: ${newTasks.length} задач`, { undo: true });
+            showToast(`Добавлено обетов: ${newTasks.length}`, { undo: true });
         };
 
         cancelBtn.onclick = close;
@@ -1806,7 +1806,7 @@ function initGroupDnD() {
 // Shared guard for every bulk entry point — nudges the user instead of silently no-op'ing
 // when they trigger a bulk action with nothing selected.
 function _requireSelection() {
-    if (!selectedTaskIds.size) { showToast('Сначала выберите задачи'); return false; }
+    if (!selectedTaskIds.size) { showToast('Сначала отметьте обеты'); return false; }
     return true;
 }
 
@@ -1822,7 +1822,7 @@ function bulkSetPriority(priority) {
     });
     saveState();
     toggleMainSelectMode(); // exit select mode and re-render
-    showToast('Приоритет изменён');
+    showToast('Ранг изменён');
 }
 
 // ── P-D: bulk group / colour / deadline (parity with bulkSetPriority) ────────
@@ -1854,7 +1854,7 @@ function bulkSetColor(color) {
     });
     saveState();
     toggleMainSelectMode();
-    showToast(color ? 'Цвет установлен' : 'Цвет снят');
+    showToast(color ? 'Витраж наложен' : 'Витраж снят');
 }
 
 function bulkSetDeadline(dl) {
@@ -1866,7 +1866,7 @@ function bulkSetDeadline(dl) {
     });
     saveState();
     toggleMainSelectMode();
-    showToast(dl ? 'Дедлайн установлен' : 'Дедлайн снят');
+    showToast(dl ? 'Исход назначен' : 'Исход снят');
 }
 
 function openBulkColorModal() {
@@ -1972,7 +1972,7 @@ function _tickRailDigest() {
 }
 function railDigestGo(id) {
     const li = document.querySelector(`.task-item[data-id="${id}"]`);
-    if (!li) { showToast('Задача сейчас скрыта (фильтр/фокус/свёрнутая группа)'); return; }
+    if (!li) { showToast('Обет сейчас скрыт (фильтр/фокус/свёрнутая группа)'); return; }
     li.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
     li.classList.remove('rail-target-pulse'); void (li as HTMLElement).offsetWidth;
     li.classList.add('rail-target-pulse');
@@ -2298,7 +2298,7 @@ function restoreSelected() {
     selectMode = false;
     saveState(); render();
     updateArchiveBadge(); renderArchive();
-    showToast(`Восстановлено: ${ids.length}`);
+    showToast(`Воскрешено: ${ids.length}`);
     setTimeout(() => switchPage('main'), 300);
 }
 
@@ -2312,7 +2312,7 @@ function restoreAll() {
     state.archive = [];
     saveState(); render();
     updateArchiveBadge(); renderArchive();
-    showToast('Все задачи восстановлены');
+    showToast('Все обеты воскрешены');
     setTimeout(() => switchPage('main'), 300);
 }
 
