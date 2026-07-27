@@ -10,3 +10,4 @@ dist/
 audit-v2/shots/
 # local zip archives of the above
 /*audit*shots*.zip
+audit-v2/icon-sheet.html
