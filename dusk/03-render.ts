@@ -1437,7 +1437,7 @@ function _populateColorFilterModal() {
                 aria-label="Витраж: ${c}"
                 title="Витраж: ${c}">
             ${colorFilter === c
-                ? `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-linecap="butt" stroke-linejoin="miter" width="14" height="14"><use href="#icon-mark-chosen"/></svg>`
+                ? `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`
                 : ''}
         </button>`).join('');
 

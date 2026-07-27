@@ -615,7 +615,7 @@
       "index.html:1558"
     ]
   },
-  "205434c2bd0e41bf": {
+  "77fc33b176bd51e3": {
     "role": "W2-9 empty-state",
     "note": "defs · склад <symbol>",
     "preview": "<svg width=\"0\" height=\"0\" style=\"position:absolute;overflow:hidden\"><defs><linearGradient ",
@@ -628,7 +628,7 @@
     "note": "",
     "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
     "locations": [
-      "index.html:1849"
+      "index.html:1841"
     ]
   },
   "34a05efc0c7d809f": {
@@ -1262,10 +1262,10 @@
       "dusk/02-grimoire.ts:1112"
     ]
   },
-  "cf708d99ff84bbf7": {
-    "role": "MK1",
-    "note": "кованая отметка «выбрано» на свотче витража (задачи + Гримуар)",
-    "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"rgba(255,255,255,0.95)\" stroke-linecap=\"butt\"",
+  "2099df8caa078c47": {
+    "role": "UNASSIGNED",
+    "note": "",
+    "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"rgba(255,255,255,0.95)\" stroke-width=\"2.8\" st",
     "locations": [
       "dusk/02-grimoire.ts:1615",
       "dusk/03-render.ts:1440"
