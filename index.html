@@ -206,7 +206,7 @@
                             <div class="dl-month-picker grp-picker" id="grp-picker">
                                 <button class="dl-month-trigger" id="grp-trigger" type="button"
                                         aria-haspopup="listbox" aria-expanded="false">
-                                    <span class="grp-trigger-label" id="grp-trigger-label">— без группы —</span>
+                                    <span class="grp-trigger-label" id="grp-trigger-label">— без свода —</span>
                                     <!-- Gothic sword chevron — same collapse/expand glyph as every other picker -->
                                     <svg class="dl-month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M12 1.6L13.25 5.4V13.6H10.75V5.4Z" stroke-width="1.4"/><line x1="12" y1="4.6" x2="12" y2="12.8" stroke-width="0.8" opacity="0.45"/><path d="M7.6 14.9C9.5 14.05 14.5 14.05 16.4 14.9" stroke-width="1.5"/><circle cx="7.1" cy="15.05" r="0.72" stroke-width="1.15"/><circle cx="16.9" cy="15.05" r="0.72" stroke-width="1.15"/><line x1="12" y1="15.1" x2="12" y2="19.1" stroke-width="1.7"/><line x1="11.15" y1="16.05" x2="12.85" y2="16.55" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="17.1" x2="12.85" y2="17.6" stroke-width="0.75" opacity="0.55"/><line x1="11.15" y1="18.15" x2="12.85" y2="18.65" stroke-width="0.75" opacity="0.55"/><circle cx="12" cy="20.75" r="1.15" stroke-width="1.3"/><circle cx="12" cy="20.75" r="0.3" fill="currentColor" stroke="none"/>
@@ -218,7 +218,7 @@
                             </div>
                             <!-- hidden select for compat -->
                             <select id="task-group-select" class="group-select" style="display:none">
-                                <option value="">— без группы —</option>
+                                <option value="">— без свода —</option>
                             </select>
                         </div>
                     </div>
@@ -438,7 +438,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4.5" y1="21" x2="4.5" y2="9"/><path d="M3 11L4.5 7L6 11"/><line x1="19.5" y1="21" x2="19.5" y2="9"/><path d="M18 11L19.5 7L21 11"/><line x1="2.5" y1="21" x2="21.5" y2="21" stroke-width="1.5"/><circle cx="12" cy="14.6" r="3.4"/><circle cx="12" cy="14.6" r="1" fill="currentColor" stroke="none"/><line x1="12" y1="9.6" x2="12" y2="7.8" stroke-width="1.2" opacity="0.65"/><line x1="8.6" y1="11.2" x2="7.5" y2="10.1" stroke-width="1.1" opacity="0.5"/><line x1="15.4" y1="11.2" x2="16.5" y2="10.1" stroke-width="1.1" opacity="0.5"/></svg>
                     </button>
                     <!-- P7: Split groups — gothic bifurcation rune (two lancet arches side by side) -->
-                    <button class="btn-tool" id="btn-split-groups" data-act="toggleGroupSplitMode" title="Разделить группы: активные / выполненные">
+                    <button class="btn-tool" id="btn-split-groups" data-act="toggleGroupSplitMode" title="Разделить своды: неисполненные / исполненные">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 21V12C4 8.6 5.8 6 8 6C10.2 6 12 8.6 12 12V21" stroke-width="1.5"/>
                             <path d="M12 21V12C12 8.6 13.8 6 16 6C18.2 6 20 8.6 20 12V21" stroke-width="1.5"/>
@@ -459,7 +459,7 @@
                         </svg>
                     </button>
                     <!-- Collapse / expand all groups -->
-                    <button class="btn-tool" id="btn-collapse-all" data-act="toggleCollapseAllGroups" title="Свернуть / развернуть все группы">
+                    <button class="btn-tool" id="btn-collapse-all" data-act="toggleCollapseAllGroups" title="Свернуть / развернуть все своды">
                         <!-- Q1 · Складень: алтарный триптих, створки складываются к центральной
                              арке, стрелки внутрь, навершие-ромб. Читается как «свернуть/развернуть». -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -627,7 +627,7 @@
                  Скрим закрывает панель тапом. Логика в dusk/08. -->
             <button type="button" class="drawer-tab" id="drawer-tab" data-act="drawerToggle"
                     aria-controls="side-rail" aria-expanded="false"
-                    title="Группы, фильтры и инструменты" aria-label="Открыть панель групп и инструментов">
+                    title="Своды, фильтры и инструменты" aria-label="Открыть панель сводов и инструментов">
                 <svg viewBox="0 0 24 60" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="12" cy="7" r="1.05" fill="currentColor" stroke="none" opacity="0.75"/>
                     <path d="M12 14 L15.4 17.8 L12 21.6 L8.6 17.8 Z"/>
@@ -654,7 +654,7 @@
                     </div>
                     <!-- Cluster 2 — group / colour / deadline -->
                     <div class="select-bar-group">
-                        <button class="sb-btn" data-act="openBulkGroupModal" title="Переместить в группу">
+                        <button class="sb-btn" data-act="openBulkGroupModal" title="Перенести в свод">
                             <!-- «В группу»: стрельчатая арка-ниша (=группа) с замковым финиалом,
                                  нисходящая стрела вводит выбранное внутрь, ledger-строки на полу
                                  ниши = собранные задачи. -->
@@ -949,9 +949,9 @@
 <div class="modal-overlay" id="group-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="group-modal-title">
     <div class="modal">
-        <h3 class="modal-title" id="group-modal-title">Новая группа</h3>
+        <h3 class="modal-title" id="group-modal-title">Новый свод</h3>
         <div class="modal-row">
-            <input type="text" id="group-name-input" class="modal-input" placeholder="Название группы..." maxlength="40" autocomplete="off" spellcheck="false">
+            <input type="text" id="group-name-input" class="modal-input" placeholder="Название свода…" maxlength="40" autocomplete="off" spellcheck="false">
         </div>
         <!-- P6 + P-fix#2: group colour = same 10 presets as task labels + the FULL gothic
              RGB spectrum embedded directly here (no hop to the colour-label modal). The
@@ -995,7 +995,7 @@
 <div class="modal-overlay" id="rename-group-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="rename-group-modal-title">
     <div class="modal modal-small">
-        <h3 class="modal-title" id="rename-group-modal-title">Переименовать группу</h3>
+        <h3 class="modal-title" id="rename-group-modal-title">Переименовать свод</h3>
         <div class="modal-row">
             <input type="text" id="rename-group-input" class="modal-input" placeholder="Новое название..." maxlength="40" autocomplete="off" spellcheck="false">
         </div>
@@ -1853,7 +1853,7 @@ if ('serviceWorker' in navigator) {
 <div class="modal-overlay" id="bulk-group-modal" style="display:none"
      role="dialog" aria-modal="true" aria-labelledby="bulk-group-modal-title">
     <div class="modal modal-bulk-group">
-        <h3 class="modal-title" id="bulk-group-modal-title">Переместить в группу</h3>
+        <h3 class="modal-title" id="bulk-group-modal-title">Перенести в свод</h3>
         <div class="bulk-group-list" id="bulk-group-list"></div>
         <div class="modal-actions">
             <button class="btn-modal-cancel" data-act="closeBulkGroupModal">Отмена</button>

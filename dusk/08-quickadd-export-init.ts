@@ -353,7 +353,7 @@ function _tasksToMarkdown() {
     };
     const out  = [`# DUSK — задачи`, '', `_${date}_`, ''];
     const ung  = byOrder((state.tasks || []).filter(t => !t.groupId));
-    if (ung.length) { out.push('## Без группы', '', ...ung.map(renderTask), ''); }
+    if (ung.length) { out.push('## Без свода', '', ...ung.map(renderTask), ''); }
     byOrder(state.groups || []).forEach(g => {
         const gt = byOrder((state.tasks || []).filter(t => t.groupId === g.id));
         if (!gt.length) return;

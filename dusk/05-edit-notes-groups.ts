@@ -1596,7 +1596,7 @@ function updateCollapseAllBtn() {
     // 3b: highlight button when all groups are collapsed (= "expand all" action available)
     btn.classList.toggle('active', allCollapsed);
     // 3c: tooltip describes what the NEXT click will do
-    btn.title = allCollapsed ? 'Развернуть все группы' : 'Свернуть все группы';
+    btn.title = allCollapsed ? 'Развернуть все своды' : 'Свернуть все своды';
 }
 
 // ---- Group rename ----

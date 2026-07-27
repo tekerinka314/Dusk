@@ -33,8 +33,8 @@ const S = globalThis;
 it('имена полей человеческие для всех видов записей', () => {
     expect(S._quarFieldRu('tasks', 'text')).toBe('Заголовок задачи');
     expect(S._quarFieldRu('tasks', 'deadline')).toBe('Дедлайн задачи');
-    expect(S._quarFieldRu('tasks', '_groupUid')).toBe('Группа');
-    expect(S._quarFieldRu('groups', 'name')).toBe('Название группы');
+    expect(S._quarFieldRu('tasks', '_groupUid')).toBe('Свод');
+    expect(S._quarFieldRu('groups', 'name')).toBe('Название свода');
     expect(S._quarFieldRu('notes', 'body')).toBe('Текст записи');
     expect(S._quarFieldRu('templates', 'text')).toBe('Название шаблона');
     expect(S._quarFieldRu('tasks', 'color')).toBe('Цвет метки');   // из общего раздела '*'
@@ -53,7 +53,7 @@ it('строка конфликта поля не содержит внутре�
 
 it('удаление-против-правки названо по виду записи, без внутренних ключей', () => {
     const what = S._entryWhat({ kind: 'delete-vs-edit', recType: 'groups', loser: { name: 'Дом' } });
-    expect(what).toMatch(/^Группа удалена при правке на другом устройстве/);
+    expect(what).toMatch(/^Свод распущен при правке на другом устройстве/);
     expect(what).toContain('«Дом»');
 });
 

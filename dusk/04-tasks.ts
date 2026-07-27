@@ -1492,7 +1492,7 @@ async function _renderBackupList() {
     }
     cont.innerHTML = backups.map(b => {
         const c = b.counts || {};
-        const bits = [`${c.tasks ?? '?'} задач`, `${c.groups ?? '?'} групп`, `${c.archive ?? '?'} в архиве`];
+        const bits = [`${c.tasks ?? '?'} обетов`, `${c.groups ?? '?'} сводов`, `${c.archive ?? '?'} в склепе`];
         return `<div class="backup-item">
             <button class="backup-restore" data-act="restoreBackup" data-ts="${b.ts}" title="Восстановить это состояние">
                 <span class="backup-when">
@@ -2417,12 +2417,12 @@ function _openDemoteMenuAt(anchorEl, id) {
 
     const sections = [];
     const ungrouped = candidates.filter(t => !t.groupId);
-    if (ungrouped.length) sections.push({ name: 'Без группы', items: ungrouped });
+    if (ungrouped.length) sections.push({ name: 'Без свода', items: ungrouped });
     state.groups.forEach(g => {
         const items = candidates.filter(t => t.groupId === g.id);
         if (items.length) sections.push({ name: g.name, items });
     });
-    const showHeaders = !(sections.length === 1 && sections[0].name === 'Без группы');
+    const showHeaders = !(sections.length === 1 && sections[0].name === 'Без свода');
 
     let html = '<div class="float-menu-head">В подпункт к…</div>';
     let shown = 0;

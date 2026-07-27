@@ -195,7 +195,7 @@ function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride
     // title · count · ⋯ · chevron. Desktop keeps all 6 inline as before.
     const actions = IS_COARSE ? `
                 <div class="group-actions" data-act="noop">
-                    <button class="btn-group-action${(grpSched || focusGroupId === group.id) ? ' active-sched' : ''}" data-act="openGroupMoreMenu" title="Действия группы" aria-haspopup="menu">${IC.more}</button>
+                    <button class="btn-group-action${(grpSched || focusGroupId === group.id) ? ' active-sched' : ''}" data-act="openGroupMoreMenu" title="Действия свода" aria-haspopup="menu">${IC.more}</button>
                 </div>`
         : `
                 <div class="group-actions" data-act="noop">
@@ -203,13 +203,13 @@ function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride
                             data-act="toggleScheduleMode" title="Порядок по исходу">${IC.sundial}</button>
                     ${_groupSortPicker(group.id, grpSortMode, hasOverride)}
                     <button class="btn-group-action${focusGroupId === group.id ? ' active-sched' : ''}"
-                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Замкнуться на этой группе'}">${IC.focusMode}</button>
-                    <button class="btn-group-action" data-act="duplicateGroup" title="Дублировать группу">${IC.twinCoffin}</button>
+                            data-act="toggleFocusGroup" title="${focusGroupId === group.id ? 'Снять фокус' : 'Замкнуться на этом своде'}">${IC.focusMode}</button>
+                    <button class="btn-group-action" data-act="duplicateGroup" title="Отлить копию">${IC.twinCoffin}</button>
                     <button class="btn-group-action" data-act="openRenameGroupModal" title="Переименовать">${IC.quill}</button>
-                    <button class="btn-group-action danger" data-act="deleteGroup" title="Удалить группу">${IC.tombstone}</button>
+                    <button class="btn-group-action danger" data-act="deleteGroup" title="Распустить свод">${IC.tombstone}</button>
                 </div>`;
     return `
-                <div class="group-drag-handle" data-act="noop" title="Перетащить группу">${IC.drag}</div>
+                <div class="group-drag-handle" data-act="noop" title="Перетащить свод">${IC.drag}</div>
                 <div class="group-color-dot" style="background:${group.color}"></div>
                 <span class="group-title">${escHtml(group.name)}</span>
                 <span class="group-count">${done}/${total}</span>${actions}
@@ -229,10 +229,10 @@ function openGroupMoreMenu(event, id) {
     _openFloatMenu(event.currentTarget, `
         <button type="button" role="menuitemcheckbox" aria-checked="${grpSched}" class="${grpSched ? 'fm-on' : ''}" data-act="_groupMore" data-more="sched" data-gid="${id}">${IC.sundial}<span>Порядок по исходу</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="sort" data-gid="${id}">${_taskSortIcon(grpSortMode)}<span>Порядок: ${_taskSortLabel(grpSortMode).toLowerCase()}</span></button>
-        <button type="button" role="menuitemcheckbox" aria-checked="${focusGroupId === id}" class="${focusGroupId === id ? 'fm-on' : ''}" data-act="_groupMore" data-more="focus" data-gid="${id}">${IC.focusMode}<span>${focusGroupId === id ? 'Снять фокус' : 'Замкнуться на этой группе'}</span></button>
-        <button type="button" role="menuitem" data-act="_groupMore" data-more="dup" data-gid="${id}">${IC.twinCoffin}<span>Дублировать группу</span></button>
+        <button type="button" role="menuitemcheckbox" aria-checked="${focusGroupId === id}" class="${focusGroupId === id ? 'fm-on' : ''}" data-act="_groupMore" data-more="focus" data-gid="${id}">${IC.focusMode}<span>${focusGroupId === id ? 'Снять фокус' : 'Замкнуться на этом своде'}</span></button>
+        <button type="button" role="menuitem" data-act="_groupMore" data-more="dup" data-gid="${id}">${IC.twinCoffin}<span>Отлить копию</span></button>
         <button type="button" role="menuitem" data-act="_groupMore" data-more="rename" data-gid="${id}">${IC.quill}<span>Переименовать</span></button>
-        <button type="button" role="menuitem" class="fm-danger fm-group-del" data-act="_groupMore" data-more="delete" data-gid="${id}">${IC.tombstone}<span>Удалить группу</span></button>`,
+        <button type="button" role="menuitem" class="fm-danger fm-group-del" data-act="_groupMore" data-more="delete" data-gid="${id}">${IC.tombstone}<span>Распустить свод</span></button>`,
         'group-more-menu');
 }
 globalThis._groupMoreAnchor = null;
@@ -1841,7 +1841,7 @@ function bulkSetGroup(groupId) {
     closeBulkGroupModal();
     const grp = groupId != null ? state.groups.find(g => g.id === groupId) : null;
     toggleMainSelectMode(); // exit select mode and re-render
-    showToast(grp ? `Перемещено в «${grp.name}»` : 'Убрано из групп');
+    showToast(grp ? `Перемещено в «${grp.name}»` : 'Изъято из сводов');
 }
 
 function bulkSetColor(color) {
@@ -1904,7 +1904,7 @@ function _renderBulkGroupList() {
         return `<button class="bulk-group-pill meta-tag group-pill" style="background:${bg};color:${g.color};border-color:${bd}"
                     data-act="bulkSetGroup" data-gid="${g.id}">${escHtml(g.name)}</button>`;
     }).join('');
-    cont.innerHTML = `${pills}<button class="bulk-group-pill bulk-group-none" data-act="bulkSetGroup">Без группы</button>`;
+    cont.innerHTML = `${pills}<button class="bulk-group-pill bulk-group-none" data-act="bulkSetGroup">Без свода</button>`;
 }
 
 function renderGroupBar() {
@@ -1924,8 +1924,8 @@ function renderGroupBar() {
         wrap.innerHTML = `
             <button type="button" class="meta-tag group-pill${focused ? ' pill-focused' : ''}" style="background:${bg};color:${g.color};border-color:${bd}"
                 data-act="focusGroupById" data-gid="${g.id}" aria-pressed="${focused}"
-                title="${focused ? 'Снять фокус' : 'Замкнуться на этой группе'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
-            <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd};--pill-bg:${bg}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Удалить группу">${IC.tombstone}</button>`;
+                title="${focused ? 'Снять фокус' : 'Замкнуться на этом своде'}"><span class="gp-name">${escHtml(g.name)}</span><span class="gp-count">${done}/${inGroup.length}</span></button>
+            <button class="btn-pill-delete" style="background:${bg};color:${g.color};border-color:${bd};--pill-bg:${bg}" data-actover="hoverBg" data-actout="outBg" data-bg="${bg}" data-bghov="${bgHov}" data-act="deleteGroupById" data-gid="${g.id}" title="Распустить свод">${IC.tombstone}</button>`;
         groupsList.appendChild(wrap);
     });
 }
@@ -1972,7 +1972,7 @@ function _tickRailDigest() {
 }
 function railDigestGo(id) {
     const li = document.querySelector(`.task-item[data-id="${id}"]`);
-    if (!li) { showToast('Обет сейчас скрыт (фильтр/фокус/свёрнутая группа)'); return; }
+    if (!li) { showToast('Обет сейчас скрыт (фильтр/фокус/свёрнутый свод)'); return; }
     li.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
     li.classList.remove('rail-target-pulse'); void (li as HTMLElement).offsetWidth;
     li.classList.add('rail-target-pulse');
@@ -1981,14 +1981,14 @@ function railDigestGo(id) {
 
 function renderGroupSelect() {
     const prev = taskGroupSelect.value;
-    taskGroupSelect.innerHTML = '<option value="">— без группы —</option>';
+    taskGroupSelect.innerHTML = '<option value="">— без свода —</option>';
     state.groups.forEach(g => {
         const opt = document.createElement('option');
         opt.value = g.id; opt.textContent = g.name;
         taskGroupSelect.appendChild(opt);
     });
     const newOpt = document.createElement('option');
-    newOpt.value = '__new__'; newOpt.textContent = '+ Создать группу...';
+    newOpt.value = '__new__'; newOpt.textContent = '+ Новый свод…';
     newOpt.className = 'opt-new-group';
     taskGroupSelect.appendChild(newOpt);
     if (prev && prev !== '__new__' && taskGroupSelect.querySelector(`option[value="${prev}"]`))
@@ -2011,18 +2011,18 @@ function renderGroupChips(currentVal) {
     const curGroup = state.groups.find(g => String(g.id) === String(currentGid));
     trigEl.innerHTML = curGroup
         ? `<span class="grp-dd-dot" style="background:${curGroup.color}"></span>${escHtml(curGroup.name)}`
-        : `${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}`;
+        : `${IC.noneMoonL}<span>без свода</span>${IC.noneMoonR}`;
 
-    let html = `<div class="dl-month-option grp-dd-opt grp-dd-none${currentGid === '' ? ' active' : ''}" role="option" data-gid="" data-act="selectGroupChip" data-chip="">${IC.noneMoonL}<span>без группы</span>${IC.noneMoonR}</div>`;
+    let html = `<div class="dl-month-option grp-dd-opt grp-dd-none${currentGid === '' ? ' active' : ''}" role="option" data-gid="" data-act="selectGroupChip" data-chip="">${IC.noneMoonL}<span>без свода</span>${IC.noneMoonR}</div>`;
     state.groups.forEach(g => {
         const isActive = String(g.id) === String(currentGid);
         html += `<div class="dl-month-option grp-dd-opt${isActive ? ' active' : ''}" role="option" data-gid="${g.id}" data-act="selectGroupChip" data-chip="${g.id}">
             <span class="grp-dd-dot" style="background:${g.color}"></span>
             <span class="grp-dd-name">${escHtml(g.name)}</span>
-            <button class="grp-dd-del" type="button" data-gid="${g.id}" data-act="deleteGroupById" data-stop title="Удалить группу">${IC.tombstone}</button>
+            <button class="grp-dd-del" type="button" data-gid="${g.id}" data-act="deleteGroupById" data-stop title="Распустить свод">${IC.tombstone}</button>
         </div>`;
     });
-    html += `<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" data-act="selectGroupChip" data-chip="__new__">${IC.crossAdd}<span class="grp-dd-name">Создать группу</span></div>`;
+    html += `<div class="dl-month-option grp-dd-opt grp-dd-new" role="option" data-act="selectGroupChip" data-chip="__new__">${IC.crossAdd}<span class="grp-dd-name">Новый своппу</span></div>`;
     list.innerHTML = html;
 }
 

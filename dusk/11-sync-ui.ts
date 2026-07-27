@@ -627,15 +627,16 @@ const _QUAR_FIELD_RU = {
         priority: 'Приоритет задачи', checked: 'Отметка «выполнено»', pinned: 'Закрепление',
         repeat: 'Повтор', cycleChecked: 'Отметка цикла', nextReset: 'Возврат повтора',
         subtasksOpen: 'Раскрытие подпунктов', noteOpen: 'Раскрытие заметки',
-        groupId: 'Группа', _groupUid: 'Группа',
+        groupId: 'Свод', _groupUid: 'Свод',
     },
-    groups:    { name: 'Название группы', color: 'Цвет группы' },
+    groups:    { name: 'Название свода', color: 'Витраж свода' },
     notes:     { title: 'Заголовок записи', body: 'Текст записи', color: 'Цвет записи', fmt: 'Оформление' },
     templates: { text: 'Название шаблона', note: 'Заметка шаблона', priority: 'Приоритет шаблона',
                  deadline: 'Дедлайн шаблона', repeat: 'Повтор шаблона' },
 };
-const _QUAR_REC_RU = { tasks: 'задачи', groups: 'группы', notes: 'записи', templates: 'шаблона' };
-const _QUAR_REC_NOM = { tasks: 'Задача', groups: 'Группа', notes: 'Запись', templates: 'Шаблон' };
+const _QUAR_REC_RU = { tasks: 'задачи', groups: 'своды', notes: 'записи', templates: 'шаблона' };
+const _QUAR_REC_NOM = { tasks: 'Задача', groups: 'Свод', notes: 'Запись', templates: 'Образец' };
+const _QUAR_REC_DEL = { tasks: 'Задача удалена', groups: 'Свод распущен', notes: 'Запись удалена', templates: 'Образец стёрт' };
 
 function _quarFieldRu(recType, field) {
     const byType = _QUAR_FIELD_RU[recType] || {};
@@ -658,9 +659,10 @@ function _entryWhat(e) {
     }
     if (e.kind === 'delete-vs-edit') {
         const l = e.loser || {};
-        const who = _QUAR_REC_NOM[e.recType] || 'Запись';
+        // Род согласуем со словом: «Свод удалён», но «Задача удалена».
+        const who = _QUAR_REC_DEL[e.recType] || 'Запись удалена';
         const name = l.text || l.name || l.title;
-        return who + ' удалена при правке на другом устройстве' + (name ? ' — «' + _trim(name) + '»' : '');
+        return who + ' при правке на другом устройстве' + (name ? ' — «' + _trim(name) + '»' : '');
     }
     if (e.kind === 'note-both') return 'Запись изменена на двух устройствах — сохранены обе версии';
     return T[e.kind] || 'конфликт';
@@ -687,7 +689,7 @@ function _quarValueRu(recType, field, v) {
     }
     if (field === '_groupUid' || field === 'groupId') {
         const g = _findRec(state, 'groups', v);
-        return g && g.name ? g.name : 'без группы';
+        return g && g.name ? g.name : 'без свода';
     }
     if (field === 'nextReset' || field === 'archivedAt') {
         const d = new Date(Number(v));
