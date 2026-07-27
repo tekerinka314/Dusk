@@ -1862,7 +1862,7 @@ function clearArchive() {
     if (!_clearArchiveArmed) {
         // ── Arm ──
         _clearArchiveArmed = true;
-        if (btn) { btn.classList.add('confirm-armed'); btn.title = 'Нажмите ещё раз — очистить весь архив'; }
+        if (btn) { btn.classList.add('confirm-armed'); btn.title = 'Нажмите ещё раз — опустошить склеп'; }
         showToast('Нажмите ещё раз — опустошить склеп');
         _clearArchiveTimer = setTimeout(() => {
             _clearArchiveArmed = false;
@@ -2309,7 +2309,7 @@ function openTaskMoreMenu(event, id) {
         : `<button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Переписать</span></button>`;
     const coarseTail = IS_COARSE ? `
         ${task && task.deadline ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="snooze" data-id="${id}">${IC.snooze}<span>Отсрочить исход</span></button>` : ''}
-        <button type="button" role="menuitem" data-act="_taskMore" data-more="archive" data-id="${id}">${IC.archive}<span>В архив</span></button>
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="archive" data-id="${id}">${IC.archive}<span>В склеп</span></button>
         <button type="button" role="menuitem" class="fm-danger" data-act="_taskMore" data-more="delete" data-id="${id}">${IC.skull}<span>Удалить навсегда</span></button>` : '';
     _openFloatMenu(event.currentTarget, `
         ${coarseHead}

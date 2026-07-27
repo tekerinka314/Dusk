@@ -827,7 +827,7 @@ function _grimEmptyHTML() {
     if (grimMode === 'archive') {
         return `<div class="grim-empty-ic">${GIC.coffin}</div>
             <p>Склеп пуст</p>
-            <span class="grim-empty-sub">Здесь покоятся отправленные в архив записи</span>`;
+            <span class="grim-empty-sub">Здесь покоятся преданные склепу записи</span>`;
     }
     return `<div class="grim-empty-ic">${GIC.tomeOpen}</div>
         <p>Гримуар пуст</p>

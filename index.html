@@ -91,7 +91,7 @@
                      Art lives once in <symbol id="icon-tomb"> — shared with the archive page
                      title and the grimoire «Склеп» segment (one navigation glyph, three tabs). -->
                 <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
-                Архив
+                Склеп
                 <span class="archive-badge" id="archive-badge" style="display:none"></span>
             </button>
             <button class="nav-tab" id="nav-notes" data-act="switchPage" data-page="notes">
@@ -751,13 +751,13 @@
                 <h3 class="archive-title" id="archive-title-icon">
                     <!-- AA1b: same rectilinear tomb chest as the Archive nav tab (13px pixel grid) -->
                     <svg aria-hidden="true" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
-                    Архив
+                    Склеп
                 </h3>
                 <!-- Archive search — full width row below title, no focus border -->
                 <div class="archive-search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-scrying"/></svg>
                     <input type="text" id="archive-search-box"
-                           placeholder="Поиск в архиве..." autocomplete="off" spellcheck="false"
+                           placeholder="Взывать к склепу…" autocomplete="off" spellcheck="false"
                            autocapitalize="off" autocorrect="off" enterkeyhint="search"
                            data-actinput="archiveSearchInput">
                     <!-- #3 (порт NA-13): очистка архив-поиска — скрещённые кинжалы. -->
@@ -766,13 +766,13 @@
                     </button>
                 </div>
                 <div class="archive-btns" id="archive-btns" style="display:none">
-                    <button class="btn-archive-action" id="btn-restore-all" data-act="restoreAll" title="Восстановить всё">
+                    <button class="btn-archive-action" id="btn-restore-all" data-act="restoreAll" title="Воскресить всех">
                         <!-- AY1 на постаменте из трёх убывающих плит — квантор «ВСЁ» (тот же счётный знак,
                              что в оссуарии A2). Одиночное «Восстановить» осталось голой урной. -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-all"/></svg>
                         Вернуть всё
                     </button>
-                    <button class="btn-archive-action btn-select-mode" id="btn-select-mode" data-act="toggleSelectMode" title="Отметить для восстановления">
+                    <button class="btn-archive-action btn-select-mode" id="btn-select-mode" data-act="toggleSelectMode" title="Отметить к воскрешению">
                         <!-- K1 · рунный круг — знак отметки. Один и тот же в задачах и в Гримуаре. -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-select-mark"/></svg>
                         Отметить
@@ -797,7 +797,7 @@
                              в <symbol id="icon-restore-sel"> — тот же глиф несёт «вернуть отмеченные»
                              в Гримуаре, иначе массовое снова слипнется с одиночным (AY1-урна). -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-restore-sel"/></svg>
-                        Восстановить отмеченное
+                        Воскресить отмеченных
                     </button>
                 </div>
             </div>
@@ -808,7 +808,7 @@
                 <div class="empty-rune">
                     <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="0.55" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><use href="#icon-tomb"/></svg>
                 </div>
-                <p>Архив пуст</p>
+                <p>Склеп пуст</p>
                 <span class="empty-sub">Ни одно деяние ещё не погребено</span>
             </div>
         </div>
@@ -826,7 +826,7 @@
                         <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-tome"/></svg>
                         <span>Записи</span>
                     </button>
-                    <button class="grim-seg" id="grim-seg-archive" role="tab" data-act="grimSetMode" data-mode="archive" title="Архив заметок">
+                    <button class="grim-seg" id="grim-seg-archive" role="tab" data-act="grimSetMode" data-mode="archive" title="Склеп записей">
                         <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                         <span>Склеп</span>
                         <span class="grim-seg-count" id="grim-seg-count" style="display:none"></span>
@@ -1593,7 +1593,7 @@
     <kbd>N</kbd> новая &nbsp;·&nbsp; <kbd>/</kbd> поиск &nbsp;·&nbsp;
     <kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp;
     <kbd>X</kbd> выполнить &nbsp;·&nbsp; <kbd>E</kbd> изменить &nbsp;·&nbsp;
-    <kbd>D</kbd> дублировать &nbsp;·&nbsp; <kbd>Del</kbd> в архив &nbsp;·&nbsp;
+    <kbd>D</kbd> дублировать &nbsp;·&nbsp; <kbd>Del</kbd> в склеп &nbsp;·&nbsp;
     <kbd>P</kbd> приоритет &nbsp;·&nbsp; <kbd>L</kbd> дедлайн &nbsp;·&nbsp;
     <kbd>M</kbd> заметка &nbsp;·&nbsp; <kbd>R</kbd> повтор &nbsp;·&nbsp;
     <kbd>T</kbd> закрепить &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена &nbsp;·&nbsp; <kbd>Ctrl+Y</kbd> повтор &nbsp;·&nbsp;

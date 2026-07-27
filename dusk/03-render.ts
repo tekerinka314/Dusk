@@ -2219,7 +2219,7 @@ function renderArchive() {
 
             const actions = selectMode ? '' : `
                 <div class="task-actions archive-actions">
-                    <button class="btn-task-action restore-btn" data-act="restoreTask" title="Восстановить">${IC.restore}</button>
+                    <button class="btn-task-action restore-btn" data-act="restoreTask" title="Воскресить">${IC.restore}</button>
                     <button class="btn-task-action danger" data-act="deleteFromArchive" title="Удалить навсегда">${IC.skull}</button>
                 </div>`;
 
