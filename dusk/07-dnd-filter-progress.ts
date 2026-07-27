@@ -994,7 +994,7 @@ function applySoundPref() {
 // ============================================================
 const _penBtn = () => document.getElementById('btn-pen-sound');
 const PEN_TIP_ON  = 'Звук пера: вкл — клавиши шуршат пером при письме. Нажми, чтобы выключить.';
-const PEN_TIP_OFF = 'Звук пера: выкл — письмо беззвучно. Нажми, чтобы перо шуршало при наборе в заметках и задачах.';
+const PEN_TIP_OFF = 'Звук пера: выкл — письмо беззвучно. Нажми, чтобы перо шуршало при наборе в записях и обетах.';
 
 // Lazy-load + decode the compact grain file once (called from a user gesture).
 function _penLoad() {

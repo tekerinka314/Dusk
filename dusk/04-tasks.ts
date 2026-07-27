@@ -2299,10 +2299,10 @@ function openTaskMoreMenu(event, id) {
     const coarseHead = IS_COARSE
         ? `<div class="fm-quick" role="group" aria-label="Свойства обета">
             <button type="button" class="fm-q${task && task.pinned ? ' active' : ''}" data-act="_taskMore" data-more="pin" data-id="${id}">${IC.pin}<span>${task && task.pinned ? 'Расковать' : 'Приковать'}</span></button>
-            <button type="button" class="fm-q" data-act="_taskMore" data-more="prio" data-id="${id}">${IC.spires}<span>Приоритет</span></button>
+            <button type="button" class="fm-q" data-act="_taskMore" data-more="prio" data-id="${id}">${IC.spires}<span>Ранг</span></button>
             <button type="button" class="fm-q${task && task.deadline ? ' active' : ''}" data-act="_taskMore" data-more="deadline" data-id="${id}">${IC.window}<span>Исход</span></button>
             <button type="button" class="fm-q${task && task.repeat && task.repeat !== 'none' ? ' active' : ''}" data-act="_taskMore" data-more="repeat" data-id="${id}">${IC.ouroboros}<span>Повтор</span></button>
-            <button type="button" class="fm-q" data-act="_taskMore" data-more="color" data-id="${id}" style="${taskInkNow ? `color:${taskInkNow}` : ''}">${taskColorGlyph(taskInkNow)}<span>Цвет</span></button>
+            <button type="button" class="fm-q" data-act="_taskMore" data-more="color" data-id="${id}" style="${taskInkNow ? `color:${taskInkNow}` : ''}">${taskColorGlyph(taskInkNow)}<span>Витраж</span></button>
             <button type="button" class="fm-q${hasNoteNow ? ' active' : ''}" data-act="_taskMore" data-more="notewin" data-id="${id}">${hasNoteNow ? IC.editNote : IC.addNote}<span>Примечание</span></button>
         </div>
         <button type="button" role="menuitem" data-act="_taskMore" data-more="edit" data-id="${id}">${IC.quill}<span>Переписать</span></button>`
@@ -2313,8 +2313,8 @@ function openTaskMoreMenu(event, id) {
         <button type="button" role="menuitem" class="fm-danger" data-act="_taskMore" data-more="delete" data-id="${id}">${IC.skull}<span>Удалить навсегда</span></button>` : '';
     _openFloatMenu(event.currentTarget, `
         ${coarseHead}
-        <button type="button" role="menuitem" data-act="_taskMore" data-more="tpl" data-id="${id}">${IC.template}<span>Сохранить как шаблон</span></button>
-        <button type="button" role="menuitem" data-act="_taskMore" data-more="dup" data-id="${id}">${IC.twinCoffin}<span>Дублировать задачу</span></button>
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="tpl" data-id="${id}">${IC.template}<span>Сохранить как образец</span></button>
+        <button type="button" role="menuitem" data-act="_taskMore" data-more="dup" data-id="${id}">${IC.twinCoffin}<span>Отлить копию</span></button>
         ${subModeItem}
         ${canDemote ? `<button type="button" role="menuitem" data-act="_taskMore" data-more="demote" data-id="${id}">${IC.demote}<span>Подчинить обету</span></button>` : ''}
         ${coarseTail}`,
@@ -2446,7 +2446,7 @@ function _pickDemoteTarget(id, targetId) {
         const anchor = _demoteAnchor;
         closeFloatMenu();
         _openFloatMenu(anchor, `
-            <div class="float-menu-head">Подпункты задачи…</div>
+            <div class="float-menu-head">Подпункты обета…</div>
             <button type="button" role="menuitem" data-act="demoteTask" data-id="${id}" data-target="${targetId}" data-drop="1"><span>Отбросить</span></button>
             <button type="button" role="menuitem" data-act="demoteTask" data-id="${id}" data-target="${targetId}" data-drop="0"><span>Перенести рядом</span></button>`,
             'demote-subs-menu');
@@ -2522,7 +2522,7 @@ function openSubMoreMenu(event, taskId, subId) {
         <button type="button" role="menuitem" data-act="_subMore" data-more="repeat" ${ds}>${IC.ouroboros}<span>Повтор${repeatSet ? ` · ${repeatLabel(sub.repeat)}` : ''}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="deadline" ${ds}>${IC.window}<span>${sub.deadline ? 'Изменить исход' : 'Исход'}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="note" ${ds}>${sub.note ? IC.editNote : IC.addNote}<span>${sub.note ? 'Переписать примечание' : 'Примечание'}</span></button>
-        <button type="button" role="menuitem" data-act="_subMore" data-more="promote" ${ds}>${IC.promote}<span>Сделать задачей</span></button>
+        <button type="button" role="menuitem" data-act="_subMore" data-more="promote" ${ds}>${IC.promote}<span>Возвести в обет</span></button>
         <button type="button" role="menuitem" class="fm-danger" data-act="_subMore" data-more="delete" ${ds}>${IC.skull}<span>Удалить подпункт</span></button>`,
         'sub-more-menu');
 }
