@@ -113,10 +113,10 @@
       "index.html:1471"
     ]
   },
-  "6a61b0e6aacfa4de": {
-    "role": "AX-мелкий",
-    "note": "плотный крест-паттэ 13px — «Добавить звено»",
-    "preview": "<svg viewBox=\"0 0 13 13\" fill=\"currentColor\" stroke=\"none\" aria-hidden=\"true\"><use href=\"#",
+  "12a577d07189a0db": {
+    "role": "UNASSIGNED",
+    "note": "",
+    "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linec",
     "locations": [
       "index.html:305"
     ]
@@ -615,7 +615,7 @@
       "index.html:1558"
     ]
   },
-  "f40fb68a645796ec": {
+  "205434c2bd0e41bf": {
     "role": "W2-9 empty-state",
     "note": "defs · склад <symbol>",
     "preview": "<svg width=\"0\" height=\"0\" style=\"position:absolute;overflow:hidden\"><defs><linearGradient ",
@@ -628,7 +628,7 @@
     "note": "",
     "preview": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linec",
     "locations": [
-      "index.html:1854"
+      "index.html:1849"
     ]
   },
   "34a05efc0c7d809f": {
