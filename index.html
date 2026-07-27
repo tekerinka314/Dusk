@@ -159,14 +159,7 @@
                             <label class="field-label">Витраж</label>
                             <div class="form-color-picker" id="form-color-picker">
                                 <button class="form-color-swatch active" data-color="" title="Без витража">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-                                        <line x1="4" y1="4" x2="20" y2="20"/>
-                                        <line x1="3" y1="6" x2="6" y2="3"/><line x1="6" y1="3" x2="9" y2="6"/>
-                                        <circle cx="20" cy="20" r="1.4" fill="currentColor" stroke="none"/>
-                                        <line x1="20" y1="4" x2="4" y2="20"/>
-                                        <line x1="21" y1="6" x2="18" y2="3"/><line x1="18" y1="3" x2="15" y2="6"/>
-                                        <circle cx="4" cy="20" r="1.4" fill="currentColor" stroke="none"/>
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><use href="#icon-swords"/></svg>
                                 </button>
                                 <button class="form-color-swatch" data-color="#6C8EF5" style="background:#6C8EF5" title="Синий"></button>
                                 <button class="form-color-swatch" data-color="#6CD4F5" style="background:#6CD4F5" title="Голубой"></button>
@@ -383,7 +376,7 @@
                     <input type="text" id="search-box" placeholder="Взывать…" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search">
                     <!-- #3 (порт NA-13): очистка поиска — скрещённые кинжалы, выезжает изнутри пилюли, видна только при вводе. -->
                     <button type="button" class="search-x" tabindex="-1" data-act="clearMainSearch" title="Оборвать" aria-label="Оборвать зов">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-swords"/></svg>
                     </button>
                 </div>
                 <!-- Tag cloud — rendered by JS, hidden when no tags exist -->
@@ -755,7 +748,7 @@
                            data-actinput="archiveSearchInput">
                     <!-- #3 (порт NA-13): очистка архив-поиска — скрещённые кинжалы. -->
                     <button type="button" class="search-x" tabindex="-1" data-act="clearArchiveSearch" title="Оборвать" aria-label="Оборвать зов">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-swords"/></svg>
                     </button>
                 </div>
                 <div class="archive-btns" id="archive-btns" style="display:none">
@@ -870,7 +863,7 @@
                      from inside the search pill (shares its background), shown only when typed in. -->
                 <button type="button" class="grim-search-x" tabindex="-1"
                         data-act="grimClearSearch" title="Оборвать" aria-label="Оборвать зов">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.6 5.6L16 16"/><path d="M16 16L18.7 18.7" stroke-width="2.4"/><path d="M4.0 7.0L7.0 4.0" opacity=".9"/><circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/><path d="M18.4 5.6L8 16"/><path d="M8 16L5.3 18.7" stroke-width="2.4"/><path d="M20 7.0L17 4.0" opacity=".9"/><circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-swords"/></svg>
                 </button>
               </div>
               <!-- NA-10: filter records by colour. Reuses the SAME gothic crystal/prism glyph
@@ -1725,6 +1718,17 @@
     <symbol id="icon-quill" viewBox="0 0 24 24">
       <path d="M20 4 C13 5 8 9 5.5 15.5 L4 20 L8.5 18.5 C15 16 19 11 20 4 Z"/>
       <path d="M9 15 L14 10" opacity="0.6"/>
+    </symbol>
+    <!-- X1 · Скрещённые мечи с навершиями-жемчужинами — «оборвать/снять». Одна копия
+         на всех: три поля зова, «Отклонить» Гримуара и свотч «Без витража». -->
+    <symbol id="icon-swords" viewBox="0 0 24 24"><path d="M5.6 5.6L16 16"/>
+      <path d="M16 16L18.7 18.7" stroke-width="2.4"/>
+      <path d="M4.0 7.0L7.0 4.0" opacity=".9"/>
+      <circle cx="3.9" cy="3.9" r=".95" fill="currentColor" stroke="none"/>
+      <path d="M18.4 5.6L8 16"/>
+      <path d="M8 16L5.3 18.7" stroke-width="2.4"/>
+      <path d="M20 7.0L17 4.0" opacity=".9"/>
+      <circle cx="20.1" cy="3.9" r=".95" fill="currentColor" stroke="none"/>
     </symbol>
     <!-- PN1 · Кинжал с ромбовидным навершием, вбитый в угол листа — «приковать к вершине».
          Арт живёт ОДНОЙ копией здесь: IC.pin (строки, Гримуар, шапка «Прикованные») и
