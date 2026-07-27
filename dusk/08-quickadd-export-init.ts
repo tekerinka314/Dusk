@@ -292,8 +292,8 @@ function openToolsMenu(event) {
     _toolsMenuAnchor = event.currentTarget;
     _openFloatMenu(event.currentTarget, `
         <div class="float-menu-head">Хранилище</div>
-        <button type="button" role="menuitem" data-act="_toolsMore" data-more="export">${_TOOLS_EXPORT_IC}<span>Отдать свиток…</span></button>
-        <button type="button" role="menuitem" data-act="_toolsMore" data-more="import">${_TOOLS_IMPORT_IC}<span>Принять свиток (.json)</span></button>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="export">${_TOOLS_EXPORT_IC}<span>Запечатать свиток…</span></button>
+        <button type="button" role="menuitem" data-act="_toolsMore" data-more="import">${_TOOLS_IMPORT_IC}<span>Прочесть свиток (.json)</span></button>
         <button type="button" role="menuitem" data-act="_toolsMore" data-more="backups">${_TOOLS_BACKUP_IC}<span>Точки восстановления</span></button>
         <button type="button" role="menuitem" data-act="_toolsMore" data-more="archiveAll">${IC.archiveAll}<span>Предать склепу всё</span></button>
         <button type="button" role="menuitem" class="fm-danger fm-clear-all" data-act="clearAll" title="Уничтожить всё">${IC.purgeAll}<span>Уничтожить всё</span></button>`,
@@ -335,7 +335,7 @@ function exportData(scope) {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast(scope === 'tasks' ? `Начертано в свиток (только обеты): ${filename}` : `Начертано в свиток: ${filename}`);
+    showToast(scope === 'tasks' ? `Запечатано в свиток (только обеты): ${filename}` : `Запечатано в свиток: ${filename}`);
 }
 
 // X-2: serialize tasks to a portable markdown checklist (grouped, nested subtasks,

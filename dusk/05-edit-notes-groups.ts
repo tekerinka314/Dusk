@@ -908,7 +908,7 @@ function _commitColorChoice(color) {
             renderNotes();
         }
         closeModalWithAnim('task-color-modal');
-        showToast(c ? 'Цвет записи установлен' : 'Цвет снят');
+        showToast(c ? 'Витраж записи наложен' : 'Витраж снят');
         return;
     }
     if (formColorActive) {

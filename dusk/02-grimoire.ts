@@ -493,7 +493,7 @@ function _grimRenderHistory() {
     const itemHTML = v => {
         const isNow = v.kind !== 'backup' && v.at === newestAt;
         const cls = 'grim-hist-item' + (v.at === _grimHistSel ? ' active' : '') + (v.kind === 'backup' ? ' backup' : '');
-        const tag = v.kind === 'backup' ? '<span class="grim-hist-tag back">бэкап</span>'
+        const tag = v.kind === 'backup' ? '<span class="grim-hist-tag back">свиток</span>'
             : isNow ? '<span class="grim-hist-tag now">сейчас</span>' : '';
         const title = (v.t || '').trim() || 'Без заглавия';
         const words = _grimPlain(v.b || '').trim().split(/\s+/).filter(Boolean).length;
@@ -506,8 +506,8 @@ function _grimRenderHistory() {
 
     let list = '';
     if (backs.length) list += `<div class="grim-hist-sect back">Перед откатами</div>` + backs.map(itemHTML).join('');
-    list += `<div class="grim-hist-sect">Снимки${autos.length ? ' · ' + autos.length : ''}</div>`;
-    list += autos.length ? autos.map(itemHTML).join('') : `<div class="grim-hist-empty">Снимков пока нет</div>`;
+    list += `<div class="grim-hist-sect">Слепки${autos.length ? ' · ' + autos.length : ''}</div>`;
+    list += autos.length ? autos.map(itemHTML).join('') : `<div class="grim-hist-empty">Летопись ещё не начата</div>`;
 
     let preview;
     if (sel) {
@@ -523,7 +523,7 @@ function _grimRenderHistory() {
           <div class="grim-hist-pv-title${(sel.t || '').trim() ? '' : ' untitled'}">${escHtml(title)}</div>
           <div class="grim-hist-pv-body grim-body" contenteditable="false">${(sel.b || '').trim() ? sel.b : '<p class="grim-hist-blank">— пустая запись —</p>'}</div>`;
     } else {
-        preview = `<div class="grim-hist-empty big">Эта запись ещё без летописи.<br>Снимки появятся по мере правок.</div>`;
+        preview = `<div class="grim-hist-empty big">Эта запись ещё без летописи.<br>Слепки копятся по мере правок.</div>`;
     }
 
     // NA-8 (fix): rebuilding innerHTML destroys whatever was focused inside the
@@ -1194,8 +1194,8 @@ function renderGrimDetail() {
             <span class="grim-acts">
                 <button class="grim-act is-pin${note.pinned ? ' active' : ''}" data-act="grimTogglePin" data-nid="${note.id}" title="${note.pinned ? 'Открепить запись' : 'Закрепить наверху'}">${IC.pin}<span>${note.pinned ? 'закреплено' : 'закрепить'}</span></button>
                 <button class="grim-act is-color${note.color ? ' active' : ''}" data-act="openGrimColorModal" data-nid="${note.id}" title="Цветовая метка"${colorStyle}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/><line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/><line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/><path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/><path d="M7.5 12.7C8.8 13.9 10.3 14.4 12 14.4C13.7 14.4 15.2 13.9 16.5 12.7" stroke-width="1" opacity="0.45"/><circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/><path d="M15 7.4L15.35 8.35L16.3 8.7L15.35 9.05L15 10L14.65 9.05L13.7 8.7L14.65 8.35Z" fill="currentColor" stroke="none" opacity="0.75"/></svg><span>цвет</span></button>
-                <button class="grim-act" data-act="grimSaveAsTpl" data-nid="${note.id}" title="Сохранить как шаблон">${GRIM_TPL_IC.save}<span>шаблон</span></button>
-                <button class="grim-act" data-act="grimOpenHistory" data-nid="${note.id}" title="Летопись — история версий записи">${GIC.chronicle}<span>летопись</span></button>
+                <button class="grim-act" data-act="grimSaveAsTpl" data-nid="${note.id}" title="Сохранить как образец">${GRIM_TPL_IC.save}<span>образец</span></button>
+                <button class="grim-act" data-act="grimOpenHistory" data-nid="${note.id}" title="Летопись — прежние начертания">${GIC.chronicle}<span>летопись</span></button>
                 <button class="grim-act" data-act="grimArchive" data-nid="${note.id}" title="Отправить в склеп">${GIC.coffin}<span>в склеп</span></button>
                 <button class="grim-act danger" data-act="grimDelete" data-nid="${note.id}" title="Удалить навсегда">${IC.dagger}<span>удалить</span></button>
             </span>
@@ -1609,7 +1609,7 @@ function _grimBuildColorFilterPop() {
     if (!pop) return;
     const colors = [...new Set(_grimList().filter(n => n.color).map(n => n.color))];
     if (!colors.length) {
-        pop.innerHTML = '<p class="grim-cfilter-empty">Нет записей с цветом</p>';
+        pop.innerHTML = '<p class="grim-cfilter-empty">Ни одной записи под этим витражом</p>';
         return;
     }
     const check = `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -1896,7 +1896,7 @@ function grimBulkColor(color) {
     _grimExitSelect();
     saveState();
     renderNotes();
-    showToast(c ? `Цвет установлен: ${count}` : `Цвет снят: ${count}`);
+    showToast(c ? `Витраж наложен: ${count}` : `Витраж снят: ${count}`);
 }
 
 // ── Этап 1: WYSIWYG форматирование тела (body хранит HTML) ──────────────
@@ -3269,7 +3269,7 @@ function _grimToolbarHTML() {
         <span class="fmt-grp">${btn('table', 'Таблица', FIC.table)}</span>
         <span class="fmt-grp">${btn('callout', 'Врезка (каллаут)', FIC.callout)}</span>
         <span class="fmt-grp">
-            <button class="fmt-btn export" data-cmd="export" data-pd data-act="grimFmtBtn" title="Экспорт записи в .md">${FIC.md}<span>.md</span></button>
+            <button class="fmt-btn export" data-cmd="export" data-pd data-act="grimFmtBtn" title="Запечатать запись в .md">${FIC.md}<span>.md</span></button>
         </span>
     </div></div></div>`;
 }
@@ -3282,7 +3282,7 @@ function _grimDownload(name, text, mime?) {
     a.href = url; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Экспортировано: ' + name);
+    showToast('Запечатано в свиток: ' + name);
 }
 function _grimSlug(s) {
     return ((s || '').trim() || 'без-заглавия').replace(/[\\/:*?"<>|]+/g, '').slice(0, 60);
@@ -3404,14 +3404,14 @@ function _grimNoteToBackupMd(note) {
 function grimExportBackup(scope) {
     const arr = _grimScopeNotes(scope);
     _grimCloseIoMenu();
-    if (!arr.length) { showToast('Нет записей для экспорта'); return; }
+    if (!arr.length) { showToast('Нечего запечатывать'); return; }
     _grimDownload((scope === 'sel' ? 'grimoire-selection' : 'grimoire-backup') + '.md',
                   arr.map(_grimNoteToBackupMd).join('\n'));
 }
 function grimExportReading(scope) {
     const arr = _grimScopeNotes(scope);
     _grimCloseIoMenu();
-    if (!arr.length) { showToast('Нет записей для экспорта'); return; }
+    if (!arr.length) { showToast('Нечего запечатывать'); return; }
     if (arr.length === 1) { _grimDownload((_grimSlug(arr[0].title) || 'без-заглавия') + '.md', _grimNoteToMd(arr[0])); return; }
     const used = {};
     const files = arr.map(n => {
@@ -3422,7 +3422,7 @@ function grimExportReading(scope) {
         return { name, text: _grimNoteToMd(n) };
     });
     _grimDownloadBlob('grimoire.zip', _grimZipStore(files));
-    showToast('Экспортировано: grimoire.zip (' + files.length + ')');
+    showToast('Запечатано в свиток: grimoire.zip (' + files.length + ')');
 }
 // NA-3 (Б): full grimoire backup as JSON — unlike the .md/.zip exports this carries
 // the rich data markdown can't hold: note ids (so «Летопись» re-attaches), colour,
@@ -3438,12 +3438,12 @@ function grimExportFullBackup(scope) {
         notes    = (state.notes || []).filter(n => ids.has(n.id));
         archive  = (state.notesArchive || []).filter(n => ids.has(n.id));
         templates = [];
-        if (!notes.length && !archive.length) { showToast('Нет выбранных записей'); return; }
+        if (!notes.length && !archive.length) { showToast('Ничего не отмечено'); return; }
     } else {
         notes    = (state.notes || []).slice();
         archive  = (state.notesArchive || []).slice();
         templates = (state.noteTemplates || []).slice();
-        if (!notes.length && !archive.length) { showToast('Нет записей для экспорта'); return; }
+        if (!notes.length && !archive.length) { showToast('Нечего запечатывать'); return; }
     }
     const ids = new Set([...notes, ...archive].map(n => n.id));
     const versions = {};
@@ -3496,18 +3496,18 @@ function _grimIoItem(icon, name, desc, act, scope?) {
 }
 function _grimRenderIoMenu() {
     const pop = document.getElementById('grim-io-pop') as any; if (!pop) return;
-    pop.innerHTML = '<div class="grim-tpl-head">Перенос записей</div>'
-        + '<div class="grim-tpl-sect">Импорт</div>'
-        + _grimIoItem(GRIM_IO_IC.import, 'Импорт файлов', '.md · .zip · .json · можно несколько', 'grimImportFiles')
-        + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Экспорт всего</div>'
-        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · все записи Гримуара + летопись', 'grimExportFullBackup', 'all')
+    pop.innerHTML = '<div class="grim-tpl-head">Свитки записей</div>'
+        + '<div class="grim-tpl-sect">Прочесть</div>'
+        + _grimIoItem(GRIM_IO_IC.import, 'Прочесть свитки', '.md · .zip · .json · можно несколько', 'grimImportFiles')
+        + '<div class="grim-tpl-divline"></div><div class="grim-tpl-sect">Запечатать всё</div>'
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный свиток записей', '.json · все записи Гримуара + летопись', 'grimExportFullBackup', 'all')
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md, разворачивается обратно', 'grimExportBackup', 'all')
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу на заметку', 'grimExportReading', 'all');
 }
 function _grimRenderIoSelMenu() {
     const pop = document.getElementById('grim-io-sel-pop') as any; if (!pop) return;
-    pop.innerHTML = '<div class="grim-tpl-head">Экспорт выбранных</div>'
-        + _grimIoItem(GRIM_IO_IC.full, 'Полный бэкап записей', '.json · выбранные записи + летопись', 'grimExportFullBackup', 'sel')
+    pop.innerHTML = '<div class="grim-tpl-head">Запечатать отмеченные</div>'
+        + _grimIoItem(GRIM_IO_IC.full, 'Полный свиток записей', '.json · выбранные записи + летопись', 'grimExportFullBackup', 'sel')
         + _grimIoItem(GRIM_IO_IC.backup, 'Резервная копия', 'один .md', 'grimExportBackup', 'sel')
         + _grimIoItem(GRIM_IO_IC.reading, 'Для чтения', 'ZIP · по файлу', 'grimExportReading', 'sel');
 }
@@ -3762,7 +3762,7 @@ function _grimPushNote(seed) {
 // Turn collected docs ([{text, name}]) into notes — backup files split into many,
 // plain files become one each. One undo step, one render, focus the last.
 function _grimImportDocs(docs) {
-    if (!docs.length) { showToast('Нет записей для импорта'); return; }
+    if (!docs.length) { showToast('Нечего читать'); return; }
     if (grimMode !== 'active') grimMode = 'active';
     clearTimeout(_grimSaveT); saveState();
     grimFindClose();
@@ -3786,7 +3786,7 @@ function _grimImportDocs(docs) {
     renderNotes();
     const layoutEl = document.getElementById('grim-layout') as any; if (layoutEl) layoutEl.classList.add('show-detail');
     const ti = document.getElementById('grim-title-in') as any; if (ti) ti.focus();
-    showToast('Импортировано записей: ' + added);
+    showToast('Прочтено записей: ' + added);
 }
 // NA-3 (Б): a JSON «Полный бэкап» (grimExportFullBackup) was dropped into the import
 // picker — offer the same «Добавить» / «Заменить» choice DUSK uses, then restore notes
@@ -3903,8 +3903,8 @@ function grimImportFiles() {
                     if (loaded && loaded._grimFull) { _grimFullImport(loaded); return; }
                     // F-B: развести два формата. Полный бэкап DUSK (есть .tasks) — это бэкап ВСЕГО
                     // приложения; его место в импорте задач (тулбар), не здесь.
-                    if (loaded && Array.isArray(loaded.tasks)) { showToast('Это полный бэкап DUSK — импортируйте его на странице «Задачи» (кнопка импорта в тулбаре)'); return; }
-                    showToast('Это не бэкап записей Гримуара'); return;
+                    if (loaded && Array.isArray(loaded.tasks)) { showToast('Это полный свиток DUSK — прочтите его на странице «Задачи» (кнопка приёма в тулбаре)'); return; }
+                    showToast('Это не свиток записей Гримуара'); return;
                 }
                 if (/\.zip$/i.test(f.name)) {
                     const entries = await _grimUnzip(new Uint8Array(await f.arrayBuffer()));
@@ -4009,7 +4009,7 @@ function grimSaveAsTpl(id) {
         color: note.color || null,
     });
     saveState();
-    showToast('Сохранено как шаблон');
+    showToast('Сохранено как образец');
 }
 
 // Create a note from a built-in blueprint (by key) or a saved template (by id).
@@ -4018,14 +4018,14 @@ function grimUseBuiltin(key) {
     if (!t) return;
     _grimCloseTplMenu();
     _grimSpawnSeeded(t.build());
-    showToast('Запись из шаблона «' + t.name + '»');
+    showToast('Запись по образцу «' + t.name + '»');
 }
 function grimUseTpl(id) {
     const t = (state.noteTemplates || []).find(x => x.id === id);
     if (!t) return;
     _grimCloseTplMenu();
     _grimSpawnSeeded({ title: t.title, body: t.body, color: t.color });
-    showToast('Запись из шаблона');
+    showToast('Запись по образцу');
 }
 function grimDeleteTpl(id, event) {
     if (event) event.stopPropagation();
@@ -4033,7 +4033,7 @@ function grimDeleteTpl(id, event) {
     state.noteTemplates = (state.noteTemplates || []).filter(x => x.id !== id);
     saveState();
     _grimRenderTplMenu();          // keep the open popover in sync
-    showToast('Шаблон удалён');
+    showToast('Образец стёрт');
 }
 
 // ── popover open/close + render ──
@@ -4071,7 +4071,7 @@ function _grimCloseTplMenu() {
 function _grimRenderTplMenu() {
     const pop = document.getElementById('grim-tpl-pop') as any;
     if (!pop) return;
-    let html = '<div class="grim-tpl-head">Начертать из шаблона</div>';
+    let html = '<div class="grim-tpl-head">Начертать по образцу</div>';
     html += '<div class="grim-tpl-sect">Встроенные</div>';
     html += GRIM_BUILTIN_TPL.map(t => `
         <div class="grim-tpl-item" role="menuitem" data-act="grimUseBuiltin" data-key="${t.key}">

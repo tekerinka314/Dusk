@@ -1478,7 +1478,7 @@ function importData(event) {
             // F-B: развести два формата. Бэкап записей Гримуара (_grimFull) — только заметки;
             // его место в импорте Гримуара (Перенос → Импорт), не здесь.
             if (loaded && loaded._grimFull && !Array.isArray(loaded.tasks)) {
-                showToast('Это бэкап записей Гримуара — импортируйте его в Гримуаре (Перенос → Импорт)'); return;
+                showToast('Это свиток записей Гримуара — прочтите его в Гримуаре (Перенос → Прочесть)'); return;
             }
             if (!loaded || !Array.isArray(loaded.tasks)) {
                 showToast('Неверный формат файла'); return;
@@ -1554,7 +1554,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
             // C3-2: do NOT wipe undoStack — pushUndo() above is the only safety net
             // that lets the user undo a destructive "Replace" import.
             saveState(); render(); updateArchiveBadge();
-            showToast(`Принято обетов: ${state.tasks.length}`, { undo: true });
+            showToast(`Прочтено обетов: ${state.tasks.length}`, { undo: true });
         };
 
         mergeBtn.onclick = () => {
@@ -1653,7 +1653,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         // title/desc, so set our own here too — each opener is self-contained, text can't bleed.
         const _t = document.getElementById('import-choice-title');
         const _d = overlay.querySelector('.import-choice-desc');
-        if (_t) _t.textContent = 'Принять свиток';
+        if (_t) _t.textContent = 'Прочесть свиток';
         if (_d) _d.textContent = 'Добавить к нынешним обетам или заместить всё?';
         // U-1: NO backdrop-close for this destructive choice (per user) — a stray click
         // outside must not dismiss it. Esc + the three buttons remain the only exits.
@@ -1682,7 +1682,7 @@ function _showImportChoiceModal(loaded, sanitizeTask, sanitizeGroup) {
         if (!keepGrim) _grimRestoreVersions(loaded, 'replace');   // NA-3: только если файл нёс записи
         // C3-2: keep the pre-import snapshot so Replace stays undoable.
         saveState(); render(); updateArchiveBadge();
-        showToast(`Принято обетов: ${state.tasks.length}`, { undo: true });
+        showToast(`Прочтено обетов: ${state.tasks.length}`, { undo: true });
     }
 }
 
