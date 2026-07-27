@@ -31,13 +31,13 @@ const S = globalThis;
 
 // ── имена полей ─────────────────────────────────────────────────────────────
 it('имена полей человеческие для всех видов записей', () => {
-    expect(S._quarFieldRu('tasks', 'text')).toBe('Заголовок задачи');
-    expect(S._quarFieldRu('tasks', 'deadline')).toBe('Дедлайн задачи');
+    expect(S._quarFieldRu('tasks', 'text')).toBe('Заголовок обета');
+    expect(S._quarFieldRu('tasks', 'deadline')).toBe('Исход обета');
     expect(S._quarFieldRu('tasks', '_groupUid')).toBe('Свод');
     expect(S._quarFieldRu('groups', 'name')).toBe('Название свода');
     expect(S._quarFieldRu('notes', 'body')).toBe('Текст записи');
-    expect(S._quarFieldRu('templates', 'text')).toBe('Название шаблона');
-    expect(S._quarFieldRu('tasks', 'color')).toBe('Цвет метки');   // из общего раздела '*'
+    expect(S._quarFieldRu('templates', 'text')).toBe('Название образца');
+    expect(S._quarFieldRu('tasks', 'color')).toBe('Витраж');   // из общего раздела '*'
 });
 
 it('незнакомое поле деградирует, а не падает', () => {
@@ -47,7 +47,7 @@ it('незнакомое поле деградирует, а не падает',
 
 it('строка конфликта поля не содержит внутреннего имени', () => {
     const what = S._entryWhat({ kind: 'field', recType: 'tasks', recUid: 'nope', field: 'text' });
-    expect(what).toContain('Заголовок задачи');
+    expect(what).toContain('Заголовок обета');
     expect(what).not.toContain('«text»');
 });
 

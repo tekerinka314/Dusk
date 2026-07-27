@@ -8724,6 +8724,11 @@ kbd {
 
 @media (max-width: 560px) {
     .sync-glyph { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 16px; width: 46px; height: 46px; }
+    /* Партия G: «Предать забвению» шире прежнего «Отклонить», и колонка кнопок
+       (flex:0 0 auto) съедала 122 из 331px строки — текст разночтения оставался
+       на ~140px и рвался в лапшу. На телефоне кладём кнопки ПОД текст. */
+    .sync-quar-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .sync-quar-acts { flex-direction: row; justify-content: flex-end; }
 }
 
 

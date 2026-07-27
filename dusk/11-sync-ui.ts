@@ -473,7 +473,7 @@ function _syncPanelHtml() {
         : `<button type="button" role="menuitem" data-act="syncSignIn"${configured ? '' : DEAD_ITEM}><span>Войти в Google Drive</span></button>`;
     const now = `<button type="button" role="menuitem" data-act="syncNowManual"${(_syncing || !signedIn) ? DEAD_ITEM : ''}><span>Синхронизировать сейчас</span></button>`;
     const quar = n > 0
-        ? `<button type="button" role="menuitem" class="sync-panel-quar" data-act="openQuarantine"><span>Разобрать конфликты</span><b class="sync-panel-quar-n">${n}</b></button>`
+        ? `<button type="button" role="menuitem" class="sync-panel-quar" data-act="openQuarantine"><span>Разобрать разночтения</span><b class="sync-panel-quar-n">${n}</b></button>`
         : '';
 
     // surface the actual failure reason when in error (so a sync problem is
@@ -619,24 +619,24 @@ function _resolveEntry(entryUid, action) {
 // человеческого имени, но всё ещё честно и никогда не бросает.
 const _QUAR_FIELD_RU = {
     '*': {
-        color: 'Цвет метки', order: 'Порядок в списке', archivedAt: 'Архивация',
-        _arch: 'Архивация',
+        color: 'Витраж', order: 'Порядок', archivedAt: 'Предание склепу',
+        _arch: 'Предание склепу',
     },
     tasks: {
-        text: 'Заголовок задачи', note: 'Заметка задачи', deadline: 'Дедлайн задачи',
-        priority: 'Приоритет задачи', checked: 'Отметка «выполнено»', pinned: 'Закрепление',
-        repeat: 'Повтор', cycleChecked: 'Отметка цикла', nextReset: 'Возврат повтора',
-        subtasksOpen: 'Раскрытие подпунктов', noteOpen: 'Раскрытие заметки',
+        text: 'Заголовок обета', note: 'Примечание обета', deadline: 'Исход обета',
+        priority: 'Ранг обета', checked: 'Отметка исполнения', pinned: 'Приковка к вершине',
+        repeat: 'Круговорот', cycleChecked: 'Отметка круга', nextReset: 'Возврат круговорота',
+        subtasksOpen: 'Раскрытие подпунктов', noteOpen: 'Раскрытие примечания',
         groupId: 'Свод', _groupUid: 'Свод',
     },
     groups:    { name: 'Название свода', color: 'Витраж свода' },
     notes:     { title: 'Заголовок записи', body: 'Текст записи', color: 'Витраж записи', fmt: 'Оформление' },
-    templates: { text: 'Название шаблона', note: 'Заметка шаблона', priority: 'Приоритет шаблона',
-                 deadline: 'Дедлайн шаблона', repeat: 'Повтор шаблона' },
+    templates: { text: 'Название образца', note: 'Примечание образца', priority: 'Ранг образца',
+                 deadline: 'Исход образца', repeat: 'Круговорот образца' },
 };
-const _QUAR_REC_RU = { tasks: 'задачи', groups: 'своды', notes: 'записи', templates: 'шаблона' };
-const _QUAR_REC_NOM = { tasks: 'Задача', groups: 'Свод', notes: 'Запись', templates: 'Образец' };
-const _QUAR_REC_DEL = { tasks: 'Задача удалена', groups: 'Свод распущен', notes: 'Запись удалена', templates: 'Образец стёрт' };
+const _QUAR_REC_RU = { tasks: 'обета', groups: 'свода', notes: 'записи', templates: 'образца' };
+const _QUAR_REC_NOM = { tasks: 'Обет', groups: 'Свод', notes: 'Запись', templates: 'Образец' };
+const _QUAR_REC_DEL = { tasks: 'Обет уничтожен', groups: 'Свод распущен', notes: 'Запись удалена', templates: 'Образец стёрт' };
 
 function _quarFieldRu(recType, field) {
     const byType = _QUAR_FIELD_RU[recType] || {};
@@ -645,7 +645,7 @@ function _quarFieldRu(recType, field) {
 
 // Human label for an entry (best-effort; falls back to the record type).
 function _entryWhat(e) {
-    const T = { field: 'поле', subtask: 'подпункт', 'delete-vs-edit': 'удаление', 'note-both': 'заметка' };
+    const T = { field: 'поле', subtask: 'подпункт', 'delete-vs-edit': 'уничтожение', 'note-both': 'примечание' };
     if (e.kind === 'subtask') {
         const t = _findTask(state, e.parentUid);
         return 'Текст подпункта' + (t && t.text ? ' — в «' + _trim(t.text) + '»' : '');
@@ -665,7 +665,7 @@ function _entryWhat(e) {
         return who + ' при правке на другом устройстве' + (name ? ' — «' + _trim(name) + '»' : '');
     }
     if (e.kind === 'note-both') return 'Запись изменена на двух устройствах — сохранены обе версии';
-    return T[e.kind] || 'конфликт';
+    return T[e.kind] || 'разночтение';
 }
 // V2-B4-07 (вторая течь): у field-конфликта превью показывало СЫРОЕ значение —
 // `true`, `high`, `{"mode":"date","value":…}`. Человек, который решает «вернуть
@@ -685,7 +685,7 @@ function _quarValueRu(recType, field, v) {
         // NaN»): проверяем результат, а не только исключение.
         let s = '';
         try { s = formatDeadlineAbsolute(v, true) || ''; } catch (err) { s = ''; }
-        return (s && !/NaN|undefined|Invalid/.test(s)) ? s : 'дедлайн';
+        return (s && !/NaN|undefined|Invalid/.test(s)) ? s : 'исход';
     }
     if (field === '_groupUid' || field === 'groupId') {
         const g = _findRec(state, 'groups', v);
@@ -723,7 +723,7 @@ globalThis._quarOverlay = null;
 // in the middle of a review).
 function _quarListHTML() {
     const entries = (state.syncJournal || []).filter(e => e && !e.resolved);
-    if (!entries.length) return `<div class="sync-quar-empty">Нет конфликтов на разборе.</div>`;
+    if (!entries.length) return `<div class="sync-quar-empty">Разночтений нет.</div>`;
     return entries.map(e => `
         <div class="sync-quar-row" data-uid="${_esc(e.uid)}">
             <div class="sync-quar-info">
@@ -731,8 +731,8 @@ function _quarListHTML() {
                 <div class="sync-quar-loser">${_esc(_entryLoserPreview(e)) || '<i>пусто</i>'}</div>
             </div>
             <div class="sync-quar-acts">
-                <button type="button" class="sync-quar-restore" data-uid="${_esc(e.uid)}">Восстановить</button>
-                <button type="button" class="sync-quar-dismiss" data-uid="${_esc(e.uid)}">Отклонить</button>
+                <button type="button" class="sync-quar-restore" data-uid="${_esc(e.uid)}">Воскресить</button>
+                <button type="button" class="sync-quar-dismiss" data-uid="${_esc(e.uid)}">Предать забвению</button>
             </div>
         </div>`).join('');
 }
@@ -752,9 +752,10 @@ function openQuarantine() {
     overlay.setAttribute('aria-labelledby', 'quar-title');
     overlay.innerHTML = `
         <div class="modal sync-quar-modal">
-            <h3 class="modal-title" id="quar-title">Конфликты синхронизации</h3>
-            <p class="sync-quar-desc">Изменения объединены автоматически; ниже — проигравшие версии.
-               «Восстановить» вернёт версию (победит при следующем синке), «Отклонить» оставит как есть.</p>
+            <h3 class="modal-title" id="quar-title">Разночтения устройств</h3>
+            <p class="sync-quar-desc">Правки сведены сами собой; ниже — отвергнутые версии.
+               «Воскресить» вернёт версию (возьмёт верх при следующей синхронизации),
+               «Предать забвению» оставит как есть.</p>
             <div class="sync-quar-list">${_quarListHTML()}</div>
             <div class="modal-actions"><button type="button" class="btn-modal-cancel sync-quar-close">Закрыть</button></div>
         </div>`;
