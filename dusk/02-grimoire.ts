@@ -3903,7 +3903,7 @@ function grimImportFiles() {
                     if (loaded && loaded._grimFull) { _grimFullImport(loaded); return; }
                     // F-B: развести два формата. Полный бэкап DUSK (есть .tasks) — это бэкап ВСЕГО
                     // приложения; его место в импорте задач (тулбар), не здесь.
-                    if (loaded && Array.isArray(loaded.tasks)) { showToast('Это полный свиток DUSK — прочтите его на странице «Задачи» (кнопка приёма в тулбаре)'); return; }
+                    if (loaded && Array.isArray(loaded.tasks)) { showToast('Это полный свиток DUSK — прочтите его на странице «Обеты» (кнопка приёма в тулбаре)'); return; }
                     showToast('Это не свиток записей Гримуара'); return;
                 }
                 if (/\.zip$/i.test(f.name)) {

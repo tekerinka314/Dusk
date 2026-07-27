@@ -815,7 +815,7 @@ function updateVisibility() {
         const _useEl = emptyState.querySelector<SVGUseElement>('.empty-rune use');
         const _noTasks = state.tasks.length === 0;
         if (_msgEl) _msgEl.textContent = _noTasks ? 'Алтарь пуст'                : 'Тишина в ответ';
-        if (_subEl) _subEl.textContent = _noTasks ? 'Ни одного обета ещё не дано' : 'Ни одна задача не отозвалась на зов';
+        if (_subEl) _subEl.textContent = _noTasks ? 'Ни одного обета ещё не дано' : 'Ни один обет не отозвался на зов';
         if (_useEl) _useEl.setAttribute('href', _noTasks ? '#icon-candle-unlit' : '#icon-scrying');
         // #4: the «Дать первый обет» CTA only makes sense when there are NO tasks —
         // under an active filter («Тишина в ответ») adding a task would be a non-sequitur.

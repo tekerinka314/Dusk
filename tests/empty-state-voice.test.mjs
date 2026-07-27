@@ -33,7 +33,7 @@ describe('W2-9 · голос пустых состояний', () => {
     expect(html).toContain('Дать первый обет');
     expect(html).toContain('Ни одно деяние ещё не погребено');
     expect(f07).toContain('Тишина в ответ');
-    expect(f07).toContain('Ни одна задача не отозвалась на зов');
+    expect(f07).toContain('Ни один обет не отозвался на зов');
     expect(f02).toContain('Ни одна запись не отозвалась на зов');
   });
 
