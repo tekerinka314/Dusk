@@ -626,7 +626,7 @@ const _QUAR_FIELD_RU = {
         text: 'Заголовок обета', note: 'Примечание обета', deadline: 'Исход обета',
         priority: 'Ранг обета', checked: 'Отметка исполнения', pinned: 'Приковка к вершине',
         repeat: 'Круговорот', cycleChecked: 'Отметка круга', nextReset: 'Возврат круговорота',
-        subtasksOpen: 'Раскрытие подпунктов', noteOpen: 'Раскрытие примечания',
+        subtasksOpen: 'Раскрытие звеньев', noteOpen: 'Раскрытие примечания',
         groupId: 'Свод', _groupUid: 'Свод',
     },
     groups:    { name: 'Название свода', color: 'Витраж свода' },
@@ -645,10 +645,10 @@ function _quarFieldRu(recType, field) {
 
 // Human label for an entry (best-effort; falls back to the record type).
 function _entryWhat(e) {
-    const T = { field: 'поле', subtask: 'подпункт', 'delete-vs-edit': 'уничтожение', 'note-both': 'примечание' };
+    const T = { field: 'поле', subtask: 'звено', 'delete-vs-edit': 'уничтожение', 'note-both': 'примечание' };
     if (e.kind === 'subtask') {
         const t = _findTask(state, e.parentUid);
-        return 'Текст подпункта' + (t && t.text ? ' — в «' + _trim(t.text) + '»' : '');
+        return 'Текст звена' + (t && t.text ? ' — в «' + _trim(t.text) + '»' : '');
     }
     if (e.kind === 'field') {
         const r = _findRec(state, e.recType, e.recUid);

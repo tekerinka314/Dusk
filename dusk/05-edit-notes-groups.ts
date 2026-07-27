@@ -268,7 +268,7 @@ function updateSubNotesAlwaysBtn(taskId) {
         btn = document.createElement('button');
         btn.className = 'btn-sub-notes-always' + (task.subNotesAlwaysOpen ? ' active' : '');
         btn.dataset.tid = String(taskId);
-        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания подпунктов';
+        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания звеньев';
         btn.innerHTML = eyeGlyph(!task.subNotesAlwaysOpen);
         btn.addEventListener('click', () => toggleSubNotesAlwaysOpen(taskId));
         const subToggle = meta.querySelector(`.btn-subtask-toggle[data-tid="${taskId}"]`);
@@ -311,7 +311,7 @@ function updateSubToggleBtn(taskId) {
     const cnt  = task.subtasks.length;
     // P6: count cycle-checked as done in toggle label too
     const done = task.subtasks.filter(s => s.checked || s.cycleChecked).length;
-    btn.innerHTML = `${IC.sword}<span>подпункты${cnt > 0 ? ` ${done}/${cnt}` : ''}</span>`;
+    btn.innerHTML = `${IC.sword}<span>звенья${cnt > 0 ? ` ${done}/${cnt}` : ''}</span>`;
 }
 
 /**

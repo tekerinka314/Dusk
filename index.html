@@ -122,7 +122,7 @@
                 <!-- Secondary: subtasks — thin muted full-width bar + footnote -->
                 <div class="subtask-progress" id="subtask-progress-row" style="display:none">
                     <div class="progress-sub-wrap"><div class="progress-sub-fill" id="subtask-prog-bar"></div></div>
-                    <div class="subtask-footnote"><span class="counter-tag">подпункты</span><span id="subtask-done-count">0</span><span class="prog-sep">/</span><span id="subtask-total-count">0</span></div>
+                    <div class="subtask-footnote"><span class="counter-tag">звенья</span><span id="subtask-done-count">0</span><span class="prog-sep">/</span><span id="subtask-total-count">0</span></div>
                 </div>
             </div>
 
@@ -301,14 +301,14 @@
                     </div>
                     <div class="extra-row">
                         <div class="field-group">
-                            <label class="field-label">Подпункты</label>
+                            <label class="field-label">Звенья</label>
                             <div class="form-subs-section">
                                 <div class="form-sub-add-row">
                                     <input class="form-sub-input" id="form-sub-input"
-                                        placeholder="Новый подпункт…"
+                                        placeholder="Новое звено…"
                                         maxlength="200" autocomplete="off" spellcheck="false"
                                         data-actkey="formSubAddKey">
-                                    <button class="btn-form-sub-add" data-act="addFormSubtask" title="Добавить подпункт">
+                                    <button class="btn-form-sub-add" data-act="addFormSubtask" title="Добавить звено">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
                                             <line x1="12" y1="3" x2="12" y2="21"/>
                                             <line x1="5" y1="9" x2="19" y2="9"/>
@@ -479,7 +479,7 @@
                         </svg>
                     </button>
                     <!-- Global "parent checks by subtasks" mode (по всем / по любому) -->
-                    <button class="btn-tool" id="btn-sub-anymode" data-act="openSubAnyModeMenu" title="Чек родителя по подпунктам" aria-haspopup="menu"></button>
+                    <button class="btn-tool" id="btn-sub-anymode" data-act="openSubAnyModeMenu" title="Чек родителя по звеньям" aria-haspopup="menu"></button>
                     </div><span class="toolbar-group-label">вид</span></div>
                     <div class="toolbar-group"><div class="toolbar-group-btns">
                     <button class="btn-tool" id="btn-filter" data-act="toggleFilter" title="Явить лишь неисполненные">

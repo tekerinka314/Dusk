@@ -57,8 +57,8 @@ it('удаление-против-правки названо по виду за
     expect(what).toContain('«Дом»');
 });
 
-it('подпункт и заметка-обе-версии — человеческие формулировки', () => {
-    expect(S._entryWhat({ kind: 'subtask', parentUid: 'nope' })).toBe('Текст подпункта');
+it('звено и заметка-обе-версии — человеческие формулировки', () => {
+    expect(S._entryWhat({ kind: 'subtask', parentUid: 'nope' })).toBe('Текст звена');
     expect(S._entryWhat({ kind: 'note-both' })).toMatch(/обе версии/);
 });
 

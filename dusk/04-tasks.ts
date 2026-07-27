@@ -102,11 +102,11 @@ function createTaskEl(task, showDlSide) {
     const subs    = task.subtasks || [];
     const sDone   = subs.filter(s => s.checked || s.cycleChecked).length;
     const subLbl  = subs.length ? ` ${sDone}/${subs.length}` : '';
-    const subToggle = `<button class="btn-subtask-toggle${task.subtasksOpen ? ' open' : ''}" data-tid="${task.id}" data-act="toggleSubtasksSection" title="Подпункты">${IC.sword}<span>подпункты${subLbl}</span></button>`;
+    const subToggle = `<button class="btn-subtask-toggle${task.subtasksOpen ? ' open' : ''}" data-tid="${task.id}" data-act="toggleSubtasksSection" title="Звенья">${IC.sword}<span>звенья${subLbl}</span></button>`;
     // Always-show-notes button: only rendered when there are subtasks that have notes
     const hasSubNotes = subs.some(s => s.note && s.note.trim());
     const subNotesAlwaysBtn = (subs.length > 0 && hasSubNotes)
-        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания подпунктов'}">${eyeGlyph(!task.subNotesAlwaysOpen)}</button>`
+        ? `<button class="btn-sub-notes-always${task.subNotesAlwaysOpen ? ' active' : ''}" data-tid="${task.id}" data-act="toggleSubNotesAlwaysOpen" title="${task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания звеньев'}">${eyeGlyph(!task.subNotesAlwaysOpen)}</button>`
         : '';
 
     const displayText = highlightHashtags(
@@ -304,7 +304,7 @@ function buildSubtaskSection(task, forceOpen) {
             </ul>
             <div class="subtask-add-row">
                 <input class="subtask-add-input" id="sub-input-${task.id}"
-                       placeholder="Новый подпункт..." autocomplete="off" maxlength="200"
+                       placeholder="Новое звено..." autocomplete="off" maxlength="200"
                        autocapitalize="off" autocorrect="off" enterkeyhint="done"
                        data-actkey="subAddKey">
                 <button class="btn-subtask-confirm" data-act="addSubtask" title="Добавить">
@@ -491,8 +491,8 @@ function buildSubtaskItemHTML(taskId, s) {
     const isCycleChecked = s.cycleChecked && s.repeat && s.repeat !== 'none';
     const isChecked = s.checked; // cycle-checked is a separate state — never add .checked class
     const subCheckLabel = isChecked || isCycleChecked
-        ? `Подпункт исполнен: ${s.text} — нажмите, чтобы отречься`
-        : `Исполнить подпункт: ${s.text}`;
+        ? `Звено исполнено: ${s.text} — нажмите, чтобы отречься`
+        : `Исполнить звено: ${s.text}`;
     const subDisplayText = searchQuery
         ? highlightSearch(escHtml(s.text), searchQuery)
         : escHtml(s.text);
@@ -524,7 +524,7 @@ function buildSubtaskItemHTML(taskId, s) {
     const subDlCd     = subDl ? formatDeadlineCountdown(subDl) : '';
     const subDlStatusCls = subDlStatus ? ` sub-dl-${subDlStatus}` : '';
     const subDlBadge = subDl
-        ? `<button type="button" class="sub-deadline-badge${subDlStatusCls}" data-act="openSubDeadlineModal" title="${escHtml(subDlAbs)}" aria-label="Исход подпункта: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>`
+        ? `<button type="button" class="sub-deadline-badge${subDlStatusCls}" data-act="openSubDeadlineModal" title="${escHtml(subDlAbs)}" aria-label="Исход звена: ${escHtml(subDlAbs)} — изменить">${IC.window}</button>`
         : '';
     const subDlSetBtn = subDl
         ? ''
@@ -556,12 +556,12 @@ function buildSubtaskItemHTML(taskId, s) {
             ${IS_COARSE ? `<div class="sub-actions">
                 <button type="button" class="btn-sub-action btn-sub-more" data-act="openSubMoreMenu" title="Деяния" aria-haspopup="menu">${IC.more}</button>
             </div>` : `<div class="sub-actions">
-                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleSubPriority" title="Ранг подпункта"><div class="sub-prio-dot"></div></button>
+                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleSubPriority" title="Ранг звена"><div class="sub-prio-dot"></div></button>
                 ${subRepeatBtn}
                 ${subDlSetBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleSubNote" title="${s.note ? 'Переписать примечание' : 'Начертать примечание'}">${s.note ? IC.editNote : IC.addNote}</button>
                 <button type="button" class="btn-sub-action" data-act="promoteSubtask" title="Возвести в обет">${IC.promote}</button>
-                <button type="button" class="btn-sub-action danger" data-act="deleteSubtask" title="Удалить подпункт">${IC.skull}</button>
+                <button type="button" class="btn-sub-action danger" data-act="deleteSubtask" title="Удалить звено">${IC.skull}</button>
             </div>`}
         </div>
         ${subDlWrap}
@@ -569,7 +569,7 @@ function buildSubtaskItemHTML(taskId, s) {
             <div class="sub-note-inner">
                 <div class="sub-note-text" id="subnote-text-${taskId}-${s.id}"
                      spellcheck="false" data-placeholder="начертайте примечание…"
-                     aria-label="Примечание подпункта"
+                     aria-label="Примечание звена"
                      data-actdbl="_noteEdit"
                      data-actinput="_noteInput"
                      data-actkey="_noteKeydown"
@@ -669,7 +669,7 @@ function renderFormSubtasks() {
         const fDlCd     = fDl ? formatDeadlineCountdown(fDl) : '';
         const fDlCls    = fDlStatus ? ` sub-dl-${fDlStatus}` : '';
         const fDlBadge = fDl
-            ? `<button type="button" class="sub-deadline-badge${fDlCls}" data-act="openFormSubDeadline" title="${escHtml(fDlAbs)}" aria-label="Исход подпункта: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>`
+            ? `<button type="button" class="sub-deadline-badge${fDlCls}" data-act="openFormSubDeadline" title="${escHtml(fDlAbs)}" aria-label="Исход звена: ${escHtml(fDlAbs)} — изменить">${IC.window}</button>`
             : '';
         const fDlSetBtn = fDl
             ? ''
@@ -692,11 +692,11 @@ function renderFormSubtasks() {
             <span class="sub-text" spellcheck="false" title="Двойной клик — переписать" data-actdbl="startFormSubEdit">${escHtml(s.text)}</span>
             ${fDlBadge}
             <div class="sub-actions">
-                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleFormSubPriority" title="Ранг подпункта"><div class="sub-prio-dot"></div></button>
+                <button type="button" class="btn-sub-action sub-prio-btn" data-act="cycleFormSubPriority" title="Ранг звена"><div class="sub-prio-dot"></div></button>
                 <button type="button" class="btn-sub-action sub-repeat-btn${repeatSet ? ' active' : ''}" data-act="openFormSubRepeat" title="${repeatTitle}">${IC.ouroboros}</button>
                 ${fDlSetBtn}
                 <button type="button" class="btn-sub-action btn-sub-note-toggle${s.note ? ' has-note' : ''}" data-pd data-act="toggleFormSubNote" title="${s.note ? 'Переписать примечание' : 'Начертать примечание'}">${s.note ? IC.editNote : IC.addNote}</button>
-                <button type="button" class="btn-sub-action danger" data-act="removeFormSubtask" title="Удалить подпункт">${IC.skull}</button>
+                <button type="button" class="btn-sub-action danger" data-act="removeFormSubtask" title="Удалить звено">${IC.skull}</button>
             </div>
         </div>
         ${fDlWrap}
@@ -704,7 +704,7 @@ function renderFormSubtasks() {
             <div class="sub-note-inner">
                 <div class="sub-note-text" id="form-subnote-text-${i}"
                      spellcheck="false" data-placeholder="начертайте примечание…"
-                     aria-label="Примечание подпункта"
+                     aria-label="Примечание звена"
                      data-actdbl="_noteEdit"
                      data-actinput="_noteInput"
                      data-actkey="_noteKeydown"
@@ -1988,7 +1988,7 @@ function toggleSubNotesAlwaysOpen(taskId) {
         btn.classList.toggle('active', task.subNotesAlwaysOpen);
         // P3: notes revealed → the eye opens; notes hidden → it half-closes
         btn.innerHTML = eyeGlyph(!task.subNotesAlwaysOpen);
-        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания подпунктов';
+        btn.title = task.subNotesAlwaysOpen ? 'Скрыть все примечания' : 'Показать все примечания звеньев';
     }
     saveState();
 }
@@ -2251,7 +2251,7 @@ function promoteSubtask(taskId, subId) {
     _newTaskIds.add(newId);
     task.subtasks = task.subtasks.filter(s => s.id !== subId);
     saveState(); render();
-    showToast('Подпункт возведён в обет');
+    showToast('Звено возведено в обет');
 }
 
 // ── Idea 3: demote a task into a subtask of another task ─────────────────────
@@ -2289,7 +2289,7 @@ function openTaskMoreMenu(event, id) {
         const eff = task.subCheckMode === 'any' ? IC.g4any
                   : task.subCheckMode === 'all' ? IC.g4all
                   : (state.subAnyMode ? IC.g4any : IC.g4all);
-        subModeItem = `<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Чек по подпунктам</span></button>`;
+        subModeItem = `<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Чек по звеньям</span></button>`;
     }
     // F2 (coarse): the card keeps a single ⋯ — ALL configuration moved here.
     // Quick bar = the six former inline sigils as labelled 2-tap targets; the
@@ -2351,10 +2351,10 @@ function _openSubModeMenu(anchorEl, id) {
     const opt = (val, icon, label) =>
         `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" data-act="setTaskSubMode" data-id="${id}" data-mode="${val}">${icon}<span>${label}</span></button>`;
     _openFloatMenu(anchorEl, `
-        <div class="float-menu-head">Чек родителя по подпунктам</div>
+        <div class="float-menu-head">Чек родителя по звеньям</div>
         ${opt('inherit', IC.g4,    'Как везде')}
-        ${opt('any',     IC.g4any, 'По любому подпункту')}
-        ${opt('all',     IC.g4all, 'По всем подпунктам')}`,
+        ${opt('any',     IC.g4any, 'По любому звену')}
+        ${opt('all',     IC.g4all, 'По всем звеньям')}`,
         'submode-menu');
 }
 function setTaskSubMode(id, mode) {
@@ -2374,9 +2374,9 @@ function openSubAnyModeMenu(event) {
     const opt = (val, icon, label) =>
         `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" data-act="setGlobalSubMode" data-mode="${val}">${icon}<span>${label}</span></button>`;
     _openFloatMenu(event.currentTarget, `
-        <div class="float-menu-head">Чек родителя по подпунктам</div>
-        ${opt('all', IC.g4all, 'По всем подпунктам')}
-        ${opt('any', IC.g4any, 'По любому подпункту')}`,
+        <div class="float-menu-head">Чек родителя по звеньям</div>
+        ${opt('all', IC.g4all, 'По всем звеньям')}
+        ${opt('any', IC.g4any, 'По любому звену')}`,
         'submode-menu');
 }
 function setGlobalSubMode(val) {
@@ -2397,8 +2397,8 @@ function updateSubAnyModeBtn() {
     b.classList.toggle('active', !!state.subAnyMode);
     b.innerHTML = state.subAnyMode ? IC.g4any : IC.g4all;
     b.title = state.subAnyMode
-        ? 'Родитель чекается по любому подпункту'
-        : 'Родитель чекается по всем подпунктам';
+        ? 'Родитель чекается по любому звену'
+        : 'Родитель чекается по всем звеньям';
 }
 
 function openDemoteMenu(event, id) {
@@ -2424,7 +2424,7 @@ function _openDemoteMenuAt(anchorEl, id) {
     });
     const showHeaders = !(sections.length === 1 && sections[0].name === 'Без свода');
 
-    let html = '<div class="float-menu-head">В подпункт к…</div>';
+    let html = '<div class="float-menu-head">В звено к…</div>';
     let shown = 0;
     for (const sec of sections) {
         if (shown >= 40) break;
@@ -2446,7 +2446,7 @@ function _pickDemoteTarget(id, targetId) {
         const anchor = _demoteAnchor;
         closeFloatMenu();
         _openFloatMenu(anchor, `
-            <div class="float-menu-head">Подпункты обета…</div>
+            <div class="float-menu-head">Звенья обета…</div>
             <button type="button" role="menuitem" data-act="demoteTask" data-id="${id}" data-target="${targetId}" data-drop="1"><span>Отбросить</span></button>
             <button type="button" role="menuitem" data-act="demoteTask" data-id="${id}" data-target="${targetId}" data-drop="0"><span>Перенести рядом</span></button>`,
             'demote-subs-menu');
@@ -2484,7 +2484,7 @@ function demoteTask(id, targetId, dropSubs) {
     addTombstone(task.uid, 'task');   // Idea 8: the demoted task entity is gone (became a subtask) — tombstone so a merge can't resurrect it
     state.tasks = state.tasks.filter(t => t.id !== id);
     saveState(); render();
-    showToast(dropSubs && hadSubs ? 'Обет низведён в подпункт · подпункты отброшены' : 'Обет низведён в подпункт',
+    showToast(dropSubs && hadSubs ? 'Обет низведён в звено · звенья отброшены' : 'Обет низведён в звено',
               hadSubs ? { undo: true } : undefined);
 }
 
@@ -2515,7 +2515,7 @@ function openSubMoreMenu(event, taskId, subId) {
         `<button type="button" role="menuitemradio" aria-checked="${curP === val}" class="fm-q fm-q-prio${curP === val ? ' active' : ''}" data-act="_subMore" data-more="prio" data-p="${val}" ${ds}><span class="fm-prio-dot p-${val}"></span><span>${label}</span></button>`;
     const repeatSet = sub.repeat && sub.repeat !== 'none';
     _openFloatMenu(event.currentTarget, `
-        <div class="fm-quick fm-quick-4" role="group" aria-label="Ранг подпункта">
+        <div class="fm-quick fm-quick-4" role="group" aria-label="Ранг звена">
             ${pOpt('none', 'Нет')}${pOpt('low', 'Низкий')}${pOpt('medium', 'Средний')}${pOpt('high', 'Высокий')}
         </div>
         <button type="button" role="menuitem" data-act="_subMore" data-more="edit" ${ds}>${IC.quill}<span>Переписать</span></button>
@@ -2523,7 +2523,7 @@ function openSubMoreMenu(event, taskId, subId) {
         <button type="button" role="menuitem" data-act="_subMore" data-more="deadline" ${ds}>${IC.window}<span>${sub.deadline ? 'Изменить исход' : 'Исход'}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="note" ${ds}>${sub.note ? IC.editNote : IC.addNote}<span>${sub.note ? 'Переписать примечание' : 'Примечание'}</span></button>
         <button type="button" role="menuitem" data-act="_subMore" data-more="promote" ${ds}>${IC.promote}<span>Возвести в обет</span></button>
-        <button type="button" role="menuitem" class="fm-danger" data-act="_subMore" data-more="delete" ${ds}>${IC.skull}<span>Удалить подпункт</span></button>`,
+        <button type="button" role="menuitem" class="fm-danger" data-act="_subMore" data-more="delete" ${ds}>${IC.skull}<span>Удалить звено</span></button>`,
         'sub-more-menu');
 }
 function _subMore(act, taskId, subId, p) {
