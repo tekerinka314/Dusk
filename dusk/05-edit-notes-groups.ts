@@ -656,7 +656,10 @@ function _taskNotePersist(ctx, text) {
         mbtn.classList.toggle('edit-note-btn', !!text);
         mbtn.innerHTML = text ? IC.editNote : IC.addNote;
         mbtn.title = text ? 'Переписать примечание в окне' : 'Примечание в окне';
-        mbtn.setAttribute('onclick', text ? `openEditNoteModal(${ctx.id})` : `openNoteModal(${ctx.id})`);
+        // V2-B0-03: раньше здесь ставился инлайновый onclick — единственный
+        // выживший в проекте; он перекрывал data-act, отрисованный createTaskEl
+        // (04:133), и работал только пока функции висели на globalThis.
+        mbtn.setAttribute('data-act', text ? 'openEditNoteModal' : 'openNoteModal');
     }
     saveState();
 }

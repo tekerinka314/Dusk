@@ -168,6 +168,9 @@
 /* ===== RESET ===== */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
+/* V2-B4-06: выделение текста было готическим только в теле Гримуара — везде
+   остальное система рисовала свой синий по почти чёрному. Один тон на всё. */
+::selection { background: rgba(150, 70, 255, 0.30); color: var(--text-primary); }
 
 /* ===== ACCESSIBILITY ===== */
 
@@ -8097,7 +8100,6 @@ kbd {
     pointer-events: none;
 }
 .grim-body a, .grim-leaf a, .grim-body--ro a { color: var(--text-link); }
-.grim-body ::selection, .grim-body::selection { background: rgba(150, 70, 255, 0.30); }
 
 /* ── formatted body elements (shared by editor + read-only) ── */
 .grim-body p, .grim-body--ro p { margin: 0 0 9px; }

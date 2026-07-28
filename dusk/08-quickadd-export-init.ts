@@ -315,7 +315,7 @@ function _toolsMore(act) {
 function exportData(scope) {
     scope = scope || 'all';
     if (scope === 'md') { _exportTasksMarkdown(); return; }   // X-2: readable checklist, not JSON
-    const date = new Date().toISOString().slice(0, 10);
+    const date = _todayStamp();
     let payload, filename;
     if (scope === 'tasks') {
         // Вынимаем только данные Гримуара (записи, склеп, шаблоны записей, сорт записей,
@@ -342,7 +342,7 @@ function exportData(scope) {
 // deadline suffix). Lossy/human-readable — a companion to the JSON backup, not a
 // re-importable format. Order mirrors the app (ungrouped first, then groups by order).
 function _tasksToMarkdown() {
-    const date    = new Date().toISOString().slice(0, 10);
+    const date    = _todayStamp();
     const byOrder = arr => arr.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
     const dlSfx   = dl => (dl && dl.value) ? `  _(до: ${formatDeadlineAbsolute(dl)})_` : '';
     const renderTask = t => {
@@ -363,7 +363,7 @@ function _tasksToMarkdown() {
     return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
 }
 function _exportTasksMarkdown() {
-    const date = new Date().toISOString().slice(0, 10);
+    const date = _todayStamp();
     _grimDownload(`dusk-tasks-${date}.md`, _tasksToMarkdown(), 'text/markdown');
 }
 

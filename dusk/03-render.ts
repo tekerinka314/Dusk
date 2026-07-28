@@ -1078,6 +1078,10 @@ function clearTaskDeadline(id) {
 // all deadline modes. Time-of-day is preserved when the original had one.
 const _pad2 = n => String(n).padStart(2, '0');
 const _ymd  = d => `${d.getFullYear()}-${_pad2(d.getMonth() + 1)}-${_pad2(d.getDate())}`;
+// V2-B6-06 (косметическая половина): штамп «сегодня» для имён свитков и шапки
+// markdown. Раньше каждая точка звала toISOString() — это UTC, и у полуночи
+// свиток получал ЧУЖОЙ день. Дом живёт в локальном времени, штамп тоже.
+const _todayStamp = () => _ymd(new Date());
 
 function _deadlineTimeOfDay(dl) {
     if (!dl) return null;
@@ -2363,6 +2367,6 @@ function taskFromArchive(item) {
 // (mutable top-level let/var declarations were converted to globalThis.* so
 //  every module reads AND writes the same slot — no stale copies).
 Object.assign(globalThis, {
-    _SPLIT_ACTIVE_ICON, _SPLIT_DONE_ICON, _PIN_HDR_CHEVRON, TASK_SORTS, TASK_SORT_ICON, _pad2, _ymd, _gothicPickers,
+    _SPLIT_ACTIVE_ICON, _SPLIT_DONE_ICON, _PIN_HDR_CHEVRON, TASK_SORTS, TASK_SORT_ICON, _pad2, _ymd, _todayStamp, _gothicPickers,
     selectedArchiveIds, selectedTaskIds,
 });
