@@ -1510,6 +1510,14 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
   `D:\tmp\pw\b1\s4_p2_multitab.mjs` (raw `audit-v2/shots/s4/p2_multitab.json`).
 - **Severity:** UI 2 · DL 2 · RR 1 · IC 2 · CF 3 — **[RATIFIED-FABLE 2026-07-12]** (DL 2) — frequency
   is an **E (needs-user)** question (see below).
+- ✅ **FIXED 2026-07-28 (W3, блок 4)** — ратифицированный минимально-безопасный вариант
+  вжит в `01-core.ts`: слушатель `storage` на `K_STATE` поднимает `_lsForeignWrite`;
+  следующее `saveState` (после `bumpUpdatedAt`, до записи) перечитывает LS и гоняет
+  чужой блоб через штатный `mergeStates` с базой `_lsMineJson` = последний блоб ЭТОЙ
+  вкладки, затем `applySyncSubset` + `normalizeState` + отложенный `render()`.
+  Конфликты попадают в тот же карантинный журнал, что и у синка. Замки:
+  `tests/multitab-reconcile.test.mjs` (5 кейсов, red-green) + зонд по реальным двум
+  вкладкам `D:/tmp/pw/b1/w3_b602_multitab.mjs` 8/8 (инверсия `s4_p2_multitab`).
 - **RATIFIED-FABLE 2026-07-12:** Real (grep confirms no `storage` listener / BroadcastChannel in
   dusk/), exposure LOW (user: usually one tab). **Fix decision: DEFER to W3, minimal-safe variant**
   — a `storage`-event listener on `K_STATE` that (a) sets a `_lsForeignWrite` flag; (b) on this

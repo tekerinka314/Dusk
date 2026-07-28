@@ -9,6 +9,8 @@ declare var _idbKvGet: any;
 declare var _idbKvSet: any;
 declare var _lastIdbStateJson: any;
 declare var _quotaWarned: any;
+declare var _lsForeignWrite: any;
+declare var _lsMineJson: any;
 declare var _lastSaveSeq: any;
 declare var _stateLoaded: any;
 declare var _stateLoadedResolve: any;
@@ -1252,8 +1254,56 @@ function playLoadAnimations() {
 // ============================================================
 //  PERSISTENCE
 // ============================================================
+// ── V2-B6-02: две вкладки на одном origin ────────────────────────────────────
+// LS у вкладок общий, а in-memory `state` — свой у каждой. Раньше последнее
+// сохранение писало свой блоб ЦЕЛИКОМ и стирало правку соседа молча (для юзера
+// без синка — навсегда). Минимально-безопасный вариант (ратифицирован):
+// событие `storage` только ПОДНИМАЕТ ФЛАГ (перерисовывать чужой блоб посреди
+// правки нельзя — снесёт то, что человек сейчас печатает), а следующее
+// сохранение этой вкладки сперва мержит чужой блоб ШТАТНЫМ 3-way движком синка.
+// База 3-way = последний блоб, записанный ЭТОЙ вкладкой (строка уже посчитана
+// в saveState, поэтому хранение бесплатно и горячий путь не платит ничего).
+globalThis._lsForeignWrite = false;
+globalThis._lsMineJson     = null;
+
+try {
+    window.addEventListener('storage', (e) => {
+        // Браузер шлёт `storage` только ДРУГИМ документам — своё письмо тихое.
+        if (!e || e.key !== K_STATE || e.newValue == null) return;
+        _lsForeignWrite = true;
+    });
+} catch (_) { /* нет window (тесты/воркер) — мультитаба там тоже нет */ }
+
+// Слить чужой блоб в свой state. Зовётся ИЗ saveState — до записи, но ПОСЛЕ
+// bumpUpdatedAt (иначе локальная правка ушла бы в мерж без свежего штампа и
+// проиграла бы чужой). Ничего не рендерит синхронно: saveState зовут из
+// середины мутаций, render() там был бы реэнтрантным.
+function _reconcileForeignState() {
+    _lsForeignWrite = false;                       // флаг одноразовый: чужая запись обработана
+    if (typeof mergeStates !== 'function' || typeof getSyncSubset !== 'function'
+        || typeof applySyncSubset !== 'function') return;          // 09 ещё не загружен
+    let foreign = null;
+    try { foreign = JSON.parse(localStorage.getItem(K_STATE) || 'null'); } catch (_) { /* мусор в LS */ }
+    if (!foreign || typeof foreign !== 'object') return;
+    let mine = null;
+    if (_lsMineJson) { try { mine = JSON.parse(_lsMineJson); } catch (_) {} }
+    try {
+        // base=null (первое сохранение вкладки) движок трактует как объединение —
+        // безопасная деградация: ничего не теряем, разве что удаление соседа
+        // разрешится по надгробию, а не по диффу.
+        const out = mergeStates(mine ? getSyncSubset(mine) : null,
+                                getSyncSubset(state), getSyncSubset(foreign), {});
+        applySyncSubset(state, out.merged);
+        normalizeState();                          // пере-праймит сигнатуры → bump не переклеймит чужие записи
+        if (typeof render === 'function') setTimeout(() => { try { render(); } catch (_) {} }, 0);
+    } catch (e) {
+        try { console.error('[dusk] multitab reconcile failed', e); } catch (_) {}
+    }
+}
+
 function saveState() {
     try { bumpUpdatedAt(); } catch (_) { /* updatedAt is best-effort — never block a save */ }
+    if (_lsForeignWrite) _reconcileForeignState();          // V2-B6-02: чужая запись — слить ДО своей
     // V2-B0-02: blob-level monotonic save counter. loadState compares it across
     // the two persistence layers so the NEWER of LS/IDB wins at boot (IDB used
     // to win unconditionally and could clobber a fresher LS). The seq bumps
@@ -1276,6 +1326,7 @@ function saveState() {
     // edit survives there and the next boot can recover it.
     try {
         localStorage.setItem(K_STATE, json);                // K_STATE === v4 — LS stays the live fallback forever
+        _lsMineJson    = json;                              // V2-B6-02: база 3-way для мультитаба
         _quotaWarned = false;                               // storage writable again — re-arm the warning
     } catch (e) {
         if (!_quotaWarned) {
