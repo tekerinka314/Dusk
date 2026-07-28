@@ -43,6 +43,46 @@ function corsHeaders(env, request) {
     };
 }
 
+// B11-04: CORS-заголовок прячет ответ только от БРАУЗЕРА — сам запрос воркер уже
+// обработал, и не-браузерный клиент (curl) получал ответ целиком. А /exchange и
+// /refresh — это оракул `client_secret`: с украденным refresh_token они меняют его
+// на access-токен именно через нас. Поэтому Origin проверяется НА СЕРВЕРЕ и чужой
+// получает 403 ДО того, как мы пойдём в Google.
+// ⚠ Пустой ALLOWED_ORIGIN = «не настроено» → пропускаем (иначе кривой деплой молча
+// убил бы синк). Заголовок Origin браузер шлёт всегда: воркер живёт на другом
+// origin, чем приложение, значит запрос кросс-доменный по определению.
+function originAllowed(env, request) {
+    const allowed = String(env.ALLOWED_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!allowed.length) return true;
+    const origin = request && request.headers.get('Origin');
+    return !!origin && allowed.includes(origin);
+}
+
+// B11-04: потолок тела. Обе полезные нагрузки — короткий JSON (code/redirect_uri или
+// refresh_token); всё, что крупнее, это не наш клиент. Читаем текстом и меряем сами:
+// заголовок Content-Length подделывается, а `request.json()` на большом теле уже
+// потратил бы память.
+const MAX_BODY_BYTES = 8 * 1024;
+async function readJsonCapped(request) {
+    const raw = await request.text();
+    if (raw.length > MAX_BODY_BYTES) return { tooBig: true };
+    try { return { body: JSON.parse(raw) }; } catch (_) { return { bad: true }; }
+}
+
+// B11-04: лимит частоты через штатный биндинг (`[[ratelimits]]` в wrangler.toml).
+// Своего состояния не заводим — модульные переменные в воркере протекают между
+// запросами. Биндинга нет (старый wrangler / план без него) → тихо пропускаем:
+// отсутствие лимита хуже, чем мёртвый синк.
+async function rateLimited(env, request, bucket) {
+    const rl = env && env.SYNC_LIMITER;
+    if (!rl || typeof rl.limit !== 'function') return false;
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    try {
+        const { success } = await rl.limit({ key: bucket + ':' + ip });
+        return !success;
+    } catch (_) { return false; }
+}
+
 function jsonResponse(obj, env, request, status) {
     return new Response(JSON.stringify(obj), {
         status: status || 200,
@@ -52,9 +92,11 @@ function jsonResponse(obj, env, request, status) {
 
 // POST /exchange { code, redirect_uri, code_verifier? } → { access_token, refresh_token, expires_in }
 async function handleExchange(request, env) {
-    let body;
-    try { body = await request.json(); } catch (_) { return jsonResponse({ error: 'bad_json' }, env, request, 400); }
-    if (!body.code || !body.redirect_uri) return jsonResponse({ error: 'missing_code_or_redirect' }, env, request, 400);
+    const parsed = await readJsonCapped(request);
+    if (parsed.tooBig) return jsonResponse({ error: 'body_too_large' }, env, request, 413);
+    if (parsed.bad)    return jsonResponse({ error: 'bad_json' }, env, request, 400);
+    const body = parsed.body;
+    if (!body || !body.code || !body.redirect_uri) return jsonResponse({ error: 'missing_code_or_redirect' }, env, request, 400);
     const params = new URLSearchParams({
         client_id: env.GOOGLE_CLIENT_ID,
         client_secret: env.GOOGLE_CLIENT_SECRET,
@@ -73,9 +115,11 @@ async function handleExchange(request, env) {
 
 // POST /refresh { refresh_token } → { access_token, expires_in }
 async function handleRefresh(request, env) {
-    let body;
-    try { body = await request.json(); } catch (_) { return jsonResponse({ error: 'bad_json' }, env, request, 400); }
-    if (!body.refresh_token) return jsonResponse({ error: 'missing_refresh_token' }, env, request, 400);
+    const parsed = await readJsonCapped(request);
+    if (parsed.tooBig) return jsonResponse({ error: 'body_too_large' }, env, request, 413);
+    if (parsed.bad)    return jsonResponse({ error: 'bad_json' }, env, request, 400);
+    const body = parsed.body;
+    if (!body || !body.refresh_token) return jsonResponse({ error: 'missing_refresh_token' }, env, request, 400);
     const params = new URLSearchParams({
         client_id: env.GOOGLE_CLIENT_ID,
         client_secret: env.GOOGLE_CLIENT_SECRET,
@@ -97,11 +141,26 @@ export default {
         const url = new URL(request.url);
         if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(env, request) });
 
-        if (url.pathname === '/exchange' && request.method === 'POST') return handleExchange(request, env);
-        if (url.pathname === '/refresh'  && request.method === 'POST') return handleRefresh(request, env);
+        // B11-04: серверная проверка Origin для ВСЕХ путей, где что-то стоит на кону —
+        // токенные эндпойнты и комната будилки (у WebSocket CORS нет вовсе).
+        const guarded = url.pathname === '/exchange' || url.pathname === '/refresh' || url.pathname === '/ws';
+        if (guarded && !originAllowed(env, request)) {
+            return new Response('forbidden origin', { status: 403, headers: corsHeaders(env, request) });
+        }
+
+        if (url.pathname === '/exchange' && request.method === 'POST') {
+            if (await rateLimited(env, request, 'exchange')) return jsonResponse({ error: 'rate_limited' }, env, request, 429);
+            return handleExchange(request, env);
+        }
+        if (url.pathname === '/refresh' && request.method === 'POST') {
+            if (await rateLimited(env, request, 'refresh')) return jsonResponse({ error: 'rate_limited' }, env, request, 429);
+            return handleRefresh(request, env);
+        }
 
         if (url.pathname === '/ws') {
-            const room = url.searchParams.get('room') || 'default';
+            // Имя комнаты = SHA-256 от fileId (см. dusk/12-sync-wake.ts) — 64 hex-символа.
+            // Длину режем, чтобы чужой не насоздавал произвольное число объектов-комнат.
+            const room = (url.searchParams.get('room') || 'default').slice(0, 128);
             const id = env.SYNC_ROOM.idFromName(room);
             return env.SYNC_ROOM.get(id).fetch(request);
         }
@@ -129,7 +188,11 @@ export class SyncRoom {
     }
 
     // Any message from one device → forward verbatim to the others (a "changed" nudge).
+    // B11-04: нудж — это один байт. Всё, что длиннее потолка, не ретранслируем: иначе
+    // комната работает бесплатным усилителем трафика для того, кто в неё попал.
     async webSocketMessage(ws, message) {
+        const len = typeof message === 'string' ? message.length : (message && message.byteLength) || 0;
+        if (len > 256) { try { ws.send('too_big'); } catch (_) {} return; }
         for (const peer of this.state.getWebSockets()) {
             if (peer !== ws) { try { peer.send(message); } catch (_) { /* peer gone */ } }
         }
@@ -138,6 +201,6 @@ export class SyncRoom {
     async webSocketError(ws) { try { ws.close(); } catch (_) {} }
 }
 
-// Named exports for the node test (_workertest.mjs) — it drives the pure OAuth
-// handlers with a mocked global fetch. The Workers runtime ignores extra exports.
-export { handleExchange, handleRefresh };
+// Named exports for the node test (tests/worker-oauth.test.mjs) — оно гоняет чистые
+// обработчики с подменённым global fetch. Рантайм Workers лишние экспорты игнорирует.
+export { handleExchange, handleRefresh, originAllowed, readJsonCapped, MAX_BODY_BYTES };

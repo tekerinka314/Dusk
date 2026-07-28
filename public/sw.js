@@ -23,7 +23,7 @@
 // (only `basic` same-origin + `cors`), and every cross-origin asset we DO want
 // offline (Google Fonts CSS, SortableJS) carries `crossorigin` so it comes back as
 // `cors`. v4 also re-purges the v3 cache that had re-accumulated font padding.
-const CACHE = 'dusk-shell-v9';   // v9: start_url→"./" fix + redirect-safe navigations (v8: Vite single bundle)
+const CACHE = 'dusk-shell-v10';   // v10: +icon-maskable.svg в прекеше (B12-01); v9: start_url fix + redirect-safe navigations (v8: Vite single bundle)
 const NET_TIMEOUT_MS = 2500;   // online shell fetch waits this long, then serves cache
 
 // G4-1: split the shell so a heavy/decorative asset can't abort the whole install.
@@ -43,6 +43,7 @@ const CORE_ASSETS = [
     './version.json',
     './icon-192.svg',
     './icon-512.svg',
+    './icon-maskable.svg',   // B12-01: maskable-вариант — тоже часть оболочки
 ];
 const OPTIONAL_ASSETS = [
     './bg-gothic.jpg',

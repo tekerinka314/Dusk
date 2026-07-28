@@ -4,7 +4,22 @@
 #   wrangler secret put GOOGLE_CLIENT_SECRET
 name = "dusk-sync"
 main = "src/index.js"
-compatibility_date = "2025-06-01"
+compatibility_date = "2026-07-28"
+
+# B11-04: логи и трейсы воркера (без них отладка синка вслепую). Сэмплинг полный —
+# трафик тут пара устройств, не поток.
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# B11-04: штатный лимит частоты на токенные эндпойнты, по IP. Живое устройство ходит
+# в /refresh примерно раз в час, поэтому 30 запросов в минуту — заведомо выше любого
+# честного всплеска и заведомо ниже перебора. ⚠ Требует wrangler ≥ 4.36; если биндинг
+# не поднимется, код это переживёт (see rateLimited() — тихо пропускает).
+[[ratelimits]]
+name = "SYNC_LIMITER"
+namespace_id = "1001"
+simple = { limit = 30, period = 60 }
 
 # Non-secret vars. ALLOWED_ORIGIN locks /exchange + /refresh to the app's own
 # origin (CORS) so a random site can't use your Worker to mint tokens. Comma-

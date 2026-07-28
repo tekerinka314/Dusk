@@ -18,7 +18,7 @@ A single-page, offline-first gothic task manager (PWA). Vanilla JS built with
 - `style.css` — all styling and animations (bundled by Vite, emitted unhashed
   as `style.css`; bg-gothic.jpg is 284 KB, resolved from public/ at runtime).
 - `public/` — runtime-fetched statics copied verbatim to dist: `sw.js`,
-  `version.json`, `manifest.json`, icons, `bg-gothic.jpg`, `pen-asset.js`,
+  `version.json`, `manifest.json`, иконки (вкл. `icon-maskable.svg` — B12-01), `bg-gothic.jpg`, `pen-asset.js`,
   `_headers`.
 - `public/pen-asset.js` — the «Звук пера» base64 audio sample. Classic script
   tag BEFORE the module entry (sets `window.PEN_ASSET`); decoded via `atob`.
@@ -45,7 +45,7 @@ Commands: `npm test` (vitest), `npm run e2e` (Playwright-смоук: сам со
 dist и поднимает `vite preview`; браузер — СИСТЕМНЫЙ Chrome, бандл не качаем),
 `npm run dev` (Vite dev server), `npm run build` (→ dist/, stable names
 `app.js`/`style.css` — the hand-rolled network-first `sw.js` precaches by exact
-name, CACHE `dusk-shell-v9`), `npm run preview`.
+name, CACHE `dusk-shell-v10`), `npm run preview`.
 
 ## Skill usage — auto-invoke BEFORE responding (MANDATORY)
 
