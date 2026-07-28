@@ -211,7 +211,7 @@ function _groupHeaderHTML(group, done, total, grpSched, grpSortMode, hasOverride
     return `
                 <div class="group-drag-handle" data-act="noop" title="Перетащить свод">${IC.drag}</div>
                 <div class="group-color-dot" style="background:${group.color}"></div>
-                <span class="group-title">${escHtml(group.name)}</span>
+                <span class="group-title" role="heading" aria-level="3">${escHtml(group.name)}</span>
                 <span class="group-count">${done}/${total}</span>${actions}
                 <span class="group-chevron">${IC.sword}</span>`;
 }

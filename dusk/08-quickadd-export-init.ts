@@ -6,7 +6,6 @@ declare var _focusedTaskId: any;
 declare var _focusedByKeyboard: any;
 declare var _focusedArchiveId: any;
 declare var _shortcutsHintOpen: any;
-declare var _taskHintHTML: any;
 declare var _toolsMenuAnchor: any;
 
 // ── ES-module bridge (migration 2a), part 1: HOISTED functions ──────────────
@@ -890,28 +889,51 @@ function setupEventListeners() {
 // UX-3: replaced auto-show-on-load with an always-accessible ? button.
 
 globalThis._shortcutsHintOpen = false;
-globalThis._taskHintHTML = null;// the task-page (main) hint markup, captured once from the DOM
-// cross-app #5: each context has its OWN key set. The crypt/archive have few or none —
-// показывать task-клавиши там было бы ложью. &nbsp; keeps each pair from wrapping mid-token.
-const _NOTES_HINT_HTML =                       // notes · «Записи» (active grimoire)
-    '<kbd>N</kbd> новая &nbsp;·&nbsp; <kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; ' +
-    '<kbd>E</kbd> переписать &nbsp;·&nbsp; <kbd>Del</kbd> в склеп &nbsp;·&nbsp; <kbd>T</kbd> приковать &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> зов &nbsp;·&nbsp; <kbd>F3</kbd> совпадение &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена &nbsp;·&nbsp; ' +
-    '<kbd>S</kbd> синхронизация';
-const _CRYPT_HINT_HTML =                        // notes · «Склеп» (read-only crypt: nav + search only)
-    '<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новая запись &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> зов &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
-const _TASK_ARCHIVE_HINT_HTML =                 // tasks archive: nav + search + forge-new (jumps to Tasks)
-    '<kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp; <kbd>N</kbd> новый обет &nbsp;·&nbsp; ' +
-    '<kbd>Ctrl+F</kbd> зов &nbsp;·&nbsp; <kbd>S</kbd> синхронизация';
+// V2-B5-06: раньше легенда была рукописной HTML-строкой в разметке (плюс три
+// строки-близнеца здесь) и разошлась с обработчиком: Ctrl+F, F3/Shift+F3, Esc,
+// Backspace и Enter в зове работали, но нигде не объявлялись. Рукопись врёт
+// молча, поэтому истина ОДНА — таблица ниже, а разметка легенды строится из неё.
+// cross-app #5: у каждого створа свой набор — задачные клавиши в склепе были бы
+// ложью. `&nbsp;` держит пару «клавиша + подпись» от переноса посередине.
+const _KEY_CTX_ALL = ['tasks', 'archive', 'notes', 'crypt'];
+const SHORTCUT_KEYS = [
+    { keys: ['N'],              label: 'новый обет',   on: ['tasks', 'archive'] },
+    { keys: ['N'],              label: 'новая запись', on: ['notes', 'crypt'] },
+    { keys: ['J', 'K'],         label: 'навигация',    on: _KEY_CTX_ALL },
+    { keys: ['/'],              label: 'зов',          on: ['tasks'] },
+    { keys: ['Ctrl+F'],         label: 'зов',          on: ['archive', 'notes', 'crypt'] },
+    { keys: ['F3', 'Shift+F3'], label: 'совпадение',   on: ['notes'] },
+    { keys: ['Enter'],          label: 'по совпадениям в зове', on: ['notes'] },
+    { keys: ['X'],              label: 'исполнить',    on: ['tasks'] },
+    { keys: ['E'],              label: 'переписать',   on: ['tasks', 'notes'] },
+    { keys: ['D'],              label: 'отлить копию', on: ['tasks'] },
+    { keys: ['Del', 'Backspace'], label: 'в склеп',    on: ['tasks'] },
+    { keys: ['Del'],            label: 'в склеп',      on: ['notes'] },
+    { keys: ['P'],              label: 'ранг',         on: ['tasks'] },
+    { keys: ['L'],              label: 'исход',        on: ['tasks'] },
+    { keys: ['M'],              label: 'примечание',   on: ['tasks'] },
+    { keys: ['R'],              label: 'круговорот',   on: ['tasks'] },
+    { keys: ['T'],              label: 'приковать',    on: ['tasks', 'notes'] },
+    { keys: ['Ctrl+Z'],         label: 'отмена',       on: _KEY_CTX_ALL },
+    { keys: ['Ctrl+Y'],         label: 'возврат',      on: _KEY_CTX_ALL },
+    { keys: ['Esc'],            label: 'закрыть',      on: _KEY_CTX_ALL },
+    { keys: ['S'],              label: 'синхронизация', on: _KEY_CTX_ALL },
+];
+
+// Створ, в котором пользователь сейчас находится (страница + сегмент Гримуара).
+function _shortcutsCtx() {
+    if (currentPage === 'notes')   return grimMode === 'archive' ? 'crypt' : 'notes';
+    if (currentPage === 'archive') return 'archive';
+    return 'tasks';
+}
 
 // Pick the hint markup for the CURRENT context (page + grimoire segment).
 function _shortcutsHintHTML() {
-    const hint = document.getElementById('shortcuts-hint') as any;
-    if (_taskHintHTML === null && hint) _taskHintHTML = hint.innerHTML;   // snapshot the task set once
-    if (currentPage === 'notes')   return grimMode === 'archive' ? _CRYPT_HINT_HTML : _NOTES_HINT_HTML;
-    if (currentPage === 'archive')  return _TASK_ARCHIVE_HINT_HTML;
-    return _taskHintHTML || '';                  // main tasks page
+    const ctx = _shortcutsCtx();
+    return SHORTCUT_KEYS
+        .filter(e => e.on.indexOf(ctx) !== -1)
+        .map(e => e.keys.map(k => '<kbd>' + k + '</kbd>').join('') + ' ' + e.label)
+        .join(' &nbsp;·&nbsp; ');
 }
 
 // Live-sync the open hint with the active tab/segment so a stale set never lingers.
@@ -925,7 +947,6 @@ function toggleShortcutsHint() {
     const hint = document.getElementById('shortcuts-hint') as any;
     const btn = document.getElementById('btn-shortcuts-toggle') as any;
     if (!hint) return;
-    if (_taskHintHTML === null) _taskHintHTML = hint.innerHTML;   // snapshot the task set once
     _shortcutsHintOpen = !_shortcutsHintOpen;
     if (_shortcutsHintOpen) {
         hint.innerHTML = _shortcutsHintHTML();   // hint follows the current context
@@ -1696,7 +1717,7 @@ init().catch(e => { try { console.error('DUSK boot failed', e); } catch (_) {} }
 // (mutable top-level let/var declarations were converted to globalThis.* so
 //  every module reads AND writes the same slot — no stale copies).
 Object.assign(globalThis, {
-    _EXPORT_TASKS_IC, _EXPORT_MD_IC, _NOTES_HINT_HTML, _CRYPT_HINT_HTML, _TASK_ARCHIVE_HINT_HTML, segInputs, SegmentedInput,
+    _EXPORT_TASKS_IC, _EXPORT_MD_IC, SHORTCUT_KEYS, segInputs, SegmentedInput,
 });
 
 // ============================================================

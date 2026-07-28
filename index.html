@@ -103,7 +103,11 @@
         </nav>
 
         <!-- ======== MAIN PAGE ======== -->
-        <div id="main-page">
+        <!-- V2-B5-05: у страниц не было ни ориентира, ни заголовка — скринридер
+             видел один nav и одно слово «DUSK». Ориентир на видимой странице
+             ровно один: скрытые (display:none) в дерево доступности не входят. -->
+        <div id="main-page" role="main" aria-label="Обеты">
+            <h2 class="sr-only">Обеты</h2>
             <!-- B4-01: inner layout wrapper — switchPage owns #main-page's inline
                  display, so the ≥1440px grid lives on this untouched child. -->
             <div id="main-grid">
@@ -129,13 +133,18 @@
             <!-- Input Section -->
             <div class="input-section">
                 <div class="row" id="input-row">
-                    <input type="text" id="input-box" placeholder="Новый обет…" autocomplete="off" spellcheck="false" maxlength="200" autocapitalize="off" autocorrect="off" enterkeyhint="done">
+                    <input type="text" id="input-box" placeholder="Новый обет…" aria-describedby="qa-syntax-hint" autocomplete="off" spellcheck="false" maxlength="200" autocapitalize="off" autocorrect="off" enterkeyhint="done">
                     <button class="btn-add" id="btn-add" data-act="addTask" title="Дать обет">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-cross-add"/></svg>
                     </button>
                 </div>
-                <!-- Idea 4: quick-add syntax hint — appears while the input is focused -->
-                <div class="qa-syntax-hint" id="qa-syntax-hint" aria-hidden="true">
+                <!-- Idea 4: quick-add syntax hint — appears while the input is focused.
+                     V2-B5-10: подсказка была aria-hidden, то есть ЕДИНСТВЕННЫЙ учитель
+                     синтаксиса для скринридера не существовал. Теперь поле ссылается на
+                     неё через aria-describedby, а сама подсказка несёт словесную запись
+                     (знаки подряд «* % !» на слух неразличимы). -->
+                <div class="qa-syntax-hint" id="qa-syntax-hint"
+                     aria-label="Быстрый ввод: звёздочка — метка, процент — дата, восклицательный знак — ранг">
                     <span><b>*</b>тег</span>
                     <span><b>%</b>дата</span>
                     <span><b>!</b>ранг</span>
@@ -729,13 +738,13 @@
         </div><!-- /main-page -->
 
         <!-- ======== ARCHIVE PAGE ======== -->
-        <div id="archive-page" style="display:none">
+        <div id="archive-page" style="display:none" role="main" aria-label="Склеп">
             <div class="archive-header">
-                <h3 class="archive-title" id="archive-title-icon">
+                <h2 class="archive-title" id="archive-title-icon">
                     <!-- AA1b: same rectilinear tomb chest as the Archive nav tab (13px pixel grid) -->
                     <svg aria-hidden="true" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter"><use href="#icon-tomb"/></svg>
                     Склеп
-                </h3>
+                </h2>
                 <!-- Archive search — full width row below title, no focus border -->
                 <div class="archive-search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-scrying"/></svg>
@@ -799,7 +808,8 @@
         <!-- ======== GRIMOIRE (NOTES) PAGE ======== -->
         <!-- п11 · этап 0 — каркас: мульти-заметки, поле заглавия, автосейв, поиск.
              Компоновка «Кодекс» (master–detail). Содержимое рисует renderNotes(). -->
-        <div id="notes-page" style="display:none">
+        <div id="notes-page" style="display:none" role="main" aria-label="Гримуар">
+            <h2 class="sr-only">Гримуар</h2>
             <div class="grim-bar">
                 <div class="grim-segment" role="tablist" aria-label="Створы Гримуара">
                     <!-- Сегменты Гримуара = тот же навигационный язык, что и нав-табы: том (AA1)
@@ -1157,7 +1167,7 @@
              one-shot deadline. Label/sub are set per mode by _updateDlRepeatToggle. -->
         <button type="button" class="dl-repeat-toggle on" id="dl-repeat-toggle" hidden
                 role="switch" aria-checked="true" data-act="toggleDlAutoRepeat"
-                title="Авто-круговорот исхода">
+                title="Перенос исхода">
             <span class="dl-rt-glyph" aria-hidden="true">
                 <!-- Лунный круг — венец фаз луны вокруг полнолуния (мотив DUSK) -->
                 <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -1565,16 +1575,9 @@
 </button>
 
 <!-- Shortcuts Hint -->
-<div class="shortcuts-hint" id="shortcuts-hint" style="display:none">
-    <kbd>N</kbd> новый обет &nbsp;·&nbsp; <kbd>/</kbd> зов &nbsp;·&nbsp;
-    <kbd>J</kbd><kbd>K</kbd> навигация &nbsp;·&nbsp;
-    <kbd>X</kbd> исполнить &nbsp;·&nbsp; <kbd>E</kbd> переписать &nbsp;·&nbsp;
-    <kbd>D</kbd> отлить копию &nbsp;·&nbsp; <kbd>Del</kbd> в склеп &nbsp;·&nbsp;
-    <kbd>P</kbd> ранг &nbsp;·&nbsp; <kbd>L</kbd> исход &nbsp;·&nbsp;
-    <kbd>M</kbd> примечание &nbsp;·&nbsp; <kbd>R</kbd> круговорот &nbsp;·&nbsp;
-    <kbd>T</kbd> приковать &nbsp;·&nbsp; <kbd>Ctrl+Z</kbd> отмена &nbsp;·&nbsp; <kbd>Ctrl+Y</kbd> возврат &nbsp;·&nbsp;
-    <kbd>S</kbd> синхронизация
-</div>
+<!-- V2-B5-06: содержимое строится из таблицы клавиш (`SHORTCUT_KEYS`, 08) под
+     текущий створ — рукопись здесь снова разошлась бы с обработчиком. -->
+<div class="shortcuts-hint" id="shortcuts-hint" style="display:none"></div>
 
 <!-- SVG defs — reusable gradients + symbols -->
 <svg width="0" height="0" style="position:absolute;overflow:hidden">
