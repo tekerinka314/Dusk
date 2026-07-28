@@ -159,7 +159,7 @@
                             <label class="field-label">Витраж</label>
                             <div class="form-color-picker" id="form-color-picker">
                                 <button class="form-color-swatch active" data-color="" title="Без витража">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><use href="#icon-swords"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><use href="#icon-vial-none"/></svg>
                                 </button>
                                 <button class="form-color-swatch" data-color="#6C8EF5" style="background:#6C8EF5" title="Синий"></button>
                                 <button class="form-color-swatch" data-color="#6CD4F5" style="background:#6CD4F5" title="Голубой"></button>
@@ -1353,14 +1353,7 @@
         <div class="modal-actions">
             <button class="btn-modal-cancel btn-modal-clear" data-act="commitColorClear" title="Убрать витраж">
                 <!-- H2 фиал, перечёркнутый — «убрать цвет» (тот же мотив, отрицание) -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/>
-                    <line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/>
-                    <line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/>
-                    <path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/>
-                    <circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/>
-                    <line x1="5.2" y1="19.4" x2="18.8" y2="4.6" stroke-width="1.6"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-vial-none"/></svg>
                 Без витража
             </button>
             <button class="btn-modal-cancel" data-act="closeTaskColorModal">Отмена</button>
@@ -1719,8 +1712,19 @@
     <!-- AX · Кованый крест с перекладинами, бусинами-навершиями и центральным боссом —
          «дать / добавить». Одна копия: кнопка обета и IC.crossAdd (новый свод). -->
     <symbol id="icon-cross-add" viewBox="0 0 24 24"><line x1="12" y1="4.8" x2="12" y2="19.2"/><line x1="4.8" y1="12" x2="19.2" y2="12"/><line x1="10.2" y1="6.4" x2="13.8" y2="6.4" stroke-width="1.4"/><line x1="10.2" y1="17.6" x2="13.8" y2="17.6" stroke-width="1.4"/><line x1="6.4" y1="10.2" x2="6.4" y2="13.8" stroke-width="1.4"/><line x1="17.6" y1="10.2" x2="17.6" y2="13.8" stroke-width="1.4"/><circle cx="12" cy="4" r="1" stroke-width="1.3"/><circle cx="12" cy="20" r="1" stroke-width="1.3"/><circle cx="4" cy="12" r="1" stroke-width="1.3"/><circle cx="20" cy="12" r="1" stroke-width="1.3"/><circle cx="12" cy="12" r="1.5" stroke-width="1.4"/></symbol>
+    <!-- VN1 · Витражный сосуд, перечёркнутый наискось — «без витража». Тот же сосуд,
+         что несёт витраж в остальных точках, только зачёркнут: одно понятие — один
+         мотив. Две копии: свотч формы обета и кнопка «Убрать витраж» в модалке. -->
+    <symbol id="icon-vial-none" viewBox="0 0 24 24">
+      <line x1="10.4" y1="2.6" x2="13.6" y2="2.6" stroke-width="1.4"/>
+      <line x1="11" y1="2.6" x2="11" y2="6.2" stroke-width="1.3"/>
+      <line x1="13" y1="2.6" x2="13" y2="6.2" stroke-width="1.3"/>
+      <path d="M11 6.2C8.4 8.2 7 10.6 7 13.6C7 17.6 9.2 19.9 12 19.9C14.8 19.9 17 17.6 17 13.6C17 10.6 15.6 8.2 13 6.2Z" stroke-width="1.6"/>
+      <circle cx="10.6" cy="16.6" r="0.7" stroke-width="1" opacity="0.5"/>
+      <line x1="5.2" y1="19.4" x2="18.8" y2="4.6" stroke-width="1.6"/>
+    </symbol>
     <!-- X1 · Скрещённые мечи с навершиями-жемчужинами — «оборвать/снять». Одна копия
-         на всех: три поля зова, «Отклонить» Гримуара и свотч «Без витража». -->
+         на всех: три поля зова и «Отклонить» Гримуара. -->
     <symbol id="icon-swords" viewBox="0 0 24 24"><path d="M5.6 5.6L16 16"/>
       <path d="M16 16L18.7 18.7" stroke-width="2.4"/>
       <path d="M4.0 7.0L7.0 4.0" opacity=".9"/>
