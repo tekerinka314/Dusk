@@ -735,9 +735,13 @@ function plainTextPaste(e) {
 
 /** Attach plain-text paste to all contenteditable note fields after render. */
 function attachPlainPasteHandlers() {
+    // O-1: раньше на КАЖДОМ рендере снимался и вешался обработчик на каждый узел
+    // (11 мс на 200 обетах). Узлы строк переиспользуются рендером (кэш `_liCache`),
+    // так что помечаем обработанные — новый узел получит обработчик, старый не платит.
     document.querySelectorAll<HTMLElement>('.task-note-text, .sub-note-text, .sub-text[contenteditable="true"]')
         .forEach(el => {
-            el.removeEventListener('paste', plainTextPaste);
+            if (el.dataset.pasteWired === '1') return;
+            el.dataset.pasteWired = '1';
             el.addEventListener('paste', plainTextPaste);
         });
 }

@@ -80,7 +80,7 @@ declare var _recSig: any;
 // ran; publish them first so load-time cross-module calls keep working.
 Object.assign(globalThis, {
     coffinSVG, cycleCoffinSVG, subCoffinSVG, eyeGlyph, qaSigil, hexToRgb, prefersReducedMotion, _pickerOpenUp, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
-    _resetDragHandle, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
+    _resetDragHandle, replayAnim, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
     loadState, _migrateV3toV4, migrateTasks, uid, nowTs, _contentSig, _trackedRecords, primeRecSig,
     bumpUpdatedAt, addTombstone, _delegate, normalizeState, _sanitizeIdentity, migrateFromOld, loadUiState, saveUiState, pushUndo,
     pushUndoSnapshot, undo, redo, _idbGet, _idbSet,
@@ -843,6 +843,23 @@ function setupDragHandleObserver() {
         items.forEach(item => _positionOneHandle(item));
     });
     document.querySelectorAll('.task-item .task-content').forEach(el => _dragHandleObserver.observe(el));
+}
+
+// O-1 (замер 2026-07-28, audit-v2/MOTION-TRACE.md): перезапуск CSS-анимации, не читая
+// ни вёрстку, ни стиль. Прежняя идиома `remove → void el.offsetWidth → add` синхронно
+// считала layout ВСЕГО документа: на списке в 200 обетов это 36 мс на каждый рендер,
+// где менялся счётчик (замер под prefers-reduced-motion, где перезапуска нет вовсе,
+// давал 1 мс — то есть ВЕСЬ расход был в перезапуске).
+// ⚠ WAAPI (`getAnimations()` + cancel/play) НЕ помогает: он форсирует пересчёт стиля
+// всего документа и стоит столько же — проверено замером.
+// Работает так: у анимации два класса-близнеца с РАЗНЫМИ именами кейфреймов; смена
+// имени и есть сигнал «начать заново», а раз мы ничего не читаем — синхронной работы
+// не возникает. Классы чередуются, поэтому подряд идущие вызовы всегда меняют имя.
+function replayAnim(el, clsA, clsB) {
+    if (!el) return;
+    const toB = !el.classList.contains(clsB);
+    el.classList.toggle(clsA, !toB);
+    el.classList.toggle(clsB, toB);
 }
 
 function _resetDragHandle(handle, col) {
@@ -2031,8 +2048,48 @@ Object.assign(ACT_INPUT, {
 const _HEX6_RE = /^#[0-9a-fA-F]{6}$/;
 // Всё, что минтит `uid()`: crypto.randomUUID() либо фоллбэк 'n-<base36>-<base36>'.
 const _SAFE_UID_RE = /^[A-Za-z0-9_.:-]{1,64}$/;
+// B11-06: потолок «свежести» штампа. Мерж решает спор поля правилом «новее выигрывает»,
+// поэтому запись со штампом из БУДУЩЕГО побеждает КАЖДУЮ будущую локальную правку —
+// молча, а проигравшая правка каждый раз уходит в карантин. Источник таких штампов не
+// обязательно злой: достаточно телефона со сбитыми часами. Клампим на ГРАНИЦЕ (здесь),
+// а не в самом мерже: семантика 09-sync не тронута, но невозможные штампы внутрь не
+// попадают. Сутки запаса покрывают любой честный часовой пояс и дрейф часов.
+// ⚠ Оговорка: тот мерж, в котором отравленный штамп приехал впервые, он ещё выигрывает
+// (кламп срабатывает уже на посадке). Начиная со следующей локальной правки — нет.
+const _FUTURE_SKEW_MS = 24 * 60 * 60 * 1000;
+globalThis._clampedStamps = 0;
 function _sanitizeIdentity() {
     const okColor = c => (typeof c === 'string' && _HEX6_RE.test(c)) ? c : null;
+    // ⚠ Потолок берём от Date.now(), а НЕ от nowTs(): nowTs монотонен и, если его уже
+    // успели дёрнуть, сам подтянулся бы вверх — потолок полз бы за отравленным штампом.
+    const ceil = Date.now() + _FUTURE_SKEW_MS;
+    let clamped = 0;
+    const okStamp = (v) => {
+        if (typeof v !== 'number' || !isFinite(v)) return v;   // нет штампа/чужой тип — это к бэкфиллу ниже
+        if (v <= ceil) return v;
+        clamped++;
+        return ceil;
+    };
+    // Надгробия и журнал карантина тоже: по их штампам работает GC, и дата из будущего
+    // пережила бы любой TTL.
+    const stampRec = (r, keys) => { if (r) for (const k of keys) if (k in r) r[k] = okStamp(r[k]); };
+    [...(state.tasks || []), ...(state.archive || [])].forEach(t => {
+        stampRec(t, ['updatedAt', 'createdAt', 'archivedAt']);
+        ((t && t.subtasks) || []).forEach(s => stampRec(s, ['updatedAt', 'createdAt']));
+    });
+    (state.groups || []).forEach(g => stampRec(g, ['updatedAt', 'createdAt']));
+    (state.templates || []).forEach(t => stampRec(t, ['updatedAt', 'createdAt']));
+    (state.noteTemplates || []).forEach(t => stampRec(t, ['updatedAt', 'createdAt']));
+    [...(state.notes || []), ...(state.notesArchive || [])].forEach(n =>
+        stampRec(n, ['updatedAt', 'createdAt', 'archivedAt']));
+    (state.tombstones || []).forEach(t => stampRec(t, ['deletedAt']));
+    (state.syncJournal || []).forEach(j => stampRec(j, ['at', 'resolvedAt']));
+    if (clamped) {
+        globalThis._clampedStamps += clamped;
+        // Панель синка живёт в 11 и грузится позже — зовём лениво, если она уже есть.
+        try { (globalThis as any)._log?.('⚠ штампов из будущего срезано: ' + clamped); } catch (_) {}
+        console.warn('[dusk] штампы из будущего срезаны до now+24ч:', clamped);
+    }
     let nId  = Number.isInteger(state.nextId)         ? state.nextId         : 1;
     let nSub = Number.isInteger(state.nextSubId)      ? state.nextSubId      : 1;
     let nGrp = Number.isInteger(state.nextGroupId)    ? state.nextGroupId    : 1;

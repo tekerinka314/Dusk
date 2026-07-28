@@ -2325,11 +2325,9 @@ function updateArchiveBadge() {
 
     // Spring bounce when archive grows (a new item arrived)
     if (!prefersReducedMotion() && n > prev && n > 0) {
-        archiveBadge.classList.remove('popping');
-        void archiveBadge.offsetWidth; // reflow
-        archiveBadge.classList.add('popping');
+        replayAnim(archiveBadge, 'popping', 'popping-alt');   // O-1: без принудительного layout
         archiveBadge.addEventListener('animationend',
-            () => archiveBadge.classList.remove('popping'),
+            () => archiveBadge.classList.remove('popping', 'popping-alt'),   // O-1: снимать ОБА близнеца
             { once: true }
         );
     }

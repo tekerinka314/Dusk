@@ -110,6 +110,41 @@ it('честный витраж и честные id шлюз НЕ трогае�
     expect(S.state.notes[0].color).toBe('#B06CF5');
 });
 
+// ── B11-06: потолок штампа ───────────────────────────────────────────────────
+it('штамп из будущего срезается до now+24ч на всех видах записей', () => {
+    const FAR = 9e15;                       // «вечная» победа в мерже
+    freshState({
+        tasks:  [{ id: 1, uid: 'u1', text: 'o', order: 0, updatedAt: FAR, createdAt: FAR,
+                   subtasks: [{ id: 1, text: 's', updatedAt: FAR }] }],
+        groups: [{ id: 1, uid: 'g1', name: 'g', color: '#6C8EF5', updatedAt: FAR }],
+        notes:  [{ id: 'n1', title: 't', body: '<p>b</p>', fmt: true, updatedAt: FAR }],
+        tombstones: [{ uid: 'x', type: 'task', deletedAt: FAR }],
+        syncJournal: [{ uid: 'j1', at: FAR }],
+    });
+    S.normalizeState();
+    const ceil = Date.now() + 24 * 60 * 60 * 1000 + 5000;
+    expect(S.state.tasks[0].updatedAt).toBeLessThan(ceil);
+    expect(S.state.tasks[0].createdAt).toBeLessThan(ceil);
+    expect(S.state.tasks[0].subtasks[0].updatedAt).toBeLessThan(ceil);
+    expect(S.state.groups[0].updatedAt).toBeLessThan(ceil);
+    expect(S.state.notes[0].updatedAt).toBeLessThan(ceil);
+    expect(S.state.tombstones[0].deletedAt).toBeLessThan(ceil);
+    expect(S.state.syncJournal[0].at).toBeLessThan(ceil);
+});
+
+it('честные штампы (в том числе недавнее прошлое и лёгкий сдвиг часов) НЕ трогаются', () => {
+    const past = Date.now() - 5 * 24 * 3600 * 1000;
+    const nearFuture = Date.now() + 3 * 3600 * 1000;      // часы уехали на 3 часа — в пределах запаса
+    freshState({
+        tasks: [{ id: 1, uid: 'u1', text: 'o', order: 0, updatedAt: past, createdAt: past, subtasks: [] },
+                { id: 2, uid: 'u2', text: 'p', order: 1, updatedAt: nearFuture, subtasks: [] }],
+    });
+    S.normalizeState();
+    expect(S.state.tasks[0].updatedAt).toBe(past);
+    expect(S.state.tasks[0].createdAt).toBe(past);
+    expect(S.state.tasks[1].updatedAt).toBe(nearFuture);
+});
+
 it('летопись из чужого свитка чистится на границе и рисуется без активного содержимого', () => {
     const nid = 'n1';
     freshState({ notes: [{ id: nid, title: 't', body: '<p>b</p>', fmt: true, createdAt: 1, updatedAt: 1 }] });

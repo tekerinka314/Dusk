@@ -683,16 +683,10 @@ function updateProgress() {
     quantityCount.textContent = total;
 
     if (!prefersReducedMotion()) {
-        if (done !== prevDone) {
-            doneCount.classList.remove('counter-pop');
-            void doneCount.offsetWidth; // reflow
-            doneCount.classList.add('counter-pop');
-        }
-        if (total !== prevTotal) {
-            quantityCount.classList.remove('counter-pop');
-            void quantityCount.offsetWidth;
-            quantityCount.classList.add('counter-pop');
-        }
+        // O-1: перезапуск через WAAPI вместо `void offsetWidth` — прежняя идиома
+        // считала layout всего документа на каждом изменении счётчика.
+        if (done  !== prevDone)  replayAnim(doneCount,     'counter-pop', 'counter-pop-alt');
+        if (total !== prevTotal) replayAnim(quantityCount, 'counter-pop', 'counter-pop-alt');
     }
     // ─────────────────────────────────────────────────────────────
 
@@ -708,11 +702,9 @@ function updateProgress() {
         if (reached > _lastProgressMilestone) {
             _lastProgressMilestone = reached;
             localStorage.setItem('dusk_milestone', String(reached)); // IMP-10: persist
-            progressBar.classList.remove('milestone-glow');
-            void progressBar.offsetWidth;
-            progressBar.classList.add('milestone-glow');
+            replayAnim(progressBar, 'milestone-glow', 'milestone-glow-alt');   // O-1: без принудительного layout
             progressBar.addEventListener('animationend',
-                () => progressBar.classList.remove('milestone-glow'),
+                () => progressBar.classList.remove('milestone-glow', 'milestone-glow-alt'),   // O-1: снимать ОБА близнеца
                 { once: true }
             );
         }

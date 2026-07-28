@@ -1865,6 +1865,12 @@ html::after {
     40%  { box-shadow: 0 0 22px rgba(180, 90, 255, 0.85), 0 0 40px rgba(140, 60, 255, 0.35); }
     100% { box-shadow: 0 0 8px rgba(160, 80, 255, 0.5); }
 }
+/* O-1: парный кейфрейм для перезапуска чередованием (см. counterPopAlt). */
+@keyframes milestoneGlowAlt {
+    0%   { box-shadow: 0 0 8px rgba(160, 80, 255, 0.5); }
+    40%  { box-shadow: 0 0 22px rgba(180, 90, 255, 0.85), 0 0 40px rgba(140, 60, 255, 0.35); }
+    100% { box-shadow: 0 0 8px rgba(160, 80, 255, 0.5); }
+}
 
 /* Toast spectral apparition — better spring + scale */
 @keyframes toastAppear {
@@ -1928,6 +1934,23 @@ html::after {
     animation: counterPop 0.30s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: inline-block; /* transform needs block context */
 }
+/* O-1 (замер 2026-07-28): анимация перезапускается ЧЕРЕДОВАНИЕМ двух классов, а не
+   идиомой `remove → void offsetWidth → add`. Кейфреймы обязаны быть РАЗНЫМИ именами:
+   смена имени анимации и есть сигнал «начать заново», и она не требует ни чтения
+   вёрстки, ни чтения стиля. Прежняя идиома стоила 36 мс на КАЖДОМ изменении счётчика
+   при 200 обетах (под prefers-reduced-motion, где перезапуска нет, — 1 мс).
+   ⚠ Пары обязаны совпадать шаг в шаг: расхождение = скачок подачи через раз. */
+@keyframes counterPopAlt {
+    0%   { transform: scale(1);    }
+    35%  { transform: scale(1.38); }
+    65%  { transform: scale(0.90); }
+    85%  { transform: scale(1.08); }
+    100% { transform: scale(1);    }
+}
+.counter-pop-alt {
+    animation: counterPopAlt 0.30s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+}
 
 /* Strikethrough sweep — grows left→right over the checked task text.
    .task-text gains position:relative via .task-item.checked .task-text.
@@ -1952,6 +1975,18 @@ html::after {
 .archive-badge.popping {
     animation: badgePop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: inline-flex !important; /* stay visible during anim */
+}
+/* O-1: парный кейфрейм для перезапуска чередованием (см. counterPopAlt). */
+@keyframes badgePopAlt {
+    0%   { transform: scale(1);    }
+    40%  { transform: scale(1.50); }
+    65%  { transform: scale(0.88); }
+    85%  { transform: scale(1.12); }
+    100% { transform: scale(1);    }
+}
+.archive-badge.popping-alt {
+    animation: badgePopAlt 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-flex !important;
 }
 
 @keyframes emptyRuneIn {
@@ -2558,7 +2593,8 @@ html::after {
 .task-item.seal-flash { animation: sealFlash 0.4s ease forwards; }
 
 /* Milestone glow classes (added/removed by JS) */
-.progress-bar-fill.milestone-glow { animation: milestoneGlow 0.6s ease forwards; }
+.progress-bar-fill.milestone-glow     { animation: milestoneGlow    0.6s ease forwards; }
+.progress-bar-fill.milestone-glow-alt { animation: milestoneGlowAlt 0.6s ease forwards; }   /* O-1: пара для перезапуска */
 
 /* ── Item 6: Schedule mode — side deadline panel ── */
 .task-item.has-dl-side {
