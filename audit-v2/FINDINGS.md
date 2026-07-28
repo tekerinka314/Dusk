@@ -1915,7 +1915,7 @@ the backups ring (P3) probed CLEAN — recorded in `B6-functional.md`, no findin
 - **FIX:** тот же `_sanitizeIdentity()` (витраж обязан быть `#RRGGBB`).
 
 ### V2-B11-04 — ✅ ИСПРАВЛЕНО 2026-07-28 (`23b65b5`) — воркер: `/exchange` и `/refresh` обслуживали ЛЮБОЙ origin (CORS прячет ответ только от браузера), лимитов не было; `/ws` пускал кого угодно
-- **Evidence:** A (code, `worker/src/index.js:32-44,95-112`). **ИСПРАВЛЕНО по слову юзера 2026-07-28** (правило «worker вне пуш-блока» снято явным вердиктом). Замки: `tests/worker-hardening.test.mjs` (10 кейсов). ⚠ Прод обновится ТОЛЬКО после `cd worker && wrangler deploy` (нужен wrangler ≥ 4.36 ради `[[ratelimits]]`).
+- **Evidence:** A (code, `worker/src/index.js:32-44,95-112`). **ИСПРАВЛЕНО по слову юзера 2026-07-28** (правило «worker вне пуш-блока» снято явным вердиктом). Замки: `tests/worker-hardening.test.mjs` (10 кейсов). **ЗАДЕПЛОЕНО ЮЗЕРОМ 2026-07-28** (wrangler 4.114, версия `196cdb29`; биндинг `SYNC_LIMITER` 30/60с поднялся). Дымовая проверка по живому воркеру: /health 200 · /refresh с чужим Origin 403 · /refresh БЕЗ Origin 403 (оракул client_secret закрыт для curl) · /refresh со своим Origin доходит до Google (400 invalid_grant, настоящий трафик не задет) · тело 9020 байт 413 body_too_large · /ws со своим Origin 101 (будилка жива) · /ws с чужим 403. Лимит намеренно не простреливали: он по IP и заблокировал бы собственный синк юзера на минуту.
 - **Severity:** UI 0 · DL 1 · RR 1 · IC 1 · CF 3
 - **Суть:** `corsHeaders` при чужом Origin отдаёт `allowed[0]` — БРАУЗЕР ответ
   скроет, но запрос УЖЕ обработан. Не-браузерный клиент (curl) с украденным
