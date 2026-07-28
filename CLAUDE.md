@@ -27,6 +27,13 @@ A single-page, offline-first gothic task manager (PWA). Vanilla JS built with
   import + globalThis bridges, so they survive the `.ts` rename) + Drive
   wire-format pin (fixtures — breaking the sync JSON shape fails here, not
   silently in the cloud).
+- `tests/e2e/` — Playwright-смоук (Этап 5, спека `E2E-SPEC.md`): 31 кейс по
+  РЕАЛЬНОМУ браузеру над `dist/` — бут и seq-aware приоритет хранилищ, CRUD
+  обетов и звеньев, квик-эдд, исходы, склеп, Гримуар, хвост
+  последовательности, SW+манифест, геометрия на 360/412/1280, панель синка.
+  Файлы называются `*.e2e.mjs` (НЕ `.spec.`) — иначе vitest утащил бы их в
+  `npm test`. Пиксельных базлайнов нет намеренно (см. §2 спеки); визуальное
+  по-прежнему закрывает прод-ревью юзера.
 - `scripts/build-portable.mjs` — `npm run build:portable` → `dist/dusk-portable.html`
   (~1.4 MB, fully inlined single file, runs from disk via file:// — the
   no-server fallback; its data lives in the file:// origin's own localStorage).
@@ -34,9 +41,11 @@ A single-page, offline-first gothic task manager (PWA). Vanilla JS built with
   part of the Vite build; deployed separately with wrangler. Don't touch it in
   the migration.
 
-Commands: `npm test` (vitest), `npm run dev` (Vite dev server), `npm run build`
-(→ dist/, stable names `app.js`/`style.css` — the hand-rolled network-first
-`sw.js` precaches by exact name, CACHE `dusk-shell-v8`), `npm run preview`.
+Commands: `npm test` (vitest), `npm run e2e` (Playwright-смоук: сам собирает
+dist и поднимает `vite preview`; браузер — СИСТЕМНЫЙ Chrome, бандл не качаем),
+`npm run dev` (Vite dev server), `npm run build` (→ dist/, stable names
+`app.js`/`style.css` — the hand-rolled network-first `sw.js` precaches by exact
+name, CACHE `dusk-shell-v8`), `npm run preview`.
 
 ## Skill usage — auto-invoke BEFORE responding (MANDATORY)
 

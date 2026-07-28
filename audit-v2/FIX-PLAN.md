@@ -30,11 +30,12 @@ all must show local data SURVIVING. `npm test` fully green after each commit.
 `9b87915`, B6-03 `5ddb75c`, B6-04 `f2422d4`, B0-01 `eb28720`, B0-02 `4b18b42`,
 B6-01 — see git log), each with a vitest regression. Runtime evidence:
 `s4_racetiming.mjs` post-fix = **0 wipes in 15/15 boots** (was 5/5 wiped).
-**Probe caveat:** `s4_p0_idbboot.mjs` seeds legacy blobs WITHOUT `_saveSeq`, so
-it still shows the documented legacy IDB-priority path, not the fix; for
-regression duty it needs seq-aware seeds (LS `_saveSeq:2` vs IDB `_saveSeq:1`
-→ marker must survive) — small Opus follow-up. `tests/boot-recency.test.mjs`
-covers the mechanism meanwhile.
+**Probe caveat — ЗАКРЫТО 2026-07-28 (Этап 5).** `s4_p0_idbboot.mjs` сеял
+легаси-блобы БЕЗ `_saveSeq` и потому показывал старый IDB-приоритет, а не сам
+фикс. Замена — `tests/e2e/boot.e2e.mjs`: seq-aware сиды в ОБЕ стороны (LS
+`_saveSeq:2` против IDB `:1` и наоборот) плюс проверка, что проигравший слой
+тут же обновляется победителем. `tests/boot-recency.test.mjs` остаётся
+юнит-замком механизма.
 NOTE: V2-B6-05 needs NO fix (ratified design verdict: leave as-is).
 V2-B1-19 (PWA launch) already fixed + deployed 2026-07-08.
 
