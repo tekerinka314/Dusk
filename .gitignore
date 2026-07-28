@@ -1,6 +1,12 @@
 node_modules/
 dist/
 
+# Playwright (Этап 5): артефакты прогона и отчёты — регенерируемые
+test-results/
+playwright-report/
+blob-report/
+.playwright-cli/
+
 # transient game-mod scratch (never DUSK)
 .codex_tmp/
 
