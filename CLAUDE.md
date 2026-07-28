@@ -45,7 +45,7 @@ Commands: `npm test` (vitest), `npm run e2e` (Playwright-смоук: сам со
 dist и поднимает `vite preview`; браузер — СИСТЕМНЫЙ Chrome, бандл не качаем),
 `npm run dev` (Vite dev server), `npm run build` (→ dist/, stable names
 `app.js`/`style.css` — the hand-rolled network-first `sw.js` precaches by exact
-name, CACHE `dusk-shell-v8`), `npm run preview`.
+name, CACHE `dusk-shell-v9`), `npm run preview`.
 
 ## Skill usage — auto-invoke BEFORE responding (MANDATORY)
 

@@ -326,7 +326,13 @@ function _grimRestoreVersions(loaded, mode) {
     if (src && typeof src === 'object' && !Array.isArray(src)) {
         for (const id in src) {
             if (!Array.isArray(src[id])) continue;
-            if (mode === 'replace' || !grimVersions[id]) grimVersions[id] = src[id].slice();
+            // B11-02: тела слепков приходят из ЧУЖОГО файла и минуют шлюз NA-2
+            // (migrateNotes чистит только state.notes/notesArchive — летопись живёт
+            // в отдельном ключе LS). Пропускаем через тот же санитайзер на границе.
+            if (mode === 'replace' || !grimVersions[id]) {
+                grimVersions[id] = src[id].map(v => (v && typeof v === 'object')
+                    ? { ...v, b: _grimSanitize(v.b || '') } : v);
+            }
         }
     }
     _grimMigrateVersions();
@@ -521,7 +527,7 @@ function _grimRenderHistory() {
             ${action}
           </div>
           <div class="grim-hist-pv-title${(sel.t || '').trim() ? '' : ' untitled'}">${escHtml(title)}</div>
-          <div class="grim-hist-pv-body grim-body" contenteditable="false">${(sel.b || '').trim() ? sel.b : '<p class="grim-hist-blank">— пустая запись —</p>'}</div>`;
+          <div class="grim-hist-pv-body grim-body" contenteditable="false">${(sel.b || '').trim() ? _grimSanitize(sel.b) : '<p class="grim-hist-blank">— пустая запись —</p>'}</div>`;
     } else {
         preview = `<div class="grim-hist-empty big">Эта запись ещё без летописи.<br>Слепки копятся по мере правок.</div>`;
     }
@@ -559,7 +565,7 @@ function grimHistRestore(at) {
     _grimSnapshot(note, 'backup');    // durable safety copy of what we roll away from
     saveGrimVersions();
     note.title = v.t;
-    note.body = v.b;
+    note.body = _grimSanitize(v.b || '');   // B11-02: слепок мог прийти из чужого файла — тот же шлюз, что у тела записи
     note.updatedAt = nowTs();   // sync (Phase 1): monotonic record stamp
     delete note.ord;                  // edited → bubble to top
     saveState();

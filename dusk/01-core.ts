@@ -82,7 +82,7 @@ Object.assign(globalThis, {
     coffinSVG, cycleCoffinSVG, subCoffinSVG, eyeGlyph, qaSigil, hexToRgb, prefersReducedMotion, _pickerOpenUp, _positionOneHandle, positionDragHandles, setupDragHandleObserver,
     _resetDragHandle, applyListStagger, init, playLoadAnimations, saveState, loadBackups, persistBackups, maybeBackup,
     loadState, _migrateV3toV4, migrateTasks, uid, nowTs, _contentSig, _trackedRecords, primeRecSig,
-    bumpUpdatedAt, addTombstone, _delegate, normalizeState, migrateFromOld, loadUiState, saveUiState, pushUndo,
+    bumpUpdatedAt, addTombstone, _delegate, normalizeState, _sanitizeIdentity, migrateFromOld, loadUiState, saveUiState, pushUndo,
     pushUndoSnapshot, undo, redo, _idbGet, _idbSet,
 });
 
@@ -1599,8 +1599,12 @@ function _delegate(map, attr, e) {
     if (!t || typeof t.closest !== 'function') return;   // target can be document/window (e.g. keydown with no focus)
     const el = t.closest('[' + attr + ']');
     if (!el) return;
-    const fn = map[el.dataset[attr.slice(5)]];   // 'data-act' → dataset.act, 'data-actdbl' → dataset.actdbl, …
-    if (!fn) return;
+    const key = el.dataset[attr.slice(5)];       // 'data-act' → dataset.act, 'data-actdbl' → dataset.actdbl, …
+    // B11-05: реестры — обычные объекты, поэтому `map['constructor']`/`map['toString']`
+    // резолвятся ПО ПРОТОТИПУ и вызывались бы как обработчик. Сегодня безвредно, но
+    // диспетчер обязан звать только СВОИ действия.
+    const fn = Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null;
+    if (typeof fn !== 'function') return;
     if (el.dataset.stop !== undefined) e.stopPropagation();
     fn(el, e);
 }
@@ -2016,7 +2020,63 @@ Object.assign(ACT_INPUT, {
 
 // Ensure optional collections exist after any whole-state replacement (load,
 // import, undo/redo, restore) so older snapshots without them never throw.
+// B11-01: ЕДИНСТВЕННЫЙ шлюз проверки ФОРМЫ записей. `normalizeState` зовётся после
+// КАЖДОЙ подмены state целиком (загрузка LS/IDB, импорт свитка, undo/redo, откат к
+// точке, посадка мержа синка) — значит одна проверка здесь закрывает ВСЕ ТРИ границы
+// доверия сразу. До этого форму проверял только импорт (и то текст/витраж/перечисления,
+// но не идентификаторы), а посадка синка не проверяла ничего: id записи из подложенного
+// свитка/файла Drive ехал в `data-id="…"` СЫРЫМ и разрывал атрибут (подтверждено зондом
+// на четырёх поверхностях). Здесь не «экранируем на выходе», а не пускаем кривую форму
+// ВНУТРЬ — иначе тот же id всплывёт в следующем новом рендере.
+const _HEX6_RE = /^#[0-9a-fA-F]{6}$/;
+// Всё, что минтит `uid()`: crypto.randomUUID() либо фоллбэк 'n-<base36>-<base36>'.
+const _SAFE_UID_RE = /^[A-Za-z0-9_.:-]{1,64}$/;
+function _sanitizeIdentity() {
+    const okColor = c => (typeof c === 'string' && _HEX6_RE.test(c)) ? c : null;
+    let nId  = Number.isInteger(state.nextId)         ? state.nextId         : 1;
+    let nSub = Number.isInteger(state.nextSubId)      ? state.nextSubId      : 1;
+    let nGrp = Number.isInteger(state.nextGroupId)    ? state.nextGroupId    : 1;
+    let nTpl = Number.isInteger(state.nextTemplateId) ? state.nextTemplateId : 1;
+
+    [...(state.tasks || []), ...(state.archive || [])].forEach(t => {
+        if (!t) return;
+        if (!Number.isInteger(t.id)) t.id = nId++;
+        if (t.groupId != null && !Number.isInteger(t.groupId)) t.groupId = null;   // висячая ссылка вместо мусора в атрибуте
+        t.color = okColor(t.color);
+        if (t.originalGroupColor !== undefined) t.originalGroupColor = okColor(t.originalGroupColor);
+        (t.subtasks || []).forEach(s => { if (s && !Number.isInteger(s.id)) s.id = nSub++; });
+    });
+    (state.groups || []).forEach(g => {
+        if (!g) return;
+        if (!Number.isInteger(g.id)) g.id = nGrp++;
+        if (!okColor(g.color)) g.color = '#6C8EF5';   // свод без витража рисуется цветом-дефолтом, не null
+    });
+    (state.templates || []).forEach(t => {
+        if (!t) return;
+        if (!Number.isInteger(t.id)) t.id = nTpl++;
+        t.color = okColor(t.color);
+    });
+    // Записи Гримуара и их образцы держат uuid-`id` — он же ключ синка, поэтому
+    // переписываем ТОЛЬКО заведомо неродной формат (наш uid() всегда в него укладывается).
+    [...(state.notes || []), ...(state.notesArchive || [])].forEach(n => {
+        if (!n) return;
+        if (!_SAFE_UID_RE.test(String(n.id))) n.id = uid();
+        n.color = okColor(n.color);
+    });
+    (state.noteTemplates || []).forEach(t => {
+        if (!t) return;
+        if (!_SAFE_UID_RE.test(String(t.id))) t.id = uid();
+        t.color = okColor(t.color);
+    });
+
+    state.nextId         = nId;
+    state.nextSubId      = nSub;
+    state.nextGroupId    = nGrp;
+    state.nextTemplateId = nTpl;
+}
+
 function normalizeState() {
+    _sanitizeIdentity();   // B11-01: форма записей — ДО всего остального (и до primeRecSig)
     if (!Array.isArray(state.notes)) state.notes = [];
     if (!Array.isArray(state.notesArchive)) state.notesArchive = [];
     if (!Array.isArray(state.noteTemplates)) state.noteTemplates = [];   // п.12: note templates

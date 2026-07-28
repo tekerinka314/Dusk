@@ -2,6 +2,7 @@
   "name": "DUSK — Task Journal",
   "short_name": "DUSK",
   "description": "Gothic-themed task journal with subtasks, deadlines and recurring tasks",
+  "id": "/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
