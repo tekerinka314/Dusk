@@ -304,7 +304,7 @@ function buildSubtaskSection(task, forceOpen) {
             </ul>
             <div class="subtask-add-row">
                 <input class="subtask-add-input" id="sub-input-${task.id}"
-                       placeholder="Новое звено..." autocomplete="off" maxlength="200"
+                       placeholder="Новое звено…" autocomplete="off" maxlength="200"
                        autocapitalize="off" autocorrect="off" enterkeyhint="done"
                        data-actkey="subAddKey">
                 <button class="btn-subtask-confirm" data-act="addSubtask" title="Добавить">
@@ -2397,8 +2397,8 @@ function updateSubAnyModeBtn() {
     b.classList.toggle('active', !!state.subAnyMode);
     b.innerHTML = state.subAnyMode ? IC.g4any : IC.g4all;
     b.title = state.subAnyMode
-        ? 'Родитель чекается по любому звену'
-        : 'Родитель чекается по всем звеньям';
+        ? 'Обет исполняется по любому звену'
+        : 'Обет исполняется по всем звеньям';
 }
 
 function openDemoteMenu(event, id) {

@@ -1327,7 +1327,7 @@ function _openSnoozeMenuAt(anchorEl, id) {
                 <button type="button" class="snooze-unit" data-u="d" data-act="_snoozeUnitPick">дн</button>
                 <button type="button" class="snooze-unit" data-u="w" data-act="_snoozeUnitPick">нед</button>
             </div>
-            <button type="button" class="snooze-custom-go" data-act="_snoozeCustomApply" data-id="${id}">ОК</button>
+            <button type="button" class="snooze-custom-go" data-act="_snoozeCustomApply" data-id="${id}">Отсрочить</button>
         </div>`, 'snooze-with-custom');
 }
 
