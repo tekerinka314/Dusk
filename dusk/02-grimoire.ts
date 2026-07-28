@@ -1738,7 +1738,7 @@ function _armDanger(btn, hint) {
         btn._prevTitle = btn.title;
         btn.classList.add('confirm-armed');
         btn.title = 'Нажмите ещё раз для подтверждения';
-        showToast(hint || 'Нажмите ещё раз, чтобы удалить');
+        showToast(hint || 'Нажмите ещё раз, чтобы уничтожить');
         btn._armTimer = setTimeout(() => {
             btn._armed = false;
             btn.classList.remove('confirm-armed');

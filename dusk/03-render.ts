@@ -1014,7 +1014,7 @@ function toggleSortMode() {
     const btn = document.getElementById('btn-sort-mode');
     if (btn) {
         btn.innerHTML = state.sortMode === 'order' ? IC.sortOrder : IC.sortPriority;
-        btn.title     = state.sortMode === 'order' ? 'Режим: по порядку' : 'Режим: по рангу';
+        btn.title     = state.sortMode === 'order' ? 'Порядок: по порядку' : 'Порядок: по рангу';
         btn.classList.toggle('active', state.sortMode === 'order');
     }
     render();

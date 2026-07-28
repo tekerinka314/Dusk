@@ -307,7 +307,7 @@ function buildSubtaskSection(task, forceOpen) {
                        placeholder="Новое звено…" autocomplete="off" maxlength="200"
                        autocapitalize="off" autocorrect="off" enterkeyhint="done"
                        data-actkey="subAddKey">
-                <button class="btn-subtask-confirm" data-act="addSubtask" title="Добавить">
+                <button class="btn-subtask-confirm" data-act="addSubtask" title="Добавить звено">
                     ${IC.crossSm}
                 </button>
             </div>
@@ -2289,7 +2289,7 @@ function openTaskMoreMenu(event, id) {
         const eff = task.subCheckMode === 'any' ? IC.g4any
                   : task.subCheckMode === 'all' ? IC.g4all
                   : (state.subAnyMode ? IC.g4any : IC.g4all);
-        subModeItem = `<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Чек по звеньям</span></button>`;
+        subModeItem = `<button type="button" role="menuitem" data-act="_taskMore" data-more="submode" data-id="${id}">${eff}<span>Исполнение по звеньям</span></button>`;
     }
     // F2 (coarse): the card keeps a single ⋯ — ALL configuration moved here.
     // Quick bar = the six former inline sigils as labelled 2-tap targets; the
@@ -2351,7 +2351,7 @@ function _openSubModeMenu(anchorEl, id) {
     const opt = (val, icon, label) =>
         `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" data-act="setTaskSubMode" data-id="${id}" data-mode="${val}">${icon}<span>${label}</span></button>`;
     _openFloatMenu(anchorEl, `
-        <div class="float-menu-head">Чек родителя по звеньям</div>
+        <div class="float-menu-head">Исполнение обета по звеньям</div>
         ${opt('inherit', IC.g4,    'Как везде')}
         ${opt('any',     IC.g4any, 'По любому звену')}
         ${opt('all',     IC.g4all, 'По всем звеньям')}`,
@@ -2374,7 +2374,7 @@ function openSubAnyModeMenu(event) {
     const opt = (val, icon, label) =>
         `<button type="button" role="menuitemradio" aria-checked="${cur === val}" class="submode-opt${cur === val ? ' on' : ''}" data-act="setGlobalSubMode" data-mode="${val}">${icon}<span>${label}</span></button>`;
     _openFloatMenu(event.currentTarget, `
-        <div class="float-menu-head">Чек родителя по звеньям</div>
+        <div class="float-menu-head">Исполнение обета по звеньям</div>
         ${opt('all', IC.g4all, 'По всем звеньям')}
         ${opt('any', IC.g4any, 'По любому звену')}`,
         'submode-menu');
