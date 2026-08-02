@@ -1,0 +1,18 @@
+import http from 'http'; import fs from 'fs'; import path from 'path';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright-core');
+const ROOT='D:/VSCode projects/DUSK_v2.0', CHROME='C:/Program Files/Google/Chrome/Application/chrome.exe';
+const MIME={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.jpg':'image/jpeg'};
+const srv=http.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u==='/')u='/index.html';fs.readFile(path.join(ROOT,u),(e,d)=>{if(e){s.writeHead(404);s.end('nf');return;}s.writeHead(200,{'Content-Type':MIME[path.extname(u)]||'application/octet-stream'});s.end(d);});});
+const sub=(id,t)=>({id,text:t,checked:false,priority:'none',repeat:'none',note:''});
+const T=(id,txt,o,dl)=>({id,uid:'u'+id,text:txt,checked:false,priority:'none',groupId:10,deadline:dl||null,note:'',noteOpen:false,order:o,repeat:'none',cycleChecked:false,nextReset:null,subtasks:[sub(id*100+1,'s1')],subtasksOpen:false});
+const seed={groups:[{id:10,uid:'g10',name:'Группа Тьмы',color:'#8C5CFF',collapsed:false,order:0}],archive:[],notes:[],notesArchive:[],tasks:[T(1,'Срочное',0,{mode:'month',value:'12'}),T(2,'Без срока раз',1,null),T(3,'Без срока два',2,null)],nextId:9,nextGroupId:11,nextSubId:900,sortMode:'order',sortModeOverrides:{}};
+(async()=>{const port=await new Promise(r=>{srv.listen(0,()=>r(srv.address().port));});
+const b=await chromium.launch({executablePath:CHROME,headless:true});
+const ctx=await b.newContext({viewport:{width:900,height:720},deviceScaleFactor:1});
+const p=await ctx.newPage();
+await p.addInitScript((st)=>{localStorage.setItem('duskState_v3',JSON.stringify(st));localStorage.setItem('currentPage','main');localStorage.removeItem('duskState_v4');localStorage.setItem('isFiltered','0');localStorage.setItem('scheduleMode','1');},seed);
+await p.goto(`http://localhost:${port}/index.html`); await p.waitForTimeout(700);
+await p.locator('.group-section').first().screenshot({path:'D:/tmp/pw/sched_render.png'});
+await b.close();srv.close();console.log('ok');})().catch(e=>{console.error(e);process.exit(2);});

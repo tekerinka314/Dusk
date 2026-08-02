@@ -1,0 +1,14 @@
+import { serve, launch, openApp, ensureShots } from './lib.mjs';
+import path from 'path';
+const DIR = ensureShots('s3');
+const D = (o)=>{const d=new Date();d.setDate(d.getDate()+o);return d.toISOString().slice(0,10)};
+const now=Date.now();
+const t=(id,text,deadline)=>({id,uid:'u'+id,text,checked:false,priority:'none',groupId:null,deadline,note:'',noteOpen:false,order:id,repeat:'none',cycleChecked:false,nextReset:null,subtasks:[],subtasksOpen:false,subNotesAlwaysOpen:false,pinned:false,color:null,createdAt:now,updatedAt:now});
+const seed={tasks:[t(1,'просрочено',{mode:'date',value:D(-1)}),t(2,'критично',{mode:'date',value:D(0)}),t(3,'срочно',{mode:'date',value:D(1)}),t(4,'скоро',{mode:'date',value:D(4)}),t(5,'спокойно',{mode:'date',value:D(30)})],groups:[],archive:[],notes:[],notesArchive:[],tombstones:[],templates:[],nextId:20,nextGroupId:1,nextSubId:1,sortMode:'manual',sortModeOverrides:{},subAnyMode:false};
+const {srv,port}=await serve(); const br=await launch();
+const {page:p}=await openApp(br,{device:{width:900,height:900,deviceScaleFactor:2,isMobile:false,hasTouch:false},seed,port});
+await p.waitForTimeout(900);
+const el=await p.$('#todo-list, .todo-app, #main-grid, body');
+await el.screenshot({path:path.join(DIR,'w2_deadline_chips.png')});
+await br.close(); srv.close();
+console.log('ok');

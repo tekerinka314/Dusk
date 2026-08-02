@@ -1,0 +1,10 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright-core');
+const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
+const p = await b.newPage({ viewport: { width: 1100, height: 900 }, deviceScaleFactor: 2 });
+await p.goto('file:///D:/VSCode%20projects/DUSK_v2.0/audit-v2/previews/fb2-icons-preview.html');
+await p.waitForTimeout(700);
+const el = await p.$('section[data-role="L"] .cand[data-pick="L1"]');
+await el.screenshot({ path: 'fb2_L1fix.png' });
+await b.close(); console.log('ok');

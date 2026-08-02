@@ -1,0 +1,23 @@
+import { serve, launch, ROOT } from './lib.mjs';
+import { richSeed } from './seed.mjs';
+import { makeDrive, installFakeCloud, seedTokenInit } from './fakecloud.mjs';
+const FAR = Date.now() + 3600_000;
+(async () => {
+  const s = await serve(ROOT); const B = await launch();
+  const drive = makeDrive();
+  const ctx = await B.newContext({ colorScheme: 'dark' });
+  await installFakeCloud(ctx, drive);
+  await ctx.addInitScript(seedTokenInit(FAR, false));
+  const sp = await ctx.newPage();
+  await sp.goto(`http://localhost:${s.port}/__seed__`, { waitUntil: 'load' }).catch(()=>{});
+  await sp.evaluate((st) => { localStorage.setItem('duskState_v4', JSON.stringify(st)); localStorage.setItem('currentPage','main'); try{indexedDB.deleteDatabase('keyval-store')}catch(e){} }, richSeed());
+  await sp.close();
+  const p = await ctx.newPage();
+  await p.goto(`http://localhost:${s.port}/index.html`, { waitUntil: 'load' });
+  await p.waitForTimeout(700);
+  console.log('after boot state.tasks:', await p.evaluate(()=>window.state.tasks.length), 'LS:', await p.evaluate(()=>JSON.parse(localStorage.getItem('duskState_v4')).tasks.length));
+  await p.evaluate(() => { window._syncReady = true; });
+  const r = await p.evaluate(async ()=>{ try{ await window.syncNow({manual:true}); return 'ok'; }catch(e){ return 'ERR:'+e.message; } });
+  console.log('sync result:', r, '| drive tasks:', (drive.file&&drive.file.payload&&drive.file.payload.subset&&drive.file.payload.subset.tasks||[]).length, '| state.tasks:', await p.evaluate(()=>window.state.tasks.length));
+  await B.close(); s.srv.close();
+})();

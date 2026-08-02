@@ -1,0 +1,12 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright-core');
+const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+const out = process.argv[2];
+const b = await chromium.launch({ executablePath: CHROME, headless: true });
+const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+await p.goto('http://localhost:4173', { waitUntil: 'networkidle' });
+await p.waitForTimeout(2800);
+await p.screenshot({ path: out });
+await b.close();
+console.log('OK', out);

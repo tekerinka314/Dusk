@@ -1,0 +1,32 @@
+// 7c slice-4a (index.html page-nav tabs) — delegation test.
+import http from 'http'; import fs from 'fs'; import path from 'path';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright-core');
+const ROOT='D:/VSCode projects/DUSK_v2.0', CHROME='C:/Program Files/Google/Chrome/Application/chrome.exe';
+const MIME={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'};
+const srv=http.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u==='/')u='/index.html';
+  fs.readFile(path.join(ROOT,u),(e,d)=>{if(e){s.writeHead(404);s.end('nf');return;}s.writeHead(200,{'Content-Type':MIME[path.extname(u)]||'application/octet-stream'});s.end(d);});});
+const base={tasks:[],groups:[],archive:[],notes:[],notesArchive:[],templates:[],noteTemplates:[],nextId:100,nextGroupId:100,nextSubId:200,sortMode:'priority',sortModeOverrides:{}};
+const results=[]; const rec=(n,p,d)=>{results.push({n,p});console.log(`${p?'PASS':'FAIL'}  ${n}  ${d!==undefined?d:''}`);};
+(async()=>{
+  await new Promise(r=>srv.listen(0,r)); const port=srv.address().port; const url=`http://localhost:${port}/index.html`;
+  const browser=await chromium.launch({executablePath:CHROME,headless:true}); const errs=[];
+  const ctx=await browser.newContext({viewport:{width:1180,height:900}}); const page=await ctx.newPage();
+  page.on('pageerror',e=>errs.push(e.message));
+  await page.addInitScript((st)=>{localStorage.setItem('duskState_v3',JSON.stringify(st));localStorage.setItem('currentPage','main');localStorage.removeItem('duskState_v4');localStorage.removeItem('dusk_premigration_v3');},base);
+  await page.goto(url); await page.waitForTimeout(400);
+  const cur=()=>page.evaluate(()=>currentPage);
+  const click=(sel)=>page.evaluate((s)=>{const e=document.querySelector(s);if(e)e.click();return !!e;},sel);
+  rec('start on main', await cur()==='main');
+  await click('#nav-notes[data-act="switchPage"][data-page="notes"]'); await page.waitForTimeout(750);
+  rec('tab → notes', await cur()==='notes', await cur());
+  await click('#nav-archive[data-act="switchPage"][data-page="archive"]'); await page.waitForTimeout(750);
+  rec('tab → archive', await cur()==='archive', await cur());
+  await click('#nav-main[data-act="switchPage"][data-page="main"]'); await page.waitForTimeout(750);
+  rec('tab → main', await cur()==='main', await cur());
+  rec('no pageerror', errs.length===0, errs.join(' | '));
+  await ctx.close(); await browser.close(); srv.close();
+  const f=results.filter(r=>!r.p); console.log(`\n7c-SLICE4a SUMMARY  PASS ${results.length-f.length}/${results.length}`);
+  process.exit(f.length?1:0);
+})().catch(e=>{console.error('CRASH',e);process.exit(2);});

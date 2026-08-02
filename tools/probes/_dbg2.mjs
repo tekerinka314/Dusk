@@ -1,0 +1,16 @@
+import { serve, launch, ROOT } from './lib.mjs';
+import { richSeed } from './seed.mjs';
+const { srv, port } = await serve(ROOT);
+const browser = await launch();
+const ctx = await browser.newContext({ colorScheme: 'dark' });
+const page = await ctx.newPage();
+await page.goto(`http://localhost:${port}/__seed__`, { waitUntil: 'load' }).catch(()=>{});
+await page.evaluate((s)=>{localStorage.clear();localStorage.setItem('duskState_v4',JSON.stringify(s));localStorage.setItem('currentPage','main');}, richSeed());
+await page.goto(`http://localhost:${port}/index.html`, { waitUntil: 'load' });
+await page.waitForTimeout(900);
+const show = async (tag) => console.log(tag, await page.evaluate(()=>['main-page','archive-page','notes-page'].map(id=>`${id}=${getComputedStyle(document.getElementById(id)).display}`).join(' ')));
+await show('boot');
+await page.evaluate(()=>window.switchPage('main'));
+await page.waitForTimeout(1200);
+await show('after switchPage(main)');
+await ctx.close(); await browser.close(); srv.close();
