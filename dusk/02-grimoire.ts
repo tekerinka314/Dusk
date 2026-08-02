@@ -21,7 +21,8 @@ Object.assign(globalThis, {
     saveGrimVersions, _grimVersionsOf, _grimMigrateVersions, _grimRestoreVersions, _grimSnapshot, _grimThinVersions, _grimVersionTick, _grimSnapshotCurrent,
     _grimScheduleVersion, _grimHistNote, _grimVerStamp, _grimAgo, grimOpenHistory, grimCloseHistory, grimHistSelect, _grimRenderHistory,
     grimHistRestore, renderNotes, _grimApplyFocus, grimToggleCollapse, grimToggleFocus, grimToggleBar, _grimApplyBarMode, grimToggleToc,
-    _grimRefreshToc, _grimTocDetach, _grimTocSpyScroll, _grimTocSpy, _grimTocGo, _grimEmptyHTML, _grimSortControl, grimToggleSortMenu,
+    _grimRefreshToc, _grimTocDetach, _grimTocSpyScroll, _grimTocSpy, _grimTocGo, _grimEmptyHTML,
+    _grimTocIsSheet, _grimTocHeadings, _grimOpenTocSheet, _grimTocPick, _kbInsetSync, _grimSortControl, grimToggleSortMenu,
     _grimSortOutside, grimCloseSortMenu, grimSortTriggerKey, grimSetSort, renderGrimList, _grimInitListSortable, _grimPersistOrder, _grimInk,
     _grimColorVars, _grimLeafHTML, _grimCryptMonthsHTML, grimToggleCryptMonth, renderGrimDetail, _grimGrowTitle, grimSetMode, grimOpen,
     grimNew, grimBack, grimTitleKey, grimTitleInput, grimBodyInput, grimCommit, _grimSyncActiveLeaf, grimDelete,
@@ -758,11 +759,58 @@ function _grimApplyBarMode() {
 // (≥3 headings). Click jumps + flashes the heading; scroll-spy lights the
 // current section. The rail is a flex sibling of .grim-page-main; the table
 // overlay (.grim-tctl) is unaffected (it positions by absolute screen coords).
+// V2-B1-16: на узком экране рельсы нет вовсе (222px рядом с 360px контента не
+// живут), поэтому оглавление показывается НИЖНЕЙ СТВОРКОЙ — той же идиомой, что
+// и остальные меню на тач-устройствах. Порог по ширине, а не по типу указателя:
+// исчезает именно рельса, и делает это медиазапрос.
+const GRIM_TOC_SHEET_MAX = 640;
+function _grimTocIsSheet() { return window.innerWidth <= GRIM_TOC_SHEET_MAX; }
+
+// Живые заголовки записи (общий источник для рельсы и створки).
+function _grimTocHeadings() {
+    const bo = document.querySelector<HTMLElement>('#grim-detail .grim-body');
+    if (!bo) return [];
+    return [...bo.querySelectorAll<HTMLElement>('h1, h2, h3')].filter(h => (h.textContent || '').trim());
+}
+
 function grimToggleToc() {
+    if (_grimTocIsSheet()) { _grimOpenTocSheet(); return; }
     grimTocOpen = !grimTocOpen;
     localStorage.setItem('grimTocOpen', grimTocOpen ? '1' : '0');
     _grimRefreshToc();
     _grimScheduleTableUI();    // body width changed → re-glue table seals/gutters
+}
+
+// Створка оглавления: те же строки, что в рельсе, но как пункты меню.
+function _grimOpenTocSheet() {
+    const heads = _grimTocHeadings();
+    if (!heads.length) return;
+    _grimTocHeads = heads;
+    const lvl = h => (h.tagName === 'H1' ? 1 : h.tagName === 'H2' ? 2 : 3);
+    const rows = heads.map((h, i) =>
+        `<button type="button" role="menuitem" class="gtoc-sheet-item l${lvl(h)}" data-act="_grimTocPick" data-i="${i}">`
+        + `<span class="gtoc-gl">${lvl(h) === 1 ? GIC.tocArch : ''}</span>`
+        + `<span class="gtoc-tx">${escHtml((h.textContent || '').trim())}</span></button>`).join('');
+    const btn = document.querySelector<HTMLElement>('#grim-detail .grim-toc-toggle');
+    _openFloatMenu(btn, `<div class="float-menu-head">${GIC.toc}<span>Оглавление</span></div>${rows}`, 'grim-toc-sheet');
+}
+
+function _grimTocPick(i) {
+    closeFloatMenu();
+    _grimTocGo(parseInt(i, 10));
+}
+
+// V2-B1-25: липкий тулбар форматирования на телефоне должен стоять НАД
+// клавиатурой. Layout viewport под ней не сжимается (по умолчанию Chrome отдаёт
+// `interactive-widget=resizes-visual`), поэтому высоту клавиатуры считаем сами и
+// отдаём в CSS переменной; правило `.fmt-bar` берёт max(обход кнопок, клавиатура).
+function _kbInsetSync() {
+    const vv = window.visualViewport;
+    const px = vv ? Math.max(0, Math.round(window.innerHeight - vv.height)) : 0;
+    document.documentElement.style.setProperty('--kb-inset', px + 'px');
+}
+if (typeof window !== 'undefined' && window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _kbInsetSync);
 }
 
 // (Re)build the rail from the live headings and gate its visibility on ≥3 of them.

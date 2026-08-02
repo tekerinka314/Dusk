@@ -7476,8 +7476,22 @@ kbd {
 .grim-toc-toggle svg { width: 18px; height: 18px; }
 .grim-toc-toggle:hover { border-color: var(--border-bright); color: var(--accent-hover); }
 .grim-toc-toggle.on { color: var(--accent-hover); border-color: var(--border-bright); box-shadow: 0 0 10px var(--accent-glow); }
-/* Button only appears on notes with enough structure (≥3 headings), desktop only. */
-@media (min-width: 641px) { .grim-page.toc-avail .grim-toc-toggle { display: inline-flex; } }
+/* Button only appears on notes with enough structure (≥3 headings).
+   V2-B1-16: показ больше НЕ заперт десктопом — на узком экране та же кнопка
+   открывает нижнюю створку с заголовками (рельсы там нет и быть не может). */
+.grim-page.toc-avail .grim-toc-toggle { display: inline-flex; }
+
+/* Створка оглавления (≤640px): строки — обычные пункты меню, уровень читается
+   отступом и кеглем, как в рельсе. */
+.snooze-menu.grim-toc-sheet .float-menu-head { display: flex; align-items: center; gap: 7px; }
+.snooze-menu.grim-toc-sheet .float-menu-head svg { width: 14px; height: 14px; color: var(--accent); opacity: 0.85; }
+.snooze-menu.grim-toc-sheet .gtoc-sheet-item { text-align: left; }
+.snooze-menu.grim-toc-sheet .gtoc-sheet-item .gtoc-gl { display: inline-flex; width: 14px; flex: none; color: var(--accent); opacity: 0.8; }
+.snooze-menu.grim-toc-sheet .gtoc-sheet-item .gtoc-gl svg { width: 14px; height: 14px; }
+.snooze-menu.grim-toc-sheet .gtoc-sheet-item .gtoc-tx { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snooze-menu.grim-toc-sheet .gtoc-sheet-item.l1 { color: var(--text-primary); }
+.snooze-menu.grim-toc-sheet .gtoc-sheet-item.l2 { padding-left: 22px; }
+.snooze-menu.grim-toc-sheet .gtoc-sheet-item.l3 { padding-left: 38px; font-size: 12.5px; color: var(--text-muted); }
 /* Crypt (read-only) has no toolbar toggle in the stack — close the gap. */
 .grim-page--ro .grim-toc-toggle { top: 42px; }
 
@@ -8476,6 +8490,10 @@ kbd {
     .grim-divider { margin-right: 52px; }
     .grim-body { padding-right: 52px; }
     .fmt-bar { margin-right: 52px; }
+    /* V2-B1-25: тулбар был прибит к началу записи — в длинном тексте за ним
+       приходилось возвращаться наверх. Липнет к верхней кромке окна; скроллпорт
+       здесь документ (у .grim-detail нет overflow), поэтому sticky живой. */
+    .fmt-bar { position: sticky; top: 10px; z-index: 4; }
 }
 .fmt-cluster {
     display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 9px;
@@ -8675,6 +8693,21 @@ kbd {
     .grim-date { flex: 0 0 100%; }
     .grim-acts { width: 100%; justify-content: center; }
     .grim-stamps { justify-content: center; }
+    /* V2-B1-25 (телефон): тулбар липнет к НИЗУ — к большому пальцу, а не к началу
+       записи. ⚠ `position: sticky; bottom:` работает только для элемента в КОНЦЕ
+       потока (замер: у элемента в начале он просто уезжает вверх вместе с
+       текстом) — поэтому колонка становится флексом, и тулбар уходит в конец
+       порядком. Побочная выгода: полоса его места в потоке прячется в подвал
+       записи, а не зияет дырой под заглавием. `fixed` не годится: он якорится к
+       .grim-detail (у панели есть transform) и уехал бы вместе с ней.
+       Отступ снизу берёт max() из двух зол: в покое обходит стопку плавающих
+       кнопок (звук 22..62, перо 68..108), при поднятой клавиатуре встаёт над ней
+       (`--kb-inset` считает 02-grimoire по visualViewport). */
+    .grim-page-main { display: flex; flex-direction: column; }
+    .fmt-bar {
+        order: 9; position: sticky; z-index: 4;
+        bottom: calc(12px + max(102px + env(safe-area-inset-bottom, 0px), var(--kb-inset, 0px)));
+    }
 }
 
 /* ============================================================

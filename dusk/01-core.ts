@@ -1881,6 +1881,7 @@ Object.assign(ACT, {
     grimBack:          () => grimBack(),
     grimToggleFocus:   () => grimToggleFocus(),
     grimToggleToc:     () => grimToggleToc(),
+    _grimTocPick:      el => _grimTocPick(el.dataset.i),      // V2-B1-16: строка створки оглавления
     grimToggleBar:     () => grimToggleBar(),
     grimBodyClick:     (el, e) => grimBodyClick(e),
     grimTogglePin:     el => grimTogglePin(el.dataset.nid),

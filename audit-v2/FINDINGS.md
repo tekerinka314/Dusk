@@ -468,6 +468,13 @@ screenshot (C) on top of the CSS root-cause (A). Adversarial refutation per §2.
 - **Change together:** `02-grimoire.ts` + `style.css` (a mobile TOC surface).
 - **Tests:** on a long note at 360, a heading-nav affordance exists and jumps to headings.
 - **Cross-app:** Grimuar-only.
+- ✅ **FIXED (build 2026-07-28-18).** Вердикт юзера — нижняя СТВОРКА (та же идиома,
+  что и остальные action-sheet). `.grim-page.toc-avail .grim-toc-toggle` выпущен
+  из `@media (min-width:641px)`; `grimToggleToc()` ниже 641px зовёт
+  `_grimOpenTocSheet()` → `_openFloatMenu(..., 'grim-toc-sheet')` со строками
+  `role="menuitem" data-act="_grimTocPick"` (уровни h1/h2/h3 — отступом), прыжок
+  тот же `_grimTocGo`. Замок `tests/grimoire-mobile-nav.test.mjs`, замер
+  `D:/tmp/pw/b1/w3_b116_toc.mjs` 16/16 (412 и 1280).
 
 ### V2-B1-17 — Body-portal popovers anchored to right-edge buttons overflow the screen → menu text clipped on mobile (no flip/clamp)
 - **Evidence:** C (`B1w_more_small.png` — the task "more" menu «Сохранить как шабло…» / «Дублировать задачу» / «Сделать подпунктом» is cut off past the right viewport edge) + A (body-portal popover pattern).
@@ -624,6 +631,14 @@ the user; scrolling is smooth (except the render glitch below).
 - **Fix strategy:** on touch, make the toolbar sticky near the keyboard (bottom) or show a selection-anchored mini-toolbar; keep the gothic styling.
 - **Change together:** `02-grimoire.ts` (toolbar placement on touch) + `style.css`.
 - **Cross-app:** Grimuar-only.
+- ✅ **FIXED (build 2026-07-28-18).** Вердикт юзера — липкий тулбар, причём и на
+  ПК. ≥641px: `position: sticky; top: 10px`. ≤640px: колонка записи становится
+  флексом и тулбар уходит в конец потока (`order: 9`) — ⚠ без этого `sticky` +
+  `bottom` мнимый: у элемента в НАЧАЛЕ контейнера он просто уезжает вверх
+  (замерено). Отступ `max(102px + safe-area, var(--kb-inset))`: в покое обходит
+  стопку плавающих кнопок, при клавиатуре встаёт над ней — высоту клавиатуры
+  считает `_kbInsetSync()` по `visualViewport` (layout viewport под клавиатурой
+  не сжимается). `fixed` отвергнут: якорится к `.grim-detail` (у панели transform).
 
 ### V2-B1-26 — Text editing is dblclick-gated on five surfaces → on touch there is no reliable or discoverable way to rename a task / edit subtask text / edit an existing note
 - **Evidence:** A + B (S1 emulation, 2026-07-11).
